@@ -1,11 +1,32 @@
 # Enterprise Infrastructure Management System (EIMS)
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![License: All Rights Reserved](https://img.shields.io/badge/License-All%20Rights%20Reserved-red.svg)](LICENSE)
+[![Licensing Model](https://img.shields.io/badge/Model-Source--Available-E11D48.svg)](NOTICE)
 [![EDS Constitution](https://img.shields.io/badge/EDS%20Constitution-v1.0.0%20Approved-047857.svg)](docs/index.md)
 [![Build Status](https://img.shields.io/badge/Build-Active%20Development-1E40AF.svg)](CHANGELOG.md)
-[![Release](https://img.shields.io/badge/Release-v0.1.0%20Documentation-5B21B6.svg)](https://github.com/Ratthabhumi/EIMS)
 
 **EIMS (Enterprise Infrastructure Management System)** is an enterprise-grade platform engineered to centralize compute infrastructure discovery, hardware inventory tracking, automated optical character recognition (OCR) asset registration, continuous Windows log diagnostics, rules-based compliance auditing, and live operational visibility.
+
+---
+
+## 🔒 Source-Available Licensing & Legal Status
+
+> [!IMPORTANT]
+> **This project is NOT an Open Source software product.** 
+> EIMS is published under a strict **Source-Available / All Rights Reserved** proprietary licensing model ([LICENSE](LICENSE)).
+
+| Licensing Parameter | Authoritative Project Policy |
+| :--- | :--- |
+| **Repository Visibility** | **Public** (Exclusively for architectural evaluation and technical portfolio demonstration). |
+| **Source Code Visibility**| **Public** |
+| **License Type** | **All Rights Reserved** (See [LICENSE](LICENSE) and [NOTICE](NOTICE) specifications). |
+| **Open Source Rights** | **No** (Public visibility does not imply or confer any open-source usage rights). |
+| **Commercial Utilization**| **Not permitted** without express prior written commercial license authorization. |
+| **Redistribution Rights** | **Not permitted** under any circumstances. |
+| **Modification & Derivation**| **Not permitted** unless explicitly authorized in writing by project copyright owners. |
+| **Trademark Rights** | **Strictly Reserved** |
+
+*Commercial distribution and operational deployment licensing will be made available upon formal request in future product lifecycle stages.*
 
 ---
 
@@ -56,16 +77,17 @@ All software implementation, database schema modeling, and API routing within EI
 
 ---
 
-## Contributing & Engineering Governance
+## Engineering Governance & Evaluation
 
-We practice professional software engineering governance. Before submitting issues, feature additions, or codebase modifications, all contributing engineers must read and adopt our project conventions:
+We practice professional software engineering governance. Before interacting with our public evaluation repositories or reviewing architectural proposals, visitors must read our engineering conventions:
 - **[Contributing Handbook](CONTRIBUTING.md)**: Details Git branching standards (`feature/`, `fix/`, `docs/`), **Conventional Commits** formatting rules, and documentation-first development practices.
-- **[Security & Vulnerability Disclosure Policy](SECURITY.md)**: Outlines responsible reporting channels for suspected security flaws and exception response SLAs.
-- **[Community Code of Conduct](CODE_OF_CONDUCT.md)**: Binds contributors to professional collaborative standards under Contributor Covenant v2.1.
-- **[Changelog Archive](CHANGELOG.md)**: Records sequential platform release progressions and historical milestone tagging.
+- **[Security & Vulnerability Disclosure Policy](SECURITY.md)**: Outlines responsible private reporting channels for diagnostic vulnerability submissions.
+- **[Community Code of Conduct](CODE_OF_CONDUCT.md)**: Binds evaluation community observers to professional collaborative standards under Contributor Covenant v2.1.
+- **[Changelog Archive](CHANGELOG.md)**: Records sequential platform engineering progressions and historical milestone tagging.
 
 ---
 
 ## License
 
-Copyright 2026 EIMS Project Engineering Team. Licensed under the **[Apache License 2.0](LICENSE)**.
+Copyright 2026 EIMS Project Engineering Team & Ratthabhumi. 
+Licensed under **[All Rights Reserved / Source-Available Proprietary Policy](LICENSE)**.

@@ -1,0 +1,19 @@
+==============================================================================
+EIMS SOURCE-AVAILABLE NOTIFICATION & EVALUATION POLICY
+==============================================================================
+
+This repository hosts the canonical codebase, architectural design specifications, and engineering governance documents for the Enterprise Infrastructure Management System (EIMS).
+
+1. PROJECT LICENSING CLASSIFICATION
+   - Classification: Source-Available Proprietary Software
+   - License Type: ALL RIGHTS RESERVED (See LICENSE file)
+   - Open Source Status: NO (This project is NOT open source)
+
+2. PURPOSE OF PUBLIC REPOSITORY VISIBILITY
+   This repository maintains public visibility exclusively as a portfolio and technical capability demonstration. It allows engineering observers to evaluate:
+   - System architectural patterns and C4 modeling rigor.
+   - Documentation-first software engineering governance (EDS v1.0.0).
+   - High-throughput asynchronous edge ingestion designs and relational database schemas.
+
+3. PROHIBITIONS
+   Public visibility DOES NOT authorize users to copy, fork for enterprise execution, redistribute, commercially deploy, or repurpose any source logic, database tables, or design specifications. Commercial evaluation licensing options will be made available in future releases.

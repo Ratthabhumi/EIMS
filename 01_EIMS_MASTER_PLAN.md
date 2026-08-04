@@ -85,7 +85,7 @@ Enterprise IT infrastructures operate across fragmented networking boundaries, l
 
 ### 5.2 Technology Stack Selection & Engineering Rationale
 
-EIMS enforces a strict high-performance open-source technology stack. The table below outlines our approved engineering dependencies and justifies the structural trade-offs supporting each decision.
+EIMS enforces a strict high-performance industry-standard production technology stack. The table below outlines our approved engineering dependencies and justifies the structural trade-offs supporting each decision.
 
 | Layer / Functional Role | Chosen Technology Stack | Engineering Rationale & Architectural Trade-offs |
 | :--- | :--- | :--- |
