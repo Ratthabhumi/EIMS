@@ -110,20 +110,26 @@ flowchart LR
     classDef ui fill:#5B21B6,stroke:#8B5CF6,color:#FFFFFF,stroke-width:2px;
     classDef queue fill:#374151,stroke:#6B7280,color:#FFFFFF,stroke-width:2px;
 
-    Agent[Discovery Agent / Endpoints] ::: agent -->|mTLS JSON Telemetry| Collector[FastAPI Telemetry Collector] ::: service
-    Admin[Admin Operator] ::: agent -->|Submit OCR Document| UI[Next.js Operational Dashboard] ::: ui
-    UI -->|HTTPS REST API| API[FastAPI Core Gateway] ::: service
+    Agent[Discovery Agent / Endpoints] -->|mTLS JSON Telemetry| Collector[FastAPI Telemetry Collector]
+    Admin[Admin Operator] -->|Submit OCR Document| UI[Next.js Operational Dashboard]
+    UI -->|HTTPS REST API| API[FastAPI Core Gateway]
 
     subgraph EIMS Central Backend Infrastructure
-        Collector -->|Publish Metric Events| Broker([Redis Event Broker]) ::: queue
-        Broker -->|Consume Telemetry| Processor[Telemetry & Log Worker] ::: service
-        API -->|Dispatch OCR Task| Worker[OCR Processing Service] ::: service
+        Collector -->|Publish Metric Events| Broker([Redis Event Broker])
+        Broker -->|Consume Telemetry| Processor[Telemetry & Log Worker]
+        API -->|Dispatch OCR Task| Worker[OCR Processing Service]
     end
 
-    Processor -->|Write Asset State & Logs| DB[(PostgreSQL Asset Registry)] ::: store
-    Worker -->|Store Raw Image| S3[(MinIO Object Store)] ::: store
+    Processor -->|Write Asset State & Logs| DB[(PostgreSQL Asset Registry)]
+    Worker -->|Store Raw Image| S3[(MinIO Object Store)]
     Worker -->|Write OCR Metadata| DB
     API <-->|Query Asset & Compliance| DB
+
+    class Agent,Admin agent;
+    class Collector,API,Processor,Worker service;
+    class UI ui;
+    class Broker queue;
+    class DB,S3 store;
 ```
 
 ---

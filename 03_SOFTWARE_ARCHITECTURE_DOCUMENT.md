@@ -107,24 +107,30 @@ flowchart LR
     classDef ui fill:#5B21B6,stroke:#8B5CF6,color:#FFFFFF,stroke-width:2px;
     classDef queue fill:#374151,stroke:#6B7280,color:#FFFFFF,stroke-width:2px;
 
-    Agent[Discovery Agent] ::: agent -->|mTLS HTTPS Payload| Collector[FastAPI Telemetry Collector] ::: service
-    Admin[Operator / Auditor] ::: agent -->|HTTPS & WebSockets| UI[Next.js Operational Dashboard] ::: ui
-    UI -->|REST / OpenAPI| API[FastAPI Core Gateway] ::: service
+    Agent[Discovery Agent] -->|mTLS HTTPS Payload| Collector[FastAPI Telemetry Collector]
+    Admin[Operator / Auditor] -->|HTTPS & WebSockets| UI[Next.js Operational Dashboard]
+    UI -->|REST / OpenAPI| API[FastAPI Core Gateway]
     UI <-->|WSS Alert Feed| API
 
     subgraph EIMS Asynchronous Processing Architecture
-        Collector -->|LPUSH Telemetry Stream| Broker([Redis Event Broker]) ::: queue
-        Broker -->|BRPOP / Consume Queue| Processor[Telemetry & Log Worker] ::: service
-        API -->|Upload Image Binary| S3[(MinIO Object Store)] ::: store
+        Collector -->|LPUSH Telemetry Stream| Broker([Redis Event Broker])
+        Broker -->|BRPOP / Consume Queue| Processor[Telemetry & Log Worker]
+        API -->|Upload Image Binary| S3[(MinIO Object Store)]
         API -->|LPUSH OCR Job ID| Broker
-        Broker -->|Consume OCR Task| OCR[OCR Extraction Worker] ::: service
+        Broker -->|Consume OCR Task| OCR[OCR Extraction Worker]
         OCR <-->|Fetch Image Binary| S3
     end
 
-    Processor -->|Batch SQL Upsert| Pool[PgBouncer Connection Pool] ::: service
+    Processor -->|Batch SQL Upsert| Pool[PgBouncer Connection Pool]
     OCR -->|Write Inventory Metrics| Pool
     API <-->|Transactional Read/Write| Pool
-    Pool <-->|Persistent TCP Trunk| DB[(PostgreSQL Asset Registry)] ::: store
+    Pool <-->|Persistent TCP Trunk| DB[(PostgreSQL Asset Registry)]
+
+    class Agent,Admin agent;
+    class Collector,API,Processor,OCR,Pool service;
+    class UI ui;
+    class Broker queue;
+    class S3,DB store;
 ```
 
 ---

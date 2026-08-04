@@ -67,8 +67,12 @@ graph LR
     classDef store fill:#1E40AF,stroke:#3B82F6,color:#FFFFFF,stroke-width:2px;
     classDef agent fill:#047857,stroke:#10B981,color:#FFFFFF,stroke-width:2px;
     
-    Agent[Discovery Agent] ::: agent -->|HTTPS REST| API[FastAPI Telemetry Collector] ::: service
-    API -->|Write Stream| DB[(PostgreSQL Asset Registry)] ::: store
+    Agent[Discovery Agent] -->|HTTPS REST| API[FastAPI Telemetry Collector]
+    API -->|Write Stream| DB[(PostgreSQL Asset Registry)]
+
+    class Agent agent;
+    class API service;
+    class DB store;
 ```
 
 ---
@@ -108,13 +112,17 @@ flowchart LR
     classDef store fill:#1E40AF,stroke:#3B82F6,color:#FFFFFF,stroke-width:2px;
     classDef ui fill:#5B21B6,stroke:#8B5CF6,color:#FFFFFF,stroke-width:2px;
 
-    UI[Operational Dashboard] ::: ui
+    UI[Operational Dashboard]
     
     subgraph EIMS Backend Infrastructure
-        API[FastAPI Gateway] ::: service
-        Worker[Background OCR Processor] ::: service
-        DB[(PostgreSQL Database)] ::: store
+        API[FastAPI Gateway]
+        Worker[Background OCR Processor]
+        DB[(PostgreSQL Database)]
     end
+
+    class UI ui;
+    class API,Worker service;
+    class DB store;
 
     UI -->|HTTPS / API Requests| API
     API -->|Dispatch Ingestion Task| Worker

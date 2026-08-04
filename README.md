@@ -53,14 +53,19 @@ flowchart LR
     classDef agent fill:#047857,stroke:#10B981,color:#FFFFFF,stroke-width:2px;
     classDef ui fill:#5B21B6,stroke:#8B5CF6,color:#FFFFFF,stroke-width:2px;
 
-    Agent[Discovery Agent] ::: agent -->|mTLS HTTPS Telemetry| Collector[FastAPI Telemetry Collector] ::: service
-    Collector -->|LPUSH Redis Stream| Broker([Redis Event Broker]) ::: service
-    Broker -->|Consume Batch Queue| Worker[Telemetry & Log Worker] ::: service
-    Worker -->|Batch SQL UPSERT| Pool[PgBouncer Pool] ::: service
-    Pool <-->|TCP Relational Trunk| DB[(PostgreSQL Asset Registry)] ::: store
-    Operator[System Administrator] ::: agent <-->|WSS Real-time Feed| UI[Next.js Operational Dashboard] ::: ui
-    UI <-->|OpenAPI / REST| Gateway[FastAPI Core Gateway] ::: service
+    Agent[Discovery Agent] -->|mTLS HTTPS Telemetry| Collector[FastAPI Telemetry Collector]
+    Collector -->|LPUSH Redis Stream| Broker([Redis Event Broker])
+    Broker -->|Consume Batch Queue| Worker[Telemetry & Log Worker]
+    Worker -->|Batch SQL UPSERT| Pool[PgBouncer Pool]
+    Pool <-->|TCP Relational Trunk| DB[(PostgreSQL Asset Registry)]
+    Operator[System Administrator] <-->|WSS Real-time Feed| UI[Next.js Operational Dashboard]
+    UI <-->|OpenAPI / REST| Gateway[FastAPI Core Gateway]
     Gateway <--> Pool
+
+    class Agent,Operator agent;
+    class Collector,Broker,Worker,Pool,Gateway service;
+    class DB store;
+    class UI ui;
 ```
 
 ---
