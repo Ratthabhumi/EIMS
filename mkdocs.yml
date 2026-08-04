@@ -1,0 +1,85 @@
+site_name: EIMS Engineering Handbook
+site_description: Enterprise Infrastructure Management System (EIMS) authoritative single source of truth for architecture, design, and operations.
+site_author: EIMS Engineering Team
+repo_name: eims-project
+repo_url: https://github.com/enterprise/eims
+
+theme:
+  name: material
+  logo: assets/icons/eims-logo.png
+  favicon: assets/icons/favicon.ico
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: slate
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: slate
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+
+nav:
+  - Handbook Home: index.md
+  - Master Plan: 01_EIMS_MASTER_PLAN.md
+  - Product Requirements: 02_PRODUCT_REQUIREMENTS_DOCUMENT.md
+  - Architecture:
+    - Overview: 03_SOFTWARE_ARCHITECTURE_DOCUMENT.md
+    - System Blueprint: SYSTEM_BLUEPRINT.md
+    - Guidelines: ENGINEERING_GUIDELINES.md
+    - Decisions (ADR): adr/index.md
+  - Database Design: 04_DATABASE_DESIGN.md
+  - API Specifications: 05_API_SPECIFICATION.md
+  - Security Architecture: SECURITY.md
+  - Deployment & Operations: DEPLOYMENT.md
+  - Testing Framework: TESTING.md
+  - Documentation System (EDS):
+    - Document Template: _templates/document-template.md
+    - Document Standard: _style/document-standard.md
+    - Writing Guide: _style/writing-guide.md
+    - Terminology: _style/terminology.md
+    - Diagram Standard: _style/diagram-standard.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+
+plugins:
+  - search
+
+extra:
+  version:
+    provider: mike
