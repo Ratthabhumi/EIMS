@@ -1,0 +1,71 @@
+# Enterprise Infrastructure Management System (EIMS)
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![EDS Constitution](https://img.shields.io/badge/EDS%20Constitution-v1.0.0%20Approved-047857.svg)](docs/index.md)
+[![Build Status](https://img.shields.io/badge/Build-Active%20Development-1E40AF.svg)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/Release-v0.1.0%20Documentation-5B21B6.svg)](https://github.com/Ratthabhumi/EIMS)
+
+**EIMS (Enterprise Infrastructure Management System)** is an enterprise-grade platform engineered to centralize compute infrastructure discovery, hardware inventory tracking, automated optical character recognition (OCR) asset registration, continuous Windows log diagnostics, rules-based compliance auditing, and live operational visibility.
+
+---
+
+## 🚧 Project Status
+
+This project is currently under active development.
+
+- **Sprint 0 – Documentation Foundation** ✅
+- **Sprint 1 – Engineering Specifications** ✅
+- **Sprint 2 – Backend Foundation** *(In Progress)*
+
+*The project is not yet production-ready.*
+
+---
+
+## System Architecture Overview
+
+EIMS utilizes a **Hybrid Modular Monolith paired with an Asynchronous Event-Driven Ingestion Architecture**. High-frequency diagnostic telemetry and security events stream over Mutual TLS (mTLS) into real-time Redis queues, decoupling rapid network ingestion from synchronous relational PostgreSQL database writes.
+
+```mermaid
+flowchart LR
+    classDef service fill:#1E293B,stroke:#475569,color:#FFFFFF,stroke-width:2px;
+    classDef store fill:#1E40AF,stroke:#3B82F6,color:#FFFFFF,stroke-width:2px;
+    classDef agent fill:#047857,stroke:#10B981,color:#FFFFFF,stroke-width:2px;
+    classDef ui fill:#5B21B6,stroke:#8B5CF6,color:#FFFFFF,stroke-width:2px;
+
+    Agent[Discovery Agent] ::: agent -->|mTLS HTTPS Telemetry| Collector[FastAPI Telemetry Collector] ::: service
+    Collector -->|LPUSH Redis Stream| Broker([Redis Event Broker]) ::: service
+    Broker -->|Consume Batch Queue| Worker[Telemetry & Log Worker] ::: service
+    Worker -->|Batch SQL UPSERT| Pool[PgBouncer Pool] ::: service
+    Pool <-->|TCP Relational Trunk| DB[(PostgreSQL Asset Registry)] ::: store
+    Operator[System Administrator] ::: agent <-->|WSS Real-time Feed| UI[Next.js Operational Dashboard] ::: ui
+    UI <-->|OpenAPI / REST| Gateway[FastAPI Core Gateway] ::: service
+    Gateway <--> Pool
+```
+
+---
+
+## Authoritative Core Laws (Single Source of Truth)
+
+All software implementation, database schema modeling, and API routing within EIMS strictly obey our foundational architectural specifications (**Core Laws**) governed under the frozen **EIMS Documentation System (EDS v1.0.0)**:
+
+1. **[Core Law 1: EIMS Master Plan](01_EIMS_MASTER_PLAN.md)** — Architectural vision, technology selection trade-off evaluations (FastAPI, Next.js, PostgreSQL, Redis, MinIO, Docker), and product development sprint milestones.
+2. **[Core Law 2: Product Requirements Document](02_PRODUCT_REQUIREMENTS_DOCUMENT.md)** — Binding functional execution capabilities, operational personas (`System Administrator`, `Security Auditor`), and verifiable Requirement Traceability IDs (`REQ-DISC-01` through `NFR-SCALE-02`).
+3. **[Core Law 3: Software Architecture Document](03_SOFTWARE_ARCHITECTURE_DOCUMENT.md)** — C4 container topology boundaries, edge sequence flows (<15ms HTTP 202 latencies), PgBouncer transaction pooling, and asset lifecycle state transition tables.
+4. **[Core Law 4: Database Design Specification](04_DATABASE_DESIGN.md)** — Complete PostgreSQL relational tables, Mermaid Entity-Relationship diagrams (`erDiagram`), composite B-Tree/GIN JSONB indexes, declarative monthly time-series partitioning, and Volatile-LRU Redis namespace definitions.
+5. **[Core Law 5: API Specification](05_API_SPECIFICATION.md)** — Canonical REST / OpenAPI routing protocols, secure WebSocket channels (`WSS /api/v1/ws/dashboard`), mTLS authentication parameter contracts, and RFC 7807 Problem Details error schemas.
+
+---
+
+## Contributing & Engineering Governance
+
+We practice professional software engineering governance. Before submitting issues, feature additions, or codebase modifications, all contributing engineers must read and adopt our project conventions:
+- **[Contributing Handbook](CONTRIBUTING.md)**: Details Git branching standards (`feature/`, `fix/`, `docs/`), **Conventional Commits** formatting rules, and documentation-first development practices.
+- **[Security & Vulnerability Disclosure Policy](SECURITY.md)**: Outlines responsible reporting channels for suspected security flaws and exception response SLAs.
+- **[Community Code of Conduct](CODE_OF_CONDUCT.md)**: Binds contributors to professional collaborative standards under Contributor Covenant v2.1.
+- **[Changelog Archive](CHANGELOG.md)**: Records sequential platform release progressions and historical milestone tagging.
+
+---
+
+## License
+
+Copyright 2026 EIMS Project Engineering Team. Licensed under the **[Apache License 2.0](LICENSE)**.
