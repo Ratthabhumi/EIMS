@@ -105,7 +105,7 @@ class AssetStateViolationException(EIMSProblemException):
     """Raised when an illegal state transition occurs in Asset Lifecycle State Machine."""
     def __init__(self, current_state: str, attempted_state: str, asset_id: str):
         super().__init__(
-            status=422,
+            status=409,
             title="Asset Lifecycle State Machine Violation",
             detail=f"Cannot transition Asset ID '{asset_id}' from state '{current_state}' directly to '{attempted_state}'. Operation prohibited under Core Law 3.",
             type_uri="https://errors.eims.platform/v1/illegal-state-transition",
