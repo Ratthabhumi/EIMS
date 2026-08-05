@@ -22,6 +22,8 @@ from backend.domain.telemetry.broker import (
     MAX_STREAM_LENGTH,
 )
 from backend.domain.telemetry.controller import telemetry_router, get_telemetry_broker
+from backend.domain.telemetry.models import TelemetryMetric, WindowsEventLog
+from backend.domain.telemetry.worker import TelemetryStreamConsumer
 
 __all__ = [
     "HeartbeatMetrics",
@@ -37,4 +39,7 @@ __all__ = [
     "MAX_STREAM_LENGTH",
     "telemetry_router",
     "get_telemetry_broker",
+    "TelemetryMetric",
+    "WindowsEventLog",
+    "TelemetryStreamConsumer",
 ]
