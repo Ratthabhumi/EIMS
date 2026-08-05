@@ -37,7 +37,8 @@ This project is currently under active development.
 - **Sprint 0 – Documentation Foundation** ✅
 - **Sprint 1 – Engineering Specifications** ✅
 - **Sprint 2 – Backend Foundation** ✅
-- **Sprint 3 – Telemetry Collector & Discovery Agent Ingestion** *(In Progress)*
+- **Sprint 3 – Telemetry Collector & Discovery Agent Ingestion** ✅
+- **Sprint 4 – MinIO Integration & OCR Asset Registration** *(Next Target / Active)*
 
 *The project is currently transitioning toward upcoming operational milestones.*
 
