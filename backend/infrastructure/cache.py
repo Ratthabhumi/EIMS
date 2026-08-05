@@ -55,7 +55,10 @@ class AsynchronousCacheManager:
         Enforces canonical naming convention rules (Core Law 4 Section 3.2).
         Keys must begin with recognized prefixes: eims:auth:, eims:asset:, eims:lock:, eims:sec:, or eims:queue:
         """
-        approved_prefixes = ("eims:auth:", "eims:asset:", "eims:lock:", "eims:sec:", "eims:queue:")
+        approved_prefixes = (
+            "eims:session:", "eims:cache:", "eims:telemetry:", "eims:sec:", "eims:jobs:",
+            "eims:auth:", "eims:asset:", "eims:lock:", "eims:queue:"
+        )
         if not key.startswith(approved_prefixes):
             logger.warning(f"Cache Key Namespace Violation: '{key}' does not conform to Core Law 4 approved hierarchy.")
 

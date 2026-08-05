@@ -14,6 +14,13 @@ from backend.domain.telemetry.schemas import (
     StreamIngestionResponse,
 )
 from backend.domain.telemetry.security import verify_mtls_fingerprint
+from backend.domain.telemetry.broker import (
+    AbstractTelemetryBroker,
+    RedisTelemetryStreamBroker,
+    StubTelemetryStreamBroker,
+    TELEMETRY_STREAM_KEY,
+    MAX_STREAM_LENGTH,
+)
 
 __all__ = [
     "HeartbeatMetrics",
@@ -22,4 +29,9 @@ __all__ = [
     "AgentWinlogRequest",
     "StreamIngestionResponse",
     "verify_mtls_fingerprint",
+    "AbstractTelemetryBroker",
+    "RedisTelemetryStreamBroker",
+    "StubTelemetryStreamBroker",
+    "TELEMETRY_STREAM_KEY",
+    "MAX_STREAM_LENGTH",
 ]
