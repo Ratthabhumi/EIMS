@@ -1,0 +1,74 @@
+# ==============================================================================
+# EIMS Local Infrastructure Dev Stack
+# Governed by EIMS Documentation System (EDS v1.0.0)
+# Core Law 3 (SAD) & Core Law 4 (Database Design) Compliance
+# ==============================================================================
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # PostgreSQL 16 Asset Registry Persistence Engine
+  # ----------------------------------------------------------------------------
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: eims-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: eims_registry
+      POSTGRES_USER: eims_user
+      POSTGRES_PASSWORD: eims_secret_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_storage:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eims_user -d eims_registry"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------------------
+  # PgBouncer Transaction Connection Pooler (Core Law 3 Component)
+  # ----------------------------------------------------------------------------
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: eims-pgbouncer
+    restart: unless-stopped
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgres://eims_user:eims_secret_password@postgres_db:5432/eims_registry"
+      POOL_MODE: "transaction"
+      MAX_CLIENT_CONN: "1000"
+      DEFAULT_POOL_SIZE: "20"
+      AUTH_TYPE: "plain"
+      AUTH_USER: "eims_user"
+      AUTH_PASS: "eims_secret_password"
+    ports:
+      - "6432:6432"
+
+  # ----------------------------------------------------------------------------
+  # Redis 7 In-Memory Telemetry Broker & Anomaly Cache (Core Law 4 Compliance)
+  # ----------------------------------------------------------------------------
+  redis_cache:
+    image: redis:7-alpine
+    container_name: eims-redis
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "512mb", "--maxmemory-policy", "volatile-lru", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_storage:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_storage:
+    driver: local
+  redis_storage:
+    driver: local
