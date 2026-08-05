@@ -17,6 +17,7 @@ from backend.core.exceptions import EIMSProblemException, eims_problem_exception
 from backend.core.logger import get_logger
 from backend.infrastructure.database import database_engine
 from backend.infrastructure.cache import cache_manager
+from backend.domain.asset_registry import asset_router
 
 logger = get_logger("eims.main")
 
@@ -69,6 +70,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register Modular Domain APIRouters (Core Law 5 Compliance)
+app.include_router(asset_router)
 
 
 @app.get("/api/v1/health", tags=["Operational Observability"])
