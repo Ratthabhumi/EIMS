@@ -9,15 +9,22 @@ Source-Available All Rights Reserved Policy
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.core.config import settings
-from backend.core.exceptions import EIMSProblemException, eims_problem_exception_handler, global_unhandled_exception_handler
+from backend.core.exceptions import (
+    EIMSProblemException,
+    eims_problem_exception_handler,
+    validation_problem_exception_handler,
+    global_unhandled_exception_handler,
+)
 from backend.core.logger import get_logger
 from backend.infrastructure.database import database_engine
 from backend.infrastructure.cache import cache_manager
 from backend.domain.asset_registry import asset_router
+from backend.domain.telemetry import telemetry_router
 
 logger = get_logger("eims.main")
 
@@ -60,6 +67,7 @@ app = FastAPI(
 
 # Register RFC 7807 Problem Details global exception middlewares
 app.add_exception_handler(EIMSProblemException, eims_problem_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_problem_exception_handler)
 app.add_exception_handler(Exception, global_unhandled_exception_handler)
 
 # Configure Cross-Origin Resource Sharing for Next.js Operational Dashboard UI
@@ -73,6 +81,7 @@ app.add_middleware(
 
 # Register Modular Domain APIRouters (Core Law 5 Compliance)
 app.include_router(asset_router)
+app.include_router(telemetry_router)
 
 
 @app.get("/api/v1/health", tags=["Operational Observability"])

@@ -18,6 +18,7 @@ from backend.domain.asset_registry import (
     AssetState,
 )
 from backend.domain.asset_registry.state_machine import AssetLifecycleStateMachine
+from backend.domain.telemetry import get_telemetry_broker, StubTelemetryStreamBroker
 from backend.core.exceptions import ResourceNotFoundException
 
 
@@ -67,14 +68,20 @@ class StubAssetRepository:
 @pytest.fixture
 def stub_repo() -> StubAssetRepository:
     """Provides isolated repository memory space per test case."""
-    repo = StubAssetRepository()
-    return repo
+    return StubAssetRepository()
 
 
 @pytest.fixture
-def client(stub_repo: StubAssetRepository) -> TestClient:
-    """Injects dependency override and generates synchronous TestClient bridge."""
+def stub_broker() -> StubTelemetryStreamBroker:
+    """Provides hermetic stream broker buffer per test case."""
+    return StubTelemetryStreamBroker()
+
+
+@pytest.fixture
+def client(stub_repo: StubAssetRepository, stub_broker: StubTelemetryStreamBroker) -> TestClient:
+    """Injects hermetic storage overrides and generates synchronous TestClient bridge."""
     app.dependency_overrides[get_asset_repository] = lambda: stub_repo
+    app.dependency_overrides[get_telemetry_broker] = lambda: stub_broker
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()

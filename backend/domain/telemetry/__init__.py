@@ -21,6 +21,7 @@ from backend.domain.telemetry.broker import (
     TELEMETRY_STREAM_KEY,
     MAX_STREAM_LENGTH,
 )
+from backend.domain.telemetry.controller import telemetry_router, get_telemetry_broker
 
 __all__ = [
     "HeartbeatMetrics",
@@ -34,4 +35,6 @@ __all__ = [
     "StubTelemetryStreamBroker",
     "TELEMETRY_STREAM_KEY",
     "MAX_STREAM_LENGTH",
+    "telemetry_router",
+    "get_telemetry_broker",
 ]

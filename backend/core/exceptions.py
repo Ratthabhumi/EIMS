@@ -9,6 +9,7 @@ import uuid
 from typing import Any, Dict, Optional
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from backend.core.logger import get_logger
 
 logger = get_logger("eims.exceptions")
@@ -71,6 +72,40 @@ async def eims_problem_exception_handler(request: Request, exc: EIMSProblemExcep
         status_code=exc.status,
         content=problem_payload,
         headers=headers
+    )
+
+
+async def validation_problem_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """
+    Transforms FastAPI and Pydantic schema validation failures directly into RFC 7807 Problem Details
+    under Core Law 5 Section 6.2 (Schema Validation Fault).
+    """
+    tracking_uuid = str(uuid.uuid4())
+    errors_list = exc.errors()
+    
+    detail = "Payload structure or metrics violate required schema validation constraints."
+    if errors_list:
+        first_err = errors_list[0]
+        field_path = " -> ".join(str(loc) for loc in first_err.get("loc", []))
+        msg = first_err.get("msg", "")
+        detail = f"Validation failure on field [{field_path}]: {msg}"
+
+    logger.warning(
+        f"Schema Validation Fault | UUID={tracking_uuid} | Path={request.url.path} | Errors={len(errors_list)}"
+    )
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "type": "https://errors.eims.platform/v1/schema-validation-fault",
+            "title": "Schema Validation Fault",
+            "status": 422,
+            "detail": detail,
+            "instance": str(request.url.path),
+            "tracking_uuid": tracking_uuid,
+            "validation_errors": errors_list,
+        },
+        headers={"Content-Type": "application/problem+json"}
     )
 
 
