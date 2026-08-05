@@ -1,0 +1,10 @@
+# EIMS Asynchronous Alembic Database Migrations
+This repository partition houses our chronological, non-blocking schema evolution scripts governed by **Core Law 4 (04_DATABASE_DESIGN.md)** and the **EIMS Documentation System (EDS v1.0.0)**.
+
+## Operational Commands
+- Generate initial autogenerate revision (when Postgres DB is online):
+  `alembic revision --autogenerate -m "initial asset registry tables"`
+- Upgrade local database schema to latest target:
+  `alembic upgrade head`
+- Downgrade previous step:
+  `alembic downgrade -1`
