@@ -18,6 +18,7 @@ from backend.domain.asset_registry import (
     AssetState,
 )
 from backend.domain.asset_registry.state_machine import AssetLifecycleStateMachine
+from backend.domain.asset_registry.models import OCRRegistrationRecord
 from backend.domain.telemetry import get_telemetry_broker, StubTelemetryStreamBroker
 from backend.core.exceptions import ResourceNotFoundException
 
@@ -29,6 +30,7 @@ class StubAssetRepository:
     """
     def __init__(self):
         self.storage: Dict[uuid.UUID, InfrastructureAsset] = {}
+        self.ocr_storage: Dict[uuid.UUID, OCRRegistrationRecord] = {}
 
     async def create_asset(self, hostname: str, canonical_ip: str, cryptographic_fingerprint: str, actor_id: Optional[uuid.UUID] = None) -> InfrastructureAsset:
         new_id = uuid.uuid4()
@@ -63,6 +65,17 @@ class StubAssetRepository:
         asset.lifecycle_state = target_state
         asset.updated_at = datetime.now(timezone.utc)
         return asset
+
+    async def create_ocr_registration(self, minio_uri: str) -> OCRRegistrationRecord:
+        new_id = uuid.uuid4()
+        record = OCRRegistrationRecord(
+            record_id=new_id,
+            minio_object_uri=minio_uri,
+            extraction_status="Pending",
+            parsed_raw_text={}
+        )
+        self.ocr_storage[new_id] = record
+        return record
 
 
 @pytest.fixture

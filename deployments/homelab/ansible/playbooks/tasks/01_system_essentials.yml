@@ -1,0 +1,61 @@
+---
+# ==============================================================================
+# PHASE 1: SYSTEM ESSENTIALS, DIAGNOSTICS & AUTOMATIC MAINTENACE
+# ==============================================================================
+
+- name: Set target machine system timezone
+  community.general.timezone:
+    name: "{{ target_timezone }}"
+
+- name: Update apt cache and upgrade base system packages
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: dist
+    cache_valid_time: 3600
+
+- name: Install SRE diagnostics and Platform Engineering core packages
+  ansible.builtin.apt:
+    name:
+      - make
+      - build-essential
+      - curl
+      - git
+      - htop
+      - neofetch
+      - jq
+      - tree
+      - vim
+      - unattended-upgrades
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - python3-pip
+      - software-properties-common
+    state: present
+
+- name: Enable automatic unattended security patch installation
+  ansible.builtin.debconf:
+    name: unattended-upgrades
+    question: unattended-upgrades/enable_auto_updates
+    value: "true"
+    vtype: boolean
+
+- name: Inject Developer Ergonomics and auto-navigation aliases into interactive shell (.bashrc)
+  ansible.builtin.blockinfile:
+    path: /home/mew/.bashrc
+    marker: "# {mark} ANSIBLE MANAGED HOMELAB ERGONOMICS"
+    create: true
+    mode: '0644'
+    block: |
+      # Fast navigation & container inspection aliases
+      alias hl="cd ~/Pi_Personal-Infrastructure && make"
+      alias repo="cd ~/Pi_Personal-Infrastructure"
+      alias dps="docker ps -a"
+      alias dlogs="docker logs -f"
+      alias dstop="docker stop \$(docker ps -a -q) 2>/dev/null"
+
+      # Auto-navigate directly into Infrastructure Repo upon interactive SSH login
+      if [ -d "$HOME/Pi_Personal-Infrastructure" ] && [ "$PWD" = "$HOME" ]; then
+          cd "$HOME/Pi_Personal-Infrastructure"
+      fi

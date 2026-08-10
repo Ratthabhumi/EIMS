@@ -1,0 +1,502 @@
+[
+  {
+    "id": 4624,
+    "provider": "Security",
+    "description": "An account was successfully logged on."
+  },
+  {
+    "id": 4625,
+    "provider": "Security",
+    "description": "An account failed to log on."
+  },
+  {
+    "id": 4634,
+    "provider": "Security",
+    "description": "An account was logged off."
+  },
+  {
+    "id": 4648,
+    "provider": "Security",
+    "description": "A logon was attempted using explicit credentials."
+  },
+  {
+    "id": 4672,
+    "provider": "Security",
+    "description": "Special privileges assigned to new logon."
+  },
+  {
+    "id": 4720,
+    "provider": "Security",
+    "description": "A user account was created."
+  },
+  {
+    "id": 4722,
+    "provider": "Security",
+    "description": "A user account was enabled."
+  },
+  {
+    "id": 4723,
+    "provider": "Security",
+    "description": "An attempt was made to change an accounts password."
+  },
+  {
+    "id": 4724,
+    "provider": "Security",
+    "description": "An attempt was made to reset an accounts password."
+  },
+  {
+    "id": 4725,
+    "provider": "Security",
+    "description": "A user account was disabled."
+  },
+  {
+    "id": 4726,
+    "provider": "Security",
+    "description": "A user account was deleted."
+  },
+  {
+    "id": 4728,
+    "provider": "Security",
+    "description": "A member was added to a security-enabled global group."
+  },
+  {
+    "id": 4732,
+    "provider": "Security",
+    "description": "A member was added to a security-enabled local group."
+  },
+  {
+    "id": 4733,
+    "provider": "Security",
+    "description": "A member was removed from a security-enabled local group."
+  },
+  {
+    "id": 4740,
+    "provider": "Security",
+    "description": "A user account was locked out."
+  },
+  {
+    "id": 4767,
+    "provider": "Security",
+    "description": "A user account was unlocked."
+  },
+  {
+    "id": 4768,
+    "provider": "Security",
+    "description": "A Kerberos authentication ticket (TGT) was requested."
+  },
+  {
+    "id": 4769,
+    "provider": "Security",
+    "description": "A Kerberos service ticket was requested."
+  },
+  {
+    "id": 4771,
+    "provider": "Security",
+    "description": "Kerberos pre-authentication failed."
+  },
+  {
+    "id": 4776,
+    "provider": "Security",
+    "description": "The computer attempted to validate the credentials for an account."
+  },
+  {
+    "id": 41,
+    "provider": "System",
+    "description": "The system has rebooted without cleanly shutting down first."
+  },
+  {
+    "id": 1074,
+    "provider": "System",
+    "description": "The process Explorer.exe has initiated the power off of computer on behalf of user."
+  },
+  {
+    "id": 6005,
+    "provider": "System",
+    "description": "The Event log service was started."
+  },
+  {
+    "id": 6006,
+    "provider": "System",
+    "description": "The Event log service was stopped."
+  },
+  {
+    "id": 6008,
+    "provider": "System",
+    "description": "The previous system shutdown was unexpected."
+  },
+  {
+    "id": 7036,
+    "provider": "System",
+    "description": "The Windows Update service entered the running state."
+  },
+  {
+    "id": 7040,
+    "provider": "System",
+    "description": "The start type of the Background Intelligent Transfer Service service was changed."
+  },
+  {
+    "id": 7000,
+    "provider": "System",
+    "description": "The VMSP service failed to start due to the following error."
+  },
+  {
+    "id": 7009,
+    "provider": "System",
+    "description": "A timeout was reached (30000 milliseconds) while waiting for the service to connect."
+  },
+  {
+    "id": 10016,
+    "provider": "System",
+    "description": "The application-specific permission settings do not grant Local Activation permission for the COM Server."
+  },
+  {
+    "id": 10010,
+    "provider": "System",
+    "description": "The server did not register with DCOM within the required timeout."
+  },
+  {
+    "id": 11,
+    "provider": "System",
+    "description": "The driver detected a controller error on \\Device\\Harddisk1\\DR1."
+  },
+  {
+    "id": 15,
+    "provider": "System",
+    "description": "The device, \\Device\\Harddisk1\\DR1, is not ready for access yet."
+  },
+  {
+    "id": 51,
+    "provider": "System",
+    "description": "An error was detected on device \\Device\\Harddisk1\\DR1 during a paging operation."
+  },
+  {
+    "id": 55,
+    "provider": "System",
+    "description": "The file system structure on the disk is corrupt and unusable."
+  },
+  {
+    "id": 1000,
+    "provider": "Application",
+    "description": "Faulting application name: badapp.exe, version: 1.0.0.0, time stamp: 0x5a1b2c3d."
+  },
+  {
+    "id": 1001,
+    "provider": "Application",
+    "description": "Fault bucket , type 0\nEvent Name: APPCRASH\nResponse: Not available."
+  },
+  {
+    "id": 1002,
+    "provider": "Application",
+    "description": "The program badapp.exe version 1.0.0.0 stopped interacting with Windows and was closed."
+  },
+  {
+    "id": 1022,
+    "provider": "Application",
+    "description": "Product: Microsoft Office Professional Plus 2016 -- Installation operation failed."
+  },
+  {
+    "id": 1530,
+    "provider": "Application",
+    "description": "Windows detected your registry file is still in use by other applications or services."
+  },
+  {
+    "id": 2004,
+    "provider": "Application",
+    "description": "Windows successfully diagnosed a low virtual memory condition."
+  },
+  {
+    "id": 4624,
+    "provider": "Security",
+    "description": "Network Logon. Logon Type: 3."
+  },
+  {
+    "id": 4625,
+    "provider": "Security",
+    "description": "Logon Failure. Unknown user name or bad password."
+  },
+  {
+    "id": 1102,
+    "provider": "Security",
+    "description": "The audit log was cleared."
+  },
+  {
+    "id": 4688,
+    "provider": "Security",
+    "description": "A new process has been created."
+  },
+  {
+    "id": 4689,
+    "provider": "Security",
+    "description": "A process has exited."
+  },
+  {
+    "id": 5140,
+    "provider": "Security",
+    "description": "A network share object was accessed."
+  },
+  {
+    "id": 5142,
+    "provider": "Security",
+    "description": "A network share object was added."
+  },
+  {
+    "id": 5143,
+    "provider": "Security",
+    "description": "A network share object was modified."
+  },
+  {
+    "id": 5144,
+    "provider": "Security",
+    "description": "A network share object was deleted."
+  },
+  {
+    "id": 5145,
+    "provider": "Security",
+    "description": "A network share object was checked to see whether client can be granted desired access."
+  },
+  {
+    "id": 7031,
+    "provider": "System",
+    "description": "The Service Control Manager service terminated unexpectedly."
+  },
+  {
+    "id": 7032,
+    "provider": "System",
+    "description": "The Service Control Manager service terminated unexpectedly. It has done this 2 time(s)."
+  },
+  {
+    "id": 7034,
+    "provider": "System",
+    "description": "The Application Experience service terminated unexpectedly."
+  },
+  {
+    "id": 36888,
+    "provider": "System",
+    "description": "A fatal alert was generated and sent to the remote endpoint. This may result in termination of the connection."
+  },
+  {
+    "id": 36887,
+    "provider": "System",
+    "description": "The following fatal alert was received: 40."
+  },
+  {
+    "id": 36874,
+    "provider": "System",
+    "description": "An TLS 1.2 connection request was received from a remote client application, but none of the cipher suites supported by the client application are supported by the server."
+  },
+  {
+    "id": 36871,
+    "provider": "System",
+    "description": "A fatal error occurred while creating a TLS client credential."
+  },
+  {
+    "id": 17,
+    "provider": "System",
+    "description": "WHEA-Logger: A corrected hardware error has occurred."
+  },
+  {
+    "id": 18,
+    "provider": "System",
+    "description": "WHEA-Logger: A fatal hardware error has occurred."
+  },
+  {
+    "id": 19,
+    "provider": "System",
+    "description": "WHEA-Logger: A corrected hardware error has occurred. Component: PCI Express Root Port."
+  },
+  {
+    "id": 20,
+    "provider": "System",
+    "description": "WHEA-Logger: A fatal hardware error has occurred. Component: AMD Northbridge."
+  },
+  {
+    "id": 104,
+    "provider": "System",
+    "description": "The System log file was cleared."
+  },
+  {
+    "id": 105,
+    "provider": "System",
+    "description": "The power source changed."
+  },
+  {
+    "id": 109,
+    "provider": "System",
+    "description": "The kernel power manager has initiated a shutdown transition."
+  },
+  {
+    "id": 137,
+    "provider": "System",
+    "description": "The system firmware has changed the processors memory type range registers (MTRRs) across a sleep state transition (S4)."
+  },
+  {
+    "id": 577,
+    "provider": "Security",
+    "description": "Windows Defender Real-Time Protection agent has started."
+  },
+  {
+    "id": 1116,
+    "provider": "Security",
+    "description": "Windows Defender antimalware platform has detected malware or other potentially unwanted software."
+  },
+  {
+    "id": 1117,
+    "provider": "Security",
+    "description": "Windows Defender antimalware platform has taken action to protect your system from malware or other potentially unwanted software."
+  },
+  {
+    "id": 1118,
+    "provider": "Security",
+    "description": "Windows Defender antimalware platform has taken action to protect your system from malware or other potentially unwanted software, but action failed."
+  },
+  {
+    "id": 1119,
+    "provider": "Security",
+    "description": "Windows Defender antimalware platform encountered a critical error."
+  },
+  {
+    "id": 5000,
+    "provider": "System",
+    "description": "The Network Location Awareness service terminated with the following error: The system cannot find the file specified."
+  },
+  {
+    "id": 5001,
+    "provider": "System",
+    "description": "The Network Location Awareness service depends on the Network Store Interface Service which failed to start because of the following error: The dependency service or group failed to start."
+  },
+  {
+    "id": 5002,
+    "provider": "System",
+    "description": "The Network Location Awareness service hung on starting."
+  },
+  {
+    "id": 5003,
+    "provider": "System",
+    "description": "The Network Location Awareness service failed to start due to the following error: Access is denied."
+  },
+  {
+    "id": 5004,
+    "provider": "System",
+    "description": "The Network Location Awareness service depends on the Network Store Interface Service which failed to start."
+  },
+  {
+    "id": 5005,
+    "provider": "System",
+    "description": "The Network Location Awareness service depends on the Network Store Interface Service which hung on starting."
+  },
+  {
+    "id": 5007,
+    "provider": "System",
+    "description": "The Network Location Awareness service depends on the Network Store Interface Service which was stopped."
+  },
+  {
+    "id": 5008,
+    "provider": "System",
+    "description": "The Network Location Awareness service depends on the Network Store Interface Service which is disabled."
+  },
+  {
+    "id": 5009,
+    "provider": "System",
+    "description": "The Network Location Awareness service failed to start due to a logon failure."
+  },
+  {
+    "id": 5010,
+    "provider": "System",
+    "description": "The Network Location Awareness service failed to start due to a logon failure: The specified account password has expired."
+  },
+  {
+    "id": 5011,
+    "provider": "System",
+    "description": "The Network Location Awareness service failed to start due to a logon failure: The specified account is locked out."
+  },
+  {
+    "id": 5012,
+    "provider": "System",
+    "description": "The Network Location Awareness service failed to start due to a logon failure: The specified account is currently disabled."
+  },
+  {
+    "id": 8003,
+    "provider": "System",
+    "description": "The master browser has received a server announcement from the computer PC-NAME that believes that it is the master browser for the domain on transport NetBT_Tcpip_{GUID}."
+  },
+  {
+    "id": 10028,
+    "provider": "System",
+    "description": "DCOM was unable to communicate with the computer PC-NAME using any of the configured protocols."
+  },
+  {
+    "id": 10009,
+    "provider": "System",
+    "description": "DCOM was unable to communicate with the computer PC-NAME using any of the configured protocols; requested by PID 1234."
+  },
+  {
+    "id": 10005,
+    "provider": "System",
+    "description": "DCOM got error 87 attempting to start the service WSearch with arguments  in order to run the server: {GUID}."
+  },
+  {
+    "id": 15005,
+    "provider": "Application",
+    "description": "Windows cannot load the users profile but has logged you on with the default profile for the system."
+  },
+  {
+    "id": 1508,
+    "provider": "Application",
+    "description": "Windows was unable to load the registry. This problem is often caused by insufficient memory or insufficient security rights."
+  },
+  {
+    "id": 1509,
+    "provider": "Application",
+    "description": "Windows cannot copy file C:\\Users\\Default\\ntuser.dat to location C:\\Users\\User\\ntuser.dat. This error may be caused by network problems or insufficient security rights."
+  },
+  {
+    "id": 1511,
+    "provider": "Application",
+    "description": "Windows cannot find the local profile and is logging you on with a temporary profile."
+  },
+  {
+    "id": 1515,
+    "provider": "Application",
+    "description": "Windows has backed up this user profile. Windows will automatically try to use the backup profile the next time this user logs on."
+  },
+  {
+    "id": 1521,
+    "provider": "Application",
+    "description": "Windows cannot locate the server copy of your roaming profile and is attempting to log you on with your local profile."
+  },
+  {
+    "id": 1534,
+    "provider": "Application",
+    "description": "Profile notification of event Delete for component {GUID} failed, error code is 0x80070002."
+  },
+  {
+    "id": 1008,
+    "provider": "Application",
+    "description": "The Open Procedure for service WmiApRpl in DLL C:\\Windows\\system32\\wbem\\wmiaprpl.dll failed."
+  },
+  {
+    "id": 1014,
+    "provider": "System",
+    "description": "Name resolution for the name dns.msftncsi.com timed out after none of the configured DNS servers responded."
+  },
+  {
+    "id": 1015,
+    "provider": "System",
+    "description": "A critical system process, C:\\Windows\\system32\\lsass.exe, failed with status code c0000005."
+  },
+  {
+    "id": 4005,
+    "provider": "Application",
+    "description": "The Windows logon process has unexpectedly terminated."
+  },
+  {
+    "id": 4101,
+    "provider": "System",
+    "description": "Display driver nvlddmkm stopped responding and has successfully recovered."
+  },
+  {
+    "id": 4109,
+    "provider": "Application",
+    "description": "Application has been blocked from accessing Graphics hardware."
+  }
+]

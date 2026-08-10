@@ -1,0 +1,30 @@
+name: Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 📦 Install Linters (Yamllint & Ansible-lint)
+        run: |
+          python -m pip install --upgrade pip
+          pip install yamllint ansible-lint
+
+      - name: 📝 Lint YAML Files (Docker Compose)
+        run: yamllint docker/compose.yaml
+
+      - name: ⚙️ Lint Ansible Playbooks
+        run: ansible-lint ansible/playbooks/*.yml

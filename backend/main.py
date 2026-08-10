@@ -6,6 +6,7 @@ Source-Available All Rights Reserved Policy
 ==============================================================================
 """
 
+import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from fastapi import FastAPI
@@ -24,7 +25,11 @@ from backend.core.logger import get_logger
 from backend.infrastructure.database import database_engine
 from backend.infrastructure.cache import cache_manager
 from backend.domain.asset_registry import asset_router
+from backend.domain.asset_registry.ocr_worker import ocr_worker
 from backend.domain.telemetry import telemetry_router
+from backend.domain.telemetry.ws_controller import ws_router, redis_pubsub_listener
+from backend.domain.telemetry.evtx_worker import evtx_worker
+from backend.domain.telemetry.worker import telemetry_worker
 
 logger = get_logger("eims.main")
 
@@ -42,10 +47,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Connecting to Redis Telemetry Broker at: {settings.REDIS_HOST}:{settings.REDIS_PORT}")
     await cache_manager.initialize()
     
+    # Start Redis WebSocket PubSub Listener
+    asyncio.create_task(redis_pubsub_listener())
+    
+    logger.info("Starting background workers...")
+    await ocr_worker.start()
+    await evtx_worker.start()
+    await telemetry_worker.start()
+    
     logger.info("EIMS Backend infrastructure initialized successfully. Ready to receive high-velocity diagnostic telemetry.")
     yield
     
     logger.info("Initiating graceful shutdown sequence for EIMS backend infrastructure...")
+    await telemetry_worker.stop()
+    await evtx_worker.stop()
+    await ocr_worker.stop()
     await cache_manager.close()
     await database_engine.close()
     logger.info("All persistent connections drained. EIMS shutdown complete.")
@@ -82,6 +98,7 @@ app.add_middleware(
 # Register Modular Domain APIRouters (Core Law 5 Compliance)
 app.include_router(asset_router)
 app.include_router(telemetry_router)
+app.include_router(ws_router)
 
 
 @app.get("/api/v1/health", tags=["Operational Observability"])

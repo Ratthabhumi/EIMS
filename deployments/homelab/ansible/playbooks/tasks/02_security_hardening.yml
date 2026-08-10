@@ -1,0 +1,43 @@
+---
+# ==============================================================================
+# PHASE 2: SECURITY HARDENING, ZERO-TRUST FIREWALL & BRUTE-FORCE DEFENSE
+# ==============================================================================
+
+- name: Install Fail2Ban and Uncomplicated Firewall (UFW)
+  ansible.builtin.apt:
+    name:
+      - ufw
+      - fail2ban
+    state: present
+
+- name: Enable Fail2Ban daemon to protect SSH against brute-force intrusion
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true
+
+- name: Set UFW Firewall default policies (Deny all Incoming, Allow all Outgoing)
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - {direction: 'incoming', policy: 'deny'}
+    - {direction: 'outgoing', policy: 'allow'}
+
+- name: Allow administrative OpenSSH ingress access (Port 22)
+  community.general.ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+    comment: 'Allow standard OpenSSH administration'
+
+- name: Trust all Zero-Trust traffic flowing over Tailscale mesh interface (tailscale0)
+  community.general.ufw:
+    rule: allow
+    interface: tailscale0
+    direction: in
+    comment: 'Zero-Trust network access for internal home mesh infrastructure'
+
+- name: Enable UFW Firewall service autonomously
+  community.general.ufw:
+    state: enabled

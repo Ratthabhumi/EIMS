@@ -1,0 +1,49 @@
+---
+# ==============================================================================
+# SPRINT 7: ENTERPRISE APPLICATION DEPLOYMENT (GitOps via Ansible)
+# Target: All 24/7 Home Servers (specifically mew@homelab / Ubuntu 24.04 LTS)
+# ==============================================================================
+
+- name: 🚀 Sprint 7 - Application Deployment (Docker Compose)
+  hosts: home_servers
+  become: false
+  gather_facts: false
+
+  tasks:
+    - name: 📂 Ensure /data/docker directory exists with correct permissions
+      ansible.builtin.file:
+        path: /data/docker
+        state: directory
+        owner: mew
+        group: mew
+        mode: '0775'
+
+    - name: 🔄 Synchronize docker configuration files from Git repository
+      ansible.builtin.copy:
+        src: ../../docker/
+        dest: /data/docker/
+        owner: mew
+        group: mew
+        mode: '0664'
+        directory_mode: '0775'
+
+    - name: 🔐 Check if .env file exists on the server (Secrets)
+      ansible.builtin.stat:
+        path: /data/docker/.env
+      register: env_file
+
+    - name: ⚠️ WARNING - .env file missing!
+      ansible.builtin.debug:
+        msg: "WARNING: /data/docker/.env does not exist on the server. Your containers may fail to start without secrets (VAULTWARDEN_ADMIN_TOKEN, etc). Please ensure .env is created securely."
+      when: not env_file.stat.exists
+
+    - name: 🐳 Deploy Unified Production Stack via Docker Compose
+      ansible.builtin.command:
+        cmd: docker compose up -d --remove-orphans
+        chdir: /data/docker
+      register: compose_output
+      changed_when: "'Started' in compose_output.stdout or 'Recreated' in compose_output.stdout or 'Created' in compose_output.stdout"
+
+    - name: 📊 Display Docker Compose Output
+      ansible.builtin.debug:
+        var: compose_output.stdout_lines

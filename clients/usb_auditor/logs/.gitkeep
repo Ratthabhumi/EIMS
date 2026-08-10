@@ -1,0 +1,3 @@
+# This file preserves the logs/ directory in Git.
+# Actual log files are excluded via .gitignore.
+# The directory is auto-created by config/settings.py at runtime if it does not exist.

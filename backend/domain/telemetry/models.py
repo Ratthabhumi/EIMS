@@ -7,24 +7,25 @@ Source-Available All Rights Reserved Policy
 """
 
 import uuid
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from datetime import UTC, datetime
+from typing import Any
+
 from sqlalchemy import (
-    Column,
-    String,
-    Integer,
-    Float,
     DateTime,
+    Float,
     ForeignKey,
     Index,
+    Integer,
+    String,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
 from backend.infrastructure.database import Base
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class TelemetryMetric(Base):
@@ -57,7 +58,7 @@ class TelemetryMetric(Base):
         nullable=False,
         doc="Recorded CPU utilization percentage (0.0 to 100.0)."
     )
-    diagnostic_payload: Mapped[Dict[str, Any]] = mapped_column(
+    diagnostic_payload: Mapped[dict[str, Any]] = mapped_column(
         JSONB,
         nullable=False,
         default=dict,
@@ -105,7 +106,7 @@ class WindowsEventLog(Base):
         nullable=False,
         doc="Categorized runtime criticality (Information, Warning, Critical)."
     )
-    evtx_metadata: Mapped[Dict[str, Any]] = mapped_column(
+    evtx_metadata: Mapped[dict[str, Any]] = mapped_column(
         JSONB,
         nullable=False,
         default=dict,

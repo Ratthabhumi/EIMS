@@ -12,7 +12,7 @@ from typing import Optional, List, Dict, Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.domain.asset_registry.models import InfrastructureAsset, AuditLog
+from backend.domain.asset_registry.models import InfrastructureAsset, AuditLog, OCRRegistrationRecord
 from backend.domain.asset_registry.state_machine import AssetLifecycleStateMachine, AssetState
 from backend.infrastructure.cache import AsynchronousCacheManager
 from backend.core.exceptions import ResourceNotFoundException
@@ -177,3 +177,15 @@ class AssetRepository:
             query = query.where(InfrastructureAsset.lifecycle_state == state)
         result = await self.db_session.execute(query)
         return list(result.scalars().all())
+
+    async def create_ocr_registration(self, minio_uri: str) -> OCRRegistrationRecord:
+        """Asynchronously records a newly uploaded asset document to initiate OCR pipeline."""
+        tracking_record = OCRRegistrationRecord(
+            minio_object_uri=minio_uri,
+            extraction_status="Pending",
+            parsed_raw_text={}
+        )
+        self.db_session.add(tracking_record)
+        await self.db_session.commit()
+        await self.db_session.refresh(tracking_record)
+        return tracking_record

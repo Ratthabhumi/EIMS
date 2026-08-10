@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: eventiq_backend
+    environment:
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: P@ssw0rd
+      JWT_SECRET: eventiq-local-dev-secret
+      JWT_EXPIRE_HOURS: 24
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      DATABASE_URL: sqlite:///./data/history.db
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - eventiq_data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: eventiq_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  eventiq_data:

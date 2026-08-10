@@ -1,0 +1,954 @@
+{
+  "4624": {
+    "th": {
+      "overview": "Event 4624 (Successful Logon) บันทึกการเข้าสู่ระบบสำเร็จ ใช้สำหรับตรวจสอบการเข้าถึงระบบ เช่น ใครรีโมท (RDP) เข้ามา",
+      "causes": [
+        "ผู้ใช้ล็อกอินสำเร็จตามปกติ",
+        "Service หรือ Task Scheduler เริ่มทำงาน",
+        "มีการรีโมทเข้าเครื่องผ่าน Network"
+      ],
+      "steps": [
+        "ตรวจสอบ Logon Type (เช่น Type 10 = RDP, Type 3 = Network)",
+        "ตรวจสอบชื่อบัญชี (Account Name) และ IP Address (Source Network Address)",
+        "หากเป็น IP แปลกปลอม ให้บล็อกใน Firewall และเปลี่ยนรหัสผ่าน"
+      ]
+    },
+    "en": {
+      "overview": "Event 4624 (Successful Logon) is logged when an account successfully logs on. Useful for auditing RDP and network access.",
+      "causes": [
+        "Normal user login",
+        "A Service or Task Scheduler started",
+        "Remote Desktop (RDP) or Network login"
+      ],
+      "steps": [
+        "Check Logon Type (e.g., Type 10 = RDP, Type 3 = Network)",
+        "Verify Account Name and Source Network Address (IP)",
+        "If the IP is suspicious, block it in Firewall and change the password"
+      ]
+    }
+  },
+  "4625": {
+    "th": {
+      "overview": "Event 4625 (Logon Failed) บันทึกการเข้าสู่ระบบที่ล้มเหลว มักเป็นสัญญาณการพิมพ์รหัสผ่านผิด หรือการโจมตีแบบ Brute-Force",
+      "causes": [
+        "ผู้ใช้ลืมรหัสผ่านและพิมพ์ผิด",
+        "บัญชีหมดอายุหรือถูกระงับ (Disabled)",
+        "เซิร์ฟเวอร์ถูกโจมตีแบบ Brute-Force จากภายนอก"
+      ],
+      "steps": [
+        "ตรวจสอบ Source IP Address ว่ามาจากภายนอกหรือภายใน",
+        "ตรวจสอบ Status และ Sub Status (เช่น 0xC000006A แปลว่ารหัสผิด)",
+        "เปิดใช้งาน Account Lockout Policy",
+        "จำกัดการเข้าถึงพอร์ต RDP (3389) ให้เฉพาะ VPN หรือ IP ที่เชื่อถือได้"
+      ]
+    },
+    "en": {
+      "overview": "Event 4625 (Logon Failed) is logged when a login fails. It indicates wrong passwords or a potential Brute-Force attack.",
+      "causes": [
+        "User typed the wrong password",
+        "Account is expired or disabled",
+        "External Brute-Force attack on RDP"
+      ],
+      "steps": [
+        "Check the Source Network Address (IP)",
+        "Review Status and Sub Status (e.g., 0xC000006A = bad password)",
+        "Enforce Account Lockout Policies",
+        "Restrict RDP port (3389) access via Firewall/VPN"
+      ]
+    }
+  },
+  "4740": {
+    "th": {
+      "overview": "Event 4740 (Account Lockout) บันทึกเมื่อบัญชี Active Directory ถูกล็อกเนื่องจากใส่รหัสผ่านผิดเกินกำหนด",
+      "causes": [
+        "ผู้ใช้ลืมรหัสผ่าน",
+        "มีอุปกรณ์ (มือถือ/อีเมล) จำรหัสผ่านเก่าไว้และพยายาม Sync ตลอดเวลา",
+        "ถูกโจมตีแบบ Brute-Force"
+      ],
+      "steps": [
+        "ตรวจสอบฟิลด์ Caller Computer Name ว่าล็อกอินมาจากเครื่องไหน",
+        "ตรวจสอบ Credential Manager ในเครื่องเป้าหมายและลบรหัสผ่านเก่าทิ้ง",
+        "ตรวจสอบอุปกรณ์มือถือ หรือแอปพลิเคชันที่อาจเชื่อมโยงบัญชี",
+        "ปลดล็อกบัญชี (Unlock) ผ่าน Active Directory Users and Computers"
+      ]
+    },
+    "en": {
+      "overview": "Event 4740 (Account Lockout) is logged when an Active Directory account is locked out after too many bad password attempts.",
+      "causes": [
+        "User forgot password",
+        "Cached credentials on mobile devices/apps syncing continuously",
+        "Brute-force attack"
+      ],
+      "steps": [
+        "Check 'Caller Computer Name' to identify the source of bad logins",
+        "Clear old passwords from Credential Manager on the source PC",
+        "Check mobile devices or services using the account",
+        "Unlock the account via Active Directory Users and Computers"
+      ]
+    }
+  },
+  "4720": {
+    "th": {
+      "overview": "Event 4720 (A user account was created) บันทึกการสร้างบัญชีผู้ใช้ใหม่ ใช้สำหรับ Audit ความปลอดภัย",
+      "causes": [
+        "Admin หรือ Helpdesk สร้างบัญชีใหม่ตามหน้าที่",
+        "Hacker เจาะระบบได้และสร้างบัญชีผี (Backdoor) เพื่อฝังตัว"
+      ],
+      "steps": [
+        "ตรวจสอบฟิลด์ Subject (ผู้ลงมือทำ) และ Target (บัญชีที่ถูกสร้าง)",
+        "สอบถามทีม IT ว่ามีการขอสร้างบัญชีนี้หรือไม่",
+        "หากเป็นการสร้างโดยไม่ได้รับอนุญาต ให้ Disable บัญชีทันทีและตรวจสอบ Logs การแฮ็ก"
+      ]
+    },
+    "en": {
+      "overview": "Event 4720 (A user account was created) records the creation of a new user. Highly important for security audits.",
+      "causes": [
+        "Admin/Helpdesk provisioning a new account",
+        "Hacker creating a backdoor account after compromise"
+      ],
+      "steps": [
+        "Check the Subject (who did it) and Target (who was created)",
+        "Verify with the IT team if this was an authorized request",
+        "If unauthorized, disable the account immediately and initiate an incident response"
+      ]
+    }
+  },
+  "7000": {
+    "th": {
+      "overview": "Event 7000 (Service failed to start) เกิดขึ้นเมื่อ Service ของระบบหรือแอปพลิเคชันไม่สามารถเริ่มทำงานได้",
+      "causes": [
+        "รหัสผ่านของบัญชีที่ใช้รัน Service (Log on as) เปลี่ยนไปหรือหมดอายุ",
+        "ไฟล์ .exe ของ Service สูญหายหรือพัง",
+        "สิทธิ์ Permission ในโฟลเดอร์ไม่เพียงพอ"
+      ],
+      "steps": [
+        "เปิด Services.msc ดับเบิลคลิกที่ Service นั้น",
+        "ไปที่แท็บ 'Log On' และใส่รหัสผ่านที่ถูกต้องใหม่",
+        "ไปที่แท็บ 'Dependencies' และตรวจสอบว่า Service ที่ต้องใช้ทำงานอยู่หรือไม่",
+        "ตรวจสอบว่าไฟล์ Executable path ยังมีอยู่จริง"
+      ]
+    },
+    "en": {
+      "overview": "Event 7000 (Service failed to start) occurs when a Windows service cannot start.",
+      "causes": [
+        "The password for the service account (Log on as) is wrong or expired",
+        "The service executable is missing or corrupt",
+        "Insufficient folder permissions"
+      ],
+      "steps": [
+        "Open Services.msc and double-click the failing service",
+        "Go to the 'Log On' tab and re-enter the correct password",
+        "Check the 'Dependencies' tab to ensure required services are running",
+        "Verify the Executable path exists"
+      ]
+    }
+  },
+  "7034": {
+    "th": {
+      "overview": "Event 7034 (Service terminated unexpectedly) บริการของ Windows ล่มกะทันหัน",
+      "causes": [
+        "บั๊กในซอฟต์แวร์ของ Service นั้น (Memory Leak/Crash)",
+        "ถูกโปรแกรม Antivirus ปิดกั้นหรือลบไฟล์ชั่วคราว",
+        "ทรัพยากรระบบ (RAM/CPU) ไม่พอ"
+      ],
+      "steps": [
+        "ตรวจสอบ Application Logs (Event 1000) ในเวลาเดียวกันเพื่อหาว่าโค้ดบรรทัดไหนพัง",
+        "อัปเดตซอฟต์แวร์หรือแพตช์ของ Service นั้นๆ",
+        "ตั้งค่าใน Services.msc แท็บ 'Recovery' ให้ Restart the Service อัตโนมัติเมื่อล่ม"
+      ]
+    },
+    "en": {
+      "overview": "Event 7034 (Service terminated unexpectedly) means a Windows service crashed abruptly.",
+      "causes": [
+        "A bug in the software (Memory Leak/Crash)",
+        "Antivirus blocking or terminating the process",
+        "Out of system resources (RAM/CPU)"
+      ],
+      "steps": [
+        "Check Application Logs (Event 1000) at the same timestamp for crash details",
+        "Update or patch the software responsible for the service",
+        "Configure 'Recovery' tab in Services.msc to 'Restart the Service' on failure"
+      ]
+    }
+  },
+  "7009": {
+    "th": {
+      "overview": "Event 7009 (Service Timeout) เกิดเมื่อ Service ใช้เวลา Start นานเกินไป (ค่าเริ่มต้นคือ 30 วินาที) จน Windows ตัดจบ",
+      "causes": [
+        "เครื่องเซิร์ฟเวอร์ช้าหรือโหลดหนักเกินไป",
+        "Service ต้องดึงข้อมูลขนาดใหญ่ผ่าน Network ตอนเปิดเครื่อง",
+        "ติด Deadlock ในระบบ"
+      ],
+      "steps": [
+        "ขยายเวลา Timeout โดยแก้ Registry: HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control เพิ่ม DWORD 'ServicesPipeTimeout' (เช่น 60000 = 60วิ)",
+        "เช็คสถานะ CPU/RAM ของเซิร์ฟเวอร์",
+        "อัปเดตแพตช์ของโปรแกรมที่มีปัญหา"
+      ]
+    },
+    "en": {
+      "overview": "Event 7009 (Service Timeout) occurs when a service takes too long to start (default 30 seconds) and Windows aborts it.",
+      "causes": [
+        "Server is overloaded or slow",
+        "Service is waiting for network resources",
+        "Process deadlock"
+      ],
+      "steps": [
+        "Increase timeout via Registry: HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control, add DWORD 'ServicesPipeTimeout' (e.g., 60000 for 60s)",
+        "Monitor CPU/RAM usage",
+        "Patch the software"
+      ]
+    }
+  },
+  "11": {
+    "th": {
+      "overview": "Event 11 (Disk Controller Error) ฮาร์ดแวร์ Disk ตรวจพบปัญหาการเชื่อมต่อหรือการอ่านเขียน",
+      "causes": [
+        "สาย SATA/SAS หลวมหรือชำรุด",
+        "ฮาร์ดดิสก์เริ่มมี Bad Sectors หรือแผงวงจรใกล้พัง",
+        "ปัญหาจาก Storage Area Network (SAN) หรือ Controller (RAID)"
+      ],
+      "steps": [
+        "ตรวจสอบการเชื่อมต่อสายเคเบิลของฮาร์ดดิสก์",
+        "เช็คสถานะ RAID Array ในหน้าจัดการของเซิร์ฟเวอร์ (เช่น iLO, iDRAC)",
+        "อัปเดต Firmware ของ Storage Controller",
+        "รีบ Backup ข้อมูลและเตรียมเปลี่ยนฮาร์ดดิสก์ลูกนั้น"
+      ]
+    },
+    "en": {
+      "overview": "Event 11 (Disk Controller Error) indicates a hardware issue with disk connectivity or read/write operations.",
+      "causes": [
+        "Loose or faulty SATA/SAS cables",
+        "Failing hard drive (Bad sectors/PCB)",
+        "SAN or RAID Controller issues"
+      ],
+      "steps": [
+        "Check physical cable connections",
+        "Verify RAID array health via server management (iLO, iDRAC)",
+        "Update Storage Controller firmware",
+        "Backup data immediately and prepare to replace the disk"
+      ]
+    }
+  },
+  "51": {
+    "th": {
+      "overview": "Event 51 (Paging operation error) หมายถึง Windows พบข้อผิดพลาดในการอ่านเขียนไฟล์ Paging (Virtual Memory) บนฮาร์ดดิสก์",
+      "causes": [
+        "Disk I/O ทำงานหนักมากจนคอขวด (Latency สูง)",
+        "ฮาร์ดดิสก์มีปัญหา หรือ Network Storage (iSCSI/SAN) เกิดความล่าช้า",
+        "มี Bad Sectors ในพื้นที่ Paging File"
+      ],
+      "steps": [
+        "ตรวจสอบ Resource Monitor ดูว่ามีโปรแกรมไหนใช้ Disk 100% หรือไม่",
+        "เช็คสถานะความสมบูรณ์ของ SAN/iSCSI network",
+        "เปิด CMD (Admin) แล้วรันคำสั่ง chkdsk /f /r บนไดรฟ์ที่มีปัญหา"
+      ]
+    },
+    "en": {
+      "overview": "Event 51 (Paging operation error) means Windows encountered an error reading/writing the paging file.",
+      "causes": [
+        "Severe Disk I/O bottleneck (High latency)",
+        "Failing disk or network storage (iSCSI/SAN) delay",
+        "Bad sectors in the paging file area"
+      ],
+      "steps": [
+        "Check Resource Monitor for processes maxing out Disk usage",
+        "Verify SAN/iSCSI network health",
+        "Run 'chkdsk /f /r' on the affected drive from an elevated CMD"
+      ]
+    }
+  },
+  "1014": {
+    "th": {
+      "overview": "Event 1014 (DNS Name Resolution Timeout) แปลว่าเซิร์ฟเวอร์ไม่สามารถแปลงชื่อโดเมนเป็น IP Address ได้ภายในเวลาที่กำหนด",
+      "causes": [
+        "เซิร์ฟเวอร์ DNS ภายในตาย หรือ Network ขาด",
+        "ตั้งค่า IP ของ DNS Server ในการ์ดแลนผิดพลาด",
+        "ISP (เน็ตเวิร์คภายนอก) มีปัญหา"
+      ],
+      "steps": [
+        "เปิด CMD แล้วลองรันคำสั่ง nslookup google.com เพื่อทดสอบ",
+        "ตรวจสอบการตั้งค่า IPv4 ใน Network Adapter ว่าชี้ DNS ไปถูกเบอร์หรือไม่",
+        "เช็ค Firewall หรือ Router ว่าบล็อกพอร์ต 53 (UDP/TCP) หรือไม่",
+        "ล้างแคช DNS โดยรัน ipconfig /flushdns"
+      ]
+    },
+    "en": {
+      "overview": "Event 1014 (DNS Name Resolution Timeout) means the server could not resolve a domain name to an IP address within the timeout limit.",
+      "causes": [
+        "Internal DNS server is down or unreachable",
+        "Incorrect DNS Server IP in NIC settings",
+        "External ISP network issues"
+      ],
+      "steps": [
+        "Open CMD and run 'nslookup google.com' to test",
+        "Check IPv4 settings on the Network Adapter to ensure correct DNS IPs",
+        "Verify Firewall/Router is not blocking port 53 (UDP/TCP)",
+        "Clear DNS cache using 'ipconfig /flushdns'"
+      ]
+    }
+  },
+  "1058": {
+    "th": {
+      "overview": "Event 1058 (Group Policy Processing Failed) เครื่อง Client ไม่สามารถอ่านไฟล์ GPO จากโดเมนได้",
+      "causes": [
+        "ปัญหา Network (DNS) ทำให้หา Domain Controller ไม่เจอ",
+        "บริการ DFS Client หรือ Netlogon ไม่ทำงาน",
+        "สิทธิ์ Permission ของโฟลเดอร์ SYSVOL ไม่ถูกต้อง"
+      ],
+      "steps": [
+        "ใช้คำสั่ง ping ชื่อโดเมน (เช่น ping contoso.com) ว่าเจอ IP ไหม",
+        "รันคำสั่ง gpupdate /force ใน CMD แล้วดู Error เพิ่มเติม",
+        "ตรวจสอบว่าสามารถเข้าถึงโฟลเดอร์ \\\\domain.com\\SYSVOL ได้จากช่อง Run",
+        "ตรวจสอบสถานะ Service: DFS Replication และ Netlogon บนเครื่อง DC"
+      ]
+    },
+    "en": {
+      "overview": "Event 1058 (Group Policy Processing Failed) occurs when a client cannot read GPO files from the domain.",
+      "causes": [
+        "Network/DNS issue preventing Domain Controller discovery",
+        "DFS Client or Netlogon service is stopped",
+        "Incorrect permissions on the SYSVOL share"
+      ],
+      "steps": [
+        "Ping the domain name (e.g., ping contoso.com) to verify resolution",
+        "Run 'gpupdate /force' in CMD to reproduce the error",
+        "Try accessing \\\\domain.com\\SYSVOL via the Run dialog",
+        "Check DFS Replication and Netlogon services on the DC"
+      ]
+    }
+  },
+  "134": {
+    "th": {
+      "overview": "Event 134 (Time-Service NtpClient) เครื่องเซิร์ฟเวอร์ไม่สามารถ Sync เวลาจากเซิร์ฟเวอร์เป้าหมายได้",
+      "causes": [
+        "เซิร์ฟเวอร์ NTP ปลายทางตาย หรือ Firewall บล็อกพอร์ต 123 (UDP)",
+        "AD Domain Controller ต้นทางเวลาเพี้ยน",
+        "ตั้งค่า Source ของ Time Provider ผิดพลาด"
+      ],
+      "steps": [
+        "เปิด CMD (Admin) รันคำสั่ง w32tm /query /configuration เพื่อเช็คเป้าหมาย NTP",
+        "เช็ค Firewall ว่าอนุญาต UDP Port 123 (NTP) ขาออกหรือไม่",
+        "บังคับ Sync เวลาโดยรัน: w32tm /resync /rediscover"
+      ]
+    },
+    "en": {
+      "overview": "Event 134 (Time-Service NtpClient) indicates the server could not synchronize time with the target NTP server.",
+      "causes": [
+        "Target NTP server is offline or Firewall blocks port 123 (UDP)",
+        "AD Domain Controller time is skewed",
+        "Incorrect Time Provider source configuration"
+      ],
+      "steps": [
+        "Run 'w32tm /query /configuration' in elevated CMD to check NTP peers",
+        "Verify Firewall allows outbound UDP Port 123",
+        "Force sync by running: 'w32tm /resync /rediscover'"
+      ]
+    }
+  },
+  "5009": {
+    "th": {
+      "overview": "Event 5009 (WAS - IIS Application Pool crashed) หมายความว่า Worker Process ของ IIS ล่มกะทันหัน",
+      "causes": [
+        "โค้ดของเว็บไซต์มีบั๊ก (เช่น Stack Overflow, Access Violation)",
+        "ใช้ DLL (Unmanaged Code) ที่เข้ากันไม่ได้ (32-bit บน 64-bit)",
+        "Out of Memory (แรมเต็ม)"
+      ],
+      "steps": [
+        "ตรวจสอบ Application Logs (Event 1000) ว่า DLL ตัวไหนที่ทำให้ Crash",
+        "ตรวจสอบการตั้งค่า 'Enable 32-Bit Applications' ใน Advanced Settings ของ App Pool",
+        "เช็ค RAM ของเซิร์ฟเวอร์ และปรับปรุงโค้ดโปรแกรมให้จัดการ Memory ให้ดีขึ้น"
+      ]
+    },
+    "en": {
+      "overview": "Event 5009 (WAS - IIS Application Pool crashed) means the IIS Worker Process terminated unexpectedly.",
+      "causes": [
+        "Website code bug (e.g., Stack Overflow, Access Violation)",
+        "Incompatible DLLs (e.g., 32-bit DLL in a 64-bit App Pool)",
+        "Out of Memory (OOM)"
+      ],
+      "steps": [
+        "Check Application Logs (Event 1000) for the faulting DLL",
+        "Verify 'Enable 32-Bit Applications' in App Pool Advanced Settings if needed",
+        "Monitor RAM usage and profile the application for memory leaks"
+      ]
+    }
+  },
+  "5011": {
+    "th": {
+      "overview": "Event 5011 (IIS Worker Process communication error) Process ของเว็บแอปค้างจนส่งข้อมูลกลับให้ WAS ไม่ทันตามกำหนด",
+      "causes": [
+        "เว็บค้างเพราะกำลังดึงข้อมูล Database ที่ช้ามากๆ (Deadlock)",
+        "เว็บทำงานลูปไม่รู้จบ (Infinite Loop)",
+        "CPU โหลด 100% จน Process ตอบสนองไม่ได้"
+      ],
+      "steps": [
+        "ตรวจสอบสถานะ Database Server ว่ามี Query ค้างหรือไม่",
+        "เก็บ Crash Dump โดยใช้เครื่องมือ DebugDiag เพื่อวิเคราะห์ว่าค้างที่โค้ดบรรทัดไหน",
+        "ปรับเพิ่มค่า Ping Maximum Response Time ใน IIS App Pool (แก้ขัดชั่วคราว)"
+      ]
+    },
+    "en": {
+      "overview": "Event 5011 (IIS Worker Process communication error) means a process hung and failed to ping WAS in the expected timeframe.",
+      "causes": [
+        "Website is hanging on a slow Database query (Deadlock)",
+        "Infinite loop in the application code",
+        "100% CPU lockup"
+      ],
+      "steps": [
+        "Check the Database Server for blocked queries or locks",
+        "Capture a memory dump using DebugDiag to analyze the hang",
+        "Increase 'Ping Maximum Response Time' in IIS App Pool Advanced Settings (temporary workaround)"
+      ]
+    }
+  },
+  "1000": {
+    "th": {
+      "overview": "Event 1000 (Application Crash) โปรแกรมพังและปิดตัวลง",
+      "causes": [
+        "โปรแกรมเข้าถึง Memory ที่ไม่ได้รับอนุญาต (Access Violation)",
+        "ไฟล์ System DLL บางตัวสูญหายหรืออัปเดตไม่สมบูรณ์",
+        "ปัญหาความเข้ากันได้ (Compatibility)"
+      ],
+      "steps": [
+        "ดูชื่อ 'Faulting module name' ในรายละเอียด Event เพื่อหาตัวการ (เช่น ntdll.dll, หรือ plugin ของแอป)",
+        "อัปเดตซอฟต์แวร์นั้นๆ ให้เป็นเวอร์ชันล่าสุด",
+        "เปิด CMD (Admin) รัน sfc /scannow เพื่อซ่อมไฟล์ระบบของ Windows"
+      ]
+    },
+    "en": {
+      "overview": "Event 1000 (Application Crash) occurs when an application faults and closes abruptly.",
+      "causes": [
+        "Access Violation (Memory issue)",
+        "Missing or corrupt System DLLs",
+        "Software compatibility issues"
+      ],
+      "steps": [
+        "Identify the 'Faulting module name' in the event details (e.g., a specific DLL or plugin)",
+        "Update the application to the latest version",
+        "Run 'sfc /scannow' from elevated CMD to repair Windows system files"
+      ]
+    }
+  },
+  "1530": {
+    "th": {
+      "overview": "Event 1530 (Registry handle leaked) เป็นแค่คำเตือนว่าตอนผู้ใช้ Log off โปรแกรมบางตัวยังไม่ยอมคืน Memory (Registry) ให้ระบบ",
+      "causes": [
+        "โปรแกรม Antivirus, Backup, หรือเครื่องมือ Monitoring ค้างอยู่พื้นหลังตอนผู้ใช้ออกจากระบบ",
+        "เป็นพฤติกรรมปกติของ Windows Server ที่ยอมให้เกิดเหตุการณ์นี้ได้"
+      ],
+      "steps": [
+        "สามารถละเว้น (Ignore) ได้อย่างปลอดภัย (Microsoft ยืนยันว่าไม่ทำให้ระบบพัง)",
+        "หากต้องการให้ข้อความหายไป ให้ตรวจสอบว่าโปรแกรมใดที่โชว์ใน Event แล้วพิจารณาปิดตอน Log off",
+        "อัปเดตโปรแกรม Antivirus ให้เป็นเวอร์ชันล่าสุด"
+      ]
+    },
+    "en": {
+      "overview": "Event 1530 (Registry handle leaked) is a warning that an application did not close its registry handles during user logoff.",
+      "causes": [
+        "Antivirus, Backup, or Monitoring tools running in the background during logoff",
+        "By design behavior in Windows Server"
+      ],
+      "steps": [
+        "Can be safely ignored (Microsoft confirms it rarely causes issues)",
+        "If you want to clear the warning, identify the app in the event and close it before logoff",
+        "Update your Antivirus software"
+      ]
+    }
+  },
+  "1511": {
+    "th": {
+      "overview": "Event 1511 (Temporary Profile Loaded) Windows ไม่สามารถโหลดโปรไฟล์ตั้งค่าของผู้ใช้ได้ เลยสร้างหน้า Desktop ชั่วคราวให้ (รีสตาร์ทแล้วไฟล์ที่เซฟจะหายหมด)",
+      "causes": [
+        "โฟลเดอร์โปรไฟล์ผู้ใช้ C:\\Users\\... ถูกลบหรือเปลี่ยนชื่อโดยพลการ",
+        "ไฟล์ NTUSER.DAT พังหรือติด Permission",
+        "ระบบดึงโปรไฟล์จาก Roaming Server ไม่ทัน"
+      ],
+      "steps": [
+        "เข้าไปที่ Registry: HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList",
+        "หาคีย์ที่มีนามสกุล .bak แล้วตรวจสอบความถูกต้องของโฟลเดอร์ ProfileImagePath",
+        "ลบคีย์ที่พังออก แล้วรีสตาร์ทเครื่องเพื่อให้ Windows สร้างโปรไฟล์ใหม่ให้สมบูรณ์",
+        "เช็คพื้นที่ฮาร์ดดิสก์ว่าเต็มหรือไม่ (Drive C:)"
+      ]
+    },
+    "en": {
+      "overview": "Event 1511 (Temporary Profile Loaded) means Windows could not load the user profile and logged in with a temporary desktop (data saved here will be lost on reboot).",
+      "causes": [
+        "The C:\\Users\\... folder was manually deleted or renamed",
+        "Corrupt NTUSER.DAT file or bad permissions",
+        "Slow Roaming Profile server connection"
+      ],
+      "steps": [
+        "Open Registry: HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList",
+        "Locate keys ending with '.bak' and check the 'ProfileImagePath'",
+        "Delete the corrupted profile key and reboot to let Windows rebuild it",
+        "Ensure Drive C: is not full"
+      ]
+    }
+  },
+  "109": {
+    "th": {
+      "overview": "Event 109 (Kernel-Power) บันทึกเพื่อแจ้งให้ทราบว่าระบบกำลังเข้าสู่กระบวนการปิดเครื่อง (Shutdown) หรือรีสตาร์ท เป็นเหตุการณ์ปกติของระบบปฏิบัติการ",
+      "causes": [
+        "ผู้ใช้สั่ง Shut down หรือ Restart เครื่อง",
+        "ระบบกำลังรีบูตเพื่อติดตั้ง Windows Update",
+        "มีโปรแกรมตั้งเวลาปิดเครื่องอัตโนมัติ"
+      ],
+      "steps": [
+        "ไม่ต้องแก้ไขใดๆ เนื่องจากเป็นการทำงานปกติของระบบ",
+        "หากเครื่องดับเองแบบไม่ได้สั่ง ให้ไปตรวจสอบ Event อื่นๆ ที่เกิดก่อนหน้า 109 (เช่น Error หรือ Critical) เพื่อหาสาเหตุที่แท้จริง"
+      ]
+    },
+    "en": {
+      "overview": "Event 109 (Kernel-Power) logs that the kernel power manager has initiated a shutdown transition. This is a normal operational event.",
+      "causes": [
+        "User initiated a Shut down or Restart",
+        "System is rebooting to apply Windows Updates",
+        "A scheduled task initiated a shutdown"
+      ],
+      "steps": [
+        "No action is required as this is normal system behavior.",
+        "If the shutdown was unexpected, check the events immediately preceding Event 109 to find the root cause."
+      ]
+    }
+  },
+  "20": {
+    "th": {
+      "overview": "Event 20 (Windows Update Agent) บันทึกว่าระบบดาวน์โหลดหรือติดตั้ง Windows Update ล้มเหลว มักพบพร้อมกับ Error Code เช่น 0x80072efe (เน็ตเวิร์คหลุด) หรือ 0x80070643 (ติดตั้งไม่ได้)",
+      "causes": [
+        "การเชื่อมต่ออินเทอร์เน็ตขาดหายระหว่างอัปเดต",
+        "ไฟล์อัปเดตดาวน์โหลดมาไม่สมบูรณ์ (Corrupted)",
+        "Antivirus หรือ Firewall บล็อกการเชื่อมต่อกับเซิร์ฟเวอร์ Microsoft"
+      ],
+      "steps": [
+        "ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต และลองกด Check for updates ใหม่อีกครั้ง",
+        "ปิด Antivirus หรือ Firewall ของ Third-party ชั่วคราว",
+        "ล้างแคช Windows Update โดยกด Stop service 'wuauserv' แล้วลบไฟล์ใน C:\\Windows\\SoftwareDistribution",
+        "รัน Windows Update Troubleshooter"
+      ]
+    },
+    "en": {
+      "overview": "Event 20 (Windows Update Agent) indicates that a Windows Update failed to download or install. Often accompanied by an error code like 0x80072efe (connection aborted) or 0x80070643 (fatal error during installation).",
+      "causes": [
+        "Network connection dropped during the update",
+        "The downloaded update files are corrupted",
+        "Third-party Antivirus or Firewall is blocking Microsoft servers"
+      ],
+      "steps": [
+        "Check internet connectivity and try 'Check for updates' again",
+        "Temporarily disable third-party Antivirus/Firewall",
+        "Clear Windows Update cache by stopping 'wuauserv' service and clearing C:\\Windows\\SoftwareDistribution",
+        "Run the Windows Update Troubleshooter"
+      ]
+    }
+  },
+  "1069": {
+    "th": {
+      "overview": "Event 1069 (Cluster resource failed) ทรัพยากร (เช่น IP, Disk, หรือ SQL Service) ภายใน Failover Cluster ล่ม ทำให้เกิดการย้าย (Failover) ไปเครื่องอื่น",
+      "causes": [
+        "ดิสก์ SAN หลุด",
+        "Network หรือ สายแลนสำหรับ Cluster (Heartbeat) ขาด",
+        "Service ที่ทำ Cluster ไว้แครชดับไป"
+      ],
+      "steps": [
+        "เปิด Failover Cluster Manager เช็คว่า Resource ตัวไหนล้มเหลว",
+        "ตรวจสอบ System Event (Event 11, 51) ดูว่ามีปัญหาเรื่อง Disk หรือไม่",
+        "เช็คสถานะ Network ว่าปกติและเชื่อมต่อกันระหว่าง Node ได้"
+      ]
+    },
+    "en": {
+      "overview": "Event 1069 (Cluster resource failed) indicates a clustered resource (IP, Disk, SQL Service) failed, triggering a failover.",
+      "causes": [
+        "Lost connection to SAN disk",
+        "Network/Heartbeat disconnect",
+        "The clustered service crashed"
+      ],
+      "steps": [
+        "Open Failover Cluster Manager to identify the failed resource",
+        "Check System Events (11, 51) for underlying disk issues",
+        "Verify network connectivity between cluster nodes"
+      ]
+    }
+  },
+  "1135": {
+    "th": {
+      "overview": "Event 1135 (Cluster node removed) Node ของเซิร์ฟเวอร์คลัสเตอร์หลุดออกจากกลุ่ม เนื่องจากขาดการติดต่อนานเกินค่าที่กำหนด",
+      "causes": [
+        "สายแลน Heartbeat มีปัญหา หรือ Switch ล่ม",
+        "เครื่องเซิร์ฟเวอร์เป้าหมายจอฟ้า (BSOD) หรือค้าง",
+        "การตั้งค่า Timeout ของ Heartbeat สั้นเกินไปเมื่อใช้งานผ่าน VM/Cloud"
+      ],
+      "steps": [
+        "ตรวจสอบสภาพการเชื่อมต่อ Network ระหว่างโหนดทั้งหมด",
+        "ตรวจสอบว่าเครื่องที่หลุดไป (Removed Node) ยังเปิดอยู่หรือไม่ หรือว่าจอฟ้า",
+        "หากเป็นระบบ Virtual Machine แนะนำให้รันคำสั่ง PowerShell ปรับเพิ่มค่า 'SameSubnetDelay' และ 'SameSubnetThreshold' ของคลัสเตอร์"
+      ]
+    },
+    "en": {
+      "overview": "Event 1135 (Cluster node removed) means a node was removed from the active failover cluster membership because it stopped communicating.",
+      "causes": [
+        "Heartbeat network or switch failure",
+        "The target server experienced a BSOD or hard freeze",
+        "Heartbeat timeouts are too aggressive for VM/Cloud environments"
+      ],
+      "steps": [
+        "Check network connectivity and switches between nodes",
+        "Verify if the removed node is powered on or crashed",
+        "For Virtual Machines, use PowerShell to increase 'SameSubnetDelay' and 'SameSubnetThreshold' cluster properties"
+      ]
+    }
+  },
+  "10016": {
+    "th": {
+      "overview": "Event ID 10016 มาจาก DistributedCOM (DCOM) หมายความว่าโปรแกรมหรือบริการ Windows พยายามเรียกใช้ COM Server แต่ไม่มีสิทธิ์ Local Activation ตามที่ตั้งค่าไว้ โดยทั่วไปเป็น Warning/Error ที่พบบ่อย และมักไม่ทำให้เครื่องล่ม แต่จะขึ้นซ้ำใน Event Viewer หากสิทธิ์ DCOM ยังไม่ถูกต้อง",
+      "causes": [
+        "แอปหรือบริการ Windows ไม่มีสิทธิ์ DCOM (Launch/Activation) สำหรับ CLSID/APPID ที่ระบุใน Event",
+        "การอัปเดต Windows หรือซอฟต์แวร์เปลี่ยนการตั้งค่าความปลอดภัยของ COM",
+        "บริการพื้นหลัง (เช่น ShellExperienceHost, Game Bar) เรียก COM โดยสิทธิ์ไม่เพียงพอ"
+      ],
+      "steps": [
+        "เปิด Event Viewer ดูรายละเอียด Event ให้ครบ โดยเฉพาะ CLSID และ APPID ที่แสดงในข้อความ",
+        "กด Win + R พิมพ์ dcomcnfg แล้วกด Enter เพื่อเปิด Component Services",
+        "ไปที่ Component Services → Computers → My Computer → DCOM Config",
+        "หาแอปที่ตรงกับ CLSID/APPID ใน Event คลิกขวา → Properties → แท็บ Security",
+        "ปรับ Launch และ Activation permissions ให้บัญชีที่เกี่ยวข้องมีสิทธิ์เพียงพอ (หรือปล่อยค่า Default หากไม่แน่ใจ)",
+        "รีสตาร์ทเครื่อง แล้วตรวจสอบ Event Viewer อีกครั้งว่า Event 10016 ยังขึ้นซ้ำหรือไม่"
+      ]
+    },
+    "en": {
+      "overview": "Event ID 10016 from DistributedCOM means a program or Windows service tried to access a COM Server without the required Local Activation permission. It is common and usually does not crash the system, but may repeat in Event Viewer until DCOM permissions are corrected.",
+      "causes": [
+        "An app or Windows service lacks DCOM Launch/Activation rights for the CLSID/APPID in the event",
+        "A Windows or software update changed COM security settings",
+        "A background service calls COM without sufficient permissions"
+      ],
+      "steps": [
+        "Open Event Viewer and note the full details, especially CLSID and APPID in the message",
+        "Press Win + R, type dcomcnfg, and press Enter to open Component Services",
+        "Go to Component Services → Computers → My Computer → DCOM Config",
+        "Find the app matching the CLSID/APPID, right-click → Properties → Security tab",
+        "Adjust Launch and Activation permissions for the relevant account (or use Default if unsure)",
+        "Restart the computer and check Event Viewer again for repeated 10016 events"
+      ]
+    }
+  },
+  "41": {
+    "th": {
+      "overview": "Event ID 41 (Kernel-Power) หมายถึงระบบรีสตาร์ทโดยไม่ปิดเครื่องอย่างถูกต้อง (unexpected shutdown) มักเกิดจากไฟดับ, กดรีเซ็ตค้าง, หรือขัดข้องของฮาร์ดแวร์/ไดรเวอร์",
+      "causes": [
+        "ไฟฟ้าดับหรือสายไฟ/ปลั๊กไม่แน่น",
+        "กดปุ่มรีเซ็ตค้าง หรือเครื่องค้างจนต้องบังคับปิด",
+        "ไดรเวอร์, PSU, RAM หรือการอัปเดต Windows มีปัญหา"
+      ],
+      "steps": [
+        "ตรวจสอบว่าไฟฟ้าและสายไฟเสถียร ไม่มีการดับกะทันหัน",
+        "ดู Event Viewer รอบเวลาเดียวกันว่ามี Event อื่น (เช่น 6008, 1001) หรือไม่",
+        "อัปเดต Windows และไดรเวอร์ (โดยเฉพาะชิปเซ็ต, VGA, Storage)",
+        "รัน memory diagnostic และตรวจสอบอุณหภูมิ/PSU หากเกิดซ้ำบ่อย"
+      ]
+    },
+    "en": {
+      "overview": "Event ID 41 (Kernel-Power) means the system rebooted without a clean shutdown. Common causes include power loss, forced reset, or hardware/driver issues.",
+      "causes": [
+        "Power loss or loose power cable",
+        "Held reset button or forced shutdown after a freeze",
+        "Driver, PSU, RAM, or Windows update problems"
+      ],
+      "steps": [
+        "Verify stable power supply and connections",
+        "Check Event Viewer around the same time for related events (6008, 1001)",
+        "Update Windows and drivers (chipset, GPU, storage)",
+        "Run memory diagnostics and check thermals/PSU if it happens often"
+      ]
+    }
+  },
+  "6008": {
+    "th": {
+      "overview": "Event ID 6008 (EventLog) บันทึกว่าระบบปิดตัวลงโดยไม่ผ่านขั้นตอน Shut down ปกติ มักพบคู่กับ Kernel-Power 41 หลังไฟดับหรือบังคับปิดเครื่อง",
+      "causes": [
+        "ไฟดับหรือถอดปลั๊กขณะเครื่องเปิดอยู่",
+        "กดปิดเครื่องค้างหรือบังคับปิดจากปุ่มพาวเวอร์",
+        "ระบบค้างจนต้องรีเซ็ตฮาร์ดแวร์"
+      ],
+      "steps": [
+        "ตรวจสอบแหล่งจ่ายไฟและ UPS หากมี",
+        "ดู Event 41 และ 1001 ในช่วงเวลาเดียวกันเพื่อหาสาเหตุร่วม",
+        "อัปเดตระบบและไดรเวอร์ จากนั้นสังเกตว่ายังเกิดซ้ำหรือไม่"
+      ]
+    },
+    "en": {
+      "overview": "Event ID 6008 (EventLog) records that the system shut down unexpectedly. It often appears with Kernel-Power 41 after power loss or a forced shutdown.",
+      "causes": [
+        "Power outage or unplugging while the PC is on",
+        "Held power button or forced shutdown",
+        "System freeze requiring a hardware reset"
+      ],
+      "steps": [
+        "Check power supply and UPS if available",
+        "Review events 41 and 1001 at the same timestamp for related causes",
+        "Update the system and drivers, then monitor for repeats"
+      ]
+    }
+  },
+  "1074": {
+    "th": {
+      "overview": "Event 1074 (User Initiated Shutdown) ผู้ใช้หรือแอปพลิเคชันสั่งปิดหรือรีสตาร์ทเครื่อง",
+      "causes": [
+        "มีคนกดปุ่ม Shutdown/Restart ใน Windows",
+        "Windows Update สั่งรีสตาร์ทหลังอัปเดตเสร็จ",
+        "โปรแกรม Third-party สั่งรีบูตเครื่อง"
+      ],
+      "steps": [
+        "ตรวจสอบฟิลด์ 'User' ว่าใครเป็นคนสั่ง",
+        "ตรวจสอบ 'Process Name' เพื่อดูว่าโปรแกรมไหนเรียกคำสั่ง",
+        "เป็นการปิดเครื่องปกติ หากไม่ได้ตั้งใจให้เช็ค Schedule Task"
+      ]
+    },
+    "en": {
+      "overview": "Event 1074 (User Initiated Shutdown) indicates a user or application initiated a restart or shutdown.",
+      "causes": [
+        "User manually clicked Shutdown/Restart",
+        "Windows Update initiated a reboot",
+        "A third-party application triggered a reboot"
+      ],
+      "steps": [
+        "Check the 'User' field to see who initiated it",
+        "Check 'Process Name' to identify the calling application",
+        "This is a clean shutdown, no action required unless unexpected"
+      ]
+    }
+  },
+  "6006": {
+    "th": {
+      "overview": "Event 6006 (Event Log Service Stopped) เป็นสัญลักษณ์ว่าเครื่องปิดการทำงานโดยสมบูรณ์ (Clean Shutdown)",
+      "causes": [
+        "เครื่องทำงานตามคำสั่ง Shutdown จนจบกระบวนการ"
+      ],
+      "steps": [
+        "เหตุการณ์ปกติ ไม่ต้องดำเนินการใดๆ"
+      ]
+    },
+    "en": {
+      "overview": "Event 6006 (Event Log Service Stopped) signifies the computer performed a clean shutdown.",
+      "causes": [
+        "System successfully shut down"
+      ],
+      "steps": [
+        "Normal behavior, no action required."
+      ]
+    }
+  },
+  "1001": {
+    "th": {
+      "overview": "Event 1001 (BugCheck / Blue Screen of Death) คอมพิวเตอร์เกิดจอฟ้าและสร้างไฟล์ Memory Dump",
+      "causes": [
+        "ไดรเวอร์อุปกรณ์ (Driver) พังหรือไม่เข้ากัน",
+        "ฮาร์ดแวร์ทำงานผิดพลาด (RAM/VGA/Disk)",
+        "ความร้อนสะสมสูงเกินไป (Overheating)"
+      ],
+      "steps": [
+        "ใช้โปรแกรม BlueScreenView เปิดไฟล์ Memory Dump เพื่อหาไดรเวอร์ต้นเหตุ",
+        "อัปเดตไดรเวอร์ของการ์ดจอ ชิปเซ็ต หรือเน็ตเวิร์ก",
+        "ตรวจสอบความสมบูรณ์ของ RAM ด้วย Windows Memory Diagnostic"
+      ]
+    },
+    "en": {
+      "overview": "Event 1001 (BugCheck) indicates a Blue Screen of Death (BSOD) occurred.",
+      "causes": [
+        "Faulty or incompatible hardware drivers",
+        "Hardware failure (RAM, GPU, Disk)",
+        "Overheating"
+      ],
+      "steps": [
+        "Use BlueScreenView to analyze the dump file",
+        "Update display, chipset, and network drivers",
+        "Run Windows Memory Diagnostic"
+      ]
+    }
+  },
+  "17": {
+    "th": {
+      "overview": "Event 17 (WHEA-Logger) ตรวจพบข้อผิดพลาดฮาร์ดแวร์ที่แก้ไขได้ มักเกิดกับ PCI Express",
+      "causes": [
+        "ไดรเวอร์เมนบอร์ดหรือชิปเซ็ตเก่า/มีบั๊ก",
+        "ตั้งค่าพลังงาน PCI Express ไม่เสถียร",
+        "การ์ดจอเสียบบนสล็อตไม่แน่น"
+      ],
+      "steps": [
+        "ปิด 'PCI Express Link State Power Management' ใน Power Options",
+        "อัปเดต BIOS/UEFI และไดรเวอร์ชิปเซ็ต",
+        "ถอดและเสียบการ์ด PCIe ใหม่"
+      ]
+    },
+    "en": {
+      "overview": "Event 17 (WHEA-Logger) indicates a corrected hardware error, typically PCI Express.",
+      "causes": [
+        "Outdated BIOS or chipset drivers",
+        "Unstable PCIe Link State Power Management",
+        "Loose PCIe device"
+      ],
+      "steps": [
+        "Disable 'PCI Express Link State Power Management'",
+        "Update motherboard BIOS/UEFI and chipset drivers",
+        "Reseat the PCIe devices"
+      ]
+    }
+  },
+  "4771": {
+    "th": {
+      "overview": "Event 4771 (Kerberos Pre-Authentication Failed) ยืนยันตัวตน Kerberos ล้มเหลว (รหัสผ่านผิด)",
+      "causes": [
+        "ผู้ใช้พิมพ์รหัสผ่านผิด",
+        "รหัสถูกเปลี่ยนแต่แอปยังจำรหัสเก่าอยู่",
+        "ถูกเดารหัสผ่าน (Brute-force)"
+      ],
+      "steps": [
+        "ดูรหัสข้อผิดพลาด เช่น 0x18 หมายถึงรหัสผิด",
+        "หากมี Event ถี่มาก ให้บล็อก IP ต้นทาง",
+        "ตรวจสอบอุปกรณ์ที่จำรหัสเก่า"
+      ]
+    },
+    "en": {
+      "overview": "Event 4771 (Kerberos Pre-Authentication Failed) means authentication failed (wrong password).",
+      "causes": [
+        "User typed incorrect password",
+        "Cached old passwords",
+        "Brute-force attack"
+      ],
+      "steps": [
+        "Check Failure Code (0x18 = Wrong password)",
+        "Block source IP if aggressive",
+        "Check devices with cached credentials"
+      ]
+    }
+  },
+  "7036": {
+    "th": {
+      "overview": "Event 7036 (Service State Changed) Service ของระบบถูกเปิดหรือปิด (Stopped / Started)",
+      "causes": [
+        "การเริ่มหรือหยุด Service ตามปกติของระบบ",
+        "ผู้ใช้หรือแอปพลิเคชันสั่งเริ่ม/หยุด Service"
+      ],
+      "steps": [
+        "เหตุการณ์ปกติ หาก Service สำคัญถูกปิด ให้ตรวจสอบสาเหตุ"
+      ]
+    },
+    "en": {
+      "overview": "Event 7036 (Service State Changed) indicates a service entered the stopped or running state.",
+      "causes": [
+        "Normal service operations",
+        "User or application initiated the change"
+      ],
+      "steps": [
+        "Informational. Only investigate if a critical service unexpectedly stops."
+      ]
+    }
+  },
+  "7045": {
+    "th": {
+      "overview": "Event 7045 (New Service Installed) ตรวจพบการติดตั้ง Service ใหม่",
+      "causes": [
+        "แอดมินติดตั้ง Service ใหม่ตามปกติ",
+        "มัลแวร์ (Ransomware/Trojan) ติดตั้งตัวเองเป็น Service ฝังลึก"
+      ],
+      "steps": [
+        "ตรวจสอบชื่อ Service และพาธไฟล์",
+        "ถ้าน่าสงสัย ให้ใช้ Antivirus / EDR สแกนไฟล์",
+        "กักบริเวณ (Isolate) เครื่องหากเป็นมัลแวร์"
+      ]
+    },
+    "en": {
+      "overview": "Event 7045 (New Service Installed) indicates a new Windows service was created.",
+      "causes": [
+        "Legitimate software installation",
+        "Malware establishing persistence"
+      ],
+      "steps": [
+        "Review the Service Name and Image Path",
+        "If suspicious, scan the file",
+        "If malicious, isolate the host"
+      ]
+    }
+  },
+  "1116": {
+    "th": {
+      "overview": "Event 1116 (Malware Detected) โปรแกรมป้องกันไวรัสหรือ EDR ตรวจพบมัลแวร์",
+      "causes": [
+        "ผู้ใช้ดาวน์โหลดหรือรันไฟล์อันตราย",
+        "ถูกโจมตีผ่านช่องโหว่"
+      ],
+      "steps": [
+        "ตรวจสอบ Event 1117 ว่าโปรแกรมจัดการลบไฟล์สำเร็จหรือไม่",
+        "สแกนเครื่องแบบ Full Scan ทันที",
+        "ตรวจสอบแหล่งที่มาของไฟล์"
+      ]
+    },
+    "en": {
+      "overview": "Event 1116 (Malware Detected) indicates antivirus/EDR detected malicious software.",
+      "causes": [
+        "User downloaded/executed a malicious file",
+        "System was exploited"
+      ],
+      "steps": [
+        "Check Event 1117 to ensure action was taken",
+        "Run a full system scan",
+        "Investigate file origin"
+      ]
+    }
+  },
+  "KAVT0000": {
+    "th": {
+      "overview": "JP1/Base หรือ JP1/AJS3 เกิดข้อผิดพลาดในการรัน Job หรือเซอร์วิสทำงานผิดปกติ",
+      "causes": [
+        "เซอร์วิส JP1/Base ล่มหรือสื่อสารไม่ได้",
+        "Job ค้าง (Hung) ทำให้ Timeout",
+        "Permission ของ User ที่รัน Job ไม่พอ"
+      ],
+      "steps": [
+        "ตรวจสอบหน้า JP1/AJS3 - View ว่า Job ไหนที่ Abnormal",
+        "เปิดดู Log ของ JP1",
+        "รีสตาร์ทเซอร์วิส JP1 หากจำเป็น"
+      ]
+    },
+    "en": {
+      "overview": "JP1/Base or JP1/AJS3 encountered an error running a job or a service failure.",
+      "causes": [
+        "JP1/Base service down",
+        "Job hung resulting in a timeout",
+        "Insufficient permissions for execution user"
+      ],
+      "steps": [
+        "Check JP1/AJS3 - View for the Abnormal job",
+        "Review specific JP1 internal logs",
+        "Restart JP1 services if unresponsive"
+      ]
+    }
+  },
+  "KAVT0245-E": {
+    "th": {
+      "overview": "JP1 Error: KAVT0245-E ไม่สามารถเชื่อมต่อกับ Agent ปลายทางได้",
+      "causes": [
+        "Agent ปลายทางปิดเครื่อง หรือ Network ตัดขาด",
+        "JP1/Base Service บน Agent ถูกปิด",
+        "พอร์ตถูก Firewall บล็อก"
+      ],
+      "steps": [
+        "Ping เช็คว่า Agent ออนไลน์อยู่หรือไม่",
+        "ตรวจสอบให้แน่ใจว่าเซอร์วิส JP1/Base รันอยู่",
+        "ตรวจสอบ Firewall"
+      ]
+    },
+    "en": {
+      "overview": "JP1 Error KAVT0245-E: Cannot connect to the destination Agent.",
+      "causes": [
+        "Target Agent is offline",
+        "JP1/Base service is stopped on Agent",
+        "Firewall blocking ports"
+      ],
+      "steps": [
+        "Ping the destination Agent",
+        "Verify JP1/Base service is running on the Agent",
+        "Check Firewall rules"
+      ]
+    }
+  }
+}

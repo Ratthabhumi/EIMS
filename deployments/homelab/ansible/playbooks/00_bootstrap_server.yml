@@ -1,0 +1,38 @@
+---
+# ==============================================================================
+# SPRINT 1: ENTERPRISE OS BOOTSTRAP, SECURITY HARDENING & DOCKER ENGINE
+# Target: All 24/7 Home Servers (specifically mew@homelab / Ubuntu 24.04 LTS)
+# ==============================================================================
+
+- name: 🚀 Sprint 1 - Infrastructure as Code OS Bootstrapping
+  hosts: home_servers
+  become: true                    # Automatically execute via sudo
+  gather_facts: true              # Inspect hardware kernel & network interfaces
+
+  vars:
+    target_timezone: "Asia/Bangkok"
+    docker_users:
+      - mew
+
+  tasks:
+    - name: 📦 [Phase 1] System Essentials, Tools & Automated Updates
+      ansible.builtin.include_tasks:
+        file: tasks/01_system_essentials.yml
+
+    - name: 🛡️ [Phase 2] Zero-Trust Security Hardening (UFW & Fail2Ban)
+      ansible.builtin.include_tasks:
+        file: tasks/02_security_hardening.yml
+
+    - name: ⚡ [Phase 3] Kernel Tuning & Memory Optimization for 24/7 Operations
+      ansible.builtin.include_tasks:
+        file: tasks/03_kernel_tuning.yml
+
+    - name: 🐳 [Phase 4] Docker Engine Installation & Log Rotation Architecture
+      ansible.builtin.include_tasks:
+        file: tasks/04_docker_engine.yml
+
+  handlers:
+    - name: Restart Docker Daemon
+      ansible.builtin.service:
+        name: docker
+        state: restarted

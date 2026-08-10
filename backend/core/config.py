@@ -23,7 +23,7 @@ class EIMSSettings(BaseSettings):
     DB_USER: str = Field(default="eims_user")
     DB_PASSWORD: str = Field(default="eims_secret_password")
     DB_HOST: str = Field(default="localhost", description="Target hostname for DB connection (use localhost for local venv)")
-    DB_PORT: int = Field(default=6432, description="Connect directly through PgBouncer transaction pool port 6432")
+    DB_PORT: int = Field(default=5432, description="Connect directly to Postgres port 5432 to bypass PgBouncer asyncpg transaction incompatibilities")
     DB_NAME: str = Field(default="eims_registry")
     DB_POOL_SIZE: int = Field(default=20, description="Async SQLAlchemy internal network connection pool bounds")
     DB_MAX_OVERFLOW: int = Field(default=10)
@@ -42,9 +42,16 @@ class EIMSSettings(BaseSettings):
     JWT_ALGORITHM: str = Field(default="HS256")
     ACCESS_TOKEN_EXMIRES_MINUTES: int = Field(default=60)
     
+    # MinIO Object Storage Configurations (Core Law 4 OCR Registration)
+    MINIO_ENDPOINT: str = Field(default="localhost:9000", description="MinIO S3 Gateway endpoint")
+    MINIO_ACCESS_KEY: str = Field(default="eims_minio_admin", description="MinIO root access key")
+    MINIO_SECRET_KEY: str = Field(default="eims_minio_secret", description="MinIO root secret password")
+    MINIO_BUCKET_NAME: str = Field(default="eims-ocr-manifests", description="Target bucket for sticker uploads")
+    MINIO_SECURE: bool = Field(default=False, description="Set to true if using HTTPS for MinIO")
+    
     # Next.js Operational Dashboard CORS Configuration
     CORS_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000"],
+        default=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000", "http://localhost:3001", "http://127.0.0.1:3001"],
         description="Allowed frontend operational origin URLs"
     )
 

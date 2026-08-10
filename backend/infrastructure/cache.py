@@ -24,6 +24,10 @@ class AsynchronousCacheManager:
     def __init__(self):
         self._redis_client: Redis | None = None
 
+    @property
+    def redis(self) -> Redis | None:
+        return self._redis_client
+
     async def initialize(self) -> None:
         """Instantiates asynchronous Redis network connections over connection pooling."""
         self._redis_client = redis.from_url(

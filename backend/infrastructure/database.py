@@ -36,6 +36,7 @@ class AsynchronousDatabaseEngine:
             max_overflow=settings.DB_MAX_OVERFLOW,
             pool_pre_ping=True, # Validates network socket viability before query execution
             echo=(settings.LOG_LEVEL == "DEBUG"),
+            connect_args={"prepared_statement_cache_size": 0}, # Required for PgBouncer Transaction Mode
         )
         
         self._session_factory = async_sessionmaker(
@@ -81,6 +82,10 @@ class AsynchronousDatabaseEngine:
                 raise
             finally:
                 await session.close()
+
+    def get_session_maker(self):
+        """Returns the internal session factory for background workers."""
+        return self._session_factory
 
 
 # Global instantiated database engine singleton

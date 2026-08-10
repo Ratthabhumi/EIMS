@@ -38,9 +38,18 @@ This project is currently under active development.
 - **Sprint 1 – Engineering Specifications** ✅
 - **Sprint 2 – Backend Foundation** ✅
 - **Sprint 3 – Telemetry Collector & Discovery Agent Ingestion** ✅
-- **Sprint 4 – MinIO Integration & OCR Asset Registration** *(Next Target / Active)*
+- **Sprint 4 – MinIO Integration & OCR Asset Registration** ✅
+- **Sprint 5 – Windows Log Analytics & Compliance Score Engines** ✅
+- **Sprint 6 – Operational Dashboard & Enterprise Observability** ✅
+- **Sprint 7+ – High Availability & Enterprise Scale Production Clustering** *(Next Target / Active)*
 
-*The project is currently transitioning toward upcoming operational milestones.*
+*The project is currently transitioning toward upcoming enterprise clustering operational milestones.*
+
+---
+
+## 🚀 Quick Start & Cheatsheet
+
+For detailed instructions on how to start the backend, frontend dashboard, agent simulation, and database infrastructure, please refer to the **[EIMS Developer Cheatsheet](CHEATSHEET.md)**.
 
 ---
 

@@ -218,3 +218,47 @@ class AuditLog(Base):
 
     # ORM Relationship
     asset: Mapped[Optional["InfrastructureAsset"]] = relationship("InfrastructureAsset", back_populates="audit_logs")
+
+
+class OCRRegistrationRecord(Base):
+    """
+    Manages asynchronous workflow tracking for physical documents processed
+    via OCR Asset Registration (Core Law 4 Section 6.2).
+    """
+    __tablename__ = "ocr_registration_records"
+
+    record_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        doc="Tracking identifier for multipart upload tasks."
+    )
+    asset_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("infrastructure_assets.asset_id", ondelete="SET NULL"),
+        nullable=True,
+        doc="Linked asset created or matched upon extraction completion."
+    )
+    minio_object_uri: Mapped[str] = mapped_column(
+        String(512),
+        nullable=False,
+        unique=True,
+        doc="Immutable storage pointer within local MinIO storage buckets."
+    )
+    extraction_status: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        default="Pending",
+        doc="Workflow execution state (Pending, Processing, Completed, Failed)."
+    )
+    parsed_raw_text: Mapped[Dict[str, Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
+        doc="Raw OCR extraction output strings and recognized keys."
+    )
+
+    __table_args__ = (
+        {"comment": "OCR Registration workflow tracking governed under Core Law 4."}
+    )
+

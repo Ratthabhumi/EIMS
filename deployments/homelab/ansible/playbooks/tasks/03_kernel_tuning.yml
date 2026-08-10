@@ -1,0 +1,25 @@
+---
+# ==============================================================================
+# PHASE 3: KERNEL TUNING & MEMORY OPTIMIZATIONS FOR FOR LIVE 24/7 OPERATION
+# ==============================================================================
+
+- name: Optimize VM swappiness for continuous server uptime (Prevent HDD wear on laptops)
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: '10'
+    state: present
+    reload: true
+
+- name: Enable IPv4 packet forwarding in kernel (Essential for Docker & K8s overlay routing)
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    reload: true
+
+- name: Expand socket connection queue depth (Prevent dropped requests under reverse proxies)
+  ansible.posix.sysctl:
+    name: net.core.somaxconn
+    value: '4096'
+    state: present
+    reload: true

@@ -1,0 +1,8 @@
+---
+title: "MewMew Homelab"
+theme: dark
+color: slate
+layout:
+  Homelab Infrastructure:
+    style: row
+    columns: 4

@@ -1,0 +1,9 @@
+customtkinter>=5.2.2
+rapidocr-onnxruntime
+paddleocr
+opencv-python>=4.9.0
+Pillow>=10.3.0
+watchdog>=4.0.0
+psutil>=5.9.8
+winotify>=1.1.0
+requests>=2.31.0

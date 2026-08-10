@@ -67,8 +67,82 @@ services:
       timeout: 3s
       retries: 5
 
+  # ----------------------------------------------------------------------------
+  # MinIO S3 Object Storage (Core Law 4 OCR Registration Persistence)
+  # ----------------------------------------------------------------------------
+  minio_s3:
+    image: minio/minio:latest
+    container_name: eims-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: eims_minio_admin
+      MINIO_ROOT_PASSWORD: eims_minio_secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_storage:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  minio_setup:
+    image: minio/mc:latest
+    container_name: eims-minio-setup
+    depends_on:
+      minio_s3:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set eims_local http://minio_s3:9000 eims_minio_admin eims_minio_secret;
+      /usr/bin/mc mb eims_local/eims-ocr-manifests --ignore-existing;
+      /usr/bin/mc anonymous set public eims_local/eims-ocr-manifests;
+      exit 0;
+      "
+
+  # ----------------------------------------------------------------------------
+  # Observability Stack (Core Law 1 Sprint 6)
+  # ----------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: eims-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deployments/observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_storage:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: eims-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=eims_admin
+    volumes:
+      - grafana_storage:/var/lib/grafana
+
+  loki:
+    image: grafana/loki:latest
+    container_name: eims-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
 volumes:
   postgres_storage:
     driver: local
   redis_storage:
+    driver: local
+  minio_storage:
+    driver: local
+  prometheus_storage:
+    driver: local
+  grafana_storage:
     driver: local

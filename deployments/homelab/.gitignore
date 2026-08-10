@@ -1,0 +1,85 @@
+# ==============================================================================
+# ENTERPRISE DEV-OPS & PLATFORM ENGINEERING .GITIGNORE
+# Prevent secrets, local cache, keys, and OS artifacts from leaking into Git
+# ==============================================================================
+
+# 1. Environment Variables & Secret Configuration Files (CRITICAL SECURITY)
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.template
+*.secret
+*.pem
+*.key
+*.id_rsa
+*.id_ed255ห
+id_rsa
+id_ed25519
+*.pfx
+*.p12
+credentials.json
+token.json
+kubeconfig
+*.kubeconfig
+
+# 2. Ansible Runtime, Cache, and Sensitive Variables
+ansible/retry/
+*.retry
+*.vault
+.ansible/
+ansible-vault.password
+.vault_pass
+
+# 3. Terraform & Infrastructure State Files (Future-Proofing)
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+override.tf
+override.tfjson
+*_override.tf
+*_override.tfjson
+*.plan
+
+# 4. IDEs & Editor Configuration
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# 5. OS Generated Trash & Caches
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 6. Runtime, Logs & Temporary Storage
+/scratch/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.env_venv/
+
+# 7. Local Backups & Dumps
+*.bak
+*.old
+*.tar
+*.tar.gz
+*.zip
+*.sql
+*.sqlite
+*.sqlite3

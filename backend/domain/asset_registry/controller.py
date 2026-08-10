@@ -8,7 +8,7 @@ Source-Available All Rights Reserved Policy
 
 import uuid
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, UploadFile, File, Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.infrastructure.database import get_db_session
@@ -23,6 +23,8 @@ from backend.domain.asset_registry.schemas import (
 )
 from backend.core.exceptions import ResourceNotFoundException
 from backend.core.logger import get_logger
+from backend.domain.asset_registry.models import OCRRegistrationRecord
+from backend.infrastructure.object_store import object_storage
 
 logger = get_logger("eims.api.asset_registry")
 
@@ -113,3 +115,39 @@ async def transition_asset_state(
         reason=payload.operator_rationale
     )
     return AssetResponse.model_validate(asset)
+
+
+@asset_router.post("/ocr-upload", status_code=status.HTTP_202_ACCEPTED, summary="Upload Image for OCR Asset Registration")
+async def upload_ocr_image(
+    file: UploadFile = File(..., description="Multipart image payload (e.g. Server Invoice, BIOS Sticker)"),
+    x_client_cert_fingerprint: str = Header(..., description="mTLS Client Certificate SHA-256 Fingerprint"),
+    repo: AssetRepository = Depends(get_asset_repository)
+) -> dict:
+    """
+    Core Law 4 Section 6.2 Multipart Ingestion.
+    Accepts physical asset image, streams to MinIO, and creates an asynchronous 'Pending' OCR Registration task.
+    """
+    logger.info(f"Received OCR upload request from Edge Agent: {x_client_cert_fingerprint}")
+    
+    # 1. Validate MIME type
+    if file.content_type not in ["image/jpeg", "image/png", "application/pdf"]:
+        raise HTTPException(status_code=415, detail="Unsupported Media Type. Must be JPEG, PNG, or PDF.")
+        
+    # 2. Stream to MinIO Storage Backend
+    try:
+        minio_uri = await object_storage.upload_file(file.file, file.filename, file.content_type)
+        logger.info(f"Successfully streamed file {file.filename} to {minio_uri}")
+    except Exception as e:
+        logger.error(f"MinIO streaming fault: {str(e)}")
+        raise HTTPException(status_code=502, detail="Storage Gateway Fault")
+        
+    # 3. Create Async OCR Workflow Record via Repository
+    tracking_record = await repo.create_ocr_registration(minio_uri=minio_uri)
+    
+    return {
+        "status": "success",
+        "message": "Image accepted for asynchronous OCR extraction",
+        "task_id": str(tracking_record.record_id),
+        "minio_uri": minio_uri,
+        "extraction_status": tracking_record.extraction_status
+    }

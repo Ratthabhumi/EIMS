@@ -1,0 +1,3 @@
+# This file preserves the reports/ directory in Git.
+# Actual JSON report files are excluded via .gitignore (contain sensitive machine data).
+# The directory is auto-created by config/settings.py at runtime if it does not exist.

@@ -1,0 +1,23 @@
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+  <System>
+    <Provider Name="Application Error" Guid="{a0e9b465-b939-57d7-b27d-95d8e925ff57}" />
+    <EventID>1000</EventID>
+    <Version>0</Version>
+    <Level>2</Level>
+    <Task>100</Task>
+    <Opcode>0</Opcode>
+    <Keywords>0x8000000000000000</Keywords>
+    <TimeCreated SystemTime="2026-04-14T17:18:52.0608748Z" />
+    <EventRecordID>27657</EventRecordID>
+    <Correlation />
+    <Execution ProcessID="12220" ThreadID="12224" />
+    <Channel>Application</Channel>
+    <Computer>Mew</Computer>
+    <Security UserID="S-1-5-18" />
+  </System>
+  <EventData>
+    <Data Name="AppName">AcerQAAgent.exe</Data>
+    <Data Name="AppVersion">1.5.24.0</Data>
+    <Data Name="ExceptionCode">c0000005</Data>
+  </EventData>
+</Event>

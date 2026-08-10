@@ -1,0 +1,14 @@
+{
+  "sticker_folder": "Sticker",
+  "processed_folder": "Sticker/Processed",
+  "failed_folder": "Sticker/Failed",
+  "log_folder": "Logs",
+  "ocr_language": "en",
+  "ocr_use_gpu": false,
+  "crop_enabled": true,
+  "crop_padding": 20,
+  "notification_enabled": true,
+  "theme": "dark",
+  "large_display_font_size": 96,
+  "large_display_hotkey": "F11"
+}

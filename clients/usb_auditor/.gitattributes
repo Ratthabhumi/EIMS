@@ -1,0 +1,21 @@
+# ============================================================
+# .gitattributes — Normalize line endings across platforms
+# Ensures code works the same on Windows, macOS, and Linux
+# ============================================================
+
+# Default: normalize all text files to LF in repository
+* text=auto
+
+# Explicitly LF for source code (cross-platform consistency)
+*.py    text eol=lf
+*.txt   text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# Binary files — no line ending conversion
+*.xlsx  binary
+*.png   binary
+*.jpg   binary
+*.exe   binary

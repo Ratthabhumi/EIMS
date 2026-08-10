@@ -6,16 +6,23 @@ Source-Available All Rights Reserved Policy
 ==============================================================================
 """
 
-from fastapi import APIRouter, Depends, status
+import uuid
+
+from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
+
 from backend.core.logger import get_logger
-from backend.infrastructure.cache import get_cache_manager, AsynchronousCacheManager
+from backend.domain.telemetry.broker import (
+    AbstractTelemetryBroker,
+    RedisTelemetryStreamBroker,
+)
 from backend.domain.telemetry.schemas import (
     AgentHeartbeatRequest,
     AgentWinlogRequest,
     StreamIngestionResponse,
 )
 from backend.domain.telemetry.security import verify_mtls_fingerprint
-from backend.domain.telemetry.broker import AbstractTelemetryBroker, RedisTelemetryStreamBroker
+from backend.infrastructure.cache import AsynchronousCacheManager, get_cache_manager
+from backend.infrastructure.object_store import object_storage
 
 logger = get_logger("eims.api.telemetry")
 
@@ -67,3 +74,41 @@ async def ingest_windows_event_log(
     """
     logger.debug(f"Edge winlog received (Event ID: {payload.event_id}, Channel: {payload.event_channel})")
     return await broker.publish_winlog(payload=payload, cert_fingerprint=cert_fingerprint)
+
+
+@telemetry_router.post(
+    "/upload/evtx",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Upload Binary Windows Event Log (.evtx)",
+    description="Ingest raw binary .evtx files for background parsing and IoC anomaly detection."
+)
+async def upload_windows_evtx(
+    file: UploadFile = File(..., description="Raw binary .evtx file"),
+    x_client_cert_fingerprint: str = Header(..., description="mTLS Client Certificate SHA-256 Fingerprint"),
+    broker: AbstractTelemetryBroker = Depends(get_telemetry_broker)
+) -> dict:
+    """
+    Accepts raw binary .evtx file, streams to MinIO, and creates an asynchronous 'Pending' EVTX parsing task.
+    """
+    logger.info(f"Received EVTX upload request from Edge Agent: {x_client_cert_fingerprint}")
+    
+    if not file.filename.endswith(".evtx") and file.content_type not in ["application/octet-stream", "application/x-winevt"]:
+        raise HTTPException(status_code=415, detail="Unsupported Media Type. Must be a .evtx file.")
+        
+    try:
+        minio_uri = await object_storage.upload_file(file.file, file.filename, file.content_type or "application/octet-stream")
+        logger.info(f"Successfully streamed file {file.filename} to {minio_uri}")
+    except Exception as e:
+        logger.error(f"MinIO streaming fault: {e!s}")
+        raise HTTPException(status_code=502, detail="Storage Gateway Fault")
+        
+    job_id = uuid.uuid4().hex
+    # Enqueue EVTX parsing job in Redis (list)
+    await broker.cache_manager.redis.lpush("eims:jobs:evtx", minio_uri)
+    
+    return {
+        "status": "processing",
+        "message": "EVTX file accepted for asynchronous parsing",
+        "task_id": job_id,
+        "minio_uri": minio_uri
+    }

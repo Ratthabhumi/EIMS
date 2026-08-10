@@ -1,0 +1,57 @@
+# ============================================================
+#  Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# ============================================================
+#  Virtual Environment
+# ============================================================
+.venv/
+venv/
+env/
+ENV/
+
+# ============================================================
+#  PyInstaller
+# ============================================================
+build/
+build_obf/
+dist/
+*.spec
+FolderCreator.zip
+
+# ============================================================
+#  PaddleOCR model weights (downloaded at runtime, NOT repo)
+# ============================================================
+.paddleocr/
+inference/
+
+# ============================================================
+#  App runtime folders  (structure kept, contents ignored)
+# ============================================================
+Logs/
+Sticker/Processed/
+Sticker/Failed/
+
+# Keep the watch folder itself (with placeholder)
+!Sticker/
+!Sticker/.gitkeep
+!Sticker/Processed/.gitkeep
+!Sticker/Failed/.gitkeep
+
+# ============================================================
+#  OS / Editor junk
+# ============================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.idea/
+.vscode/
+*.egg-info/
+.eggs/

@@ -1,0 +1,15 @@
+# ============================================================
+# Portable Windows Compliance Auditor - Dependencies
+# Python 3.12+  |  Windows Only
+# ============================================================
+#
+# Install:  pip install -r requirements.txt
+# ============================================================
+
+# System resource monitoring (CPU, RAM, Disk)
+# ใช้แทน WMI เพราะ API ง่ายกว่า, cross-version, และไม่ต้อง Admin สำหรับข้อมูลพื้นฐาน
+psutil>=6.1.1
+
+# Excel export (.xlsx)
+# ใช้ openpyxl ไม่ใช่ xlwt เพราะ xlwt ไม่ support .xlsx และ deprecated แล้ว
+openpyxl>=3.1.5

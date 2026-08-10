@@ -1,0 +1,46 @@
+# ============================================================
+# Portable Windows Compliance Auditor — .gitignore
+# ============================================================
+
+# ── Scan Reports (sensitive machine data — never commit) ────
+# Each JSON contains hostname, IP, MAC, username of real machines
+reports/*.json
+Summary.xlsx
+
+# ── Logs (runtime logs — not source code) ───────────────────
+logs/*.log
+
+# ── Python cache ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# ── Virtual environments ─────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Distribution / packaging ─────────────────────────────────
+dist/
+build/
+*.egg-info/
+*.egg
+
+# ── IDE / Editor ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ── OS artifacts ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Secrets / credentials ────────────────────────────────────
+.env
+*.key
+*.pem

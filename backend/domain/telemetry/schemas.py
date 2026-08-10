@@ -6,9 +6,8 @@ Source-Available All Rights Reserved Policy
 ==============================================================================
 """
 
-import uuid
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from datetime import UTC, datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -28,7 +27,7 @@ class HeartbeatMetrics(BaseModel):
 class AgentHeartbeatRequest(BaseModel):
     """High-frequency heartbeat transmission packet emitted by remote Discovery Agents."""
     agent_version: str = Field(..., max_length=50, description="Semantic version string of deploying client agent (e.g., 'v1.2.4').")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="UTC diagnostic sampling timestamp.")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC), description="UTC diagnostic sampling timestamp.")
     metrics: HeartbeatMetrics = Field(..., description="Encapsulated hardware and runtime operational metrics.")
 
 
@@ -39,9 +38,9 @@ class WinlogMetadata(BaseModel):
     """
     model_config = ConfigDict(extra="allow")
     
-    target_user_name: Optional[str] = Field(None, description="Security subject username target in event occurrence.")
-    workstation_name: Optional[str] = Field(None, description="Source computer name or Windows endpoint hostname.")
-    source_network_ip: Optional[str] = Field(None, description="Remote IPv4/IPv6 address initiating security interaction.")
+    target_user_name: str | None = Field(None, description="Security subject username target in event occurrence.")
+    workstation_name: str | None = Field(None, description="Source computer name or Windows endpoint hostname.")
+    source_network_ip: str | None = Field(None, description="Remote IPv4/IPv6 address initiating security interaction.")
 
 
 class AgentWinlogRequest(BaseModel):
@@ -60,10 +59,10 @@ class StreamIngestionResponse(BaseModel):
     """
     status: str = Field("accepted", description="Standard API processing acceptance indicator.")
     stream_job_id: str = Field(
-        default_factory=lambda: f"{int(datetime.now(timezone.utc).timestamp() * 1000)}-0",
+        default_factory=lambda: f"{int(datetime.now(UTC).timestamp() * 1000)}-0",
         description="Unique Redis Stream sequence identifier assigned to queued telemetry packet."
     )
     queued_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        default_factory=lambda: datetime.now(UTC).isoformat(),
         description="Exact UTC ISO timestamp when payload arrived inside Redis buffer."
     )

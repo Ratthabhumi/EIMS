@@ -1,0 +1,30 @@
+name: Continuous Deployment (CD)
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'docker/**'
+      - 'ansible/**'
+      - 'scripts/**'
+      - 'Makefile'
+
+jobs:
+  deploy-to-homelab:
+    needs: [] # In a real environment, this would depend on the CI job
+    runs-on: self-hosted
+    
+    steps:
+      - name: 🛎️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy Infrastructure to Homelab
+        run: |
+          echo "Starting autonomous deployment via local runner..."
+          # Since the runner is on the server, we can just run the apply-local script
+          # We export SUDO_ASKPASS or just ensure passwordless sudo is configured for the runner user.
+          # For security, we just run the app deployment playbook directly which doesn't require sudo for docker (mew is in docker group).
+          
+          ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/01_deploy_homelab.yml --connection=local --limit=homelab
+          
+          echo "✅ Deployment Successful!"

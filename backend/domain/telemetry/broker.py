@@ -6,17 +6,17 @@ Source-Available All Rights Reserved Policy
 ==============================================================================
 """
 
-import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
-from typing import List, Dict, Any
+from datetime import UTC, datetime
+from typing import Any
+
 from backend.core.logger import get_logger
-from backend.infrastructure.cache import AsynchronousCacheManager
 from backend.domain.telemetry.schemas import (
     AgentHeartbeatRequest,
     AgentWinlogRequest,
     StreamIngestionResponse,
 )
+from backend.infrastructure.cache import AsynchronousCacheManager
 
 logger = get_logger("eims.telemetry.broker")
 
@@ -54,7 +54,7 @@ class RedisTelemetryStreamBroker(AbstractTelemetryBroker):
             "event_type": event_type,
             "cert_fingerprint": cert_fingerprint,
             "payload": payload_json,
-            "ingested_at": datetime.now(timezone.utc).isoformat()
+            "ingested_at": datetime.now(UTC).isoformat()
         }
 
         if client is not None:
@@ -72,7 +72,7 @@ class RedisTelemetryStreamBroker(AbstractTelemetryBroker):
                 logger.error(f"Redis Stream XADD Failure on '{TELEMETRY_STREAM_KEY}': {e}. Transitioning to degraded fallback buffer.")
 
         # Degraded fallback response when Redis connection pipe is disconnected or running offline in integration tests
-        fallback_id = f"fallback-{int(datetime.now(timezone.utc).timestamp() * 1000)}-0"
+        fallback_id = f"fallback-{int(datetime.now(UTC).timestamp() * 1000)}-0"
         return StreamIngestionResponse(status="accepted", stream_job_id=fallback_id)
 
     async def publish_heartbeat(self, payload: AgentHeartbeatRequest, cert_fingerprint: str) -> StreamIngestionResponse:
@@ -88,19 +88,19 @@ class StubTelemetryStreamBroker(AbstractTelemetryBroker):
     for instantaneous hermetic test automation without physical network sockets.
     """
     def __init__(self):
-        self.stream_buffer: List[Dict[str, Any]] = []
+        self.stream_buffer: list[dict[str, Any]] = []
         self._counter = 0
 
     async def _push(self, event_type: str, payload_json: str, cert_fingerprint: str) -> StreamIngestionResponse:
         self._counter += 1
-        job_id = f"stub-{int(datetime.now(timezone.utc).timestamp() * 1000)}-{self._counter}"
+        job_id = f"stub-{int(datetime.now(UTC).timestamp() * 1000)}-{self._counter}"
 
         entry = {
             "sequence_id": job_id,
             "event_type": event_type,
             "cert_fingerprint": cert_fingerprint,
             "payload": payload_json,
-            "queued_at": datetime.now(timezone.utc).isoformat()
+            "queued_at": datetime.now(UTC).isoformat()
         }
         self.stream_buffer.append(entry)
 

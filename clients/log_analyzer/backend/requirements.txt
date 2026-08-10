@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+sqlalchemy
+psycopg2-binary
+pytesseract
+Pillow
+duckduckgo-search
+ddgs
+deep-translator
+python-dotenv
+PyJWT
+python-evtx
+defusedxml
+chromadb
+pgvector

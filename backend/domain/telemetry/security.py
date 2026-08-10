@@ -7,8 +7,9 @@ Source-Available All Rights Reserved Policy
 """
 
 import re
-from typing import Optional
+
 from fastapi import Header, status
+
 from backend.core.exceptions import EIMSProblemException
 from backend.core.logger import get_logger
 
@@ -19,7 +20,7 @@ _SHA256_HEX_REGEX = re.compile(r"^[a-fA-F0-9]{64}$")
 
 
 async def verify_mtls_fingerprint(
-    x_client_cert_fingerprint: Optional[str] = Header(None, alias="X-Client-Cert-Fingerprint")
+    x_client_cert_fingerprint: str | None = Header(None, alias="X-Client-Cert-Fingerprint")
 ) -> str:
     """
     FastAPI security dependency enforcing Mutual TLS (mTLS) cryptographic client validation
