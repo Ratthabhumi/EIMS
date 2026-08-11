@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ScanText, Link as LinkIcon, Database, CheckCircle2, Clock, XCircle, Search, Download, ArrowLeft } from "lucide-react";
+import { ScanText, Link as LinkIcon, Database, CheckCircle2, Clock, XCircle, Search, Download, ArrowLeft, ArrowDownAZ, ArrowUpZA } from "lucide-react";
 import Link from "next/link";
 
 interface OCRRecord {
@@ -17,6 +17,7 @@ export default function OCRHistoryDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const fetchHistory = async () => {
     try {
@@ -53,24 +54,51 @@ export default function OCRHistoryDashboard() {
     }
   };
 
-  const filteredRecords = records.filter(r => 
-    r.record_id.toLowerCase().includes(search.toLowerCase()) || 
-    r.minio_object_uri.toLowerCase().includes(search.toLowerCase())
-  );
+  const getDisplayId = (record: OCRRecord) => {
+    const did = record.parsed_raw_text?.extracted_did;
+    const sn = record.parsed_raw_text?.extracted_sn;
+    if (did && sn) {
+      return `${did}(${sn})`;
+    }
+    return record.record_id;
+  };
+
+  const filteredRecords = records.filter(r => {
+    const displayId = getDisplayId(r).toLowerCase();
+    const term = search.toLowerCase();
+    return r.record_id.toLowerCase().includes(term) || 
+           r.minio_object_uri.toLowerCase().includes(term) ||
+           displayId.includes(term);
+  });
+
+  const sortedRecords = [...filteredRecords].sort((a, b) => {
+    const idA = getDisplayId(a).toLowerCase();
+    const idB = getDisplayId(b).toLowerCase();
+    return sortOrder === "asc" ? idA.localeCompare(idB) : idB.localeCompare(idA);
+  });
 
   const getImageUrl = (uri: string) => {
     return `http://localhost:8000/api/v1/assets/ocr-history/image?uri=${encodeURIComponent(uri)}`;
   };
 
+  const getDisplayFilename = (uri: string) => {
+    const basename = uri.split('/').pop() || '';
+    if (basename.length > 37 && basename.charAt(36) === '-') {
+      return basename.substring(37);
+    }
+    return basename;
+  };
+
   const exportToExcel = () => {
-    if (filteredRecords.length === 0) return;
+    if (sortedRecords.length === 0) return;
     
-    const headers = ["Record ID", "Storage URI", "Status", "Extracted Data"];
-    const rows = filteredRecords.map(r => [
-      r.record_id,
-      r.minio_object_uri,
+    const headers = ["Record ID", "Scanned Image Name", "Status", "Extracted Data", "Original URI"];
+    const rows = sortedRecords.map(r => [
+      getDisplayId(r),
+      getDisplayFilename(r.minio_object_uri),
       r.extraction_status,
-      r.parsed_raw_text ? JSON.stringify(r.parsed_raw_text).replace(/"/g, '""') : ""
+      r.parsed_raw_text ? JSON.stringify(r.parsed_raw_text).replace(/"/g, '""') : "",
+      r.minio_object_uri
     ]);
     
     const csvContent = [
@@ -119,6 +147,14 @@ export default function OCRHistoryDashboard() {
               {filteredRecords.length} records found
             </div>
             <button 
+              onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+              className="flex items-center gap-2 px-3 py-1.5 bg-eims-surface-subtle hover:bg-eims-surface text-eims-text-secondary hover:text-eims-text rounded-md text-xs font-medium transition-all active:scale-95 focus:outline-none focus:ring-1 focus:ring-eims-text-secondary select-none"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              {sortOrder === "asc" ? <ArrowDownAZ className="w-3.5 h-3.5" /> : <ArrowUpZA className="w-3.5 h-3.5" />}
+              Sort: {sortOrder === "asc" ? "A-Z" : "Z-A"}
+            </button>
+            <button 
               onClick={exportToExcel}
               disabled={filteredRecords.length === 0}
               className="flex items-center gap-2 px-3 py-1.5 bg-eims-accent hover:opacity-90 text-white rounded-md text-xs font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
@@ -155,10 +191,10 @@ export default function OCRHistoryDashboard() {
                   </td>
                 </tr>
               ) : (
-                filteredRecords.map((record) => (
+                sortedRecords.map((record) => (
                   <tr key={record.record_id} className="hover:bg-eims-surface-subtle/50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-eims-text font-mono truncate max-w-[200px]" title={record.record_id}>
-                      {record.record_id}
+                    <td className="px-6 py-4 text-sm text-eims-text font-mono truncate max-w-[200px]" title={`Internal ID: ${record.record_id}`}>
+                      {getDisplayId(record)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -178,7 +214,7 @@ export default function OCRHistoryDashboard() {
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1.5 text-xs text-eims-text-secondary mb-0.5">
                             <Database className="w-3 h-3 opacity-70" />
-                            <span className="truncate max-w-[180px]" title={record.minio_object_uri}>{record.minio_object_uri.split('/').pop()}</span>
+                            <span className="truncate max-w-[180px]" title={record.minio_object_uri}>{getDisplayFilename(record.minio_object_uri)}</span>
                           </div>
                         </div>
                       </div>

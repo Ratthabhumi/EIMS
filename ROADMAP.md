@@ -35,7 +35,8 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 - Refined Desktop Agent launch scripts (Sticker OCR Pipeline) for stealth/background UI execution.
 - Standardized a cohesive, premium dark-mode minimalist UI across USB Auditor, Sticker OCR History, and System Observability pages.
 - Resolved layout shift (scrollbar) issues using strict flexbox containment (`h-full`, `min-h-0`) for clean internal scrolling.
-- Implemented real-time Search filtering and Export to CSV functionalities across asset data tables.
+- Implemented real-time Search filtering, interactive A-Z sorting, and Export to CSV functionalities across asset data tables.
+- Enhanced data readability by abstracting UUIDs and displaying structured formats (e.g. `DeviceID(SerialNumber)`) for OCR Records.
 
 ---
 
