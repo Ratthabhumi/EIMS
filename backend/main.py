@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from backend.core.config import settings
 from backend.core.exceptions import (
@@ -26,6 +27,7 @@ from backend.infrastructure.database import database_engine
 from backend.infrastructure.cache import cache_manager
 from backend.domain.asset_registry import asset_router
 from backend.domain.asset_registry.ocr_worker import ocr_worker
+from backend.api.routers import evaluations
 from backend.domain.telemetry import telemetry_router
 from backend.domain.telemetry.ws_controller import ws_router, redis_pubsub_listener
 from backend.domain.telemetry.evtx_worker import evtx_worker
@@ -81,6 +83,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Instrument FastAPI to expose Prometheus metrics on /metrics
+Instrumentator().instrument(app).expose(app)
+
 # Register RFC 7807 Problem Details global exception middlewares
 app.add_exception_handler(EIMSProblemException, eims_problem_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_problem_exception_handler)
@@ -95,10 +100,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from backend.api.routers import evaluations, agents
+
 # Register Modular Domain APIRouters (Core Law 5 Compliance)
 app.include_router(asset_router)
 app.include_router(telemetry_router)
 app.include_router(ws_router)
+app.include_router(evaluations.router)
+app.include_router(agents.router)
 
 
 @app.get("/api/v1/health", tags=["Operational Observability"])

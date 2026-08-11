@@ -1,6 +1,6 @@
 @echo off
 cd /d "%~dp0"
-title Sticker OCR Agent
+title EIMS USB Auditor Agent
 
 if not exist ".venv\Scripts\activate.bat" (
     echo [INFO] First time setup detected. Installing dependencies automatically...
@@ -8,5 +8,6 @@ if not exist ".venv\Scripts\activate.bat" (
 )
 
 call .venv\Scripts\activate.bat
-start "" pythonw main.py
-exit
+python main.py --export
+
+pause

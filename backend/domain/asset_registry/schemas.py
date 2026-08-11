@@ -42,6 +42,7 @@ class AssetResponse(BaseModel):
     current_compliance_score: int = Field(..., ge=0, le=100, description="Computed structural hardening score.")
     created_at: Optional[datetime] = Field(None, description="Record initial ingestion timestamp (UTC).")
     updated_at: Optional[datetime] = Field(None, description="Timestamp of most recent attribute mutation.")
+    offline_report_data: Optional[dict] = Field(None, description="Full raw JSON report uploaded from offline Auditor tools.")
 
 
 class PaginationMetadata(BaseModel):

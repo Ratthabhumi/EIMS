@@ -86,6 +86,11 @@ class InfrastructureAsset(Base):
         onupdate=_utcnow,
         doc="Timestamp of most recent attribute mutation."
     )
+    offline_report_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
+        nullable=True,
+        doc="Full raw JSON report uploaded from offline Auditor tools."
+    )
 
     # Table constraints enforcing strict integrity invariants
     __table_args__ = (

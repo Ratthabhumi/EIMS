@@ -19,3 +19,4 @@ python-multipart>=0.0.9
 pytesseract>=0.3.10
 Pillow>=10.0.0
 python-evtx>=0.7.4
+prometheus-fastapi-instrumentator>=7.0.0

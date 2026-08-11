@@ -49,6 +49,7 @@ class AssetRepository:
             "current_compliance_score": asset.current_compliance_score,
             "created_at": asset.created_at.isoformat() if asset.created_at else None,
             "updated_at": asset.updated_at.isoformat() if asset.updated_at else None,
+            "offline_report_data": asset.offline_report_data if hasattr(asset, 'offline_report_data') else None,
         }
 
     async def create_asset(
@@ -188,4 +189,63 @@ class AssetRepository:
         self.db_session.add(tracking_record)
         await self.db_session.commit()
         await self.db_session.refresh(tracking_record)
-        return tracking_record
+    async def upsert_offline_report(self, report_data: dict) -> InfrastructureAsset:
+        """Processes an offline USB Auditor JSON report, upserting the asset and its compliance score."""
+        system_info = report_data.get("system", {})
+        hostname = system_info.get("computer_name", "UNKNOWN_HOST")
+        canonical_ip = system_info.get("ip_address", "0.0.0.0")
+        fingerprint = system_info.get("mac_address", "00:00:00:00:00:00")
+        compliance_score = report_data.get("compliance_score", 0)
+        
+        target_state = AssetState.NON_COMPLIANT.value if compliance_score < 70 else AssetState.COMPLIANT.value
+
+        # Check if asset exists by fingerprint or hostname
+        query = select(InfrastructureAsset).where(
+            (InfrastructureAsset.cryptographic_fingerprint == fingerprint) |
+            (InfrastructureAsset.hostname == hostname)
+        )
+        result = await self.db_session.execute(query)
+        asset = result.scalar_one_or_none()
+
+        if not asset:
+            # Create new
+            asset = InfrastructureAsset(
+                hostname=hostname,
+                canonical_ip=canonical_ip,
+                cryptographic_fingerprint=fingerprint,
+                lifecycle_state=target_state,
+                current_compliance_score=compliance_score,
+                offline_report_data=report_data
+            )
+            self.db_session.add(asset)
+            await self.db_session.flush() # Ensure we get the asset_id for the AuditLog
+            
+            audit_entry = AuditLog(
+                asset_id=asset.asset_id,
+                action_verb="IMPORT_REPORT",
+                immutable_payload={"event": "Offline USB Auditor Import", "score": compliance_score}
+            )
+            self.db_session.add(audit_entry)
+        else:
+            # Update existing
+            asset.hostname = hostname
+            asset.canonical_ip = canonical_ip
+            asset.lifecycle_state = target_state
+            asset.current_compliance_score = compliance_score
+            asset.offline_report_data = report_data
+            
+            audit_entry = AuditLog(
+                asset_id=asset.asset_id,
+                action_verb="UPDATE_FROM_REPORT",
+                immutable_payload={"event": "Offline USB Auditor Update", "new_score": compliance_score}
+            )
+            self.db_session.add(audit_entry)
+
+        await self.db_session.commit()
+        await self.db_session.refresh(asset)
+
+        # Update cache
+        cache_key = self._get_cache_key(asset.asset_id)
+        await self.cache_manager.set_value(cache_key, self._serialize_asset_for_cache(asset), ttl_seconds=ASSET_CACHE_TTL_SECONDS)
+
+        return asset

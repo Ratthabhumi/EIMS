@@ -25,13 +25,14 @@ def _setup_logging(log_folder: Path) -> None:
     log_folder.mkdir(parents=True, exist_ok=True)
     log_file = log_folder / f"app_{datetime.date.today().strftime('%Y-%m-%d')}.log"
 
+    handlers = [logging.FileHandler(log_file, encoding="utf-8")]
+    if sys.stdout is not None:
+        handlers.append(logging.StreamHandler(sys.stdout))
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)-8s] %(name)s: %(message)s",
-        handlers=[
-            logging.FileHandler(log_file, encoding="utf-8"),
-            logging.StreamHandler(sys.stdout),
-        ],
+        handlers=handlers,
     )
 
 
@@ -40,7 +41,7 @@ def main() -> None:
     _setup_logging(config.resolved_log_folder)
 
     logger = logging.getLogger(__name__)
-    logger.info("Disk Sanitization Assistant starting up")
+    logger.info("Sticker OCR Agent starting up")
 
     viewmodel = AppViewModel(config)
     window = MainWindow(viewmodel)

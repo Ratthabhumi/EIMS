@@ -14,6 +14,9 @@ from backend.core.config import settings
 from backend.infrastructure.database import Base
 # Import canonical domain ORM models so Alembic autogenerate discovers schemas
 from backend.domain.asset_registry import InfrastructureAsset, HardwareInventory, AuditLog
+from backend.domain.asset_registry.ocr_worker import OCRRegistrationRecord
+from backend.domain.telemetry.models import TelemetryMetric, WindowsEventLog
+from backend.domain.evaluation.models import ServiceSession, ServiceEvaluation
 
 config = context.config
 

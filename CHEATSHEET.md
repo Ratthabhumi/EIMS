@@ -38,6 +38,9 @@ cd C:\Users\Ratthabhumi\Desktop\EIMS
 # Activate the Virtual Environment
 .\venv\Scripts\activate
 
+# Initialize / Upgrade the Database Schema (Important for fresh starts!)
+alembic upgrade head
+
 # Start the FastAPI server with auto-reload (Dev Mode)
 python -m uvicorn backend.main:app --reload
 ```
@@ -92,6 +95,14 @@ Invoke-RestMethod -Uri "http://localhost:8000/api/v1/telemetry/heartbeat" -Metho
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8000/api/v1/telemetry/winlog" -Method Post -Headers @{"Content-Type"="application/json"; "Authorization"="Bearer EIMS-CORE-LAW-5"; "X-Client-Cert-Fingerprint"="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"} -Body '{"occurrence_time": "2026-08-10T12:00:00Z", "event_id": 4625, "severity": "Critical", "event_channel": "Security", "metadata": {"target_user_name": "admin", "workstation_name": "SERVER-01", "source_network_ip": "10.0.0.5"}}'
 ```
+
+### Option C: Import USB Auditor Report
+You can import an offline JSON payload containing hardware and security specs into the Endpoint Auditor.
+```powershell
+# Using curl to upload the generated USB auditor report
+curl.exe -v -F "file=@C:\Users\Ratthabhumi\Desktop\EIMS\clients\usb_auditor\reports\report_name.json" http://localhost:8000/api/v1/assets/import-report
+```
+*Note: You can also use the **Import Offline Report** button in the Endpoint Auditor UI to upload via the browser.*
 
 ---
 

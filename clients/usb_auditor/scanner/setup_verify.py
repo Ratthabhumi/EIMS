@@ -277,6 +277,24 @@ def _check_appx_uninstalled(package_name: str, display_name: str) -> dict:
 
 
 
+def _check_non_unicode_thai() -> dict:
+    return {"status": "WARNING", "detail": "Check not implemented"}
+
+def _check_dhcp() -> dict:
+    return {"status": "WARNING", "detail": "Check not implemented"}
+
+def _check_datetime_sync() -> dict:
+    return {"status": "WARNING", "detail": "Check not implemented"}
+
+def _check_thai_keyboard() -> dict:
+    return {"status": "WARNING", "detail": "Check not implemented"}
+
+def _check_netlogon_reg() -> dict:
+    return {"status": "WARNING", "detail": "Check not implemented"}
+
+def _check_default_apps() -> dict:
+    return {"status": "WARNING", "detail": "Check not implemented"}
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def get_setup_verify_info() -> dict:

@@ -1,37 +1,58 @@
 @import "tailwindcss";
 
-:root {
-  --background: #0f172a; /* Slate 900 */
-  --foreground: #f8fafc; /* Slate 50 */
-  --card-bg: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
-  --card-border: rgba(255, 255, 255, 0.1);
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-eims-bg: #F5F3EE;
+  --color-eims-surface: #FBFAF7;
+  --color-eims-surface-subtle: #ECE9E1;
+  --color-eims-text: #242321;
+  --color-eims-text-secondary: #716E66;
+  --color-eims-text-muted: #9A968D;
+  --color-eims-border: #D8D4CA;
+  --color-eims-accent: #68735C;
+  --color-eims-secondary: #A46F58;
+  --color-eims-success: #68735C;
+  --color-eims-warning: #A46F58;
+  --color-eims-error: #8F5547;
+  --color-eims-info: #5F6F7C;
+  
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', system-ui, sans-serif;
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.2) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, hsla(339,49%,30%,0.2) 0, transparent 50%);
-  background-attachment: fixed;
-  min-height: 100vh;
+@layer base {
+  :root.dark, .dark {
+    --color-eims-bg: #141412;
+    --color-eims-surface: #1C1B19;
+    --color-eims-surface-subtle: #272623;
+    --color-eims-text: #F1EFEB;
+    --color-eims-text-secondary: #A5A29A;
+    --color-eims-text-muted: #6E6B65;
+    --color-eims-border: #3A3834;
+    --color-eims-accent: #8A997B;
+    --color-eims-secondary: #C78A70;
+    --color-eims-success: #8A997B;
+    --color-eims-warning: #C78A70;
+    --color-eims-error: #B56B5A;
+    --color-eims-info: #7B8F9F;
+  }
+
+  body {
+    @apply bg-eims-bg text-eims-text font-sans antialiased selection:bg-eims-accent/20 transition-colors duration-200;
+    min-height: 100vh;
+  }
 }
 
-.glass-panel {
-  background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--card-border);
-  border-radius: 1rem;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Custom Utilities for the minimalist feel */
+@layer utilities {
+  .border-subtle {
+    @apply border border-eims-border;
+  }
+  .surface-card {
+    @apply bg-eims-surface border border-eims-border shadow-sm rounded-lg;
+  }
+  .text-title {
+    @apply font-semibold tracking-tight text-eims-text;
+  }
 }
