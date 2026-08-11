@@ -189,6 +189,19 @@ class AssetRepository:
         self.db_session.add(tracking_record)
         await self.db_session.commit()
         await self.db_session.refresh(tracking_record)
+        return tracking_record
+
+    async def list_ocr_records(self, skip: int = 0, limit: int = 50) -> List[OCRRegistrationRecord]:
+        """Retrieves paginated OCR extraction history."""
+        query = select(OCRRegistrationRecord).offset(skip).limit(limit)
+        result = await self.db_session.execute(query)
+        return list(result.scalars().all())
+
+    async def clear_ocr_records(self) -> None:
+        """Deletes all OCR extraction history."""
+        from sqlalchemy import delete
+        await self.db_session.execute(delete(OCRRegistrationRecord))
+        await self.db_session.commit()
     async def upsert_offline_report(self, report_data: dict) -> InfrastructureAsset:
         """Processes an offline USB Auditor JSON report, upserting the asset and its compliance score."""
         system_info = report_data.get("system", {})

@@ -88,3 +88,12 @@ class CSVLogger:
                 logger.error("Failed to load today's history from CSV: %s", exc)
 
         return jobs
+
+    def clear_today_history(self) -> None:
+        log_file = self._folder / f"log_{date.today().strftime('%Y-%m-%d')}.csv"
+        with self._lock:
+            try:
+                if log_file.exists():
+                    log_file.unlink()
+            except Exception as exc:
+                logger.error("Failed to clear today's CSV history: %s", exc)

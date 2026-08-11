@@ -2,9 +2,11 @@
 
 import { Usb, ScanText, Terminal, Download, ArrowLeft, Play } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function AgentsDashboard() {
+  const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
@@ -53,7 +55,10 @@ export default function AgentsDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl">
         
         {/* USB Auditor */}
-        <div className="surface-card p-6 flex flex-col gap-4">
+        <div 
+          onClick={() => router.push('/endpoints')}
+          className="surface-card p-6 flex flex-col gap-4 cursor-pointer hover:border-eims-accent/50 transition-colors border border-transparent"
+        >
           <div className="flex items-start justify-between">
             <div className="w-12 h-12 rounded-xl bg-eims-surface-subtle flex items-center justify-center">
               <Usb className="w-6 h-6 text-eims-text-secondary" />
@@ -61,14 +66,18 @@ export default function AgentsDashboard() {
             <span className="text-[10px] font-bold uppercase tracking-wider bg-eims-surface-subtle text-eims-text-secondary px-2 py-1 rounded">v1.2.0</span>
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-eims-text mb-2">USB Auditor Agent</h3>
+            <h3 className="font-semibold text-lg text-eims-text mb-2 hover:text-eims-accent transition-colors">USB Auditor Agent</h3>
             <p className="text-sm text-eims-text-secondary leading-relaxed">
               A lightweight Windows executable that extracts hardware specifications (CPU, RAM, Disks) and analyzes local Windows Event Logs for security anomalies.
             </p>
           </div>
           
           <button 
-            onClick={() => launchAgent('usb_auditor')}
+            onClick={(e) => {
+              e.stopPropagation();
+              launchAgent('usb_auditor');
+              setTimeout(() => router.push('/endpoints'), 1000);
+            }}
             disabled={loading === 'usb_auditor'}
             className="mt-4 flex items-center justify-center gap-2 w-full bg-eims-accent hover:opacity-90 text-white py-2.5 rounded-md font-medium text-sm transition-opacity disabled:opacity-50"
           >
@@ -78,7 +87,10 @@ export default function AgentsDashboard() {
         </div>
 
         {/* Sticker OCR */}
-        <div className="surface-card p-6 flex flex-col gap-4">
+        <div 
+          onClick={() => router.push('/ocr-history')}
+          className="surface-card p-6 flex flex-col gap-4 cursor-pointer hover:border-eims-accent/50 transition-colors border border-transparent"
+        >
           <div className="flex items-start justify-between">
             <div className="w-12 h-12 rounded-xl bg-eims-surface-subtle flex items-center justify-center">
               <ScanText className="w-6 h-6 text-eims-text-secondary" />
@@ -86,14 +98,18 @@ export default function AgentsDashboard() {
             <span className="text-[10px] font-bold uppercase tracking-wider bg-eims-surface-subtle text-eims-text-secondary px-2 py-1 rounded">v0.9.5-beta</span>
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-eims-text mb-2">Sticker OCR Pipeline</h3>
+            <h3 className="font-semibold text-lg text-eims-text mb-2 hover:text-eims-accent transition-colors">Sticker OCR Pipeline</h3>
             <p className="text-sm text-eims-text-secondary leading-relaxed">
               Desktop interface for the IT department to scan and upload photos of hardware asset stickers directly into the MinIO Object Storage for AI processing.
             </p>
           </div>
           
           <button 
-            onClick={() => launchAgent('sticker_ocr')}
+            onClick={(e) => {
+              e.stopPropagation();
+              launchAgent('sticker_ocr');
+              setTimeout(() => router.push('/ocr-history'), 1000);
+            }}
             disabled={loading === 'sticker_ocr'}
             className="mt-4 flex items-center justify-center gap-2 w-full bg-eims-accent hover:opacity-90 text-white py-2.5 rounded-md font-medium text-sm transition-opacity disabled:opacity-50"
           >

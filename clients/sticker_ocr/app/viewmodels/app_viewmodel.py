@@ -137,9 +137,13 @@ class AppViewModel:
         return list(self._history)
 
     def clear_history(self) -> None:
-        """Clear all in-memory job history."""
+        """Clear all in-memory job history and reset stats."""
         self._history.clear()
+        self._stats = {"success": 0, "duplicate": 0, "failed": 0}
+        self._csv_logger.clear_today_history()
+        self._eims_client.clear_ocr_history_async()
         self.notify(Event.HISTORY_UPDATED, list(self._history))
+        self.notify(Event.STATS_UPDATED, dict(self._stats))
 
     @property
     def stats(self) -> Dict[str, int]:
@@ -205,16 +209,18 @@ class AppViewModel:
     # ------------------------------------------------------------------ #
 
     def _on_usb_inserted(self, path: Path) -> None:
-        self._usb_path = path
-        self.notify(Event.USB_INSERTED, path)
-        self.notify(Event.USB_STATUS_CHANGED, path)
-        self._notifier.usb_inserted(str(path))
+        usb = self._usb_monitor.get_current()
+        if usb:
+            self._usb_path = usb
+            self.notify(Event.USB_INSERTED, usb)
+            self.notify(Event.USB_STATUS_CHANGED, usb)
+            self._notifier.usb_inserted(str(usb))
 
     def _on_usb_removed(self, path: Path) -> None:
         if self._usb_path == path:
-            self._usb_path = None
+            self._usb_path = self._usb_monitor.get_current()
         self.notify(Event.USB_REMOVED, path)
-        self.notify(Event.USB_STATUS_CHANGED, None)
+        self.notify(Event.USB_STATUS_CHANGED, self._usb_path)
         self._notifier.usb_removed(str(path))
 
     # ------------------------------------------------------------------ #
@@ -354,7 +360,9 @@ class AppViewModel:
         self._move_image(job)
         
         if job.status in (JobStatus.SUCCESS, JobStatus.DUPLICATE):
-            self._eims_client.upload_image_async(job.image_path)
+            self._eims_client.upload_image_async(job.image_path, job.serial_number, job.device_id)
+        else:
+            self._eims_client.upload_image_async(job.image_path, error_message=job.error_message)
             
         self._history.insert(0, job)
         if len(self._history) > 200:

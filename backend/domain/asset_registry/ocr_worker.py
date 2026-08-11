@@ -76,11 +76,11 @@ class OCRBackgroundWorker:
                         try:
                             img = Image.open(io.BytesIO(image_data))
                             raw_text = pytesseract.image_to_string(img)
-                        except pytesseract.TesseractNotFoundError:
-                            logger.warning("Tesseract not found in system. Using mock OCR result.")
-                            raw_text = "SN: MOCK12345\nDID: MOCK-001"
+                        except Exception as e:
+                            logger.error(f"OCR Exception: {e}")
+                            raw_text = ""
                     else:
-                        raw_text = "SN: MOCK12345\nDID: MOCK-001"
+                        raw_text = ""
                         
                     # 4. Parse text (Simple regex)
                     sn_match = re.search(r'(?:SN|Serial Number)[\s:]*([A-Za-z0-9-]+)', raw_text, re.IGNORECASE)

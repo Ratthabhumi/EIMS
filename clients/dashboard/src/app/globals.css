@@ -12,9 +12,9 @@
   --color-eims-border: #D8D4CA;
   --color-eims-accent: #68735C;
   --color-eims-secondary: #A46F58;
-  --color-eims-success: #68735C;
+  --color-eims-success: #438753;
   --color-eims-warning: #A46F58;
-  --color-eims-error: #8F5547;
+  --color-eims-error: #B34E4D;
   --color-eims-info: #5F6F7C;
   
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
@@ -32,9 +32,9 @@
     --color-eims-border: #3A3834;
     --color-eims-accent: #8A997B;
     --color-eims-secondary: #C78A70;
-    --color-eims-success: #8A997B;
+    --color-eims-success: #55A868;
     --color-eims-warning: #C78A70;
-    --color-eims-error: #B56B5A;
+    --color-eims-error: #C96B68;
     --color-eims-info: #7B8F9F;
   }
 

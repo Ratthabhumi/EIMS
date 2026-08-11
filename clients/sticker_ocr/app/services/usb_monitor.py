@@ -92,23 +92,26 @@ class USBMonitor:
         if self._thread:
             self._thread.join(timeout=3)
 
+    def _get_drive_sort_key(self, d: str) -> tuple:
+        is_removable = 0 if ctypes.windll.kernel32.GetDriveTypeW(d) == 2 else 1
+        try:
+            total_size = psutil.disk_usage(d).total
+        except Exception:
+            total_size = 0
+        return (is_removable, -total_size)
+
     def get_current(self) -> Optional[Path]:
         drives = self._removable_drives()
         if not drives:
             return None
-        # Sort so DRIVE_REMOVABLE (Flash drives) come before external fixed HDDs
-        sorted_drives = sorted(
-            drives,
-            key=lambda d: 0 if ctypes.windll.kernel32.GetDriveTypeW(d) == 2 else 1
-        )
+        # Sort so DRIVE_REMOVABLE (Flash drives) come before external fixed HDDs,
+        # and prioritize partitions with the largest capacity to avoid small UEFI_NTFS partitions.
+        sorted_drives = sorted(drives, key=self._get_drive_sort_key)
         return Path(sorted_drives[0])
 
     def get_all_drives(self) -> list[Path]:
         """Return list of all connected USB drives sorted by priority."""
-        drives = sorted(
-            list(self._removable_drives()),
-            key=lambda d: 0 if ctypes.windll.kernel32.GetDriveTypeW(d) == 2 else 1
-        )
+        drives = sorted(list(self._removable_drives()), key=self._get_drive_sort_key)
         return [Path(d) for d in drives]
 
     def _loop(self) -> None:

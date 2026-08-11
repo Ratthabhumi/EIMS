@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { Search, Bell, User, Home, Grid, FileText, Settings, Shield, Compass, BookOpen, Star, BarChart3, Terminal, Activity, Database, HardDrive, Play, MonitorCheck } from "lucide-react";
+import { Search, Bell, User, Home, Grid, FileText, Settings, Shield, Compass, BookOpen, Star, BarChart3, Terminal, Activity, Database, HardDrive, Play, MonitorCheck, ScanText, Usb } from "lucide-react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,7 +62,10 @@ export default function RootLayout({
               <Play className="w-4 h-4 text-eims-text-secondary" /> Launch Agents
             </Link>
             <Link href="/endpoints" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-eims-surface-subtle text-eims-text-secondary transition-colors">
-              <MonitorCheck className="w-4 h-4 text-eims-text-secondary" /> Endpoint Auditor
+              <Usb className="w-4 h-4 text-eims-text-secondary" /> USB Auditor
+            </Link>
+            <Link href="/ocr-history" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-eims-surface-subtle text-eims-text-secondary transition-colors">
+              <ScanText className="w-4 h-4 text-eims-text-secondary" /> Sticker OCR
             </Link>
 
             <div className="mt-8 text-xs font-medium text-eims-text-muted uppercase tracking-wider mb-3 px-2 pt-4 border-t border-eims-border">Admin</div>
@@ -112,10 +116,7 @@ export default function RootLayout({
             {/* Right Actions */}
             <div className="flex items-center gap-4">
               <ThemeToggle />
-              <button className="text-eims-text-secondary hover:text-eims-text transition-colors relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-eims-error ring-2 ring-eims-surface"></span>
-              </button>
+              <NotificationBell />
               <div className="h-6 w-px bg-eims-border"></div>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <div className="w-8 h-8 rounded-full bg-eims-surface-subtle border border-eims-border flex items-center justify-center">

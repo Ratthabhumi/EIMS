@@ -33,6 +33,9 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 - Developed an Offline USB Auditor importer with a comprehensive 4-column detailed Modal exposing OS, Network, Security, and Service telemetry.
 - Persisted full offline report structures into the PostgreSQL database using `JSONB` and Alembic migrations.
 - Refined Desktop Agent launch scripts (Sticker OCR Pipeline) for stealth/background UI execution.
+- Standardized a cohesive, premium dark-mode minimalist UI across USB Auditor, Sticker OCR History, and System Observability pages.
+- Resolved layout shift (scrollbar) issues using strict flexbox containment (`h-full`, `min-h-0`) for clean internal scrolling.
+- Implemented real-time Search filtering and Export to CSV functionalities across asset data tables.
 
 ---
 

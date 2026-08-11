@@ -114,12 +114,15 @@ app.include_router(agents.router)
 async def read_system_health() -> JSONResponse:
     """
     Returns live diagnostic health evaluation metrics covering relational database
-    transaction pooling, Redis stream reachability, and architectural compliance status.
+    transaction pooling, Redis stream reachability, Object Storage, and architectural compliance status.
     """
+    from backend.infrastructure.object_store import object_storage
+    
     db_ok = await database_engine.ping()
     cache_ok = await cache_manager.ping()
+    storage_ok = await object_storage.ping()
     
-    status_code = 200 if (db_ok and cache_ok) else 503
+    status_code = 200 if (db_ok and cache_ok and storage_ok) else 503
     status_msg = "HEALTHY" if status_code == 200 else "DEGRADED"
     
     return JSONResponse(
@@ -132,6 +135,7 @@ async def read_system_health() -> JSONResponse:
             "components": {
                 "postgresql_pgbouncer_tier": "UP" if db_ok else "DOWN",
                 "redis_volatile_lru_tier": "UP" if cache_ok else "DOWN",
+                "minio_object_storage_tier": "UP" if storage_ok else "DOWN",
             }
         }
     )

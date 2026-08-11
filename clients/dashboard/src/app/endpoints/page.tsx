@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Upload, Cpu, Shield, Network, Server, HardDrive, Monitor, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Upload, Cpu, Shield, Network, Server, HardDrive, Monitor, Clock, CheckCircle2, XCircle, Search, Download, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 interface Asset {
   asset_id: string;
@@ -19,13 +20,21 @@ export default function EndpointsDashboard() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredAssets = assets.filter(asset => 
+    asset.hostname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    asset.canonical_ip.includes(searchTerm) ||
+    asset.cryptographic_fingerprint.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const fetchAssets = async () => {
     try {
       const res = await fetch("http://localhost:8000/api/v1/assets?limit=100");
       if (res.ok) {
         const json = await res.json();
-        setAssets(json.data || []);
+        const validAssets = (json.data || []).filter((a: Asset) => a.canonical_ip !== "0.0.0.0");
+        setAssets(validAssets);
       }
     } catch (err) {
       console.error("Failed to fetch assets", err);
@@ -61,6 +70,36 @@ export default function EndpointsDashboard() {
     fetchAssets();
   }, []);
 
+  const exportToExcel = () => {
+    if (filteredAssets.length === 0) return;
+    
+    const headers = ["Hostname", "IP Address", "MAC Address", "State", "Compliance Score", "Created At", "Last Updated"];
+    const rows = filteredAssets.map(a => [
+      a.hostname,
+      a.canonical_ip,
+      a.cryptographic_fingerprint,
+      a.lifecycle_state,
+      String(a.current_compliance_score),
+      a.created_at || "",
+      a.updated_at || ""
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Endpoints_Report_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const StatusIcon = ({ status }: { status: any }) => {
     let displayStatus = status;
     let detailText = "";
@@ -84,52 +123,74 @@ export default function EndpointsDashboard() {
   };
 
   return (
-    <div className="animate-fade-in flex flex-col gap-8 pb-12">
-      <header className="flex items-center justify-between">
+    <div className="animate-fade-in flex flex-col gap-8 pb-12 h-full">
+      <header className="flex items-center gap-4">
+        <Link href="/" className="p-2 rounded-full hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text transition-colors shrink-0">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
         <div>
-          <h1 className="text-[28px] font-semibold tracking-tight text-eims-text mb-1">Endpoint Auditor</h1>
+          <h1 className="text-[28px] font-semibold tracking-tight text-eims-text">USB Auditor</h1>
           <p className="text-eims-text-secondary text-sm">
             A lightweight Windows executable that extracts hardware specifications (CPU, RAM, Disks) and analyzes local Windows Event Logs for security anomalies.
           </p>
         </div>
       </header>
 
-      <div className="surface-card p-6 flex flex-col">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-semibold text-eims-text flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-eims-success animate-pulse"></span>
-            Registered Endpoints
-          </h2>
-          <label className="cursor-pointer flex items-center gap-2 bg-eims-surface-subtle hover:bg-eims-border text-eims-text-secondary hover:text-eims-text px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-eims-border">
-            <Upload className="w-3.5 h-3.5" />
-            <span>Import Offline Report</span>
-            <input type="file" accept=".json" className="hidden" onChange={handleFileUpload} />
-          </label>
+      <div className="surface-card flex flex-col h-[calc(100vh-180px)]">
+        <div className="p-4 border-b border-eims-border flex items-center justify-between shrink-0">
+          <div className="relative w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-eims-text-muted" />
+            <input 
+              type="text"
+              placeholder="Search by Hostname, IP, or Fingerprint..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm bg-eims-bg border border-eims-border rounded-md text-eims-text focus:outline-none focus:border-eims-accent focus:ring-1 focus:ring-eims-accent transition-colors"
+            />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-sm font-medium text-eims-text-muted">
+              {filteredAssets.length} endpoints found
+            </div>
+            <label className="cursor-pointer flex items-center gap-2 bg-eims-surface-subtle hover:bg-eims-border text-eims-text-secondary hover:text-eims-text px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-eims-border">
+              <Upload className="w-3.5 h-3.5" />
+              <span>Import Offline Report</span>
+              <input type="file" accept=".json" className="hidden" onChange={handleFileUpload} />
+            </label>
+            <button 
+              onClick={exportToExcel}
+              disabled={filteredAssets.length === 0}
+              className="flex items-center gap-2 px-3 py-1.5 bg-eims-accent hover:opacity-90 text-white rounded-md text-xs font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export Excel (CSV)
+            </button>
+          </div>
         </div>
         
-        {loading ? (
-          <div className="text-eims-text-muted py-10 text-center animate-pulse text-sm">Loading Asset Registry...</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-eims-border text-eims-text-muted">
-                  <th className="pb-3 font-medium">Hostname</th>
-                  <th className="pb-3 font-medium">IP Address</th>
-                  <th className="pb-3 font-medium">State</th>
-                  <th className="pb-3 font-medium text-right">Compliance</th>
+        <div className="flex-1 overflow-auto">
+          {loading ? (
+            <div className="text-eims-text-muted py-10 text-center animate-pulse text-sm">Loading Asset Registry...</div>
+          ) : (
+            <table className="w-full text-left text-sm border-collapse min-w-[800px]">
+              <thead className="sticky top-0 bg-eims-surface z-10">
+                <tr>
+                  <th className="px-6 py-4 text-xs font-semibold text-eims-text-muted uppercase tracking-wider border-b border-eims-border">Hostname</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-eims-text-muted uppercase tracking-wider border-b border-eims-border">IP Address</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-eims-text-muted uppercase tracking-wider border-b border-eims-border">State</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-eims-text-muted uppercase tracking-wider border-b border-eims-border text-right">Compliance</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-eims-border">
-                {assets.map((asset) => (
+              <tbody className="divide-y divide-eims-border bg-eims-surface">
+                {filteredAssets.map((asset) => (
                   <tr 
                     key={asset.asset_id} 
                     className="hover:bg-eims-surface-subtle/50 transition-colors cursor-pointer"
                     onClick={() => setSelectedAsset(asset)}
                   >
-                    <td className="py-4 text-eims-text font-medium">{asset.hostname}</td>
-                    <td className="py-4 text-eims-text-secondary font-mono text-xs">{asset.canonical_ip}</td>
-                    <td className="py-4">
+                    <td className="px-6 py-4 text-eims-text font-medium">{asset.hostname}</td>
+                    <td className="px-6 py-4 text-eims-text-secondary font-mono text-xs">{asset.canonical_ip}</td>
+                    <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border
                         ${asset.lifecycle_state === 'Active' || asset.lifecycle_state === 'Compliant' ? 'bg-eims-success/10 text-eims-success border-eims-success/20' : 
                           asset.lifecycle_state === 'Quarantined' || asset.lifecycle_state === 'NonCompliant' ? 'bg-eims-error/10 text-eims-error border-eims-error/20' : 
@@ -137,7 +198,7 @@ export default function EndpointsDashboard() {
                         {asset.lifecycle_state}
                       </span>
                     </td>
-                    <td className="py-4 text-right">
+                    <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-3">
                         <span className={`font-semibold ${asset.current_compliance_score < 70 ? 'text-eims-error' : 'text-eims-success'}`}>
                           {asset.current_compliance_score}
@@ -152,15 +213,20 @@ export default function EndpointsDashboard() {
                     </td>
                   </tr>
                 ))}
-                {assets.length === 0 && (
+                {filteredAssets.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-eims-text-muted text-sm border border-dashed border-eims-border rounded-lg mt-2">No assets registered yet. Ensure agents are communicating.</td>
+                    <td colSpan={4} className="px-6 py-12 text-center text-sm text-eims-text-muted">
+                      <div className="flex flex-col items-center gap-3 justify-center w-full">
+                        <Server className="w-8 h-8 opacity-20 mx-auto" />
+                        <span>{assets.length === 0 ? "No assets registered yet. Ensure agents are communicating." : "No assets match your search."}</span>
+                      </div>
+                    </td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Enhanced Asset Detail Modal */}

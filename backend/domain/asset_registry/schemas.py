@@ -58,3 +58,19 @@ class AssetListResponse(BaseModel):
     status: str = Field("success", description="Standard API status response flag.")
     data: List[AssetResponse] = Field(..., description="Array of serialized Infrastructure Asset representations.")
     pagination: PaginationMetadata = Field(..., description="Accurate collection slice tracking metrics.")
+
+
+class OCRRegistrationRecordResponse(BaseModel):
+    """Serialization representation of an OCR extraction workflow record."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    record_id: uuid.UUID
+    asset_id: Optional[uuid.UUID]
+    minio_object_uri: str
+    extraction_status: str
+    parsed_raw_text: dict
+
+class OCRRegistrationListResponse(BaseModel):
+    status: str = "success"
+    data: List[OCRRegistrationRecordResponse]
+    pagination: PaginationMetadata

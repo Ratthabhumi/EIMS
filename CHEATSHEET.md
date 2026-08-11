@@ -104,6 +104,14 @@ curl.exe -v -F "file=@C:\Users\Ratthabhumi\Desktop\EIMS\clients\usb_auditor\repo
 ```
 *Note: You can also use the **Import Offline Report** button in the Endpoint Auditor UI to upload via the browser.*
 
+### Option D: Upload Sticker OCR Image
+You can simulate scanning a hardware asset's sticker via the REST API to trigger background OCR parsing.
+```powershell
+# Using curl to upload a mock sticker image
+curl.exe -v -F "file=@C:\path\to\your\sticker.jpg" -H "X-Client-Cert-Fingerprint: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" http://localhost:8000/api/v1/assets/ocr-upload
+```
+*Note: You can view these processed images and their results in the **Sticker OCR** dashboard UI.*
+
 ---
 
 ## 🛑 5. Shutting Down & Cleanup
