@@ -97,12 +97,12 @@ Invoke-RestMethod -Uri "http://localhost:8000/api/v1/telemetry/winlog" -Method P
 ```
 
 ### Option C: Import USB Auditor Report
-You can import an offline JSON payload containing hardware and security specs into the Endpoint Auditor.
+You can import an offline JSON payload containing hardware and security specs into the USB Auditor.
 ```powershell
 # Using curl to upload the generated USB auditor report
 curl.exe -v -F "file=@C:\Users\Ratthabhumi\Desktop\EIMS\clients\usb_auditor\reports\report_name.json" http://localhost:8000/api/v1/assets/import-report
 ```
-*Note: You can also use the **Import Offline Report** button in the Endpoint Auditor UI to upload via the browser.*
+*Note: You can also use the **Import Offline Report** button or launch executable directly via **[Client Agents Hub](http://localhost:3001/agents)** in the web UI.*
 
 ### Option D: Upload Sticker OCR Image
 You can simulate scanning a hardware asset's sticker via the REST API to trigger background OCR parsing.
@@ -110,11 +110,54 @@ You can simulate scanning a hardware asset's sticker via the REST API to trigger
 # Using curl to upload a mock sticker image
 curl.exe -v -F "file=@C:\path\to\your\sticker.jpg" -H "X-Client-Cert-Fingerprint: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" http://localhost:8000/api/v1/assets/ocr-upload
 ```
-*Note: You can view these processed images and their results in the **Sticker OCR** dashboard UI.*
+*Note: You can view these processed images and their results in the **Sticker OCR** dashboard UI ([http://localhost:3001/ocr-history](http://localhost:3001/ocr-history)).*
 
 ---
 
-## 🛑 5. Shutting Down & Cleanup
+## 📋 5. Service Evaluation System (QR & Admin)
+
+The Service Evaluation System allows you to generate dynamic QR codes for post-service customer satisfaction surveys.
+
+**1. Create a Service Session (Admin):**
+Via Dashboard UI: Go to **Admin -> Evaluations** and click "New Session".
+Via API:
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/evaluations/sessions" -Method Post -Headers @{"Content-Type"="application/json"} -Body '{"title": "Network Troubleshooting", "customer_name": "KYB", "engineer_name": "MEW"}'
+```
+
+**2. Access Mobile QR Form:**
+Scan the generated QR Code on the Admin page, or manually navigate to the generated Next.js URL (e.g. `http://localhost:3001/evaluate/<SESSION_ID>`).
+
+---
+
+## 🧠 6. AI Log Analyzer (EventIQ & Vector RAG)
+
+The AI Log Analyzer provides intelligent Root Cause Analysis (RCA) across Windows, Linux, JSON, and Firewall logs with Local Semantic Vector Search.
+
+**1. Analyze a Raw Log via cURL (API):**
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/analyze/" -Method Post -Form @{
+    text = "Event ID: 41 Source: Microsoft-Windows-Kernel-Power The system has rebooted without cleanly shutting down first."
+    language = "th"
+}
+```
+
+**2. Run Enterprise Benchmark Test Suite (10 Real-world Windows Scenarios):**
+```powershell
+python backend\test_enterprise_benchmark.py
+```
+
+**3. Run Multi-Platform Benchmark Test Suite (Linux, JSON, Fortinet, Cisco):**
+```powershell
+python backend\test_multi_platform_benchmark.py
+```
+
+**4. Access via Web Dashboard:**
+Navigate to [http://localhost:3001/analyzer](http://localhost:3001/analyzer) to upload `.evtx`, `.xml`, `.csv`, `.log`, or paste text / screenshot images directly.
+
+---
+
+## 🛑 7. Shutting Down & Cleanup
 
 When you are done testing, you can gracefully shut down all services.
 

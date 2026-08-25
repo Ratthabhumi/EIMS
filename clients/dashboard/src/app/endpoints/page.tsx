@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Upload, Cpu, Shield, Network, Server, HardDrive, Monitor, Clock, CheckCircle2, XCircle, Search, Download, ArrowLeft } from "lucide-react";
+import { Upload, Cpu, Shield, Network, Server, HardDrive, Monitor, Clock, CheckCircle2, XCircle, Search, Download, ArrowLeft, Play } from "lucide-react";
 import Link from "next/link";
 
 interface Asset {
@@ -122,23 +122,54 @@ export default function EndpointsDashboard() {
     return <span className="text-eims-text-secondary truncate max-w-[100px]" title={detailText}>{String(displayStatus)}</span>;
   };
 
+  const [launchingAgent, setLaunchingAgent] = useState(false);
+
+  const handleLaunchAgent = async () => {
+    setLaunchingAgent(true);
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/agents/launch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agent_name: "usb_auditor" })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // toast or refresh
+        setTimeout(() => fetchAssets(), 2000);
+      }
+    } catch (err) {
+      console.error("Failed to launch agent", err);
+    } finally {
+      setLaunchingAgent(false);
+    }
+  };
+
   return (
     <div className="animate-fade-in flex flex-col gap-8 pb-12 h-full">
-      <header className="flex items-center gap-4">
-        <Link href="/" className="p-2 rounded-full hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text transition-colors shrink-0">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-[28px] font-semibold tracking-tight text-eims-text">USB Auditor</h1>
-          <p className="text-eims-text-secondary text-sm">
-            A lightweight Windows executable that extracts hardware specifications (CPU, RAM, Disks) and analyzes local Windows Event Logs for security anomalies.
-          </p>
+      <header className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="p-2 rounded-full hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text transition-colors shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-[28px] font-semibold tracking-tight text-eims-text">USB Auditor</h1>
+            <p className="text-eims-text-secondary text-sm mt-1">Extract hardware specifications and Windows Event Log security diagnostics.</p>
+          </div>
         </div>
+
+        <button
+          onClick={handleLaunchAgent}
+          disabled={launchingAgent}
+          className="flex items-center gap-2 px-4 py-2 bg-eims-accent hover:opacity-90 text-white rounded-md text-sm font-medium transition-opacity cursor-pointer disabled:opacity-50 shrink-0 shadow-sm"
+        >
+          <Play className="w-4 h-4" />
+          <span>{launchingAgent ? "Launching..." : "Launch Agent"}</span>
+        </button>
       </header>
 
-      <div className="surface-card flex flex-col h-[calc(100vh-180px)]">
-        <div className="p-4 border-b border-eims-border flex items-center justify-between shrink-0">
-          <div className="relative w-80">
+      <div className="surface-card flex flex-col flex-1 min-h-[480px]">
+        <div className="p-4 border-b border-eims-border flex flex-wrap sm:flex-nowrap items-center justify-between gap-4 shrink-0">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-eims-text-muted" />
             <input 
               type="text"
@@ -148,22 +179,24 @@ export default function EndpointsDashboard() {
               className="w-full pl-9 pr-4 py-2 text-sm bg-eims-bg border border-eims-border rounded-md text-eims-text focus:outline-none focus:border-eims-accent focus:ring-1 focus:ring-eims-accent transition-colors"
             />
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-sm font-medium text-eims-text-muted">
+          <div className="flex items-center gap-3 shrink-0 ml-auto">
+            <div className="text-sm font-medium text-eims-text-muted whitespace-nowrap">
               {filteredAssets.length} endpoints found
             </div>
-            <label className="cursor-pointer flex items-center gap-2 bg-eims-surface-subtle hover:bg-eims-border text-eims-text-secondary hover:text-eims-text px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-eims-border">
+            <label className="cursor-pointer flex items-center gap-2 bg-eims-surface-subtle hover:bg-eims-border text-eims-text-secondary hover:text-eims-text px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-eims-border shrink-0">
               <Upload className="w-3.5 h-3.5" />
-              <span>Import Offline Report</span>
+              <span className="hidden sm:inline">Import Offline Report</span>
+              <span className="sm:hidden">Import</span>
               <input type="file" accept=".json" className="hidden" onChange={handleFileUpload} />
             </label>
             <button 
               onClick={exportToExcel}
               disabled={filteredAssets.length === 0}
-              className="flex items-center gap-2 px-3 py-1.5 bg-eims-accent hover:opacity-90 text-white rounded-md text-xs font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-3 py-1.5 bg-eims-accent hover:opacity-90 text-white rounded-md text-xs font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
             >
               <Download className="w-3.5 h-3.5" />
-              Export Excel (CSV)
+              <span className="hidden sm:inline">Export Excel (CSV)</span>
+              <span className="sm:hidden">Export</span>
             </button>
           </div>
         </div>

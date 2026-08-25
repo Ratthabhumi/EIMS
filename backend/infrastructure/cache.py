@@ -48,8 +48,9 @@ class AsynchronousCacheManager:
         """Executes lightweight PING diagnostic health check."""
         if self._redis_client is None:
             return False
+        import asyncio
         try:
-            return await self._redis_client.ping()
+            return await asyncio.wait_for(self._redis_client.ping(), timeout=2.0)
         except Exception as e:
             logger.error(f"Redis Cache Health Diagnostic Failure: {e}")
             return False

@@ -57,9 +57,10 @@ class AsynchronousDatabaseEngine:
         """Executes lightweight structural SQL verification probe for health diagnostics."""
         if self._engine is None:
             return False
+        import asyncio
         try:
             async with self._engine.connect() as conn:
-                await conn.execute(text("SELECT 1"))
+                await asyncio.wait_for(conn.execute(text("SELECT 1")), timeout=2.0)
             return True
         except Exception as e:
             logger.error(f"Relational Database Health Diagnostic Failure: {e}")

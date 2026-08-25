@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Integer, DateTime, ForeignKey, Text
+from sqlalchemy import String, Integer, Float, DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from backend.infrastructure.database import Base
 
@@ -22,11 +22,12 @@ class ServiceSession(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     
-    # 1-to-1 relationship to Evaluation (one evaluation per session)
-    evaluation: Mapped["ServiceEvaluation"] = relationship(
+    evaluation_questions: Mapped[list[dict]] = mapped_column(JSONB, nullable=True)
+    
+    # 1-to-N relationship to Evaluations
+    evaluations: Mapped[list["ServiceEvaluation"]] = relationship(
         "ServiceEvaluation",
         back_populates="session",
-        uselist=False,
         cascade="all, delete-orphan"
     )
 
@@ -37,10 +38,15 @@ class ServiceEvaluation(Base):
     __tablename__ = "service_evaluations"
 
     evaluation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("service_sessions.session_id", ondelete="CASCADE"), unique=True, nullable=False)
+    session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("service_sessions.session_id", ondelete="CASCADE"), nullable=False)
     
-    rating_score: Mapped[int] = mapped_column(Integer, nullable=False) # e.g., 1 to 5 stars
+    responder_name: Mapped[str] = mapped_column(String(255), nullable=True)
+    department: Mapped[str] = mapped_column(String(255), nullable=True)
+    
+    rating_scores: Mapped[list[dict]] = mapped_column(JSONB, nullable=True) # e.g. [{"question_id": "q1", "score": 5}]
+    average_score: Mapped[float] = mapped_column(Float, nullable=True)
+    
     feedback_comments: Mapped[str] = mapped_column(Text, nullable=True)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
-    session: Mapped["ServiceSession"] = relationship("ServiceSession", back_populates="evaluation")
+    session: Mapped["ServiceSession"] = relationship("ServiceSession", back_populates="evaluations")

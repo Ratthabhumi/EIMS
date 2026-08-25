@@ -99,7 +99,12 @@ class MinIOStorageManager(AbstractObjectStorage):
             return False
 
     async def ping(self) -> bool:
-        return await run_in_threadpool(self._sync_ping)
+        import asyncio
+        try:
+            return await asyncio.wait_for(run_in_threadpool(self._sync_ping), timeout=2.0)
+        except Exception as e:
+            logger.error(f"MinIO Health Diagnostic Failure: {e}")
+            return False
 
     def _sync_download(self, object_name: str) -> dict:
         try:

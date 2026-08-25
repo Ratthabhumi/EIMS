@@ -17,6 +17,9 @@ from backend.domain.asset_registry import InfrastructureAsset, HardwareInventory
 from backend.domain.asset_registry.ocr_worker import OCRRegistrationRecord
 from backend.domain.telemetry.models import TelemetryMetric, WindowsEventLog
 from backend.domain.evaluation.models import ServiceSession, ServiceEvaluation
+from backend.domain.analyzer.models.user import User
+from backend.domain.analyzer.models.history import AnalysisHistory
+from backend.domain.analyzer.models.vector import VectorKnowledge
 
 config = context.config
 

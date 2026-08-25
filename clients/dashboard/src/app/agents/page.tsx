@@ -37,12 +37,12 @@ export default function AgentsDashboard() {
   return (
     <div className="animate-fade-in flex flex-col gap-8 pb-12">
       <header className="flex items-center gap-4">
-        <Link href="/" className="p-2 rounded-full hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text transition-colors">
+        <Link href="/" className="p-2 rounded-full hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text transition-colors shrink-0">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-[28px] font-semibold tracking-tight text-eims-text mb-1">Client Agents</h1>
-          <p className="text-eims-text-secondary text-sm">Launch local desktop applications directly from the portal.</p>
+          <h1 className="text-[28px] font-semibold tracking-tight text-eims-text">Client Agents</h1>
+          <p className="text-eims-text-secondary text-sm mt-1">Launch local desktop applications directly from the portal.</p>
         </div>
       </header>
 

@@ -109,6 +109,17 @@ app.include_router(ws_router)
 app.include_router(evaluations.router)
 app.include_router(agents.router)
 
+from backend.api.routers.analyzer import (
+    analyze, history, stats, feedback, obsidian, admin, auth as analyzer_auth
+)
+app.include_router(analyzer_auth.router, prefix="/api/v1/auth", tags=["Analyzer Auth"])
+app.include_router(analyze.router, prefix="/api/v1/analyze", tags=["Analyzer"])
+app.include_router(history.router, prefix="/api/v1/history", tags=["Analyzer History"])
+app.include_router(stats.router, prefix="/api/v1/stats", tags=["Analyzer Stats"])
+app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["Analyzer Feedback"])
+app.include_router(obsidian.router, prefix="/api/v1/obsidian", tags=["Analyzer Obsidian"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["Analyzer Admin"])
+
 
 @app.get("/api/v1/health", tags=["Operational Observability"])
 async def read_system_health() -> JSONResponse:
@@ -139,3 +150,6 @@ async def read_system_health() -> JSONResponse:
             }
         }
     )
+
+
+

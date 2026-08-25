@@ -10,7 +10,7 @@ services:
   # PostgreSQL 16 Asset Registry Persistence Engine
   # ----------------------------------------------------------------------------
   postgres_db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: eims-postgres
     restart: unless-stopped
     environment:

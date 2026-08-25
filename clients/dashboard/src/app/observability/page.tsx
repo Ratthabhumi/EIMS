@@ -48,8 +48,11 @@ export default function ObservabilityDashboard() {
   const wsRef = useRef<WebSocket | null>(null);
 
   const fetchHealth = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/health");
+      const res = await fetch("http://localhost:8000/api/v1/health", { signal: controller.signal });
+      clearTimeout(timeoutId);
       const json = await res.json();
       setHealth(json);
       setHistory(prev => ({
@@ -58,8 +61,12 @@ export default function ObservabilityDashboard() {
         redis: [...prev.redis.slice(1), json.components?.redis_volatile_lru_tier === 'UP'],
         minio: [...prev.minio.slice(1), json.components?.minio_object_storage_tier === 'UP'],
       }));
-    } catch (err) {
-      console.error("Failed to fetch health", err);
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.warn("Health check timed out (backend degraded)");
+      } else {
+        console.warn("Failed to fetch health", err);
+      }
       setHealth({
         system: "EIMS Core Gateway",
         version: "Unknown",

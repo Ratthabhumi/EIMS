@@ -55,4 +55,11 @@
   .text-title {
     @apply font-semibold tracking-tight text-eims-text;
   }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

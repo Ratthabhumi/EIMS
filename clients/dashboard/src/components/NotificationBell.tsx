@@ -12,8 +12,11 @@ export function NotificationBell() {
 
   useEffect(() => {
     const fetchHealth = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       try {
-        const res = await fetch("http://localhost:8000/api/v1/health");
+        const res = await fetch("http://localhost:8000/api/v1/health", { signal: controller.signal });
+        clearTimeout(timeoutId);
         const json = await res.json();
         
         const missing = [];
@@ -28,9 +31,13 @@ export function NotificationBell() {
           setHasAlert(false);
           setMissingComponents([]);
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          setMissingComponents(['API Gateway (Timeout)']);
+        } else {
+          setMissingComponents(['API Gateway (Offline)']);
+        }
         setHasAlert(true);
-        setMissingComponents(['API Gateway (Offline)']);
       }
     };
 
