@@ -170,3 +170,21 @@ docker-compose down -v
 ```
 
 For the Frontend and Backend terminals, simply click into the terminal and press `Ctrl + C` to stop the running process.
+
+---
+
+## 🔧 8. Troubleshooting
+
+If you encounter errors after pulling the latest code from the repository:
+
+**1. Backend `ModuleNotFoundError` (e.g. `requests`)**
+- Cause: New Python dependencies were added.
+- Fix: Run `pip install -r requirements.txt` in the virtual environment.
+
+**2. Frontend `Module not found` (e.g. `react-hot-toast`)**
+- Cause: New Node.js packages were added.
+- Fix: Navigate to `clients/dashboard` and run `npm install`.
+
+**3. Telemetry Worker Database Errors (e.g. `ForeignKeyViolationError`)**
+- Cause: The database was cleared or migrated, but the Redis cache and `simulate_traffic.py` are still using old Asset UUIDs.
+- Fix: Flush the Redis cache (`docker-compose exec redis_cache redis-cli FLUSHALL`) and restart `simulate_traffic.py` to register fresh endpoints.

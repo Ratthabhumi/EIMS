@@ -54,6 +54,7 @@ This project is currently under active development.
 ## 🚀 Quick Start & Cheatsheet
 
 For detailed instructions on how to start the backend, frontend dashboard, agent simulation, and database infrastructure, please refer to the **[EIMS Developer Cheatsheet](CHEATSHEET.md)**.
+*(Includes a Troubleshooting section for resolving dependency and caching issues).*
 
 ---
 
