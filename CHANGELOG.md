@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [v0.2.0] - 2026-09-10
+### In Progress — Sprint 10: Global Search & Timeline
+- **Design Approved**: Architecture review completed with corrections for search scope, provider registry, and performance targets.
+- **Documentation Updated**:
+  - Updated `03_SOFTWARE_ARCHITECTURE_DOCUMENT.md` with EIMS Query Layer architecture, Search Provider pattern, and Timeline design.
+  - Updated `04_DATABASE_DESIGN.md` with search indexes (pg_trgm, tsvector GIN) for Global Search.
+  - Updated `05_API_SPECIFICATION.md` with new endpoints: `/api/v1/search`, `/api/v1/audit-logs`, `/api/v1/timeline`, `/api/v1/telemetry/metrics`, `/api/v1/telemetry/winlogs`.
+  - Updated `ROADMAP.md` with Sprint 10 status and architecture details.
+- **Architecture Decisions**:
+  - PostgreSQL-first search (pg_trgm + tsvector) — no external search engine for Sprint 10.
+  - Extensible Search Provider pattern for future module integration.
+  - Search domains: Asset + AuditLog (primary), Analysis (secondary); Telemetry/WinLog/Hardware retained as timeline sources only.
+  - Timeline built from asset-linked domain tables (AuditLog, Telemetry, WinLog) — no new event table.
+  - Normalized search result contract for consistent frontend integration.
+- **Performance Targets** (acceptance criteria until measured):
+  - Global Search p95 < 500 ms.
+  - Timeline p95 < 300 ms.
+- **Status**: Documentation update complete. Implementation pending approval.
+
+---
+
 ## [v0.1.0] - 2026-08-04
 ### Added — Documentation Foundation Complete
 - **EDS Constitution Established**: Initialized the canonical EIMS Documentation System (`EDS v1.0.0`) setting binding writing tone rules, terminology compliance catalogs, and Mermaid visual diagram palettes.

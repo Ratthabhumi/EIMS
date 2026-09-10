@@ -1,9 +1,9 @@
 ---
 id: EIMS-API-001
-version: 1.0.0
-status: Approved
+version: 1.1.0
+status: Draft
 owner: Lead Software Architect
-last_updated: 2026-08-04
+last_updated: 2026-09-10
 review_cycle: Annual
 related_documents:
   - 01_EIMS_MASTER_PLAN.md
@@ -17,10 +17,10 @@ related_documents:
 | Metadata | Value |
 | :--- | :--- |
 | **Document ID** | EIMS-API-001 |
-| **Version** | 1.0.0 |
-| **Status** | Approved |
+| **Version** | 1.1.0 |
+| **Status** | Draft |
 | **Owner** | Lead Software Architect |
-| **Last Updated** | 2026-08-04 |
+| **Last Updated** | 2026-09-10 |
 | **Review Cycle** | Annual |
 | **Related Documents** | [Master Plan](01_EIMS_MASTER_PLAN.md), [SAD](03_SOFTWARE_ARCHITECTURE_DOCUMENT.md), [Database Design](04_DATABASE_DESIGN.md) |
 
@@ -68,10 +68,16 @@ This document targets Senior Software Architects, Lead System Engineers, Backend
   - [7.2 Asset Registry Administration API](#72-asset-registry-administration-api)
   - [7.3 OCR Asset Registration & Hardware Upload API](#73-ocr-asset-registration-hardware-upload-api)
   - [7.4 Compliance Auditing & Audit Log API](#74-compliance-auditing-audit-log-api)
-- [8. Asynchronous WebSocket Interface Specifications](#8-asynchronous-websocket-interface-specifications)
-- [9. References](#9-references)
-- [10. Related Documents](#10-related-documents)
-- [11. Revision History](#11-revision-history)
+- [8. Sprint 10: Global Search & Timeline API](#8-sprint-10-global-search-timeline-api)
+  - [8.1 Global Search API](#81-global-search-api)
+  - [8.2 Audit Log Query API](#82-audit-log-query-api)
+  - [8.3 Timeline Query API](#83-timeline-query-api)
+  - [8.4 Telemetry Metrics Query API](#84-telemetry-metrics-query-api)
+  - [8.5 Windows Log Query API](#85-windows-log-query-api)
+- [9. Asynchronous WebSocket Interface Specifications](#9-asynchronous-websocket-interface-specifications)
+- [10. References](#10-references)
+- [11. Related Documents](#11-related-documents)
+- [12. Revision History](#12-revision-history)
 
 ---
 
@@ -268,7 +274,181 @@ Read-only querying interface providing forensic access to system operational mod
 
 ---
 
-## 8. Asynchronous WebSocket Interface Specifications
+## 8. Sprint 10: Global Search & Timeline API
+
+### 8.1 Global Search API
+
+#### `GET /api/v1/search`
+Cross-domain search endpoint returning normalized results across searchable EIMS entities.
+- **Authentication Requirement:** Bearer JWT Token (existing dependency).
+- **Query Parameters:**
+  - `q` (required): Search query string (minimum 2 characters).
+  - `type` (optional): Filter by entity type (`asset`, `audit`, `analysis`).
+  - `page` (default: 1): Page number (ge: 1).
+  - `limit` (default: 20, max: 50): Results per page.
+- **Successful Response (HTTP 200 OK):** Returns normalized search results grouped by entity type.
+  ```json
+  {
+    "status": "success",
+    "data": [
+      {
+        "type": "asset",
+        "id": "8f3b2d10-6c54-4a21-9e87-2b10a9c8e7f6",
+        "title": "PC-ACCT-042",
+        "subtitle": "Active • 192.168.1.100",
+        "metadata": {"state": "Compliant", "score": 85},
+        "url": "/endpoints?id=8f3b2d10-6c54-4a21-9e87-2b10a9c8e7f6",
+        "timestamp": "2026-08-10T12:00:00Z",
+        "relevance": 0.95
+      }
+    ],
+    "pagination": {
+      "total_records": 12,
+      "current_page": 1,
+      "page_size": 20,
+      "next_page_cursor": null
+    }
+  }
+  ```
+- **Search Result Contract (Normalized):**
+  - `type`: Entity type identifier.
+  - `id`: UUID of the entity.
+  - `title`: Primary display name.
+  - `subtitle`: Secondary information (state, date, severity).
+  - `metadata`: Additional context (flexible JSON).
+  - `url`: Canonical frontend route for navigation.
+  - `timestamp`: When the entity was created or updated.
+  - `relevance`: 0.0–1.0 relevance score (optional for timeline results).
+- **Search Domains (Sprint 10) — Final Classification:**
+  - **Asset** (primary): hostname (partial), canonical_ip (partial), lifecycle_state (exact), cryptographic_fingerprint (exact).
+  - **AuditLog** (primary): action_verb (partial/exact).
+  - **Analysis** (secondary): event_id (exact), description (partial/full-text), ai_summary (full-text).
+  - **Not included in Sprint 10 Global Search:** Hardware, Telemetry, WinLog. These remain timeline sources and asset-context data but are not standalone search result types, to avoid search-result clutter and because they lack first-class user-facing canonical destinations.
+- **Error Behavior:** RFC 7807 Problem Details for validation failures or unauthorized access.
+- **Performance Target:** p95 response time < 500 ms for common queries.
+
+### 8.2 Audit Log Query API
+
+#### `GET /api/v1/audit-logs`
+Read-only querying interface for immutable audit trail records.
+- **Authentication Requirement:** Bearer JWT Token (`System Administrator` or `Security & Compliance Auditor` roles).
+- **Query Parameters:**
+  - `asset_id` (optional): Filter by target asset UUID.
+  - `action` (optional): Filter by action_verb (exact match).
+  - `from` (optional): Start date (ISO 8601).
+  - `to` (optional): End date (ISO 8601).
+  - `page` (default: 1): Page number.
+  - `limit` (default: 50, max: 200): Records per page.
+- **Successful Response (HTTP 200 OK):** Returns ordered historical audit records.
+  ```json
+  {
+    "status": "success",
+    "data": [
+      {
+        "log_id": "uuid",
+        "actor_id": "uuid or null",
+        "asset_id": "uuid or null",
+        "action_verb": "TRANSITION_STATE",
+        "performed_at": "2026-08-10T12:00:00Z",
+        "immutable_payload": {
+          "previous_state": "Discovered",
+          "new_state": "Active",
+          "reason": "Manual audit"
+        }
+      }
+    ],
+    "pagination": {
+      "total_records": 150,
+      "current_page": 1,
+      "page_size": 50,
+      "next_page_cursor": null
+    }
+  }
+  ```
+- **Security Constraint:** HTTP `POST`, `PUT`, `PATCH`, and `DELETE` methods are permanently disabled against `/api/v1/audit-logs`.
+- **Error Behavior:** RFC 7807 Problem Details.
+
+### 8.3 Timeline Query API
+
+#### `GET /api/v1/timeline`
+Unified timeline endpoint aggregating events from multiple domain sources.
+- **Authentication Requirement:** Bearer JWT Token (existing dependency).
+- **Query Parameters:**
+  - `entity_id` (optional): Filter by related asset/entity UUID.
+  - `type` (optional): Event type (`audit`, `telemetry`, `winlog`).
+  - `severity` (optional): Severity level (`Critical`, `Warning`, `Information`).
+  - `from` (optional): Start date (ISO 8601).
+  - `to` (optional): End date (ISO 8601).
+  - `page` (default: 1): Page number.
+  - `limit` (default: 50, max: 200): Events per page.
+- **Successful Response (HTTP 200 OK):** Returns unified chronological event list.
+  ```json
+  {
+    "status": "success",
+    "data": [
+      {
+        "id": "uuid",
+        "type": "audit",
+        "title": "TRANSITION_STATE",
+        "description": "Asset transitioned from Discovered to Active",
+        "severity": "information",
+        "timestamp": "2026-08-10T12:00:00Z",
+        "actor_id": "uuid or null",
+        "entity_id": "uuid",
+        "entity_type": "asset",
+        "metadata": {}
+      }
+    ],
+    "pagination": {
+      "total_records": 500,
+      "current_page": 1,
+      "page_size": 50,
+      "next_page_cursor": null
+    }
+  }
+  ```
+- **Timeline Data Sources (Sprint 10):**
+  - `audit_logs` (type: `audit`, timestamp: `performed_at`)
+  - `telemetry_metrics` (type: `telemetry`, timestamp: `event_time`)
+  - `windows_event_logs` (type: `winlog`, timestamp: `occurrence_time`)
+- **Excluded Source — `analysis_history`:** Not included in the Sprint 10 unified timeline because it lacks an `asset_id` foreign key and its `created_at` column is timezone-naive (`DateTime` without `timezone=True`), which would create inconsistent cross-table chronological ordering. Analysis remains searchable via Global Search and listable via the existing `GET /api/v1/history/` endpoint.
+- **Behavior:** Chronological ordering (newest first by default). No new event table introduced — queries existing domain tables.
+- **Performance Target:** p95 response time < 300 ms.
+- **Error Behavior:** RFC 7807 Problem Details.
+
+### 8.4 Telemetry Metrics Query API
+
+#### `GET /api/v1/telemetry/metrics`
+Query historical telemetry metrics for specific assets.
+- **Authentication Requirement:** Bearer JWT Token.
+- **Query Parameters:**
+  - `asset_id` (required): Filter by asset UUID.
+  - `from` (optional): Start date (ISO 8601).
+  - `to` (optional): End date (ISO 8601).
+  - `page` (default: 1): Page number.
+  - `limit` (default: 50, max: 200): Records per page.
+- **Successful Response (HTTP 200 OK):** Returns paginated telemetry records.
+- **Error Behavior:** RFC 7807 Problem Details.
+
+### 8.5 Windows Log Query API
+
+#### `GET /api/v1/telemetry/winlogs`
+Query historical Windows Event Log records.
+- **Authentication Requirement:** Bearer JWT Token.
+- **Query Parameters:**
+  - `asset_id` (optional): Filter by asset UUID.
+  - `event_id` (optional): Filter by Windows Event ID (exact match).
+  - `severity` (optional): Filter by severity level.
+  - `from` (optional): Start date (ISO 8601).
+  - `to` (optional): End date (ISO 8601).
+  - `page` (default: 1): Page number.
+  - `limit` (default: 50, max: 200): Records per page.
+- **Successful Response (HTTP 200 OK):** Returns paginated Windows Event Log records.
+- **Error Behavior:** RFC 7807 Problem Details.
+
+---
+
+## 9. Asynchronous WebSocket Interface Specifications
 
 #### `WSS /api/v1/ws/dashboard`
 Bi-directional WebSocket streaming pipeline pushing live operational metrics and security anomaly alerts to Next.js clients.
@@ -322,8 +502,9 @@ Bi-directional WebSocket streaming pipeline pushing live operational metrics and
 
 ---
 
-## 11. Revision History
+## 12. Revision History
 
 | Version | Date | Author | Status | Description of Change |
 | :--- | :--- | :--- | :--- | :--- |
+| 1.1.0 | 2026-09-10 | Lead Software Architect | Draft | Sprint 10: Added Global Search, Audit Log Query, Timeline, Telemetry Metrics, and Windows Log Query API specifications. |
 | 1.0.0 | 2026-08-04 | Lead Software Architect | Approved | Initial canonical release of Core Law 5: API Specification under frozen EDS v1.0.0 rules. |

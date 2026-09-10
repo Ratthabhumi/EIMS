@@ -1,9 +1,9 @@
 ---
 id: EIMS-SAD-001
-version: 1.0.0
-status: Approved
+version: 1.1.0
+status: Draft
 owner: Lead Software Architect
-last_updated: 2026-08-04
+last_updated: 2026-09-10
 review_cycle: Annual
 related_documents:
   - 01_EIMS_MASTER_PLAN.md
@@ -17,10 +17,10 @@ related_documents:
 | Metadata | Value |
 | :--- | :--- |
 | **Document ID** | EIMS-SAD-001 |
-| **Version** | 1.0.0 |
-| **Status** | Approved |
+| **Version** | 1.1.0 |
+| **Status** | Draft |
 | **Owner** | Lead Software Architect |
-| **Last Updated** | 2026-08-04 |
+| **Last Updated** | 2026-09-10 |
 | **Review Cycle** | Annual |
 | **Related Documents** | [Master Plan](01_EIMS_MASTER_PLAN.md), [PRD](02_PRODUCT_REQUIREMENTS_DOCUMENT.md), [Database Design](04_DATABASE_DESIGN.md) |
 
@@ -64,6 +64,7 @@ This specification is authored for Senior Software Architects, Lead System Engin
   - [6.2 Non-Blocking OCR Asset Registration Pipeline](#62-non-blocking-ocr-asset-registration-pipeline)
   - [6.3 Windows Log Analysis & Real-Time Anomaly Engine](#63-windows-log-analysis-real-time-anomaly-engine)
   - [6.4 Canonical Asset Lifecycle State Machine](#64-canonical-asset-lifecycle-state-machine)
+  - [6.5 EIMS Query Layer: Global Search & Timeline (Sprint 10)](#65-eims-query-layer-global-search-timeline-sprint-10)
 - [7. Cross-Cutting Engineering Concerns](#7-cross-cutting-engineering-concerns)
   - [7.1 Authentication & Authorization Architecture](#71-authentication-authorization-architecture)
   - [7.2 Database Connection Pooling & Resilience](#72-database-connection-pooling-resilience)
@@ -225,6 +226,121 @@ stateDiagram-v2
     Decommissioned --> [*]: Read-Only Historical Archive
 ```
 
+### 6.5 EIMS Query Layer: Global Search & Timeline (Sprint 10)
+
+Sprint 10 introduces the **EIMS Query Layer** — a unified search and timeline capability built on top of existing domain data without introducing new infrastructure.
+
+#### Architecture Overview
+
+```
+                   EIMS Query Layer
+                   /             \
+                  /               \
+         Global Search          Timeline
+               |                    |
+       Search Providers       Existing Event Sources
+               |                    |
+               +-------- API -------+
+                         |
+                    Dashboard UI
+```
+
+**Global Search** = Finding things you're interested in across the system.
+**Timeline** = Viewing what happened over time across the system.
+
+Both capabilities share domain data but have distinct responsibilities.
+
+#### Search Provider Pattern
+
+Global Search uses an extensible **Search Provider** abstraction to allow future modules to integrate without rewriting the core search orchestration.
+
+```mermaid
+classDiagram
+    class SearchProvider {
+        <<abstract>>
+        +search(query, filters) List~SearchResult~
+        +get_provider_name() str
+    }
+    class AssetSearchProvider {
+        +search(query, filters) List~SearchResult~
+    }
+    class AuditLogSearchProvider {
+        +search(query, filters) List~SearchResult~
+    }
+    class AnalysisSearchProvider {
+        +search(query, filters) List~SearchResult~
+    }
+    class SearchOrchestrator {
+        +register_provider(provider)
+        +global_search(query, filters) List~SearchResult~
+    }
+    
+    SearchProvider <|-- AssetSearchProvider
+    SearchProvider <|-- AuditLogSearchProvider
+    SearchProvider <|-- AnalysisSearchProvider
+    SearchOrchestrator --> SearchProvider : aggregates
+```
+
+**Search Result Contract (Normalized):**
+Every search provider returns results in a standardized format:
+- `type`: Entity type identifier (e.g., "asset", "audit", "analysis").
+- `id`: UUID of the entity.
+- `title`: Primary display name.
+- `subtitle`: Secondary information.
+- `metadata`: Additional context (flexible JSON).
+- `url`: Canonical frontend route for navigation.
+- `timestamp`: When the entity was created or updated.
+- `relevance`: 0.0–1.0 relevance score.
+
+**Extension Point:**
+To add a new searchable module (e.g., Patch Management):
+1. Implement `SearchProvider` interface for the new domain.
+2. Register the provider with `SearchOrchestrator`.
+3. No changes needed to the core Global Search API or frontend.
+
+#### Timeline Architecture
+
+Timeline aggregates events from existing domain tables without creating a new event table:
+
+| Source Table | Event Type | Timestamp Column |
+|-------------|------------|-----------------|
+| `audit_logs` | `audit` | `performed_at` |
+| `telemetry_metrics` | `telemetry` | `event_time` |
+| `windows_event_logs` | `winlog` | `occurrence_time` |
+
+**Excluded Source — `analysis_history`:** Not included in the unified timeline because it lacks an `asset_id` foreign key and its `created_at` column is timezone-naive (`DateTime` without `timezone=True`), which would produce inconsistent cross-table chronological ordering. Analysis remains a secondary Global Search domain and is listable via the existing `GET /api/v1/history/` endpoint.
+
+**Design Decision:** No new generalized event table is introduced for Sprint 10. The three asset-linked, timezone-consistent domain tables provide sufficient data for the timeline requirement. If future requirements demand cross-domain event correlation beyond what existing tables provide, a dedicated event abstraction may be revisited.
+
+#### Search Domains (Resolved)
+
+| Domain | Role | Rationale |
+|--------|------|-----------|
+| **Asset** | Primary | Core registry; hostname/IP/state search is highest operator value |
+| **AuditLog** | Primary | Forensic action_verb search |
+| **Analysis** | Secondary | Find past log analyses by keyword |
+| Hardware | Not included | Context of an Asset; no standalone canonical destination |
+| Telemetry | Not included | Time-series only, search clutter risk |
+| WinLog | Not included | Event-volume noise; remains a timeline source |
+
+#### Search Technology
+
+PostgreSQL-first approach using:
+- **pg_trgm**: Partial/substring matching on hostname, IP, description.
+- **tsvector**: Full-text keyword search on JSONB payloads and descriptions.
+- **pgvector**: Semantic search (existing, unchanged).
+
+No external search engine (Elasticsearch/OpenSearch) is introduced for Sprint 10.
+
+#### Performance Targets
+
+- Global Search p95 response time: < 500 ms.
+- Timeline p95 response time: < 300 ms.
+- All queries use pagination (no unbounded result sets).
+- No N+1 queries.
+
+**Note:** These are acceptance targets until measured during implementation.
+
 ---
 
 ## 7. Cross-Cutting Engineering Concerns
@@ -273,4 +389,5 @@ Distributed architectures must withstand partial downstream infrastructure failu
 
 | Version | Date | Author | Status | Description of Change |
 | :--- | :--- | :--- | :--- | :--- |
+| 1.1.0 | 2026-09-10 | Lead Software Architect | Draft | Sprint 10: Added EIMS Query Layer architecture (Global Search & Timeline), Search Provider pattern, and Timeline design. |
 | 1.0.0 | 2026-08-04 | Lead Software Architect | Approved | Initial canonical release of Core Law 3: Software Architecture Document under frozen EDS v1.0.0 rules. |

@@ -26,12 +26,16 @@ from backend.core.logger import get_logger
 from backend.infrastructure.database import database_engine
 from backend.infrastructure.cache import cache_manager
 from backend.domain.asset_registry import asset_router
+from backend.domain.asset_registry.audit_controller import audit_router
 from backend.domain.asset_registry.ocr_worker import ocr_worker
 from backend.api.routers import evaluations
 from backend.domain.telemetry import telemetry_router
+from backend.domain.telemetry.query_controller import telemetry_query_router
 from backend.domain.telemetry.ws_controller import ws_router, redis_pubsub_listener
 from backend.domain.telemetry.evtx_worker import evtx_worker
 from backend.domain.telemetry.worker import telemetry_worker
+from backend.domain.search.controller import search_router
+from backend.domain.timeline.controller import timeline_router
 
 logger = get_logger("eims.main")
 
@@ -108,6 +112,12 @@ app.include_router(telemetry_router)
 app.include_router(ws_router)
 app.include_router(evaluations.router)
 app.include_router(agents.router)
+
+# Register Sprint 10 Query Layer Routers (Global Search & Timeline Phase D.1)
+app.include_router(search_router)
+app.include_router(timeline_router)
+app.include_router(audit_router)
+app.include_router(telemetry_query_router)
 
 from backend.api.routers.analyzer import (
     analyze, history, stats, feedback, obsidian, admin, auth as analyzer_auth

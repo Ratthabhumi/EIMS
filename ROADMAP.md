@@ -70,11 +70,22 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 
 ## 🏃 Current & Upcoming Sprints
 
-### 📅 Sprint 10: Global Search & Timeline
-- **Goal**: Search the entire portal and view request timelines.
+### 🔧 Sprint 10: Global Search & Timeline (In Progress)
+- **Goal**: Implement cross-domain search capability and unified event timeline for operational visibility.
+- **Status**: Design approved, documentation update in progress, implementation pending.
+- **Architecture**:
+  - PostgreSQL-first search (pg_trgm + tsvector) — no external search engine.
+  - Extensible Search Provider pattern for future module integration.
+  - Timeline built from existing asset-linked domain tables (AuditLog, Telemetry, WinLog).
+  - Search domains: Asset + AuditLog (primary), Analysis (secondary).
 - **Tasks**:
-  - Implement the `⌘K` global search.
-  - Build the Request Tracking page and detail timeline.
+  - Implement `⌘K` Global Search command palette with normalized search results.
+  - Implement Search Provider abstraction and registry.
+  - Implement unified Timeline query layer across existing event sources.
+  - Add database indexes for search performance (pg_trgm, tsvector GIN).
+  - Add API endpoints: `/api/v1/search`, `/api/v1/timeline`, `/api/v1/audit-logs`.
+  - Build Timeline UI page and Global Search dialog component.
+  - Add tests for search, timeline, and provider contracts.
 
 ### 📅 Sprint 11: High Availability & Public Exposure
 - **Goal**: Enterprise scale reliability and public accessibility.

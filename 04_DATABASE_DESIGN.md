@@ -1,9 +1,9 @@
 ---
 id: EIMS-DBD-001
-version: 1.0.0
-status: Approved
+version: 1.1.0
+status: Draft
 owner: Lead Software Architect
-last_updated: 2026-08-04
+last_updated: 2026-09-10
 review_cycle: Annual
 related_documents:
   - 01_EIMS_MASTER_PLAN.md
@@ -17,10 +17,10 @@ related_documents:
 | Metadata | Value |
 | :--- | :--- |
 | **Document ID** | EIMS-DBD-001 |
-| **Version** | 1.0.0 |
-| **Status** | Approved |
+| **Version** | 1.1.0 |
+| **Status** | Draft |
 | **Owner** | Lead Software Architect |
-| **Last Updated** | 2026-08-04 |
+| **Last Updated** | 2026-09-10 |
 | **Review Cycle** | Annual |
 | **Related Documents** | [Master Plan](01_EIMS_MASTER_PLAN.md), [PRD](02_PRODUCT_REQUIREMENTS_DOCUMENT.md), [SAD](03_SOFTWARE_ARCHITECTURE_DOCUMENT.md) |
 
@@ -246,6 +246,56 @@ Database indexing selections require balancing rapid query execution performance
   ```
   *Trade-off:* GIN indices require substantially larger physical disk space allocations compared to B-Tree counterparts; restrict their utilization strictly to queried operational JSON fields rather than purely archival diagnostic payloads.
 
+#### Sprint 10: Search Indexes
+
+For Global Search functionality, the following indexes are proposed to support partial matching and full-text search:
+
+- **pg_trgm Extension:** Enables trigram-based similarity search for partial/substring matching on text columns.
+  ```sql
+  CREATE EXTENSION IF NOT EXISTS pg_trgm;
+  ```
+  *Purpose:* Enables `LIKE '%pattern%'` and similarity operators to use GIN indexes instead of sequential scans.
+  *Trade-off:* Minimal write overhead; significant read improvement for partial text matching.
+
+- **GIN Index on `infrastructure_assets.hostname`:** Supports partial hostname matching (e.g., "PC-ACCT" matching "PC-ACCT-042").
+  ```sql
+  CREATE INDEX idx_assets_hostname_gin ON infrastructure_assets USING GIN (hostname gin_trgm_ops);
+  ```
+  *Query Pattern:* `WHERE hostname LIKE '%PC-ACCT%'` or `WHERE hostname % 'PC-ACCT'`
+  *Expected Benefit:* Sub-millisecond partial hostname lookups instead of sequential table scans.
+
+- **GIN Index on `infrastructure_assets.canonical_ip`:** Supports partial IP address matching.
+  ```sql
+  CREATE INDEX idx_assets_ip_gin ON infrastructure_assets USING GIN (canonical_ip gin_trgm_ops);
+  ```
+  *Query Pattern:* `WHERE canonical_ip LIKE '%192.168%'`
+  *Expected Benefit:* Fast IP subnet searches.
+
+- **pg_trgm GIN Index on `audit_logs.action_verb`:** Supports partial action_verb matching (e.g., "TRANS", "QUARANT").
+  ```sql
+  CREATE INDEX idx_audit_logs_action_verb_trgm ON audit_logs USING GIN (action_verb gin_trgm_ops);
+  ```
+  *Query Pattern:* `WHERE action_verb LIKE '%TRANSITION%'` or `WHERE action_verb ILIKE '%quarant%'`
+  *Reasoning:* Exact action_verb lookups are already served by the existing B-tree index (`idx_audit_logs_action_time`). A trigram GIN additionally enables partial/prefix matching for the operator-facing audit search workload.
+  *Decision:* A tsvector generated column over `action_verb || immutable_payload::text` was **rejected** — casting JSONB to text produces poor tokenization quality and couples search semantics to internal JSON serialization. JSONB payload content is not a primary sprint search field; it remains queryable as context, not as an indexed search target.
+
+- **tsvector Generated Column on `analysis_history`:** Full-text search on description and ai_summary (both plain text columns, no JSONB involved).
+  ```sql
+  ALTER TABLE analysis_history ADD COLUMN search_vector tsvector
+    GENERATED ALWAYS AS (
+      to_tsvector('english', COALESCE(description, '') || ' ' || COALESCE(ai_summary, ''))
+    ) STORED;
+  CREATE INDEX idx_analysis_search ON analysis_history USING GIN (search_vector);
+  ```
+  *Query Pattern:* `WHERE search_vector @@ to_tsquery('english', 'login & failure')`
+  *Reasoning:* `description` is long-form free text where keyword search is the natural workload. tsvector is preferred over pg_trgm here because operators search by meaning-bearing keywords rather than substrings.
+  *Expected Benefit:* Fast full-text search across log analysis records (secondary search domain).
+
+**Index Decision Criteria Applied:**
+1. Every index maps to a documented query in the planned API (`/api/v1/search`).
+2. No duplicate of an existing index — `hostname`, `canonical_ip`, and `description` currently have no indexes; `action_verb` gains trigram support only (B-tree already covers exact match).
+3. No speculative indexes — Telemetry, WinLog, and Hardware fields receive **no** new search indexes in Sprint 10 because they are not standalone search domains.
+
 ### 7.2 Declarative Time-Series Table Partitioning
 
 Tables ingesting continuous telemetry streams (`telemetry_metrics`) and event streams (`windows_event_logs`) degrade index search efficiency once record counts surpass tens of millions of rows. To maintain deterministic query latency (`NFR-SCALE-02`), these tables execute **PostgreSQL Native Declarative Range Partitioning** structured by chronological occurrence month.
@@ -318,4 +368,5 @@ To remove or radically transform existing relational schema attributes, engineer
 
 | Version | Date | Author | Status | Description of Change |
 | :--- | :--- | :--- | :--- | :--- |
+| 1.1.0 | 2026-09-10 | Lead Software Architect | Draft | Sprint 10: Added search indexes (pg_trgm, tsvector GIN) for Global Search functionality. |
 | 1.0.0 | 2026-08-04 | Lead Software Architect | Approved | Initial canonical release of Core Law 4: Database Design Specification under frozen EDS v1.0.0 rules. |

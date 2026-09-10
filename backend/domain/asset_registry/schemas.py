@@ -74,3 +74,22 @@ class OCRRegistrationListResponse(BaseModel):
     status: str = "success"
     data: List[OCRRegistrationRecordResponse]
     pagination: PaginationMetadata
+
+
+class AuditLogResponse(BaseModel):
+    """Serialization representation of an immutable audit journal entry."""
+    model_config = ConfigDict(from_attributes=True)
+
+    log_id: uuid.UUID = Field(..., description="Unique audit transaction identification hash.")
+    actor_id: Optional[uuid.UUID] = Field(None, description="Operator or automated agent responsible for mutation.")
+    asset_id: Optional[uuid.UUID] = Field(None, description="Target Infrastructure Asset impacted by the command.")
+    action_verb: str = Field(..., description="Executed operational command verb.")
+    performed_at: Optional[datetime] = Field(None, description="Temporal stamp recording exact modification execution (UTC).")
+    immutable_payload: dict = Field(..., description="Historical pre/post mutation snapshot.")
+
+
+class AuditLogListResponse(BaseModel):
+    """Canonical collection wrapper for Audit Log query responses."""
+    status: str = "success"
+    data: List[AuditLogResponse]
+    pagination: PaginationMetadata
