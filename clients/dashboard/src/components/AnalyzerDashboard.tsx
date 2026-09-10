@@ -135,7 +135,7 @@ export default function AnalyzerDashboard({ refreshTrigger = 0 }: AnalyzerDashbo
                 </div>
 
                 {/* Scrollable Legend showing All or Top 5 with Toggle */}
-                <div className="w-1/2 flex flex-col gap-1 pr-1 overflow-y-auto max-h-[200px] custom-scrollbar py-1">
+                <div className="w-1/2 flex flex-col gap-1 pr-1 overflow-y-auto max-h-[200px] py-1">
                   {(showAllProviders ? stats.providerStats : stats.providerStats.slice(0, 5)).map((entry, index) => (
                     <div key={entry.name} className="flex items-center justify-between text-[11px] gap-2 py-0.5 border-b border-eims-border/20 last:border-0 hover:bg-eims-surface-subtle/50 px-1 rounded transition-colors">
                       <div className="flex items-center gap-1.5 min-w-0">

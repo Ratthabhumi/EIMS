@@ -184,7 +184,7 @@ export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHist
         </div>
       </div>
 
-      <div className="divide-y divide-eims-border max-h-[585px] overflow-y-auto custom-scrollbar">
+      <div className="divide-y divide-eims-border max-h-[585px] overflow-y-auto">
         {isLoading ? (
           <div className="p-8 text-center text-eims-text-muted">Loading history...</div>
         ) : filteredHistory.length === 0 ? (

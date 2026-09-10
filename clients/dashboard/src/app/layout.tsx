@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
-import { Bell, User, Home, Grid, FileText, Settings, Shield, Compass, BookOpen, Star, BarChart3, Terminal, Activity, Database, HardDrive, Play, MonitorCheck, ScanText, Usb } from "lucide-react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
-import { SidebarNav } from "@/components/SidebarNav";
+import { ResponsiveSidebar } from "@/components/ResponsiveSidebar";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { Toaster } from "react-hot-toast";
 
@@ -41,45 +39,37 @@ export default function RootLayout({
               border: '1px solid var(--color-eims-border)'
             }
           }} />
-          {/* Left Sidebar */}
-        <aside className="w-64 bg-eims-surface border-r border-eims-border flex flex-col transition-all duration-200 shrink-0">
-          <div className="h-16 flex items-center px-6 border-b border-eims-border">
-            <div className="font-bold text-lg tracking-tight text-eims-text flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-sm bg-eims-accent"></span>
-              EIMS Portal
-            </div>
+          <ResponsiveSidebar />
+
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col min-w-0 bg-eims-bg lg:pl-0">
+            {/* Top Header */}
+            <header className="h-16 bg-eims-surface border-b border-eims-border flex items-center justify-between px-8 shrink-0 lg:pl-0">
+              {/* Search Bar (Command Palette Hint) */}
+              <GlobalSearchDialog />
+
+              {/* Right Actions */}
+              <div className="flex items-center gap-4">
+                <ThemeToggle />
+                <NotificationBell />
+                <div className="h-6 w-px bg-eims-border" />
+                <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  <div className="w-8 h-8 rounded-full bg-eims-surface-subtle border border-eims-border flex items-center justify-center">
+                    <svg className="w-4 h-4 text-eims-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                </button>
+              </div>
+            </header>
+
+            {/* Page Content */}
+            <main className="flex-1 overflow-y-auto p-8 no-scrollbar">
+              <div className="max-w-5xl mx-auto h-full">
+                {children}
+              </div>
+            </main>
           </div>
-          
-          <SidebarNav />
-        </aside>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 bg-eims-bg">
-          {/* Top Header */}
-          <header className="h-16 bg-eims-surface border-b border-eims-border flex items-center justify-between px-8 shrink-0">
-            {/* Search Bar (Command Palette Hint) */}
-            <GlobalSearchDialog />
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <NotificationBell />
-              <div className="h-6 w-px bg-eims-border"></div>
-              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <div className="w-8 h-8 rounded-full bg-eims-surface-subtle border border-eims-border flex items-center justify-center">
-                  <User className="w-4 h-4 text-eims-text-secondary" />
-                </div>
-              </button>
-            </div>
-          </header>
-
-          {/* Page Content */}
-          <main className="flex-1 overflow-y-auto p-8 no-scrollbar">
-            <div className="max-w-5xl mx-auto h-full">
-              {children}
-            </div>
-          </main>
-        </div>
         </ThemeProvider>
       </body>
     </html>

@@ -18,7 +18,11 @@ import {
   Settings 
 } from "lucide-react";
 
-export function SidebarNav() {
+interface SidebarNavProps {
+  onNavigate?: () => void;
+}
+
+export function SidebarNav({ onNavigate }: SidebarNavProps) {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
@@ -43,12 +47,16 @@ export function SidebarNav() {
     }`;
   };
 
+  const handleClick = () => {
+    onNavigate?.();
+  };
+
   return (
-    <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-6 custom-scrollbar">
+    <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-6" onClick={handleClick}>
       {/* 1. Main Navigation */}
       <div className="space-y-1">
         <div className="text-[11px] font-semibold text-eims-text-muted uppercase tracking-wider px-3 mb-2">Main</div>
-        <Link href="/" className={getLinkClasses("/")}>
+        <Link href="/" className={getLinkClasses("/")} onClick={handleClick}>
           <Home className={getIconClasses("/")} /> Home Portal
         </Link>
       </div>
@@ -56,16 +64,16 @@ export function SidebarNav() {
       {/* 2. Intelligent Operations & AI */}
       <div className="space-y-1">
         <div className="text-[11px] font-semibold text-eims-text-muted uppercase tracking-wider px-3 mb-2">Operations & AI</div>
-        <Link href="/analyzer" className={getLinkClasses("/analyzer")}>
+        <Link href="/analyzer" className={getLinkClasses("/analyzer")} onClick={handleClick}>
           <Terminal className={getIconClasses("/analyzer")} /> AI Log Analyzer
         </Link>
-        <Link href="/observability" className={getLinkClasses("/observability")}>
+        <Link href="/observability" className={getLinkClasses("/observability")} onClick={handleClick}>
           <Shield className={getIconClasses("/observability")} /> Observability & Alerts
         </Link>
-        <Link href="/evaluations/admin" className={getLinkClasses("/evaluations/admin")}>
+        <Link href="/evaluations/admin" className={getLinkClasses("/evaluations/admin")} onClick={handleClick}>
           <Star className={getIconClasses("/evaluations/admin")} /> Service Evaluations
         </Link>
-        <Link href="/timeline" className={getLinkClasses("/timeline")}>
+        <Link href="/timeline" className={getLinkClasses("/timeline")} onClick={handleClick}>
           <History className={getIconClasses("/timeline")} /> Timeline
         </Link>
       </div>
@@ -73,13 +81,13 @@ export function SidebarNav() {
       {/* 3. Client Agents */}
       <div className="space-y-1">
         <div className="text-[11px] font-semibold text-eims-text-muted uppercase tracking-wider px-3 mb-2">Client Agents</div>
-        <Link href="/agents" className={getLinkClasses("/agents")}>
+        <Link href="/agents" className={getLinkClasses("/agents")} onClick={handleClick}>
           <Play className={getIconClasses("/agents")} /> Client Agents
         </Link>
-        <Link href="/endpoints" className={getLinkClasses("/endpoints")}>
+        <Link href="/endpoints" className={getLinkClasses("/endpoints")} onClick={handleClick}>
           <Usb className={getIconClasses("/endpoints")} /> USB Auditor
         </Link>
-        <Link href="/ocr-history" className={getLinkClasses("/ocr-history")}>
+        <Link href="/ocr-history" className={getLinkClasses("/ocr-history")} onClick={handleClick}>
           <ScanText className={getIconClasses("/ocr-history")} /> Sticker OCR
         </Link>
       </div>
@@ -119,7 +127,7 @@ export function SidebarNav() {
         >
           <Activity className="w-4 h-4 text-eims-text-secondary" /> Core API Docs
         </a>
-        <Link href="/settings" className={getLinkClasses("/settings")}>
+        <Link href="/settings" className={getLinkClasses("/settings")} onClick={handleClick}>
           <Settings className={getIconClasses("/settings")} /> Settings
         </Link>
       </div>

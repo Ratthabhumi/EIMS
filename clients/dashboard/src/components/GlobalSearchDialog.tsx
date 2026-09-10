@@ -198,7 +198,7 @@ export function GlobalSearchDialog() {
               </button>
             </div>
 
-            <div className="max-h-[50vh] overflow-y-auto custom-scrollbar">
+            <div className="max-h-[50vh] overflow-y-auto">
               {query.trim().length < MIN_QUERY_LENGTH ? (
                 <div className="px-5 py-10 text-center text-sm text-eims-text-muted">
                   Type at least {MIN_QUERY_LENGTH} characters to search.
