@@ -41,7 +41,11 @@ class AsynchronousCacheManager:
     async def close(self) -> None:
         """Closes networking client pipes gracefully upon server shutdown."""
         if self._redis_client is not None:
-            await self._redis_client.aclose()
+            try:
+                import asyncio
+                await asyncio.wait_for(self._redis_client.aclose(), timeout=5.0)
+            except (RuntimeError, asyncio.TimeoutError, OSError):
+                pass  # Event loop already closed or timeout (TestClient teardown)
             logger.info("Async Redis connection manager drained and terminated.")
 
     async def ping(self) -> bool:

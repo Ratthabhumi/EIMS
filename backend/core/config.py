@@ -37,10 +37,18 @@ class EIMSSettings(BaseSettings):
     # Security & Cryptographic Auth Contracts (Core Law 5)
     JWT_SECRET_KEY: str = Field(
         default="09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7",
-        description="HMAC SHA-256 / EdDSA asymmetric signature verification secret"
+        description="HMAC SHA-256 signature verification secret. MUST be overridden outside the development tier."
     )
     JWT_ALGORITHM: str = Field(default="HS256")
-    ACCESS_TOKEN_EXMIRES_MINUTES: int = Field(default=60)
+    ACCESS_TOKEN_EXPIRES_MINUTES: int = Field(default=60)
+    ADMIN_TOKEN: str = Field(
+        default="EIMS-ADMIN-TOKEN",
+        description="Static admin bearer token for admin-scoped write actions. MUST be overridden outside the development tier."
+    )
+    ADMIN_PASSWORD: str | None = Field(
+        default=None,
+        description="Initial admin account password (hashed at first seed). Auto-generated when unset in the development tier; required in non-development tiers."
+    )
     
     # MinIO Object Storage Configurations (Core Law 4 OCR Registration)
     MINIO_ENDPOINT: str = Field(default="localhost:9000", description="MinIO S3 Gateway endpoint")
@@ -62,6 +70,26 @@ class EIMSSettings(BaseSettings):
         case_sensitive=True,
         extra="ignore",
     )
+
+    def model_post_init(self, __context) -> None:
+        """Enforces mandatory secret overrides on non-development execution tiers."""
+        if self.ENVIRONMENT.lower() == "development":
+            return
+
+        dev_defaults = {
+            "DB_PASSWORD": "eims_secret_password",
+            "MINIO_SECRET_KEY": "eims_minio_secret",
+            "JWT_SECRET_KEY": "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7",
+            "ADMIN_TOKEN": "EIMS-ADMIN-TOKEN",
+        }
+        overrides_missing = [name for name, default in dev_defaults.items() if getattr(self, name) == default]
+        if self.ADMIN_PASSWORD is None:
+            overrides_missing.append("ADMIN_PASSWORD")
+        if overrides_missing:
+            raise RuntimeError(
+                f"Refusing to boot EIMS in '{self.ENVIRONMENT}' tier without explicit secrets. "
+                f"Set the following via environment or .env: EIMS_" + ", EIMS_".join(overrides_missing)
+            )
 
     @property
     def database_url(self) -> str:

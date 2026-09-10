@@ -68,7 +68,7 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 
 ---
 
-### ⚪ Sprint 10: Global Search & Timeline (Completed)
+###  Sprint 10: Global Search & Timeline ✅ COMPLETED
 - **Goal**: Implement cross-domain search capability and unified event timeline for operational visibility.
 - **Accomplishments**:
   - Removed the placeholder portal search bar and replaced it with a fully functional `⌘K` Global Search command palette (Cmd/Ctrl+K, normalized results, safe internal navigation).
@@ -93,7 +93,14 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 
 ## 🏃 Current & Upcoming Sprints
 
-### 📅 Sprint 11: High Availability & Public Exposure
+### ✅ Sprint 11: Verifiability & Auth Hardening (Completed)
+- **Auth Hardening**: PBKDF2-SHA256 hashing, env-driven secrets, async login, composite admin gate.
+- **Telemetry Reconciliation**: 57/57 tests green (3 former failures fixed), worker broker injection, EVTX bucket consistency.
+- **RAG Consistency**: VECTOR(384) migration aligned across DB/model/embedding; fastembed verified.
+- **Benchmark Evidence**: 10k/50k/20k/20k dataset; Global Search p95=62ms, Timeline p95=290ms (all under 310ms).
+- **Evidence Pack**: `docs/EVIDENCE_PACK.md`, `docs/BENCHMARK_RESULTS.md`.
+
+### Sprint 12: High Availability & Public Exposure
 - **Goal**: Enterprise scale reliability and public accessibility.
 - **Tasks**:
   - Set up Redis Sentinel / PostgreSQL replication.

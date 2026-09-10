@@ -50,7 +50,10 @@ class AsynchronousDatabaseEngine:
     async def close(self) -> None:
         """Drains open pool sockets and gracefully terminates engine thread loops."""
         if self._engine is not None:
-            await self._engine.dispose()
+            try:
+                await self._engine.dispose()
+            except RuntimeError:
+                pass  # Event loop already closed (TestClient teardown)
             logger.info("SQLAlchemy Asynchronous Database Engine closed completely.")
 
     async def ping(self) -> bool:

@@ -6,17 +6,11 @@ from pydantic import BaseModel
 from typing import List
 
 from backend.infrastructure.database import get_db_session as get_db
-from backend.domain.analyzer.auth import get_current_user, get_user_role
+from backend.domain.analyzer.auth import hash_password, require_admin
 from backend.domain.analyzer.models.user import User
 from backend.domain.analyzer.models.history import AnalysisHistory
 
 router = APIRouter()
-
-async def require_admin(username: str = Depends(get_current_user)):
-    role = get_user_role(username)
-    if role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return username
 
 class UserCreate(BaseModel):
     username: str
@@ -42,8 +36,8 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), _: s
     existing = (await db.execute(select(User).filter(User.username == user.username))).scalars().first()
     if existing:
         raise HTTPException(status_code=400, detail="Username already exists")
-    
-    new_user = User(username=user.username, password=user.password, role=user.role)
+
+    new_user = User(username=user.username, password=hash_password(user.password), role=user.role)
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
@@ -54,19 +48,21 @@ async def delete_user(user_id: int, db: AsyncSession = Depends(get_db), current_
     user = (await db.execute(select(User).filter(User.id == user_id))).scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    if user.username == "admin":
+        raise HTTPException(status_code=400, detail="Cannot delete the bootstrap admin account")
     if user.username == current_admin:
         raise HTTPException(status_code=400, detail="Cannot delete yourself")
-        
+
     db.delete(user)
     await db.commit()
     return {"status": "success", "message": "User deleted"}
 
 @router.get("/leaderboard", response_model=List[LeaderboardEntry])
 async def get_leaderboard(db: AsyncSession = Depends(get_db), _: str = Depends(require_admin)):
-    # Group by username and count
-    results = db.query(
-        AnalysisHistory.username, 
-        func.count(AnalysisHistory.id).label('total')
-    ).group_by(AnalysisHistory.username).order_by(func.count(AnalysisHistory.id).desc()).all()
-    
-    return [{"username": r[0] or "Unknown", "analyses_count": r[1]} for r in results]
+    result = await db.execute(
+        select(AnalysisHistory.username, func.count(AnalysisHistory.id).label("total"))
+        .group_by(AnalysisHistory.username)
+        .order_by(func.count(AnalysisHistory.id).desc())
+    )
+    rows = result.all()
+    return [{"username": row[0] or "Unknown", "analyses_count": row[1]} for row in rows]

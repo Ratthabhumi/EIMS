@@ -28,6 +28,7 @@ from backend.infrastructure.cache import cache_manager
 from backend.domain.asset_registry import asset_router
 from backend.domain.asset_registry.audit_controller import audit_router
 from backend.domain.asset_registry.ocr_worker import ocr_worker
+from backend.domain.analyzer.auth import seed_users
 from backend.api.routers import evaluations
 from backend.domain.telemetry import telemetry_router
 from backend.domain.telemetry.query_controller import telemetry_query_router
@@ -53,8 +54,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Connecting to Redis Telemetry Broker at: {settings.REDIS_HOST}:{settings.REDIS_PORT}")
     await cache_manager.initialize()
     
+    logger.info("Seeding admin bootstrap account...")
+    await seed_users()
+    
     # Start Redis WebSocket PubSub Listener
-    asyncio.create_task(redis_pubsub_listener())
+    pubsub_task = asyncio.create_task(redis_pubsub_listener())
     
     logger.info("Starting background workers...")
     await ocr_worker.start()

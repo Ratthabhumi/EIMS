@@ -6,6 +6,7 @@ Governed by EIMS Documentation System (EDS v1.0.0) - Core Law 5
 """
 
 import asyncio
+import json
 import logging
 
 from backend.domain.telemetry.broker import RedisTelemetryStreamBroker
@@ -50,30 +51,39 @@ class EVTXBackgroundWorker:
         if not task_data:
             return
 
-        minio_uri = task_data.decode("utf-8") if isinstance(task_data, bytes) else task_data
-        logger.info(f"Processing EVTX Task: {minio_uri}")
-        
+        try:
+            task_payload = json.loads(task_data.decode("utf-8") if isinstance(task_data, bytes) else task_data)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            logger.error(f"EVTX Worker received malformed task payload: {task_data}")
+            return
+
+        minio_uri = task_payload.get("minio_uri")
+        job_id = task_payload.get("job_id")
+        if not minio_uri:
+            logger.error(f"EVTX Task missing minio_uri: {task_payload}")
+            return
+
+        logger.info(f"Processing EVTX Task (job_id={job_id}): {minio_uri}")
+
         try:
             file_data = None
             if isinstance(object_storage, MinIOStorageManager):
                 object_name = minio_uri.split("/")[-1]
-                response = object_storage.s3_client.get_object(Bucket="eims-evtx-uploads", Key=object_name)
-                file_data = response['Body'].read()
+                response = object_storage.s3_client.get_object(Bucket=object_storage.bucket, Key=object_name)
+                file_data = response["Body"].read()
 
             if file_data:
-                # Parse records and push directly to Telemetry Broker
                 records = parse_evtx_records(file_data)
                 count = 0
                 for record in records:
                     payload = AgentWinlogRequest(**record)
-                    # Emulate agent fingerprint for uploaded files
                     await self.broker.publish_winlog(payload=payload, cert_fingerprint="eims-evtx-upload-system")
                     count += 1
                 logger.info(f"Successfully processed EVTX {minio_uri}, enqueued {count} winlog events.")
             else:
                 logger.error(f"Failed to read EVTX file from MinIO: {minio_uri}")
         except Exception as e:
-            logger.error(f"Failed to process EVTX Task {minio_uri}: {e}")
+            logger.error(f"Failed to process EVTX Task {minio_uri} (job_id={job_id}): {e}")
 
 # Singleton worker instance
 evtx_worker = EVTXBackgroundWorker()

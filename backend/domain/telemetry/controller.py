@@ -6,6 +6,7 @@ Source-Available All Rights Reserved Policy
 ==============================================================================
 """
 
+import json
 import uuid
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
@@ -104,7 +105,7 @@ async def upload_windows_evtx(
         
     job_id = uuid.uuid4().hex
     # Enqueue EVTX parsing job in Redis (list)
-    await broker.cache_manager.redis.lpush("eims:jobs:evtx", minio_uri)
+    await broker.cache_manager.redis.lpush("eims:jobs:evtx", json.dumps({"job_id": job_id, "minio_uri": minio_uri}))
     
     return {
         "status": "processing",

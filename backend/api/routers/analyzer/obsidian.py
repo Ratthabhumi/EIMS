@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from backend.infrastructure.database import get_db_session as get_db
 from backend.domain.analyzer.models.history import AnalysisHistory
 from backend.domain.analyzer.services.obsidian import save_to_obsidian
+from backend.domain.analyzer.auth import require_admin_or_token
 
 router = APIRouter()
 
@@ -12,7 +13,7 @@ class ObsidianRequest(BaseModel):
     history_id: int
 
 @router.post("/obsidian/export")
-async def export_obsidian(req: ObsidianRequest, db: AsyncSession = Depends(get_db)):
+async def export_obsidian(req: ObsidianRequest, db: AsyncSession = Depends(get_db), _admin: str = Depends(require_admin_or_token)):
     history_item = (await db.execute(select(AnalysisHistory).filter(AnalysisHistory.id == req.history_id))).scalars().first()
     if not history_item:
         raise HTTPException(status_code=404, detail="History not found")

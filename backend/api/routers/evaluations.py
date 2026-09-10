@@ -1,6 +1,6 @@
 import uuid
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -13,16 +13,10 @@ from backend.domain.evaluation.schemas import (
     ServiceEvaluationResponse
 )
 from backend.core.logger import get_logger
+from backend.domain.analyzer.auth import verify_admin_token
 
 logger = get_logger("eims.evaluations")
 router = APIRouter(prefix="/api/v1/evaluations", tags=["Evaluation System"])
-
-async def verify_admin_token(authorization: str | None = Header(None)):
-    """Simple authorization for Admin Panel actions"""
-    if authorization != "Bearer EIMS-ADMIN-TOKEN":
-        logger.warning("Unauthorized attempt to access Admin Evaluation API")
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return authorization
 
 DEFAULT_QUESTIONS = [
     {"id": "q1", "label": "ความรวดเร็วในการแก้ไขปัญหา (Resolution Time & Efficiency)", "category": "Support", "orderIndex": 1},

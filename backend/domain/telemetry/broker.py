@@ -37,6 +37,16 @@ class AbstractTelemetryBroker(ABC):
     async def publish_winlog(self, payload: AgentWinlogRequest, cert_fingerprint: str) -> StreamIngestionResponse:
         ...
 
+    @abstractmethod
+    async def fetch_stream_batch(self, stream_key: str, last_id: str, batch_size: int) -> tuple[list, str, str | None]:
+        """Returns (messages, stream_key, error_signal) for the given stream cursor."""
+        ...
+
+    @abstractmethod
+    async def ack_stream_messages(self, stream_key: str, message_ids: list[str]) -> None:
+        """Acknowledgess a batch of processed stream entries (no-op on hermetic stubs)."""
+        ...
+
 
 class RedisTelemetryStreamBroker(AbstractTelemetryBroker):
     """
@@ -81,6 +91,32 @@ class RedisTelemetryStreamBroker(AbstractTelemetryBroker):
     async def publish_winlog(self, payload: AgentWinlogRequest, cert_fingerprint: str) -> StreamIngestionResponse:
         return await self._publish_to_stream("winlog", payload.model_dump_json(), cert_fingerprint)
 
+    async def fetch_stream_batch(self, stream_key: str, last_id: str, batch_size: int) -> tuple[list, str, str | None]:
+        client = self._cache._redis_client
+        if client is None:
+            return [], stream_key, "broker-unavailable"
+        try:
+            streams = await client.xread({stream_key: last_id}, count=batch_size, block=10)
+        except Exception as e:
+            logger.error(f"Broker stream read failure: {e}")
+            return [], stream_key, "stream-read-error"
+        if not streams:
+            return [], stream_key, None
+        messages = [
+            (m_id if isinstance(m_id, str) else m_id.decode("utf-8"), entry)
+            for m_id, entry in streams[0][1]
+        ]
+        return messages, stream_key, None
+
+    async def ack_stream_messages(self, stream_key: str, message_ids: list[str]) -> None:
+        client = self._cache._redis_client
+        if client is None or not message_ids:
+            return
+        try:
+            await client.xack(stream_key, "eims:telemetry:consumer", *message_ids)
+        except Exception as e:
+            logger.error(f"Broker stream acknowledgement failure: {e}")
+
 
 class StubTelemetryStreamBroker(AbstractTelemetryBroker):
     """
@@ -115,3 +151,16 @@ class StubTelemetryStreamBroker(AbstractTelemetryBroker):
 
     async def publish_winlog(self, payload: AgentWinlogRequest, cert_fingerprint: str) -> StreamIngestionResponse:
         return await self._push("winlog", payload.model_dump_json(), cert_fingerprint)
+
+    async def fetch_stream_batch(self, stream_key: str, last_id: str, batch_size: int) -> tuple[list, str, str | None]:
+        """Pops up to batch_size entries from the front of the in-memory buffer for exact-once verification."""
+        if not self.stream_buffer:
+            return [], stream_key, None
+        batch = self.stream_buffer[:batch_size]
+        del self.stream_buffer[:batch_size]
+        messages = [(entry["sequence_id"], entry) for entry in batch]
+        return messages, stream_key, None
+
+    async def ack_stream_messages(self, stream_key: str, message_ids: list[str]) -> None:
+        """Stub: messages are popped on fetch; ack is already satisfied."""
+        return None

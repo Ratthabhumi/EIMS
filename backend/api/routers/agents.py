@@ -1,7 +1,9 @@
 import os
 import subprocess
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+
+from backend.domain.analyzer.auth import require_admin_or_token
 
 router = APIRouter(prefix="/api/v1/agents", tags=["Client Agents"])
 
@@ -9,10 +11,11 @@ class AgentLaunchRequest(BaseModel):
     agent_name: str
 
 @router.post("/launch", status_code=status.HTTP_200_OK)
-async def launch_agent(request: AgentLaunchRequest):
+async def launch_agent(request: AgentLaunchRequest, _admin: str = Depends(require_admin_or_token)):
     """
-    Launches a local EIMS Desktop Agent. 
+    Launches a local EIMS Desktop Agent.
     Only works if the backend is running on the local Windows machine.
+    Admin-scoped action: requires an admin JWT or the configured admin token.
     """
     # Define absolute paths based on project root
     # Since backend is in backend/, the project root is one level up

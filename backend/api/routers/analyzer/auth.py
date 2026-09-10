@@ -1,7 +1,10 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
-from backend.domain.analyzer.auth import create_access_token, verify_credentials
+from backend.core.logger import get_logger
+from backend.domain.analyzer.auth import create_access_token, get_user_role, verify_credentials
+
+logger = get_logger("eims.api.auth")
 
 router = APIRouter()
 
@@ -17,14 +20,14 @@ class LoginResponse(BaseModel):
 
 
 @router.post("/login", response_model=LoginResponse)
-def login(body: LoginRequest):
-    exact_username = verify_credentials(body.username, body.password)
+async def login(body: LoginRequest):
+    exact_username = await verify_credentials(body.username, body.password)
     if not exact_username:
+        logger.warning(f"Login rejected for unknown user '{body.username}'.")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
         )
-    from backend.domain.analyzer.auth import get_user_role
-    role = get_user_role(exact_username)
+    role = await get_user_role(exact_username)
     token = create_access_token(exact_username, role=role)
     return LoginResponse(access_token=token)
