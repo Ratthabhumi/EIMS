@@ -14,6 +14,7 @@ import {
   HardDrive, 
   Database, 
   Activity, 
+  History,
   Settings 
 } from "lucide-react";
 
@@ -63,6 +64,9 @@ export function SidebarNav() {
         </Link>
         <Link href="/evaluations/admin" className={getLinkClasses("/evaluations/admin")}>
           <Star className={getIconClasses("/evaluations/admin")} /> Service Evaluations
+        </Link>
+        <Link href="/timeline" className={getLinkClasses("/timeline")}>
+          <History className={getIconClasses("/timeline")} /> Timeline
         </Link>
       </div>
 

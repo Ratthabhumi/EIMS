@@ -68,24 +68,30 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 
 ---
 
-## 🏃 Current & Upcoming Sprints
-
-### 🔧 Sprint 10: Global Search & Timeline (In Progress)
+### ⚪ Sprint 10: Global Search & Timeline (Completed)
 - **Goal**: Implement cross-domain search capability and unified event timeline for operational visibility.
-- **Status**: Design approved, documentation update in progress, implementation pending.
-- **Architecture**:
-  - PostgreSQL-first search (pg_trgm + tsvector) — no external search engine.
-  - Extensible Search Provider pattern for future module integration.
-  - Timeline built from existing asset-linked domain tables (AuditLog, Telemetry, WinLog).
-  - Search domains: Asset + AuditLog (primary), Analysis (secondary).
-- **Tasks**:
-  - Implement `⌘K` Global Search command palette with normalized search results.
-  - Implement Search Provider abstraction and registry.
-  - Implement unified Timeline query layer across existing event sources.
-  - Add database indexes for search performance (pg_trgm, tsvector GIN).
-  - Add API endpoints: `/api/v1/search`, `/api/v1/timeline`, `/api/v1/audit-logs`.
-  - Build Timeline UI page and Global Search dialog component.
-  - Add tests for search, timeline, and provider contracts.
+- **Accomplishments**:
+  - Removed the placeholder portal search bar and replaced it with a fully functional `⌘K` Global Search command palette (Cmd/Ctrl+K, normalized results, safe internal navigation).
+  - Implemented the Search Provider abstraction and registry with accurate Search domains: Asset + AuditLog (primary), Analysis (secondary).
+  - Implemented a unified Timeline query layer (UNION ALL) across existing asset-linked domain tables (AuditLog, Telemetry, WinLog) — no new event table, `analysis_history` intentionally excluded.
+  - Added database indexes for search performance (pg_trgm on hostname/IP/action_verb, tsvector GIN on `analysis_history`) via migration `d6a97e3f2b15`.
+  - Added API endpoints: `/api/v1/search`, `/api/v1/timeline`, `/api/v1/audit-logs`, `/api/v1/telemetry/metrics`, `/api/v1/telemetry/winlogs`.
+  - Built the Timeline UI page with type/severity filters and pagination.
+  - Added tests for search, timeline, provider contracts, and migration integrity.
+- **Validation**:
+  - 22/22 targeted Sprint 10 tests passed (global search 9, timeline 8, migration 5).
+  - Full backend suite: 54 passed / 3 pre-existing baseline failures (telemetry worker `broker=` argument mismatch) — no Sprint 10 regressions.
+  - Real PostgreSQL migration round-trip passed (upgrade → downgrade → upgrade to head) for migration `d6a97e3f2b15`.
+  - Search/timeline API integration validation passed against real PostgreSQL.
+  - Frontend static validation passed for Sprint 10 files (0 lint errors, 0 warnings, 0 TypeScript errors).
+- **Documented Limitations**:
+  - Global Search p95 < 500 ms: NOT MEASURED (dataset too small for index effectiveness validation).
+  - Timeline p95 < 300 ms: NOT MEASURED.
+  - Browser E2E: NOT TESTED (repository has no browser E2E framework; static + runtime HTTP smoke verification only).
+
+---
+
+## 🏃 Current & Upcoming Sprints
 
 ### 📅 Sprint 11: High Availability & Public Exposure
 - **Goal**: Enterprise scale reliability and public accessibility.

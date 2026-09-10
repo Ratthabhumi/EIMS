@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { Search, Bell, User, Home, Grid, FileText, Settings, Shield, Compass, BookOpen, Star, BarChart3, Terminal, Activity, Database, HardDrive, Play, MonitorCheck, ScanText, Usb } from "lucide-react";
+import { Bell, User, Home, Grid, FileText, Settings, Shield, Compass, BookOpen, Star, BarChart3, Terminal, Activity, Database, HardDrive, Play, MonitorCheck, ScanText, Usb } from "lucide-react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { SidebarNav } from "@/components/SidebarNav";
+import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
@@ -57,23 +58,7 @@ export default function RootLayout({
           {/* Top Header */}
           <header className="h-16 bg-eims-surface border-b border-eims-border flex items-center justify-between px-8 shrink-0">
             {/* Search Bar (Command Palette Hint) */}
-            <div className="flex items-center w-full max-w-md">
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-eims-text-muted" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search the portal..."
-                  className="block w-full pl-10 pr-12 py-2 border border-eims-border rounded-md leading-5 bg-eims-bg placeholder-eims-text-muted focus:outline-none focus:border-eims-accent focus:ring-1 focus:ring-eims-accent sm:text-sm transition-colors"
-                />
-                <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
-                  <kbd className="inline-flex items-center border border-eims-border rounded px-2 text-xs font-sans font-medium text-eims-text-muted bg-eims-surface-subtle">
-                    ⌘K
-                  </kbd>
-                </div>
-              </div>
-            </div>
+            <GlobalSearchDialog />
 
             {/* Right Actions */}
             <div className="flex items-center gap-4">
