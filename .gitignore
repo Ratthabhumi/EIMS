@@ -58,6 +58,7 @@ dump.rdb
 *.parquet
 /minio_storage/
 /postgres_data/
+backups/
 
 # --- IDEs, Editors & AI Context ---
 .idea/

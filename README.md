@@ -32,7 +32,7 @@
 
 ## 🚧 Project Status
 
-This project is currently under active development.
+This project is in pre-graduation hardening. Core platform features are complete.
 
 - **Sprint 0 – Documentation Foundation** ✅
 - **Sprint 1 – Engineering Specifications** ✅
@@ -44,10 +44,16 @@ This project is currently under active development.
 - **Sprint 7 – Enterprise Portal, Client Agents & UI Polish** ✅
 - **Sprint 8 – Service Evaluation System (Admin & Mobile Form)** ✅
 - **Sprint 9 – AI Log Analyzer (EventIQ Integration & Vector RAG Engine)** ✅
-- **Sprint 10 – Global Search & Timeline** *(Next Target / Active)*
-- **Sprint 11+ – High Availability & Public Exposure**
+- **Sprint 10 – Global Search & Unified Timeline** ✅
+- **Sprint 11 – Verifiability & Auth Hardening** ✅ *(p95: Search 62ms / Timeline 290ms)*
+- **Phase 12.0 – Data Integrity Audit** ✅ *(benchmark-caused data loss confirmed and documented)*
+- **Phase 12.1 – Data Recovery & Demo Reconstruction** 🟡 *(surviving data preserved; demo dataset reconstructed; benchmark hardened)*
+- **Phase 12.2 – Auth Enforcement** 🔜
+- **Phase 12.5 – Final Demo & Graduation Freeze** 🎓
 
-*The project is currently transitioning toward upcoming enterprise clustering operational milestones.*
+> ⚠️ **Data Loss Incident (2026-09-10)**: The Sprint 11 benchmark script contained a destructive `TRUNCATE ... CASCADE` that committed against the application database, destroying synthetic benchmark rows in 4 tables. `analysis_history` (8 real records), MinIO OCR objects (8), and the USB audit report were unaffected. The benchmark script has been corrected with a safety guard in Phase 12.1. See [ROADMAP.md](ROADMAP.md) for full details.
+
+
 
 ---
 

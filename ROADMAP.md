@@ -91,18 +91,75 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 
 ---
 
-## 🏃 Current & Upcoming Sprints
+## ✅ Completed Phases
 
-### ✅ Sprint 11: Verifiability & Auth Hardening (Completed)
+### ✅ Sprint 11: Verifiability & Auth Hardening
 - **Auth Hardening**: PBKDF2-SHA256 hashing, env-driven secrets, async login, composite admin gate.
 - **Telemetry Reconciliation**: 57/57 tests green (3 former failures fixed), worker broker injection, EVTX bucket consistency.
 - **RAG Consistency**: VECTOR(384) migration aligned across DB/model/embedding; fastembed verified.
 - **Benchmark Evidence**: 10k/50k/20k/20k dataset; Global Search p95=62ms, Timeline p95=290ms (all under 310ms).
 - **Evidence Pack**: `docs/EVIDENCE_PACK.md`, `docs/BENCHMARK_RESULTS.md`.
 
-### Sprint 12: High Availability & Public Exposure
-- **Goal**: Enterprise scale reliability and public accessibility.
+---
+
+### ✅ Phase 11.5: Hardening Audit
+- Reviewed authentication surface, token lifecycle, and admin gate logic.
+- Identified EIMS-ADMIN-TOKEN hardcoded in evaluations admin pages (deferred to Phase 12.2).
+- Documented remaining auth debt before graduation freeze.
+
+---
+
+### ✅ Phase 12.0: Data Integrity Investigation
+- Confirmed that `tools/sprint11_benchmark.py` executed `TRUNCATE ... CASCADE` against `eims_registry` on 2026-09-10.
+- **CONFIRMED DATA LOSS**: `infrastructure_assets` (10,000 rows), `audit_logs` (50,000 rows), `telemetry_metrics` (20,000 rows), `windows_event_logs` (20,000 rows) — all benchmark-synthetic, original real rows destroyed.
+- **Survived intact**: `analysis_history` (8 real records), MinIO `eims-ocr-manifests` (8 sticker JPG objects), USB report JSON.
+- Alembic migration head `8a2b4d6f9c1e` — unchanged.
+
+---
+
+### 🟡 Phase 12.1: Data Recovery & Demo Reconstruction
+- **Status**: Complete — original real data NOT recoverable from DB; surviving sources preserved and demo data reconstructed.
+- **Backup**: `backups/eims_pre_recovery_20260910_162200.dump` (~5 MB, PostgreSQL custom format, gitignored).
+- **Benchmark Safety Fixed**: `tools/sprint11_benchmark.py` now requires `EIMS_BENCHMARK_DATABASE_URL` and refuses to run against any database whose name ends in `registry`. Safety guard tested by `tests/test_benchmark_safety.py` (8/8 PASS).
+- **Demo Dataset Reconstructed** (non-destructive, alongside benchmark rows):
+  - 5 demo assets: AI-WORKER-001, KEL-PROD-WEB-01, KEL-PROD-DB-01, SECURITY-SIEM-01, KEL-OFFICE-PC-001
+  - 8 audit events (coherent incident story: GPU spike → AUTH_FAILURE → SIEM alert → analysis)
+  - 8 telemetry events (CPU anomaly, GPU thermal data)
+  - 7 Windows event logs (AUTH_FAILURE, GPU service crash, audit clear, new user)
+  - 8 analysis records — **REAL SURVIVING DATA** (not reconstructed)
+- **OCR**: 8 MinIO objects preserved. `ocr_registration_records` metadata reconstructed from object names (record_ids embedded in filenames). OCR text not recovered (tesseract unable to re-extract). 8 records visible in Sticker OCR History UI.
+- **USB Auditor**: Real report `5CD0141N35-Int3_11-08-2026_14.43.json` imported via existing `/api/v1/assets/import-report` endpoint. Asset visible and searchable.
+- **Data Classification**:
+  - `REAL SURVIVING DATA`: analysis_history (8 rows), MinIO OCR objects (8), USB report (1 JSON)
+  - `RECONSTRUCTED DEMO DATA`: demo assets (5), demo audit (8), demo telemetry (8), demo winlog (7), USB-imported asset (1), OCR DB metadata (8)
+  - `SYNTHETIC BENCHMARK DATA`: infrastructure_assets (10,000), audit_logs (50,000), telemetry_metrics (20,000), windows_event_logs (20,000)
+- **Known Limitations**:
+  - Original pre-benchmark rows in 4 tables are permanently lost from DB.
+  - OCR extracted text cannot be recovered without reprocessing (tesseract not configured in this environment).
+  - `EIMS-ADMIN-TOKEN` still hardcoded in evaluations admin pages — deferred to Phase 12.2.
+  - Analysis History page (`/api/v1/history/`) requires auth token (works correctly when authenticated).
+
+---
+
+## 🏃 Upcoming Phases
+
+### 🔜 Phase 12.2: Auth Enforcement
+- **Goal**: Remove hardcoded `EIMS-ADMIN-TOKEN` from evaluations admin pages.
 - **Tasks**:
-  - Set up Redis Sentinel / PostgreSQL replication.
-  - Load balancing across multiple worker instances.
-  - Setup Public Tunneling (e.g. ngrok) or Cloud Deployment (Vercel/Render) for external 5G access to Mobile Evaluation forms (QR Codes).
+  - Replace hardcoded token with env-driven secret or proper session auth.
+  - Enforce auth middleware on `/api/v1/history/` and `/api/v1/evaluations/admin`.
+  - Audit all `Authorization: Bearer` headers in dashboard client code.
+
+### 🔜 Phase 12.3: Remove Admin Token
+- Fully remove `EIMS-ADMIN-TOKEN` from codebase.
+- Rotate any exposed credentials.
+
+### 🔜 Phase 12.4: Login UI
+- Build login page for the dashboard portal.
+- Integrate with existing PBKDF2-SHA256 auth backend.
+
+### 🔜 Phase 12.5: Final Demo/Evidence & Graduation Freeze
+- Final integration smoke test against real data.
+- Generate graduation evidence pack.
+- 🎓 FREEZE
+
