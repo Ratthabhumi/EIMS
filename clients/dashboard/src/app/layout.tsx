@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
-      <body className="flex h-screen overflow-hidden bg-eims-bg text-eims-text">
+      <body className="flex h-screen overflow-hidden bg-eims-bg text-eims-text" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem enableColorScheme={false}>
           <Toaster position="top-right" toastOptions={{
             style: {

@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from "react";
-import { Search, Trash2, Code, FileImage, FileText, X, Download } from "lucide-react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Search, Trash2, Code, FileImage, FileText, X, Download, ShieldAlert } from "lucide-react";
 import { toast } from "react-hot-toast";
 import AnalysisResultDetail from "./AnalysisResultDetail";
 
 interface AnalyzerHistoryListProps {
   refreshTrigger?: number;
+  className?: string;
+  onSearchLatency?: (latencyMs: number) => void;
 }
 
 const EVENT_FRIENDLY: Record<string, { title: string; provider: string }> = {
@@ -32,36 +34,57 @@ const INCIDENT_FRIENDLY = {
   provider: "Security / Authentication",
 };
 
-const SEARCHABLE_FIELDS: ((item: any) => string)[] = [
-  (i) => i.eventId ?? "",
-  (i) => i.provider ?? "",
-  (i) => i.description ?? "",
-  (i) => i.aiSummary ?? "",
-  (i) => i.parseMethod ?? "",
-  (i) => i.username ?? "",
-  (i) => i.eventMetadata?.incident?.name ?? "",
-  (i) => i.eventMetadata?.incident?.affectedAsset ?? "",
-  (i) => i.eventMetadata?.computer ?? "",
-  (i) => i.eventMetadata?.faultingApp ?? "",
-  (i) => i.solutionSummary?.severity ?? "",
-  (i) => Array.isArray(i.solutionSummary?.causes) ? i.solutionSummary.causes.join(" ") : "",
-  (i) => Array.isArray(i.solutionSummary?.steps) ? i.solutionSummary.steps.join(" ") : "",
-  (i) => Array.isArray(i.solutionSummary?.evidenceInterpretation) ? i.solutionSummary.evidenceInterpretation.join(" ") : "",
-  (i) => Array.isArray(i.solutionSummary?.overview) ? i.solutionSummary.overview.join(" ") : (i.solutionSummary?.overview ?? ""),
-];
+// Category operational priorities for ordering catalog entries on empty search
+const CATEGORY_PRIORITY: Record<string, number> = {
+  "Authentication": 10,
+  "Privilege & Authorization": 20,
+  "Process & Execution": 30,
+  "Services": 40,
+  "Firewall & Network Security": 50,
+  "Windows Defender & Endpoint Security": 60,
+  "PowerShell": 70,
+  "System": 80,
+  "Account Management": 90,
+  "Persistence": 100,
+  "RDP & Remote Access": 110,
+  "DNS": 120,
+  "Active Directory": 130,
+  "Group Policy": 140,
+  "Audit & Logging": 150,
+  "Storage / Disk": 160,
+  "Application": 170,
+  "Task Scheduler": 180,
+  "Networking & File Share": 190,
+  "Networking / TCP/IP": 200,
+  "Hardware / Resource / Performance": 210,
+  "Hyper-V / Virtualization": 220,
+  "WMI": 230,
+  "DHCP": 240,
+  "Backup / Recovery": 250,
+};
 
-function friendlyLabel(item: any): { title: string; provider: string } {
+// Key operational events order at top of catalog
+const TOP_EVENT_ORDER: Record<string, number> = {
+  "4625": 1,  // Failed Logon
+  "4624": 2,  // Successful Logon
+  "4740": 3,  // Account Lockout
+  "4672": 4,  // Special Privileges Assigned
+  "4688": 5,  // Process Creation
+  "7045": 6,  // Service Installed
+  "5152": 7,  // Firewall Block
+  "1116": 8,  // Threat Detected
+  "4104": 9,  // PowerShell Script Block
+  "41": 10,   // Kernel-Power
+  "6008": 11, // Unexpected Shutdown
+};
+
+function friendlyLabel(item: any, catalogMap?: Record<string, CatalogEntry>): { title: string; provider: string } {
   const eid = item?.eventId ? String(item.eventId).trim() : "";
   if (eid.toUpperCase().startsWith("AINC-")) return INCIDENT_FRIENDLY;
+  if (catalogMap && catalogMap[eid]) {
+    return { title: catalogMap[eid].title, provider: catalogMap[eid].provider };
+  }
   return EVENT_FRIENDLY[eid] ?? { title: `Event ${eid || item?.provider || "Unknown"}`, provider: item?.provider || "Unknown" };
-}
-
-function searchableText(item: any): string {
-  const parts = SEARCHABLE_FIELDS.map((f) => { try { return f(item) ?? ""; } catch { return ""; } });
-  const friendly = friendlyLabel(item);
-  parts.push(friendly.title);
-  parts.push(friendly.provider);
-  return parts.join(" ").toLowerCase();
 }
 
 // ── Operational Event Catalog (static knowledge, not analyzed logs) ─────────
@@ -80,6 +103,18 @@ interface CatalogEntry {
 }
 
 const MAX_SEARCH_RESULTS = 15;
+
+function sortCatalogByPriority(entries: CatalogEntry[]): CatalogEntry[] {
+  return [...entries].sort((a, b) => {
+    const topA = TOP_EVENT_ORDER[a.event_id] ?? 999;
+    const topB = TOP_EVENT_ORDER[b.event_id] ?? 999;
+    if (topA !== 999 || topB !== 999) return topA - topB;
+    const catA = CATEGORY_PRIORITY[a.category] ?? 500;
+    const catB = CATEGORY_PRIORITY[b.category] ?? 500;
+    if (catA !== catB) return catA - catB;
+    return a.event_id.localeCompare(b.event_id, undefined, { numeric: true });
+  });
+}
 
 function describeCandidate(c: { kind: "history"; record: any } | { kind: "catalog"; record: CatalogEntry }) {
   if (c.kind === "history") {
@@ -179,7 +214,11 @@ function rankSearch(qRaw: string, historyList: any[], catalog: CatalogEntry[]) {
   return deduped.slice(0, MAX_SEARCH_RESULTS);
 }
 
-export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHistoryListProps) {
+export default function AnalyzerHistoryList({
+  refreshTrigger = 0,
+  className = "",
+  onSearchLatency
+}: AnalyzerHistoryListProps) {
   const [historyList, setHistoryList] = useState<any[]>([]);
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -238,12 +277,84 @@ export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHist
     }
   };
 
-  const ranked = rankSearch(searchTerm, historyList, catalog);
-  const filteredHistory = historyList.filter(item => {
-    const q = searchTerm.toLowerCase().trim();
-    if (!q) return true;
-    return searchableText(item).includes(q);
-  });
+  const catalogMap = useMemo(() => {
+    const map: Record<string, CatalogEntry> = {};
+    for (const entry of catalog) {
+      map[entry.event_id] = entry;
+    }
+    return map;
+  }, [catalog]);
+
+  const sortedCatalog = useMemo(() => {
+    return sortCatalogByPriority(catalog);
+  }, [catalog]);
+
+  const { ranked, searchLatencyMs } = useMemo(() => {
+    if (!searchTerm || !searchTerm.trim()) {
+      return { ranked: null, searchLatencyMs: null };
+    }
+    const t0 = performance.now();
+    const res = rankSearch(searchTerm, historyList, catalog);
+    const elapsed = Math.max(performance.now() - t0, 0.1);
+    return { ranked: res, searchLatencyMs: elapsed };
+  }, [searchTerm, historyList, catalog]);
+
+  useEffect(() => {
+    if (searchLatencyMs !== null && searchLatencyMs !== undefined) {
+      onSearchLatency?.(searchLatencyMs);
+    }
+  }, [searchLatencyMs, onSearchLatency]);
+
+  // Separate AI demo incident from standard history records
+  const { incidentRecord, nonIncidentHistory } = useMemo(() => {
+    let incident: any = null;
+    const rest: any[] = [];
+    for (const h of historyList) {
+      if (String(h.eventId).toUpperCase().startsWith("AINC-") && !incident) {
+        incident = h;
+      } else {
+        rest.push(h);
+      }
+    }
+    return { incidentRecord: incident, nonIncidentHistory: rest };
+  }, [historyList]);
+
+  // Open detail modal for static operational catalog entries
+  const openCatalogItem = (entry: CatalogEntry) => {
+    setSelectedItem({
+      id: `catalog-${entry.event_id}`,
+      eventId: entry.event_id,
+      provider: entry.provider,
+      parseMethod: "Operational Event Catalog",
+      description: entry.description,
+      aiSummary: entry.operator_context || entry.description,
+      solutionSummary: {
+        title: entry.title,
+        overview: entry.description,
+        causes: entry.operator_context ? [entry.operator_context] : [],
+        steps: [
+          `Category: ${entry.category}`,
+          `Severity: ${entry.severity}`,
+          ...(entry.related_events && entry.related_events.length > 0
+            ? [`Related Events: ${entry.related_events.join(", ")}`]
+            : []),
+          ...(entry.keywords && entry.keywords.length > 0
+            ? [`Search Keywords: ${entry.keywords.join(", ")}`]
+            : []),
+        ],
+      },
+      eventMetadata: {
+        level: entry.severity,
+        logName: entry.provider,
+        timestamp: "Documented Operational Knowledge",
+        computer: "Operational Reference Index",
+      },
+      searchResults: [],
+      created_at: new Date().toISOString(),
+      username: "Knowledge Base",
+      isCatalog: true,
+    });
+  };
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -260,16 +371,19 @@ export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHist
 
   const downloadMarkdown = (item: any) => {
     if (!item) return;
+    const isInc = String(item.eventId).toUpperCase().startsWith("AINC-");
+    const friendly = friendlyLabel(item, catalogMap);
     let content = `# AI Diagnostic Report\n\n`;
     content += `**Event ID:** ${item.eventId}\n`;
-    content += `**Provider:** ${item.provider}\n`;
-    content += `**Date:** ${new Date(item.created_at).toLocaleString()}\n\n`;
+    content += `**Title:** ${isInc ? "Suspicious Authentication Activity" : friendly.title}\n`;
+    content += `**Provider:** ${isInc ? "Security / Authentication" : item.provider}\n`;
+    content += `**Date:** ${item.created_at ? new Date(item.created_at).toLocaleString() : new Date().toLocaleString()}\n\n`;
     if (item.aiSummary) content += `## AI Summary\n\n${item.aiSummary}\n\n`;
     if (item.solutionSummary) {
       content += `## Executive Summary\n${item.solutionSummary.overview || "N/A"}\n\n`;
-      content += `## Root Causes\n`;
+      content += `## Root Causes / Context\n`;
       (item.solutionSummary.causes || []).forEach((c: string) => { content += `- ${c}\n`; });
-      content += `\n## Resolution Steps\n`;
+      content += `\n## Resolution / Notes\n`;
       (item.solutionSummary.steps || []).forEach((s: string) => { content += `${s}\n`; });
     }
     if (item.searchResults && item.searchResults.length > 0) {
@@ -295,6 +409,8 @@ export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHist
       const { default: jsPDF } = await import("jspdf");
       const { default: html2canvas } = await import("html2canvas");
 
+      const isInc = String(item.eventId).toUpperCase().startsWith("AINC-");
+      const friendly = friendlyLabel(item, catalogMap);
       const container = document.createElement("div");
       container.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:794px;padding:40px;background:#fff;font-family:Arial,sans-serif;font-size:13px;color:#242321;line-height:1.6;";
 
@@ -305,9 +421,9 @@ export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHist
 
       container.innerHTML = `
         <h1 style="font-size:20px;font-weight:700;border-bottom:2px solid #68735C;padding-bottom:8px;margin-bottom:12px;">
-          Diagnostic Report — Event ID: ${item.eventId || "Unknown"}
+          Diagnostic Report — ${isInc ? "Suspicious Authentication Activity" : friendly.title} (${item.eventId || "Unknown"})
         </h1>
-        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${item.provider || "Unknown"}</strong> &nbsp;|&nbsp; Generated: ${new Date(item.created_at).toLocaleString()}</p>
+        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${isInc ? "Security / Authentication" : (item.provider || "Unknown")}</strong> &nbsp;|&nbsp; Generated: ${new Date(item.created_at || Date.now()).toLocaleString()}</p>
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Event Metadata</h2>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
           <div><span style="color:#716E66;font-size:11px;">Level</span><br/><strong>${meta.level || "Error"}</strong></div>
@@ -318,7 +434,7 @@ export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHist
         </div>
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Summary</h2>
         <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${item.solutionSummary?.overview || item.aiSummary || "No summary available."}</div>
-        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Root Causes</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
+        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Root Causes / Context</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Resolution Steps</h2>
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
           ${steps.length > 0 ? `<ol style="padding-left:20px;margin:0;">${steps.map((s: string) => `<li style="margin-bottom:6px;">${s}</li>`).join("")}</ol>` : "<p>No specific steps provided.</p>"}
@@ -361,10 +477,139 @@ export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHist
     }
   };
 
+  // ── Unified Row Renderers ──────────────────────────────────────────────────
+
+  const renderIncidentRow = (record: any) => (
+    <div
+      key={`incident-${record.id || record.eventId}`}
+      className="p-4 hover:bg-eims-surface-subtle transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group cursor-pointer bg-purple-500/[0.02]"
+      onClick={() => setSelectedItem(record)}
+    >
+      <div className="min-w-0 flex-1">
+        <h4 className="font-medium text-base sm:text-lg flex flex-wrap items-center gap-2">
+          <span className="text-[#9D84B7] dark:text-[#A088BC] group-hover:text-purple-300 transition-colors font-semibold">
+            Suspicious Authentication Activity
+          </span>
+          <span className="bg-purple-500/10 border border-purple-500/20 text-purple-600/85 dark:text-[#B399CE] text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide shrink-0">
+            SYNTHETIC / AI DEMO DATA
+          </span>
+        </h4>
+        <div className="flex items-center gap-2 mt-1 text-eims-text-secondary text-xs sm:text-sm flex-wrap">
+          <ShieldAlert size={14} className="shrink-0 text-[#9D84B7] dark:text-[#A088BC]" />
+          <span className="font-medium text-eims-text">Security / Authentication</span>
+          <span className="text-eims-text-muted">· Incident AINC-2026-0910-0001</span>
+          {record.eventMetadata?.incident?.affectedAsset && (
+            <span className="bg-eims-surface-subtle text-eims-text-secondary border border-eims-border text-xs px-2 py-0.5 rounded font-mono">
+              {record.eventMetadata.incident.affectedAsset}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0">
+        <span className="bg-purple-500/10 border border-purple-500/20 text-purple-600/85 dark:text-[#B399CE] text-xs font-medium px-2 py-0.5 rounded">
+          SYNTHETIC AI DEMO
+        </span>
+        <div className="flex items-center gap-3 sm:mt-2">
+          <span className="text-xs text-eims-text-muted">By: {record.username || "AI Investigation"}</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCatalogRow = (entry: CatalogEntry) => (
+    <div
+      key={`catalog-${entry.event_id}`}
+      className="p-4 hover:bg-eims-surface-subtle transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group cursor-pointer"
+      onClick={() => openCatalogItem(entry)}
+    >
+      <div className="min-w-0 flex-1">
+        <h4 className="font-medium text-base sm:text-lg flex flex-wrap items-center gap-2">
+          <span className="text-sky-600/90 dark:text-[#7EA8BE] group-hover:text-sky-300 transition-colors">
+            {entry.title}
+          </span>
+          <span className="bg-sky-500/10 border border-sky-500/20 text-sky-600/85 dark:text-sky-400/80 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
+            Catalog
+          </span>
+        </h4>
+        <div className="flex items-center gap-2 mt-1 text-eims-text-secondary text-xs sm:text-sm flex-wrap">
+          <FileText size={14} className="shrink-0 text-sky-500/70" />
+          <span className="text-eims-text">{entry.provider}</span>
+          <span className="text-eims-text-muted">· Event {entry.event_id}</span>
+          <span className="text-eims-text-muted text-xs hidden md:inline">({entry.category} · {entry.severity})</span>
+        </div>
+        <p className="mt-1 text-xs text-eims-text-muted line-clamp-1">{entry.description}</p>
+      </div>
+      <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0">
+        <span className="bg-sky-500/10 border border-sky-500/20 text-sky-600/85 dark:text-sky-400/80 text-xs font-medium px-2 py-0.5 rounded">
+          Knowledge Base
+        </span>
+        <span className="text-xs text-eims-text-muted sm:mt-2 hidden sm:block">Reference Index</span>
+      </div>
+    </div>
+  );
+
+  const renderHistoryRow = (record: any) => {
+    const friendly = friendlyLabel(record, catalogMap);
+    return (
+      <div
+        key={`history-${record.id}`}
+        className="p-4 hover:bg-eims-surface-subtle transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group cursor-pointer"
+        onClick={() => setSelectedItem(record)}
+      >
+        <div className="min-w-0 flex-1">
+          <h4 className="font-medium text-base sm:text-lg flex flex-wrap items-center gap-2">
+            <span className="text-emerald-600/90 dark:text-[#78B096] group-hover:text-emerald-300 transition-colors">
+              {friendly.title}
+            </span>
+            <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600/85 dark:text-[#78B096] text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
+              Analyzed Log
+            </span>
+            {record.eventMetadata?.faultingApp && (
+              <span className="bg-eims-surface-subtle text-eims-text-secondary border border-eims-border text-xs px-2 py-0.5 rounded truncate max-w-full font-mono">
+                {record.eventMetadata.faultingApp}
+              </span>
+            )}
+          </h4>
+          <div className="flex items-center gap-2 mt-1 text-eims-text-secondary text-xs sm:text-sm flex-wrap">
+            {record.parseMethod?.includes("OCR") ? (
+              <FileImage size={14} className="shrink-0 text-indigo-400/80" />
+            ) : record.parseMethod?.includes("XML") ? (
+              <Code size={14} className="shrink-0 text-amber-500/80" />
+            ) : (
+              <FileText size={14} className="shrink-0 text-emerald-500/70" />
+            )}
+            <span className="text-eims-text">{friendly.provider}</span>
+            <span className="text-eims-text-muted">· Event {record.eventId}</span>
+            <span className="text-eims-text-muted text-xs">({record.parseMethod || "Submitted via Text"})</span>
+          </div>
+        </div>
+        <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0">
+          <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600/85 dark:text-[#78B096] text-xs font-medium px-2 py-0.5 rounded">
+            {new Date(record.created_at).toLocaleDateString()}
+          </span>
+          <div className="flex items-center gap-3 sm:mt-2">
+            <span className="text-xs text-eims-text-muted">By: {record.username}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(record.id);
+              }}
+              className="text-eims-text-muted hover:text-rose-400 p-1 transition-colors"
+              title="Delete record"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="bg-eims-surface border border-eims-border rounded-xl shadow-sm overflow-hidden flex flex-col">
-      <div className="p-4 border-b border-eims-border flex items-center justify-between bg-eims-bg/50">
-        <div className="relative w-64">
+    <div className={`bg-eims-surface border border-eims-border rounded-xl shadow-sm overflow-hidden flex flex-col ${className}`}>
+      {/* Search Header */}
+      <div className="p-4 border-b border-eims-border flex items-center justify-between bg-eims-bg/50 shrink-0">
+        <div className="relative w-full max-w-md">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-eims-text-muted" />
           <input
             type="text"
@@ -374,142 +619,60 @@ export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHist
             className="w-full pl-9 pr-4 py-2 text-sm bg-eims-bg border border-eims-border rounded-lg text-eims-text placeholder-eims-text-muted focus:outline-none focus:border-eims-accent transition-colors"
           />
         </div>
+        <div className="text-xs text-eims-text-muted font-medium ml-4 shrink-0 hidden sm:block">
+          {searchTerm.trim().length > 0 ? (
+            <span>
+              Top {ranked?.length || 0} Results
+              {searchLatencyMs !== null && (
+                <span className="ml-1.5 text-[10px] text-teal-600 dark:text-[#78B096]">
+                  ({searchLatencyMs < 1 ? searchLatencyMs.toFixed(1) : Math.round(searchLatencyMs)}ms)
+                </span>
+              )}
+            </span>
+          ) : (
+            `Operational Catalog: ${catalog.length} events`
+          )}
+        </div>
       </div>
 
-      <div className="divide-y divide-eims-border max-h-[585px] overflow-y-auto">
+      {/* Unified Scrollable Result List */}
+      <div className="divide-y divide-eims-border flex-1 min-h-0 overflow-y-auto">
         {isLoading ? (
-          <div className="p-8 text-center text-eims-text-muted">Loading history...</div>
+          <div className="p-8 text-center text-eims-text-muted">Loading history and catalog...</div>
         ) : searchTerm.trim().length > 0 ? (
+          /* ACTIVE SEARCH: TOP 15 RANKED RESULTS */
           ranked && ranked.length === 0 ? (
             <div className="p-8 text-center text-eims-text-muted">No matching records or catalog entries found.</div>
           ) : ranked ? (
             <>
-              <div className="px-4 pt-3 pb-1 text-xs text-eims-text-muted">
+              <div className="px-4 pt-3 pb-1 text-xs text-eims-text-muted font-medium bg-eims-bg/30">
                 Showing top {ranked.length} ranking results for "{searchTerm.trim()}"
               </div>
-              {ranked.map(({ c }) => c.kind === "history" ? (
-                <div
-                  key={c.record.id}
-                  className="p-4 hover:bg-eims-surface-subtle transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group cursor-pointer"
-                  onClick={() => setSelectedItem(c.record)}
-                >
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-medium text-base sm:text-lg flex flex-wrap items-center gap-2">
-                      <span className="text-eims-info dark:text-sky-400 group-hover:underline transition-colors">{friendlyLabel(c.record).title}</span>
-                      <span className="text-xs font-medium text-eims-text-muted">{friendlyLabel(c.record).provider}</span>
-                      {c.record.eventMetadata?.faultingApp && (
-                        <span className="bg-eims-surface-subtle text-eims-text-secondary border border-eims-border text-xs px-2 py-0.5 rounded truncate max-w-full font-mono">
-                          {c.record.eventMetadata.faultingApp}
-                        </span>
-                      )}
-                    </h4>
-                    <div className="flex items-center gap-2 mt-1 text-eims-text-secondary text-xs sm:text-sm">
-                      {c.record.parseMethod?.includes("OCR") ? (
-                        <FileImage size={14} className="shrink-0 text-indigo-400" />
-                      ) : c.record.parseMethod?.includes("XML") ? (
-                        <Code size={14} className="shrink-0 text-amber-500" />
-                      ) : (
-                        <FileText size={14} className="shrink-0 text-teal-500" />
-                      )}
-                      <span className="truncate">{c.record.parseMethod || "Submitted via Text"}</span>
-                      <span className="text-eims-text-muted shrink-0">Event {c.record.eventId}</span>
-                      {String(c.record.eventId).toUpperCase().startsWith("AINC-") && (
-                        <span className="bg-purple-500/10 border border-purple-500/30 text-purple-500 dark:text-purple-400 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
-                          AI Incident
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0">
-                    <span className="bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-medium px-2 py-0.5 rounded">
-                      {new Date(c.record.created_at).toLocaleDateString()}
-                    </span>
-                    <div className="flex items-center gap-3 sm:mt-2">
-                      <span className="text-xs text-eims-text-muted">By: {c.record.username}</span>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(c.record.id); }}
-                        className="text-eims-text-muted hover:text-rose-400 p-1 transition-colors"
-                        title="Delete record"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-medium text-base sm:text-lg flex flex-wrap items-center gap-2">
-                      <span className="text-eims-info dark:text-sky-400">{c.record.title}</span>
-                      <span className="text-xs font-medium text-eims-text-muted">{c.record.provider}</span>
-                      <span className="bg-sky-500/10 border border-sky-500/30 text-sky-500 dark:text-sky-400 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
-                        Catalog
-                      </span>
-                    </h4>
-                    <div className="flex items-center gap-2 mt-1 text-eims-text-secondary text-xs sm:text-sm">
-                      <FileText size={14} className="shrink-0 text-sky-500" />
-                      <span className="truncate">{c.record.category} · {c.record.severity}</span>
-                      <span className="text-eims-text-muted shrink-0">Event {c.record.event_id}</span>
-                    </div>
-                    <p className="mt-1 text-xs text-eims-text-muted line-clamp-2">{c.record.description}</p>
-                  </div>
-                  <span className="bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 text-xs font-medium px-2 py-0.5 rounded shrink-0">
-                    Knowledge Base
-                  </span>
-                </div>
-              ))}
+              {ranked.map(({ c }) => {
+                if (c.kind === "history") {
+                  if (String(c.record.eventId).toUpperCase().startsWith("AINC-")) {
+                    return renderIncidentRow(c.record);
+                  }
+                  return renderHistoryRow(c.record);
+                }
+                return renderCatalogRow(c.record);
+              })}
             </>
           ) : (
             <div className="p-8 text-center text-eims-text-muted">No records found.</div>
           )
-        ) : filteredHistory.length === 0 ? (
-          <div className="p-8 text-center text-eims-text-muted">No records found.</div>
         ) : (
-          filteredHistory.map((item) => (
-            <div 
-              key={item.id} 
-              className="p-4 hover:bg-eims-surface-subtle transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group cursor-pointer"
-              onClick={() => setSelectedItem(item)}
-            >
-              <div className="min-w-0 flex-1">
-                <h4 className="font-medium text-base sm:text-lg flex flex-wrap items-center gap-2">
-                  <span className="text-eims-info dark:text-sky-400 group-hover:underline transition-colors">{friendlyLabel(item).title}</span>
-                  <span className="text-xs font-medium text-eims-text-muted">{friendlyLabel(item).provider}</span>
-                  {item.eventMetadata?.faultingApp && (
-                    <span className="bg-eims-surface-subtle text-eims-text-secondary border border-eims-border text-xs px-2 py-0.5 rounded truncate max-w-full font-mono">
-                      {item.eventMetadata.faultingApp}
-                    </span>
-                  )}
-                </h4>
-                <div className="flex items-center gap-2 mt-1 text-eims-text-secondary text-xs sm:text-sm">
-                  {item.parseMethod?.includes("OCR") ? (
-                    <FileImage size={14} className="shrink-0 text-indigo-400" />
-                  ) : item.parseMethod?.includes("XML") ? (
-                    <Code size={14} className="shrink-0 text-amber-500" />
-                  ) : (
-                    <FileText size={14} className="shrink-0 text-teal-500" />
-                  )}
-                  <span className="truncate">{item.parseMethod || "Submitted via Text"}</span>
-                  <span className="text-eims-text-muted shrink-0">Event {item.eventId}</span>
-                </div>
-              </div>
-              <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0">
-                <span className="bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-medium px-2 py-0.5 rounded">
-                  {new Date(item.created_at).toLocaleDateString()}
-                </span>
-                <div className="flex items-center gap-3 sm:mt-2">
-                  <span className="text-xs text-eims-text-muted">By: {item.username}</span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
-                    className="text-eims-text-muted hover:text-rose-400 p-1 transition-colors"
-                    title="Delete record"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))
+          /* NO SEARCH: FULL OPERATIONAL EVENT CATALOG (141) + AI INCIDENT + REAL HISTORY */
+          <>
+            {/* 1. Suspicious Authentication Activity [SYNTHETIC AI DEMO] */}
+            {incidentRecord && renderIncidentRow(incidentRecord)}
+
+            {/* 2. Operational Event Catalog (Complete 141 entries sorted by priority) */}
+            {sortedCatalog.map((entry) => renderCatalogRow(entry))}
+
+            {/* 3. Actual analyzed history records */}
+            {nonIncidentHistory.map((item) => renderHistoryRow(item))}
+          </>
         )}
       </div>
 
@@ -523,8 +686,22 @@ export default function AnalyzerHistoryList({ refreshTrigger = 0 }: AnalyzerHist
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-eims-border bg-eims-surface shrink-0">
               <h2 className="text-lg font-semibold text-eims-text flex items-center gap-2">
-                <FileText className="w-5 h-5 text-eims-info dark:text-sky-400" />
-                Analysis Record Details
+                {String(selectedItem.eventId).toUpperCase().startsWith("AINC-") ? (
+                  <>
+                    <ShieldAlert className="w-5 h-5 text-[#A088BC]" />
+                    <span>AI Incident Investigation — Suspicious Authentication Activity</span>
+                  </>
+                ) : selectedItem.isCatalog ? (
+                  <>
+                    <FileText className="w-5 h-5 text-sky-500/80 dark:text-[#7EA8BE]" />
+                    <span>Operational Knowledge Base — Event {selectedItem.eventId}</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-5 h-5 text-emerald-500/80 dark:text-[#78B096]" />
+                    <span>Analysis Record Details — Event {selectedItem.eventId}</span>
+                  </>
+                )}
               </h2>
               <div className="flex items-center gap-2">
                 <button

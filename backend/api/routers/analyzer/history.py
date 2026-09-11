@@ -113,9 +113,31 @@ async def get_history_stats(
     total_search_time = 0
     
     provider_counts = {}
+    category_counts = {}
     daily_counts = {}
     
     import datetime
+    from backend.domain.analyzer.services.operational_catalog import get_catalog_entry
+
+    EVENT_CATEGORIES = {
+        "4625": "Authentication",
+        "4624": "Authentication",
+        "1102": "Security",
+        "4672": "Security",
+        "4688": "Process & Execution",
+        "1001": "Application",
+        "1000": "Application",
+        "7036": "System",
+        "6008": "System",
+        "41": "System",
+        "2004": "Windows Update",
+        "4720": "Account Management",
+        "4740": "Account Management",
+        "5152": "Firewall & Network Security",
+        "1116": "Windows Defender",
+        "4104": "PowerShell",
+        "7045": "System",
+    }
     
     for record in history_records:
         # Critical Errors
@@ -129,6 +151,29 @@ async def get_history_stats(
         provider = record.provider or "Unknown"
         provider_counts[provider] = provider_counts.get(provider, 0) + 1
         
+        # Category Classification (derive from real records and event semantics)
+        eid = str(record.event_id or "").strip()
+        prov = str(record.provider or "").strip()
+        if eid.upper().startswith("AINC-") or "incident" in prov.lower():
+            cat = "Incident Investigation"
+        elif record.event_metadata and record.event_metadata.get("category"):
+            cat = record.event_metadata["category"]
+        elif eid in EVENT_CATEGORIES:
+            cat = EVENT_CATEGORIES[eid]
+        else:
+            cat_entry = get_catalog_entry(eid)
+            if cat_entry and cat_entry.get("category"):
+                cat_raw = cat_entry["category"]
+                if "Audit" in cat_raw:
+                    cat = "Security"
+                elif "Services" in cat_raw:
+                    cat = "System"
+                else:
+                    cat = cat_raw
+            else:
+                cat = "System"
+        category_counts[cat] = category_counts.get(cat, 0) + 1
+
         # Daily Trends
         if record.created_at:
             day_str = record.created_at.strftime("%m/%d")
@@ -137,22 +182,19 @@ async def get_history_stats(
     avg_search_time = (total_search_time / total_logs / 1000) if total_logs > 0 else 0
     
     provider_stats = [{"name": k, "value": v} for k, v in provider_counts.items()]
-    daily_trends = [{"date": k, "count": v} for k, v in daily_counts.items()]
+    category_stats = [{"name": k, "value": v} for k, v in category_counts.items()]
+    category_stats.sort(key=lambda x: x["value"], reverse=True)
     
-    # Fill missing days for the last 7 days
+    # Exactly last 7 calendar days (ending today)
     today = datetime.datetime.now()
-    for i in range(6, -1, -1):
-        d = today - datetime.timedelta(days=i)
-        d_str = d.strftime("%m/%d")
-        if not any(t["date"] == d_str for t in daily_trends):
-            daily_trends.append({"date": d_str, "count": 0})
-    
-    daily_trends.sort(key=lambda x: x["date"])
+    last_7_days = [(today - datetime.timedelta(days=i)).strftime("%m/%d") for i in range(6, -1, -1)]
+    daily_trends = [{"date": d_str, "count": daily_counts.get(d_str, 0)} for d_str in last_7_days]
     
     return {
         "totalLogs": total_logs,
         "criticalErrors": critical_errors,
         "avgSearchTimeSec": round(avg_search_time, 2),
         "dailyTrends": daily_trends,
+        "categoryStats": category_stats,
         "providerStats": provider_stats
     }

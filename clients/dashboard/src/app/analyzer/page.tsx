@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Terminal, Upload, Play, Search, Save, FileText, Settings2, ShieldAlert, ArrowLeft, Download, History, X, Database } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
@@ -20,6 +20,36 @@ export default function AnalyzerPage() {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const leftColRef = useRef<HTMLDivElement>(null);
+  const [leftColHeight, setLeftColHeight] = useState<number | null>(null);
+  const [sessionSearchLatencies, setSessionSearchLatencies] = useState<number[]>([]);
+
+  const handleSearchLatency = useCallback((latencyMs: number) => {
+    setSessionSearchLatencies(prev => [...prev, latencyMs]);
+  }, []);
+
+  const avgSearchTimeMs = useMemo(() => {
+    if (sessionSearchLatencies.length === 0) return null;
+    const sum = sessionSearchLatencies.reduce((a, b) => a + b, 0);
+    return sum / sessionSearchLatencies.length;
+  }, [sessionSearchLatencies]);
+
+  useEffect(() => {
+    if (!leftColRef.current) return;
+    const updateHeight = () => {
+      if (leftColRef.current) {
+        setLeftColHeight(leftColRef.current.offsetHeight);
+      }
+    };
+    updateHeight();
+    const ro = new ResizeObserver(updateHeight);
+    ro.observe(leftColRef.current);
+    window.addEventListener("resize", updateHeight);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -255,7 +285,7 @@ export default function AnalyzerPage() {
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
 
         {/* LEFT SIDEBAR (col 1 on xl) */}
-        <div className="xl:col-span-1 space-y-4 w-full">
+        <div ref={leftColRef} className="xl:col-span-1 space-y-4 w-full">
 
           {/* Upload Source */}
           <div className="bg-eims-surface border border-eims-border rounded-xl p-5 shadow-sm">
@@ -324,7 +354,7 @@ export default function AnalyzerPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-eims-text-secondary">Vector RAG</span>
-                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded border border-emerald-200 dark:border-emerald-800/60">Enabled</span>
+                <span className="text-xs font-medium text-emerald-600/90 dark:text-[#78B096] bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">Enabled</span>
               </div>
             </div>
           </div>
@@ -332,7 +362,7 @@ export default function AnalyzerPage() {
           {/* System Status */}
           <div className="bg-eims-surface border border-eims-border rounded-xl p-5 shadow-sm">
             <h2 className="text-xs font-semibold text-eims-text uppercase tracking-wider flex items-center gap-2 mb-3">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500/80 animate-pulse" />
               System Status
             </h2>
             <SystemStatusCard />
@@ -362,9 +392,9 @@ export default function AnalyzerPage() {
                 { id: "7036", name: "Service Ctrl",   color: "info",    desc: "Svc started/stopped" },
               ].map((item) => (
                 <div key={item.id} className="flex items-center gap-2 text-xs py-1 border-b border-eims-border/40 last:border-0">
-                  <span className={`font-mono font-bold w-10 shrink-0 ${ 
-                    item.color === "error" ? "text-eims-error" : 
-                    item.color === "warning" ? "text-eims-warning" : "text-eims-info" 
+                  <span className={`font-mono font-semibold w-10 shrink-0 ${
+                    item.color === "error" ? "text-rose-500/90 dark:text-[#D9777F]" :
+                    item.color === "warning" ? "text-amber-500/90 dark:text-[#D4A373]" : "text-sky-500/90 dark:text-[#7EA8BE]"
                   }`}>{item.id}</span>
                   <span className="text-eims-text">{item.name}</span>
                   <span className="text-eims-text-muted ml-auto text-[10px]">{item.desc}</span>
@@ -375,9 +405,16 @@ export default function AnalyzerPage() {
         </div>
 
         {/* RIGHT (col 2-4 on xl): Dashboard + History */}
-        <div className="xl:col-span-3 space-y-4 w-full">
-          <AnalyzerDashboard refreshTrigger={refreshTrigger} />
-          <AnalyzerHistoryList refreshTrigger={refreshTrigger} />
+        <div
+          className="xl:col-span-3 space-y-4 w-full flex flex-col min-h-0 xl:h-[var(--left-col-height)]"
+          style={{ '--left-col-height': leftColHeight ? `${leftColHeight}px` : 'auto' } as React.CSSProperties}
+        >
+          <AnalyzerDashboard refreshTrigger={refreshTrigger} avgSearchTimeMs={avgSearchTimeMs} />
+          <AnalyzerHistoryList
+            refreshTrigger={refreshTrigger}
+            onSearchLatency={handleSearchLatency}
+            className="flex-1 min-h-[400px] xl:min-h-0 flex flex-col"
+          />
         </div>
 
       </div>

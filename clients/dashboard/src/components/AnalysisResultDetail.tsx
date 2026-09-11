@@ -1,12 +1,12 @@
 import React from 'react';
-import { 
-  AlertCircle, 
-  Info, 
-  FileText, 
-  CheckCircle2, 
-  Link as LinkIcon, 
-  MessageSquare, 
-  Download, 
+import {
+  AlertCircle,
+  Info,
+  FileText,
+  CheckCircle2,
+  Link as LinkIcon,
+  MessageSquare,
+  Download,
   Code,
   FileImage,
   Monitor
@@ -29,35 +29,74 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
   const provider = result.provider || "Unknown";
   const parseMethod = result.parseMethod || "Text Parsing";
   const numEvents = 1;
-  
+
   const summary = result.solutionSummary?.overview || result.summary || result.aiSummary || result.root_cause || "No summary available.";
   const steps = result.solutionSummary?.steps || (result.solution ? [result.solution] : []);
   const causes = result.solutionSummary?.causes || [];
-  
+
   const metadata = result.eventMetadata || {};
   const searchResults = result.searchResults || [];
-  
+
   // Detect language: use language prop if explicitly provided, else detect from text (Thai character check)
   const isThaiText = (text: string) => /[\u0E00-\u0E7F]/.test(text);
   const detectedEn = !isThaiText(summary) && (!steps.length || !isThaiText(steps.join(" ")));
   const isEn = language ? language === "en" : detectedEn;
 
+  const isIncident = String(eventId).toUpperCase().startsWith("AINC-");
+  const isCatalog = result.isCatalog === true;
+  const displayTitle = isIncident
+    ? "Suspicious Authentication Activity"
+    : (result.solutionSummary?.title || (isCatalog ? `Event ${eventId}` : `Event ID: ${eventId}`));
+  const displayProvider = isIncident
+    ? "Security / Authentication"
+    : provider;
+
   return (
     <div className="flex flex-col gap-6 animate-fade-in w-full">
-      
+
       {/* Header Box */}
-      <div className="bg-eims-surface border-l-4 border-l-sky-500 border border-eims-border rounded-lg p-4 shadow-sm relative overflow-hidden">
+      <div className={`bg-eims-surface border-l-4 ${isIncident ? "border-l-purple-500" : isCatalog ? "border-l-sky-500" : "border-l-teal-500"} border border-eims-border rounded-lg p-4 shadow-sm relative overflow-hidden`}>
         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
           <AlertCircle size={100} />
         </div>
-        <h3 className="text-lg font-semibold text-eims-text flex items-center gap-2">
-          Event ID: <span className="text-eims-info dark:text-sky-400 font-bold">{eventId}</span> - {provider}
-          <span className="text-eims-text-secondary font-normal text-sm ml-2">{isEn ? "Number of events:" : "จำนวนเหตุการณ์:"} {numEvents}</span>
+        <h3 className="text-lg font-semibold text-eims-text flex flex-wrap items-center gap-2">
+          {isIncident ? (
+            <>
+              <span className="text-eims-info dark:text-sky-400 font-bold">{displayTitle}</span>
+              <span className="text-eims-text-secondary font-normal text-sm ml-1">({displayProvider})</span>
+            </>
+          ) : isCatalog ? (
+            <>
+              <span className="text-eims-info dark:text-sky-400 font-bold">{displayTitle}</span>
+              <span className="text-eims-text-secondary font-normal text-sm ml-1">({displayProvider} · Event {eventId})</span>
+            </>
+          ) : (
+            <>
+              Event ID: <span className="text-eims-info dark:text-sky-400 font-bold">{eventId}</span> - {provider}
+              <span className="text-eims-text-secondary font-normal text-sm ml-2">{isEn ? "Number of events:" : "จำนวนเหตุการณ์:"} {numEvents}</span>
+            </>
+          )}
         </h3>
-        <p className="text-eims-info dark:text-sky-400 text-sm mt-2 flex items-center gap-2">
-          {parseMethod.includes("OCR") ? <FileImage size={14} /> : <FileText size={14} />}
-          (Extracted via {parseMethod})
-        </p>
+        <div className="flex flex-wrap items-center gap-2 mt-2 text-sm">
+          {isIncident ? (
+            <>
+              <span className="bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 text-xs font-semibold px-2.5 py-0.5 rounded uppercase tracking-wide">
+                SYNTHETIC / AI DEMO DATA
+              </span>
+              <span className="text-xs text-eims-text-secondary">Incident {eventId}</span>
+            </>
+          ) : isCatalog ? (
+            <p className="text-eims-info dark:text-sky-400 text-xs sm:text-sm flex items-center gap-2">
+              <FileText size={14} />
+              Operational Event Catalog Knowledge Reference (Static)
+            </p>
+          ) : (
+            <p className="text-eims-info dark:text-sky-400 text-sm flex items-center gap-2">
+              {parseMethod.includes("OCR") ? <FileImage size={14} /> : <FileText size={14} />}
+              (Extracted via {parseMethod})
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Event Info and Summary in a 2-column Grid */}
@@ -142,10 +181,10 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
           </h4>
           <div className="space-y-3">
             {searchResults.map((ref: any, idx: number) => (
-              <a 
-                key={idx} 
-                href={ref.link} 
-                target="_blank" 
+              <a
+                key={idx}
+                href={ref.link}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="block bg-eims-surface border border-eims-border hover:border-blue-500/50 rounded-lg p-4 transition-all group"
               >
@@ -164,52 +203,54 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
       )}
 
       {/* Feedback Rating Section */}
-      <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm flex items-center justify-between">
-        <div>
-          <h4 className="text-xs font-semibold text-eims-text uppercase tracking-wider">
-            {isEn ? "Was this solution helpful?" : "วิธีแก้ไขนี้ช่วยแก้ปัญหาได้ตรงจุดหรือไม่?"}
-          </h4>
-          <p className="text-[11px] text-eims-text-secondary mt-0.5">
-            {isEn ? "Your feedback improves the Vector RAG Knowledge Base accuracy." : "คะแนนของคุณจะช่วยให้ AI Vector RAG จดจำและแม่นยำขึ้นในอนาคต"}
-          </p>
+      {!isCatalog && (
+        <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm flex items-center justify-between">
+          <div>
+            <h4 className="text-xs font-semibold text-eims-text uppercase tracking-wider">
+              {isEn ? "Was this solution helpful?" : "วิธีแก้ไขนี้ช่วยแก้ปัญหาได้ตรงจุดหรือไม่?"}
+            </h4>
+            <p className="text-[11px] text-eims-text-secondary mt-0.5">
+              {isEn ? "Your feedback improves the Vector RAG Knowledge Base accuracy." : "คะแนนของคุณจะช่วยให้ AI Vector RAG จดจำและแม่นยำขึ้นในอนาคต"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                if (result.id && typeof result.id === "number") {
+                  try {
+                    await fetch(`http://localhost:8000/api/v1/history/${result.id}/feedback?score=1`, { method: "POST" });
+                  } catch (e) {}
+                }
+                setFeedback(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
+                feedback === 1
+                  ? "bg-teal-500/20 border-teal-500 text-teal-400 font-bold"
+                  : "border-eims-border hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text"
+              }`}
+            >
+              👍 {isEn ? "Helpful" : "ใช้ได้ผล"}
+            </button>
+            <button
+              onClick={async () => {
+                if (result.id && typeof result.id === "number") {
+                  try {
+                    await fetch(`http://localhost:8000/api/v1/history/${result.id}/feedback?score=-1`, { method: "POST" });
+                  } catch (e) {}
+                }
+                setFeedback(-1);
+              }}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
+                feedback === -1
+                  ? "bg-rose-500/20 border-rose-500 text-rose-400 font-bold"
+                  : "border-eims-border hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text"
+              }`}
+            >
+              👎 {isEn ? "Not Helpful" : "ไม่ได้ผล"}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={async () => {
-              if (result.id) {
-                try {
-                  await fetch(`http://localhost:8000/api/v1/history/${result.id}/feedback?score=1`, { method: "POST" });
-                } catch (e) {}
-              }
-              setFeedback(1);
-            }}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
-              feedback === 1 
-                ? "bg-teal-500/20 border-teal-500 text-teal-400 font-bold" 
-                : "border-eims-border hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text"
-            }`}
-          >
-            👍 {isEn ? "Helpful" : "ใช้ได้ผล"}
-          </button>
-          <button
-            onClick={async () => {
-              if (result.id) {
-                try {
-                  await fetch(`http://localhost:8000/api/v1/history/${result.id}/feedback?score=-1`, { method: "POST" });
-                } catch (e) {}
-              }
-              setFeedback(-1);
-            }}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
-              feedback === -1 
-                ? "bg-rose-500/20 border-rose-500 text-rose-400 font-bold" 
-                : "border-eims-border hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text"
-            }`}
-          >
-            👎 {isEn ? "Not Helpful" : "ไม่ได้ผล"}
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Interactive Chat Interface */}
       <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
@@ -217,8 +258,8 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
           <MessageSquare className="w-5 h-5 text-eims-info dark:text-sky-400" /> {isEn ? "Ask Follow-up Questions" : "ถามรายละเอียดเพิ่มเติม"}
         </h4>
         <div className="flex gap-3">
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder={isEn ? "Ask follow-up questions about this event..." : "ถามคำถามเกี่ยวกับ Event นี้ เช่น จะหาเหตุผลหรือแก้ไขอย่างไร..."}
             className="flex-1 bg-eims-bg border border-eims-border rounded-lg px-4 py-2 text-sm text-eims-text placeholder-eims-text-muted focus:outline-none focus:border-eims-info transition-colors"
           />
