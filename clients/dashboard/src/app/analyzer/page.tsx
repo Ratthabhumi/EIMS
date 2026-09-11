@@ -347,11 +347,17 @@ export default function AnalyzerPage() {
             <div className="space-y-1.5">
               {[
                 { id: "41",   name: "Kernel-Power",  color: "error",   desc: "Unexpected reboot" },
+                { id: "4625", name: "Security",       color: "error",   desc: "Failed logon" },
+                { id: "4740", name: "Security",       color: "error",   desc: "Account locked" },
+                { id: "1102", name: "Security",       color: "error",   desc: "Audit log cleared" },
                 { id: "1000", name: "App Error",      color: "error",   desc: "Application crash" },
-                { id: "1001", name: "Win Error",      color: "error",   desc: "BugCheck / BSOD" },
                 { id: "6008", name: "EventLog",       color: "warning", desc: "Unexpected shutdown" },
                 { id: "7034", name: "Service Ctrl",   color: "warning", desc: "Service crashed" },
-                { id: "4625", name: "Security",       color: "warning", desc: "Failed logon" },
+                { id: "4672", name: "Security",       color: "warning", desc: "Privileges assigned" },
+                { id: "4104", name: "PowerShell",     color: "warning", desc: "Script block logged" },
+                { id: "5152", name: "WFP",            color: "warning", desc: "Firewall blocked" },
+                { id: "7045", name: "Service Ctrl",   color: "info",    desc: "Service installed" },
+                { id: "1116", name: "Defender",       color: "info",    desc: "Threat detected" },
                 { id: "4624", name: "Security",       color: "info",    desc: "Successful logon" },
                 { id: "7036", name: "Service Ctrl",   color: "info",    desc: "Svc started/stopped" },
               ].map((item) => (

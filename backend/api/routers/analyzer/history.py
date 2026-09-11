@@ -13,6 +13,19 @@ from backend.domain.analyzer.schemas.analyze import SolutionSummary, EventMetada
 router = APIRouter()
 
 
+@router.get("/catalog")
+async def get_operational_catalog(
+    _user: str = Depends(get_current_user),
+):
+    """Return the static Operational Event Catalog (knowledge, not analyzed logs)."""
+    from backend.domain.analyzer.services.operational_catalog import get_catalog
+    return {
+        "classification": "OPERATIONAL_EVENT_CATALOG",
+        "count": len(get_catalog()),
+        "entries": get_catalog(),
+    }
+
+
 @router.get("/", response_model=List[HistoryResponse])
 async def get_all_history(
     db: AsyncSession = Depends(get_db),
@@ -32,8 +45,8 @@ async def get_all_history(
             "aiSummary": record.ai_summary,
             "solutionSummary": solution,
             "eventMetadata": metadata,
-            "searchResults": record.search_results,
-            "searchTimeMs": record.search_time_ms,
+            "searchResults": record.search_results or [],
+            "searchTimeMs": record.search_time_ms if record.search_time_ms is not None else 0.0,
             "created_at": record.created_at,
             "username": record.username,
             "feedback_by": record.feedback_by,
