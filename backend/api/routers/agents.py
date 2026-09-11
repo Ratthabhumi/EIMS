@@ -23,7 +23,8 @@ async def launch_agent(request: AgentLaunchRequest, _admin: str = Depends(requir
     
     agent_paths = {
         "usb_auditor": os.path.join(base_dir, "clients", "usb_auditor", "run.bat"),
-        "sticker_ocr": os.path.join(base_dir, "clients", "sticker_ocr", "run.bat")
+        "sticker_ocr": os.path.join(base_dir, "clients", "sticker_ocr", "run.bat"),
+        "ocr_pipeline": os.path.join(base_dir, "clients", "sticker_ocr", "run.bat"),
     }
 
     target_bat = agent_paths.get(request.agent_name)

@@ -93,15 +93,24 @@ class TelemetryStreamConsumer:
         self._running = False
         if self._task:
             self._task.cancel()
+            try:
+                await asyncio.wait_for(self._task, timeout=0.5)
+            except (asyncio.CancelledError, asyncio.TimeoutError, Exception):
+                pass
         logger.info("Telemetry Stream Consumer Worker stopped.")
 
     async def _loop(self):
         while self._running:
             try:
                 await self.process_batch(batch_size=50)
+            except asyncio.CancelledError:
+                break
             except Exception as e:
                 logger.error(f"Telemetry worker loop error: {e}")
-            await asyncio.sleep(self.polling_interval)
+            try:
+                await asyncio.sleep(self.polling_interval)
+            except asyncio.CancelledError:
+                break
 
     # ------------------------------------------------------------------
     # Stream Read Abstraction (broker-backed vs physical Redis)

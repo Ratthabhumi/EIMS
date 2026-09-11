@@ -34,14 +34,23 @@ class OCRBackgroundWorker:
         while self._running:
             try:
                 await self._process_pending_tasks()
+            except asyncio.CancelledError:
+                break
             except Exception as e:
                 logger.error(f"OCR Worker loop error: {e}")
-            await asyncio.sleep(self.polling_interval)
+            try:
+                await asyncio.sleep(self.polling_interval)
+            except asyncio.CancelledError:
+                break
 
     async def stop(self):
         self._running = False
         if self._task:
             self._task.cancel()
+            try:
+                await asyncio.wait_for(self._task, timeout=0.5)
+            except (asyncio.CancelledError, asyncio.TimeoutError, Exception):
+                pass
         logger.info("OCR Background Worker stopped.")
 
     async def _process_pending_tasks(self):

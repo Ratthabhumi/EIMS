@@ -1010,5 +1010,95 @@
         "Check the Client Address field to pinpoint the origin of authentication failure"
       ]
     }
+  },
+  "1102": {
+    "th": {
+      "overview": "Event 1102 (AUDIT_LOG_CLEARED / Audit Log Cleared) บันทึกเมื่อ Security Log ถูกลบหรือเคลียร์ ซึ่งเป็นสัญญาณเตือนสำคัญของการพยายามลบหลักฐาน (Anti-Forensics)",
+      "causes": [
+        "Administrator ดำเนินการล้าง Security Log ตามกระบวนการบำรุงรักษาที่วางแผนไว้",
+        "ผู้โจมตีที่ได้สิทธิ์สูงพยายามลบหลักฐานการเข้าถึงระบบ",
+        "กลุ่มนโยบายหรือสคริปต์อัตโนมัติเคลียร์ Log ผิดพลาด"
+      ],
+      "steps": [
+        "ตรวจสอบว่าเป็น Administrator คนใดเป็นคนเคลียร์ Log และมีเหตุผลรองรับหรือไม่",
+        "ตรวจสอบ Log ที่เก็บภายนอก (SIEM / Central Log Collector) เพื่อเปรียบเทียบหลักฐาน",
+        "ตรวจสอบว่า Security Log ถูกปิดเสียง (Disabled) สำหรับเรนจ์เวลาที่ถูกลบหรือไม่",
+        "กำหนด Compression/Archival Policy ของ Event Log ให้จัดเก็บระยะยาวไว้ที่เซิร์ฟเวอร์กลาง"
+      ]
+    },
+    "en": {
+      "overview": "Event 1102 (Audit Log Cleared) records when the Windows Security event log was cleared — a key anti-forensics indicator that an attacker or local administrator removed audit evidence.",
+      "causes": [
+        "Planned maintenance by an authorized Administrator",
+        "Attacker with elevated privileges cleared logs to remove signs of unauthorized access",
+        "Misconfigured automation or policy scripts wiping the log unexpectedly"
+      ],
+      "steps": [
+        "Correlate which Administrator cleared the log and whether a change-ticket supported it",
+        "Compare against external sources (SIEM / central log collector) for the cleared window",
+        "Check whether the Security log was silenced or circular-logged for the affected period",
+        "Enable event log archiving/central collection to preserve long-term evidence"
+      ]
+    }
+  },
+  "4672": {
+    "th": {
+      "overview": "Event 4672 (Special Privileges Assigned to New Logon) บันทึกเมื่อบัญชีได้รับสิทธิพิเศษพิเศษ (เช่น SeDebugPrivilege, SeBackupPrivilege) ในช่วงเริ่ม Session — พบได้บ่อยกับผู้ดูแลระบบ แต่ก็เป็นสิ่งที่ผู้โจมตีใช้งานหลังจากยกระดับสิทธิ์",
+      "causes": [
+        "Administrator หรือบัญชีที่อยู่ในกลุ่มสิทธิสูงทำการล็อกอินตามปกติ",
+        "ผู้โจมตีใช้บัญชีที่ถูกยกระดับสิทธิ์ (Privilege Escalation) เพื่อเข้าถึงเซสชันสิทธิสูง",
+        "บัญชีบริการ (Service Account) ถูกกำหนดสิทธิสูงเกินความจำเป็น"
+      ],
+      "steps": [
+        "จับคู่ Event 4672 กับ Event 4624 (Successful Logon) เพื่อระบุ Logon ID และผู้ใช้ที่แท้จริง",
+        "ตรวจสอบว่าการล็อกอินนั้นสอดคล้องกับช่วงเวลาและ IP ของการโจมตี Brute-Force หรือไม่",
+        "ตรวจสอบการมอบสิทธิพิเศษของบัญชี (Member Of / Token Privileges) ตามหลัก Least Privilege",
+        "เปิดการแจ้งเตือนสำหรับบัญชีบริการที่ได้รับ SeDebugPrivilege หรือ SeImpersonatePrivilege"
+      ]
+    },
+    "en": {
+      "overview": "Event 4672 (Special Privileges Assigned to New Logon) is logged when an account is granted special privileges (e.g., SeDebugPrivilege, SeBackupPrivilege) at session start — common for administrators but also leveraged by attackers after privilege escalation.",
+      "causes": [
+        "Administrator or privileged-group member performed a legitimate logon",
+        "Attacker used an elevated account to obtain a high-integrity session",
+        "A service account was provisioned with excessive privileges"
+      ],
+      "steps": [
+        "Correlate Event 4672 with Event 4624 (Successful Logon) to map Logon ID and real identity",
+        "Verify whether the logon aligns with the time and source-IP of a Brute-Force attempt",
+        "Review account membership and token privileges against the Principle of Least Privilege",
+        "Alert on service accounts granted SeDebugPrivilege or SeImpersonatePrivilege"
+      ]
+    }
+  },
+  "4688": {
+    "th": {
+      "overview": "Event 4688 (Process Creation) บันทึกเมื่อกระบวนการใหม่ถูกสร้างขึ้น พร้อมข้อมูล Command Line — ใช้ตรวจจับการรันเครื่องมือโจมตี (เช่น encoded PowerShell, cmd.exe) และยืนยัน TTP ของผู้โจมตี",
+      "causes": [
+        "แอปพลิเคชันหรือบริการคำสั่งระบบตามปกติถูกสร้างขึ้น",
+        "ผู้โจมตีรันเครื่องมือ เช่น PowerShell encoded command, Mimikatz หรือ network scanner",
+        "สคริปต์จัดการระบบ (SysAdmins) รันคำสั่งโดยไม่ผ่านระบบจัดการกลาง"
+      ],
+      "steps": [
+        "ตรวจสอบ Command Line และ Parent Process เพื่อยืนยันว่ากระบวนการนั้นถูกต้องหรือไม่",
+        "เทียบกับ Event 4624/4672 เพื่อเชื่อมโยงว่าผู้ใช้คนไหนสร้างกระบวนการ",
+        "บล็อกการรัน PowerShell ที่ถูก Encoded บนโฮสต์ผลิตภัณฑ์ และเปิด Process Auditing แบบละเอียด",
+        "ตรวจสอบ Hash ของไฟล์ที่ถูกสร้างขึ้นใน VirusTotal หรือระบบ Threat Intelligence"
+      ]
+    },
+    "en": {
+      "overview": "Event 4688 (Process Creation) is logged when a new process is created with Command Line details — a primary hunting signal for attacker tooling such as encoded PowerShell, cmd.exe, or credential dumps.",
+      "causes": [
+        "Legitimate application or service spawns system processes",
+        "Attacker executes tooling such as encoded PowerShell, Mimikatz, or port scanners",
+        "SysAdmins run ad-hoc commands outside a centralized management solution"
+      ],
+      "steps": [
+        "Review Command Line and Parent Process to confirm the process is expected",
+        "Correlate with Event 4624/4672 to identify the responsible user session",
+        "Block encoded PowerShell on production hosts and enable detailed process auditing",
+        "Check the binary hash on VirusTotal or the threat-intelligence feeds"
+      ]
+    }
   }
 }

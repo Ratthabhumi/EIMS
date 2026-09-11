@@ -7,13 +7,13 @@ from backend.domain.analyzer.schemas.analyze import SearchResult, SolutionSummar
 class HistoryBase(BaseModel):
     eventId: str
     provider: str
-    parseMethod: str
-    description: str
-    aiSummary: str
+    parseMethod: Optional[str] = ""
+    description: Optional[str] = ""
+    aiSummary: Optional[str] = ""
     solutionSummary: Optional[SolutionSummary] = None
     eventMetadata: Optional[EventMetadata] = None
-    searchResults: List[SearchResult]
-    searchTimeMs: float
+    searchResults: List[SearchResult] = []
+    searchTimeMs: Optional[float] = 0.0
 
 
 class HistoryCreate(HistoryBase):
