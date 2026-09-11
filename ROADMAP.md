@@ -211,3 +211,28 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
   - Zero TypeScript errors (`npx tsc --noEmit` clean)
   - Production build verified (`npm run build` generates all routes)
 
+### ✅ Phase 12.7: AI Log Analyzer Operational Catalog, Dynamic Metrics & Visual Polish
+- **141 Operational Event Catalog**:
+  - Complete static knowledge base covering 141 critical Windows, security, and infrastructure event definitions (Security 4625, 4624, 4740, 1102; System 7036, 6008, 41; PowerShell 4104; Defender 1116; Firewall 5152; etc.)
+  - Full operational descriptions, categories, keyword indexes, related events, and administrator mitigation advice
+  - Strict provenance isolation: catalog items serve as reference knowledge and are never counted as runtime analyzed logs
+- **Data Integrity & Metric Semantics**:
+  - `Total Logs Analyzed`: Derived strictly from the `analysis_history` table (9 real records: 8 Windows event logs + 1 AI incident investigation)
+  - `Critical Errors`: Derived strictly from actual analyzed records (`AINC-2026-0910-0001` flagged with `isCritical: true` = 1)
+  - `Avg Search Time`: Replaced static/misleading `0.00s` with honest dynamic `performance.now()` client-side latency measurement. Displays `—` initially, then averages all real user searches performed in the session (e.g., 16 ms)
+- **Event Types by Category Analytics**:
+  - Replaced coarse provider chart with a horizontal bar chart (`BarChart layout="vertical"`)
+  - Real-world categorization across 7 operator categories derived from actual event semantics:
+    - Authentication (2): Events 4625, 4624
+    - System (2): Events 7036, 6008
+    - Account Management (1): Event 4720
+    - Windows Update (1): Event 2004
+    - Application (1): Event 1001
+    - Security (1): Event 1102
+    - Incident Investigation (1): AINC-2026-0910-0001
+    - Total = 9 (100% matches Total Logs Analyzed)
+- **Strict 7-Day Trend Window**:
+  - `Daily Trends`: Fixed window to exactly the last 7 calendar days (09/05 to 09/11) with zero-value day preservation
+- **Layout Height Alignment & UX Polish**:
+  - Responsive `ResizeObserver` sync (`xl:h-[var(--left-col-height)]`) guaranteeing the right Result Panel bottom aligns flush with the left sidebar's Common Event IDs panel (zero page-level scrolling)
+  - Muted enterprise theme: softened electric blue, neon green, and bright purple accents into an elegant dark enterprise palette while retaining semantic color identities

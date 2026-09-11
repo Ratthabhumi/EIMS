@@ -53,6 +53,7 @@ This project is in pre-graduation hardening. Core platform features are complete
 - **Phase 12.4 – Login UI Decision** ✅ *(Demo Mode: no login; Secure Mode: auth enforced)*
 - **Phase 12.5 – Final Demo & Graduation Freeze** 🎓 *(setup hardened, all tests pass, docs updated)*
 - **Phase 12.6 – Universal Global Search & Auth Hardening** ✅ *(Command Center Ctrl+K, 9 search providers, navigation + entity results, zero TS errors, 76/76 tests GREEN)*
+- **Phase 12.7 – AI Log Analyzer Operational Catalog, Dynamic Metrics & Visual Polish** ✅ *(141-event Knowledge Catalog, measured search latency, category analytics, flush bottom alignment, muted enterprise palette)*
 
 > ⚠️ **Data Loss Incident (2026-09-10)**: The Sprint 11 benchmark script contained a destructive `TRUNCATE ... CASCADE` that committed against the application database, destroying synthetic benchmark rows in 4 tables. `analysis_history` (8 real records), MinIO OCR objects (8), and the USB audit report were unaffected. The benchmark script has been corrected with a safety guard in Phase 12.1. See [ROADMAP.md](ROADMAP.md) for full details.
 
@@ -60,7 +61,8 @@ This project is in pre-graduation hardening. Core platform features are complete
 
 | Classification | Data | Status |
 |----------------|------|--------|
-| **REAL SURVIVING DATA** | `analysis_history` (8 rows), MinIO OCR objects (8), USB report (1 JSON) | Preserved intact |
+| **REAL SURVIVING DATA** | `analysis_history` (8 real rows + 1 real AI incident), MinIO OCR objects (8), USB report (1 JSON) | Preserved intact |
+| **OPERATIONAL EVENT KNOWLEDGE** | Static catalog (141 common Windows/security event definitions) | Read-only reference index; isolated from runtime analytics |
 | **RECONSTRUCTED DEMO DATA** | Demo assets (5), audit events (8), telemetry (8), winlogs (7), OCR metadata (8), USB-imported asset (1) | Reconstructed for graduation demo |
 | **SYNTHETIC BENCHMARK DATA** | `infrastructure_assets` (10,000), `audit_logs` (50,000), `telemetry_metrics` (20,000), `windows_event_logs` (20,000) | Isolated; benchmark safety guard prevents accidental truncation |
 

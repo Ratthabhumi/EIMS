@@ -154,6 +154,17 @@ python backend\test_multi_platform_benchmark.py
 
 **4. Access via Web Dashboard:**
 Navigate to [http://localhost:3001/analyzer](http://localhost:3001/analyzer) to upload `.evtx`, `.xml`, `.csv`, `.log`, or paste text / screenshot images directly.
+- **Operational Event Catalog**: Complete 141 Windows/Security event knowledge base searchable offline with real-time measured latency.
+- **Real-time Analytics**: View 7-day volume trends and event category breakdowns (Authentication, System, Security, etc.) derived from real analysis records.
+
+**5. Query Analyzer Statistics & Operational Catalog (API):**
+```powershell
+# Get analytics metrics & 7-day daily trends
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/history/stats" -Method Get
+
+# Fetch complete 141 Operational Event Catalog
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/history/catalog" -Method Get
+```
 
 ---
 
