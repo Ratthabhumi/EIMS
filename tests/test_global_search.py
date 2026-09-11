@@ -136,4 +136,14 @@ def test_search_provider_registry_contains_domains():
 
     assert isinstance(search_service._registry, SearchProviderRegistry)
     names = {provider.name for provider in search_service._registry}
-    assert names == {"asset", "audit", "analysis"}
+    assert names == {
+        "navigation",
+        "asset",
+        "audit",
+        "analysis",
+        "winlog",
+        "usb",
+        "ocr",
+        "telemetry",
+        "evaluation",
+    }

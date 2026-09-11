@@ -141,21 +141,21 @@ async def get_current_user(
     In SECURE mode: requires valid JWT, raises 401 if missing/invalid.
     """
     # Demo mode: allow unauthenticated access with a special identity
-    if AUTH_MODE == "demo":
+    if settings.AUTH_MODE.lower() == "demo":
         if not credentials or not credentials.credentials:
             return "demo"
         try:
             payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
             username = payload.get("sub")
-            if username is None:
-                return "demo"
-            return username
+            return username if username is not None else "demo"
         except Exception:
             return "demo"
 
     # Secure mode: require valid authentication
     if not credentials or not credentials.credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+    if secrets.compare_digest(credentials.credentials, settings.ADMIN_TOKEN):
+        return "admin"
     try:
         payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
@@ -193,22 +193,30 @@ async def require_admin_or_token(
 ) -> str:
     """Admin-scoped gate accepting either a valid admin JWT or the configured admin bearer token.
 
-    In DEMO mode: admin token is accepted but JWT auth is optional for non-admin endpoints.
-    In SECURE mode: both JWT admin and admin token are enforced.
+    In DEMO mode: returns 'demo' if unauthenticated, allowing demo write operations.
+    In SECURE mode: requires either an admin JWT (role='admin') or configured ADMIN_TOKEN.
     """
-    if credentials and credentials.credentials:
-        try:
-            payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-            username = payload.get("sub")
-            role = payload.get("role")
-            if username and role == "admin":
-                return username
-        except Exception:
-            pass
-        if secrets.compare_digest(credentials.credentials, settings.ADMIN_TOKEN):
-            return "admin"
+    if not credentials or not credentials.credentials:
+        if settings.AUTH_MODE.lower() == "demo":
+            return "demo"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
 
-    # In demo mode, don't enforce admin auth for admin endpoints if they're accessed
-    # This allows demo admin functionality to work without login
-    # But we still require the admin token for actual admin operations
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    raw_token = credentials.credentials
+    # 1. Validate static ADMIN_TOKEN
+    if secrets.compare_digest(raw_token, settings.ADMIN_TOKEN):
+        return "admin"
+
+    # 2. Validate JWT with admin role
+    try:
+        payload = jwt.decode(raw_token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        role = payload.get("role")
+        if not username:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        if role != "admin":
+            db_role = await get_user_role(username)
+            if db_role != "admin":
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+        return username
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

@@ -69,6 +69,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
     
     logger.info("Initiating graceful shutdown sequence for EIMS backend infrastructure...")
+    pubsub_task.cancel()
+    try:
+        await asyncio.wait_for(pubsub_task, timeout=1.5)
+    except (asyncio.CancelledError, asyncio.TimeoutError):
+        pass
+    except Exception as e:
+        logger.warning(f"Redis PubSub Listener shutdown: {e}")
     await telemetry_worker.stop()
     await evtx_worker.stop()
     await ocr_worker.stop()

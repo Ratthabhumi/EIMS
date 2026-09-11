@@ -22,27 +22,20 @@ router = APIRouter(prefix="/api/v1/evaluations", tags=["Evaluation System"])
 
 # Dependency that requires admin in secure mode, but allows demo mode
 async def require_admin_for_write(
-    current_user: str = Depends(get_current_user),
     credentials: HTTPAuthorizationCredentials | None = Depends(HTTPBearer(auto_error=False)),
-):
+) -> str:
     """Requires admin for write operations.
-    In demo mode: requires EIMS_ADMIN_TOKEN header for admin write operations.
-    In secure mode: requires valid admin JWT or EIMS_ADMIN_TOKEN.
+    In demo mode: normal dashboard usage, no login required.
+    In secure mode: requires valid admin JWT (role=='admin') or EIMS_ADMIN_TOKEN.
     """
     from backend.core.config import settings
-    from backend.domain.analyzer.auth import verify_admin_token
+    from backend.domain.analyzer.auth import require_admin_or_token
 
-    if settings.AUTH_MODE.lower() == "secure":
-        # In secure mode, use the full admin verification
-        await verify_admin_token(credentials)
-    else:
-        # In demo mode, check for admin token in headers
-        if not credentials or not credentials.credentials:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Admin token required for write operations")
-        import secrets
-        if not secrets.compare_digest(credentials.credentials, settings.ADMIN_TOKEN):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin token")
-    return current_user
+    if settings.AUTH_MODE.lower() == "demo":
+        return "demo"
+
+    return await require_admin_or_token(credentials)
+
 
 DEFAULT_QUESTIONS = [
     {"id": "q1", "label": "ความรวดเร็วในการแก้ไขปัญหา (Resolution Time & Efficiency)", "category": "Support", "orderIndex": 1},

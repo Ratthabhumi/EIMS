@@ -178,7 +178,36 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
   - Demo dataset intact (5 assets, 8 audit, 8 telemetry, 7 winlog events)
   - Analysis history (8 REAL surviving records) preserved
   - Benchmark safety guard enforced (8/8 tests pass)
-- **All Tests Pass**: 64/64 backend tests pass, 8/8 benchmark safety tests pass
-- **Frontend Typecheck**: Only pre-existing errors (unrelated to Phase 12)
-- **Documentation Updated**: ROADMAP.md, README.md reflect true status
+- **Data Classification**:
+  - REAL SURVIVING DATA: `analysis_history` (8 rows), MinIO OCR objects (8), USB audit report (1 JSON)
+  - RECONSTRUCTED DEMO DATA: 5 assets, 8 audit events, 8 telemetry vitals, 7 winlog events, 8 OCR metadata, 1 USB-imported asset
+  - SYNTHETIC BENCHMARK DATA: isolated, benchmark safety guard prevents accidental truncation
+
+### ✅ Phase 12.6: Universal Global Search & Auth Hardening (Graduation Complete)
+- **Universal Search / Command Center (`Ctrl+K` / `Cmd+K`)**:
+  - Dual Result Classification: `result_kind` (`navigation` | `entity`) with backward-compatible domain `type`
+  - 9 Search Providers operational:
+    1. `NavigationSearchProvider` (10 verified Next.js routes with keyword matching)
+    2. `AssetSearchProvider` (`infrastructure_assets` hostname, IP, MAC, serial, model, vendor)
+    3. `AuditLogSearchProvider` (`audit_logs` action verb, actor, payload)
+    4. `AnalysisSearchProvider` (`analysis_history` query, summary, remediation)
+    5. `WindowsEventLogSearchProvider` (`windows_event_logs` event ID, level, EVTX metadata, e.g. 4625)
+    6. `UsbAuditorSearchProvider` (`offline_report_data` USB vendor, device, serial number)
+    7. `OcrSearchProvider` (`ocr_registration_records` serial, vendor, model, OCR raw text)
+    8. `TelemetrySearchProvider` (`telemetry_metrics` contextual diagnostic payload and asset discovery, avoiding bulk time-series dumps)
+    9. `EvaluationSearchProvider` (`service_sessions` session title, target service, notes)
+  - Contextual Navigation: Results deep-link to specific asset details, filtered timelines (`?type=...&entity_id=...`), OCR history, USB evidence, and analyzer
+  - Command Center UI: Grouped sections with badges, keyboard navigation (Up/Down/Enter/Esc), quick filters
+- **Auth Hardening**:
+  - Typed configuration `AUTH_MODE: Literal["demo", "secure"]` with Pydantic validation
+  - Demo Mode: Dashboard usage and evaluation writes work seamlessly without login and without hardcoded frontend tokens
+  - Secure Mode: Admin JWT (`role == "admin"`) and server-side `ADMIN_TOKEN` properly validated; protected endpoints reject unauthenticated calls
+  - Public default credentials sanitized in `.env.example` and `backend/core/config.py`
+- **Lifespan & Test Suite**:
+  - Redis PubSub background task safely cancelled and awaited during FastAPI lifespan shutdown
+  - 76/76 tests pass (100% GREEN), including `test_closed_loop_telemetry_ingestion_and_batch_processing`
+  - Real PostgreSQL integration tests added with transaction rollback (zero TRUNCATE/DELETE-all)
+- **Frontend Quality**:
+  - Zero TypeScript errors (`npx tsc --noEmit` clean)
+  - Production build verified (`npm run build` generates all routes)
 

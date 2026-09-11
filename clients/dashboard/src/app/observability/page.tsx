@@ -133,7 +133,7 @@ export default function ObservabilityDashboard() {
 
   useEffect(() => {
     if (health && health.status !== 'HEALTHY') {
-      const missing = [];
+      const missing: string[] = [];
       if (health.components.postgresql_pgbouncer_tier !== 'UP') missing.push('PostgreSQL');
       if (health.components.redis_volatile_lru_tier !== 'UP') missing.push('Redis');
       if (health.components.minio_object_storage_tier !== 'UP') missing.push('MinIO');

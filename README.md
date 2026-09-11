@@ -52,6 +52,7 @@ This project is in pre-graduation hardening. Core platform features are complete
 - **Phase 12.3 – Remove Hardcoded Admin Token** ✅ *(frontend contains no privileged static token)*
 - **Phase 12.4 – Login UI Decision** ✅ *(Demo Mode: no login; Secure Mode: auth enforced)*
 - **Phase 12.5 – Final Demo & Graduation Freeze** 🎓 *(setup hardened, all tests pass, docs updated)*
+- **Phase 12.6 – Universal Global Search & Auth Hardening** ✅ *(Command Center Ctrl+K, 9 search providers, navigation + entity results, zero TS errors, 76/76 tests GREEN)*
 
 > ⚠️ **Data Loss Incident (2026-09-10)**: The Sprint 11 benchmark script contained a destructive `TRUNCATE ... CASCADE` that committed against the application database, destroying synthetic benchmark rows in 4 tables. `analysis_history` (8 real records), MinIO OCR objects (8), and the USB audit report were unaffected. The benchmark script has been corrected with a safety guard in Phase 12.1. See [ROADMAP.md](ROADMAP.md) for full details.
 
@@ -102,25 +103,45 @@ flowchart LR
 
 ---
 
+## 🔎 Universal Global Search & Command Center (`Ctrl+K` / `Cmd+K`)
+
+EIMS features a unified Command Center modal that searches operational navigation routes and deep domain evidence simultaneously:
+
+- **Two Result Classes (`result_kind`)**:
+  - `navigation`: Direct routing to verified pages (`/dashboard`, `/endpoints`, `/observability`, `/timeline`, `/compliance`, `/analyzer`, `/usb`, `/ocr`, `/evaluations`, `/settings`).
+  - `entity`: Deep-linking to specific asset records, audit trails, event logs, USB devices, or OCR records with context filters.
+- **9 Specialized Search Providers**:
+  1. **Navigation Provider**: Maps intent to routes (`timeline` → `/timeline`, `analyzer` → `/analyzer`, `usb` → `/usb`, `ocr` → `/ocr`).
+  2. **Asset Provider**: Searches hostname, IP, MAC, serial, model, vendor in `infrastructure_assets`.
+  3. **Audit Log Provider**: Traces security actions, actors, and payload metadata in `audit_logs`.
+  4. **Analysis Provider**: Retrieves historical AI diagnostics, summaries, and remediations from `analysis_history`.
+  5. **Windows Event Log Provider**: Locates security event codes (e.g. `4625`), severity levels, and EVTX metadata in `windows_event_logs`.
+  6. **USB Auditor Provider**: Discovers offline USB device scans, vendor IDs, and serial numbers in `offline_report_data`.
+  7. **OCR Provider**: Searches physical sticker registrations, serial numbers, and OCR text in `ocr_registration_records`.
+  8. **Telemetry Provider**: Contextual vitals discovery (e.g. `gpu`, high utilization) without dumping bulk time-series data.
+  9. **Evaluation Provider**: Searches service review sessions, target services, and evaluator notes in `service_sessions`.
+
+---
+
 ## 🔐 Authentication Model
 
-EIMS supports two explicit authentication modes controlled by `EIMS_AUTH_MODE`:
+EIMS supports two explicit authentication modes configured via `EIMS_AUTH_MODE: Literal["demo", "secure"]`:
 
 | Mode | Behavior | Use Case |
 |------|----------|----------|
-| **demo** (default) | No login required for normal dashboard operation. Admin write operations require `EIMS_ADMIN_TOKEN` header. | Local development, graduation demo, trusted environments |
-| **secure** | Full authentication enforcement. All protected endpoints require valid JWT. Admin operations require admin JWT or `EIMS_ADMIN_TOKEN`. | Production, public deployments, untrusted networks |
+| **demo** (default) | Seamless operator experience. Dashboard and evaluations work without login. Evaluation writes do not require tokens or fake headers. | Local development, graduation demonstrations, trusted lab networks |
+| **secure** | Strict enterprise zero-trust enforcement. Protected endpoints require valid JWT. Admin write operations require valid Admin JWT (`role == "admin"`) or server-side `EIMS_ADMIN_TOKEN`. | Production deployments, untrusted networks |
 
-> ⚠️ **Security Warning**: Demo Mode must NOT be exposed directly to an untrusted public network. It is intended exclusively for local development, graduation demonstrations, and trusted environments.
+> ⚠️ **Security Warning**: Demo Mode is designed exclusively for trusted local evaluation. It must NOT be exposed directly to an untrusted public network. In Secure Mode, all write and administrative routes reject unauthenticated or non-admin requests with 401/403.
 
 ### Configuration
 
 ```bash
 # .env
-EIMS_AUTH_MODE=demo          # or "secure" for production
-EIMS_ADMIN_TOKEN=your-secure-random-token  # MUST be overridden in secure mode
-EIMS_JWT_SECRET_KEY=your-secure-random-key # MUST be overridden in secure mode
-EIMS_ADMIN_PASSWORD=your-secure-password   # REQUIRED in secure mode
+EIMS_AUTH_MODE=demo          # "demo" or "secure" (strictly validated)
+EIMS_ADMIN_TOKEN=            # Set random token for secure mode server-side scripts
+EIMS_JWT_SECRET_KEY=         # Set random secret key in secure mode
+EIMS_ADMIN_PASSWORD=         # REQUIRED in secure mode
 ```
 
 The system will refuse to boot in non-development tiers (`staging`, `production`) if any secret remains on its default value.

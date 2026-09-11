@@ -40,19 +40,30 @@ manager = ConnectionManager()
 async def redis_pubsub_listener():
     """Background task to listen to Redis PubSub for security alerts."""
     while not cache_manager.redis:
-        await asyncio.sleep(1)
-        
-    pubsub = cache_manager.redis.pubsub()
-    await pubsub.subscribe("eims:events:alerts")
-    logger.info("Subscribed to Redis PubSub channel: eims:events:alerts")
+        try:
+            await asyncio.sleep(0.5)
+        except asyncio.CancelledError:
+            return
 
+    pubsub = cache_manager.redis.pubsub()
     try:
+        await pubsub.subscribe("eims:events:alerts")
+        logger.info("Subscribed to Redis PubSub channel: eims:events:alerts")
+
         async for message in pubsub.listen():
             if message["type"] == "message":
                 data = message["data"].decode("utf-8") if isinstance(message["data"], bytes) else message["data"]
                 await manager.broadcast(data)
+    except asyncio.CancelledError:
+        logger.info("Redis PubSub Listener cancelled cleanly.")
     except Exception as e:
         logger.error(f"Redis PubSub Listener error: {e}")
+    finally:
+        try:
+            await pubsub.unsubscribe("eims:events:alerts")
+            await pubsub.aclose()
+        except Exception:
+            pass
 
 @ws_router.websocket("/dashboard")
 async def websocket_dashboard(websocket: WebSocket, token: str = Query(None)):

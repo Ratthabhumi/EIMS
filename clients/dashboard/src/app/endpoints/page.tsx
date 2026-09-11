@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Upload, Cpu, Shield, Network, Server, HardDrive, Monitor, Clock, CheckCircle2, XCircle, Search, Download, ArrowLeft, Play } from "lucide-react";
 import Link from "next/link";
 
@@ -16,11 +17,22 @@ interface Asset {
   offline_report_data?: Record<string, any>;
 }
 
-export default function EndpointsDashboard() {
+function EndpointsDashboardContent() {
+  const searchParams = useSearchParams();
+  const targetId = searchParams.get("id");
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    if (targetId && assets.length > 0 && !selectedAsset) {
+      const match = assets.find(a => a.asset_id === targetId);
+      if (match) {
+        setSelectedAsset(match);
+      }
+    }
+  }, [targetId, assets, selectedAsset]);
 
   const filteredAssets = assets.filter(asset => 
     asset.hostname.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -110,10 +122,18 @@ export default function EndpointsDashboard() {
     }
 
     if (displayStatus === "PASS" || displayStatus === "Enabled" || displayStatus === "Running" || displayStatus === true || displayStatus === "Yes") {
-      return <CheckCircle2 className="w-4 h-4 text-eims-success" title={detailText} />;
+      return (
+        <span title={detailText} className="inline-flex items-center">
+          <CheckCircle2 className="w-4 h-4 text-eims-success" />
+        </span>
+      );
     }
     if (displayStatus === "FAIL" || displayStatus === "Disabled" || displayStatus === "Stopped" || displayStatus === false || displayStatus === "No") {
-      return <XCircle className="w-4 h-4 text-eims-error" title={detailText} />;
+      return (
+        <span title={detailText} className="inline-flex items-center">
+          <XCircle className="w-4 h-4 text-eims-error" />
+        </span>
+      );
     }
     if (displayStatus === "WARNING") {
       return <span className="text-orange-500 font-medium text-xs" title={detailText}>WARN</span>;
@@ -466,5 +486,13 @@ export default function EndpointsDashboard() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function EndpointsDashboard() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-eims-text-muted">Loading Endpoints...</div>}>
+      <EndpointsDashboardContent />
+    </Suspense>
   );
 }

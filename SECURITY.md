@@ -39,3 +39,19 @@ Our Engineering Security Maintainers adhere to strict triage response targets up
 - **Mitigation Release Target:** Within **14 business days** for Critical vulnerabilities (CVE score >= 9.0), or within **30 business days** for Medium/High flaws.
 
 Once an official patch release is validated and distributed across our package registries, public acknowledgment will be credited to the reporting evaluator within our release notes unless anonymity is requested.
+
+---
+
+## 4. Security Boundaries & Authentication Modes
+
+EIMS architecture enforces strict environment-aware security boundaries via the `EIMS_AUTH_MODE` configuration:
+
+| Mode | Authorization Surface | Deployment Context & Constraints |
+| :--- | :--- | :--- |
+| **Demo Mode** (`EIMS_AUTH_MODE=demo`) | Normal dashboard navigation and evaluation writes permitted without authentication. | **Restricted to local development and trusted demonstration environments.** Must NEVER be routed to or exposed on untrusted public networks or commercial infrastructure. |
+| **Secure Mode** (`EIMS_AUTH_MODE=secure`) | Zero-trust authentication enforced. Protected endpoints require valid JWT. Administrative mutations require an authenticated user with `role == "admin"` or an authorized server-side `EIMS_ADMIN_TOKEN`. | **Mandatory for staging, production, and all internet-accessible deployments.** |
+
+### Secret Hygiene & Hardening Guarantees
+1. **Zero Hardcoded Secrets in Source Code**: No frontend bundle, client-side script, or public git artifact contains privileged admin tokens or private encryption keys.
+2. **Environment Secret Enforcement**: The FastAPI backend validates environment integrity during startup (`model_post_init`). If `ENVIRONMENT` is set to `staging` or `production`, the server strictly refuses to boot if `SECRET_KEY`, `JWT_SECRET_KEY`, `ADMIN_TOKEN`, or `ADMIN_PASSWORD` match development placeholder defaults.
+3. **Password Cryptography**: Operator passwords utilize PBKDF2-HMAC-SHA256 with cryptographically random 16-byte per-user salts. Plaintext credentials are never persisted to disk or database tables.

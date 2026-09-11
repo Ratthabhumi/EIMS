@@ -28,6 +28,7 @@ class SearchResult:
     url: str
     timestamp: Optional[datetime]
     relevance: float = 0.0
+    result_kind: str = "entity"
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -40,7 +41,7 @@ class SearchProvider(ABC):
     name: str = ""
 
     @abstractmethod
-    async def search(self, db: AsyncSession, query: str, limit: int) -> list[SearchResult]:
+    async def search(self, db: AsyncSession, query: str, limit: int = 10) -> list[SearchResult]:
         """
         Executes domain-specific matching against the supplied query string and
         returns up to `limit` results ordered by descending relevance.

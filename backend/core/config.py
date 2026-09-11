@@ -5,8 +5,8 @@ Governed by EIMS Documentation System (EDS v1.0.0)
 ==============================================================================
 """
 
-from typing import List
-from pydantic import Field
+from typing import List, Literal
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -50,10 +50,23 @@ class EIMSSettings(BaseSettings):
         description="Initial admin account password (hashed at first seed). Auto-generated when unset in the development tier; required in non-development tiers."
     )
     # Auth Mode: "demo" = no login required for normal operation; "secure" = authentication enforced
-    AUTH_MODE: str = Field(
+    AUTH_MODE: Literal["demo", "secure"] = Field(
         default="demo",
         description="Authentication mode: 'demo' (no login for normal use) or 'secure' (auth enforced)."
     )
+
+    @field_validator("AUTH_MODE", mode="before")
+    @classmethod
+    def validate_auth_mode(cls, v: str) -> str:
+        if isinstance(v, str):
+            val = v.strip().lower()
+            if val in ("demo", "secure"):
+                return val
+        raise ValueError("EIMS_AUTH_MODE must be either 'demo' or 'secure'.")
+
+    @property
+    def is_demo_mode(self) -> bool:
+        return self.AUTH_MODE == "demo"
     
     # MinIO Object Storage Configurations (Core Law 4 OCR Registration)
     MINIO_ENDPOINT: str = Field(default="localhost:9000", description="MinIO S3 Gateway endpoint")

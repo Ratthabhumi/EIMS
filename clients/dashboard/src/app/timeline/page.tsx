@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, History, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { TimelineEvent, type TimelineEventData } from "@/components/TimelineEvent";
@@ -35,12 +36,16 @@ const SEVERITIES = [
   { value: "Information", label: "Information" },
 ];
 
-export default function TimelineDashboard() {
+function TimelineDashboardContent() {
+  const searchParams = useSearchParams();
+  const initialType = searchParams.get("type") || "";
+  const entityId = searchParams.get("entity_id") || "";
+
   const [events, setEvents] = useState<TimelineEventData[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [eventType, setEventType] = useState("");
+  const [eventType, setEventType] = useState(initialType);
   const [severity, setSeverity] = useState("");
   const [page, setPage] = useState(1);
 
@@ -51,6 +56,7 @@ export default function TimelineDashboard() {
     const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
     if (eventType) params.set("type", eventType);
     if (severity) params.set("severity", severity);
+    if (entityId) params.set("entity_id", entityId);
 
     fetch(`${TIMELINE_ENDPOINT}?${params.toString()}`, { signal: controller.signal })
       .then(async (res) => {
@@ -203,5 +209,13 @@ export default function TimelineDashboard() {
         ) : null}
       </div>
     </div>
+  );
+}
+
+export default function TimelineDashboard() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-eims-text-muted">Loading Timeline...</div>}>
+      <TimelineDashboardContent />
+    </Suspense>
   );
 }

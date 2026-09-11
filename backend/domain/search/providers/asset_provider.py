@@ -6,7 +6,7 @@ Source-Available All Rights Reserved Policy
 ==============================================================================
 """
 
-from sqlalchemy import or_, select
+from sqlalchemy import String, cast, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.domain.asset_registry.models import InfrastructureAsset
@@ -16,28 +16,30 @@ from backend.domain.search.provider import SearchProvider, SearchResult
 class AssetSearchProvider(SearchProvider):
     """
     Primary Global Search domain. Applies partial substring matching on
-    `hostname` and `canonical_ip`, exact matching on `lifecycle_state` and
-    `cryptographic_fingerprint` (Sprint 10 contract §8.1).
+    `hostname`, `canonical_ip`, `cryptographic_fingerprint`, and
+    `offline_report_data`, alongside lifecycle state matching.
     """
     name = "asset"
 
     async def search(self, db: AsyncSession, query: str, limit: int) -> list[SearchResult]:
-        pattern = f"%{query}%"
+        cleaned = query.strip()
+        pattern = f"%{cleaned}%"
         stmt = (
             select(InfrastructureAsset)
             .where(
                 or_(
                     InfrastructureAsset.hostname.ilike(pattern),
                     InfrastructureAsset.canonical_ip.ilike(pattern),
-                    InfrastructureAsset.lifecycle_state == query,
-                    InfrastructureAsset.cryptographic_fingerprint == query,
+                    InfrastructureAsset.cryptographic_fingerprint.ilike(pattern),
+                    InfrastructureAsset.lifecycle_state.ilike(cleaned),
+                    cast(InfrastructureAsset.offline_report_data, String).ilike(pattern),
                 )
             )
             .order_by(InfrastructureAsset.hostname.asc())
             .limit(limit)
         )
         assets = (await db.execute(stmt)).scalars().all()
-        return [self._to_result(asset, query) for asset in assets]
+        return [self._to_result(asset, cleaned) for asset in assets]
 
     @staticmethod
     def _to_result(asset: InfrastructureAsset, query: str) -> SearchResult:
@@ -49,6 +51,7 @@ class AssetSearchProvider(SearchProvider):
             url=f"/endpoints?id={asset.asset_id}",
             timestamp=asset.updated_at or asset.created_at,
             relevance=AssetSearchProvider._compute_relevance(asset, query),
+            result_kind="entity",
             metadata={
                 "state": asset.lifecycle_state,
                 "compliance_score": asset.current_compliance_score,

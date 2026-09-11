@@ -18,6 +18,12 @@ from backend.domain.search.providers import (
     AnalysisSearchProvider,
     AssetSearchProvider,
     AuditLogSearchProvider,
+    EvaluationSearchProvider,
+    NavigationSearchProvider,
+    OcrSearchProvider,
+    TelemetrySearchProvider,
+    UsbAuditorSearchProvider,
+    WindowsEventLogSearchProvider,
 )
 from backend.domain.search.registry import SearchProviderRegistry
 from backend.domain.search.schemas import SearchResponse, SearchResultSchema
@@ -29,11 +35,17 @@ search_router = APIRouter(prefix="/api/v1", tags=["Global Search"])
 
 
 def _build_default_registry() -> SearchProviderRegistry:
-    """Constructs the canonical Sprint 10 SearchProvider registry (Asset, Audit, Analysis)."""
+    """Constructs the canonical Universal SearchProvider registry."""
     registry = SearchProviderRegistry()
+    registry.register(NavigationSearchProvider())
     registry.register(AssetSearchProvider())
     registry.register(AuditLogSearchProvider())
     registry.register(AnalysisSearchProvider())
+    registry.register(WindowsEventLogSearchProvider())
+    registry.register(UsbAuditorSearchProvider())
+    registry.register(OcrSearchProvider())
+    registry.register(TelemetrySearchProvider())
+    registry.register(EvaluationSearchProvider())
     return registry
 
 
@@ -50,13 +62,13 @@ async def get_search_service() -> GlobalSearchService:
     response_model=SearchResponse,
     status_code=200,
     summary="Cross-Domain Global Search",
-    description="Returns normalized search results across Asset, AuditLog, and Analysis domains.",
+    description="Returns normalized search results across EIMS operational and navigation domains.",
 )
 async def global_search(
     q: str = Query(..., min_length=2, max_length=200, description="Search query string (minimum 2 characters)."),
-    search_type: Optional[Literal["asset", "audit", "analysis"]] = Query(
-        None, alias="type", description="Filter results by entity type."
-    ),
+    search_type: Optional[
+        Literal["asset", "audit", "analysis", "winlog", "usb", "ocr", "telemetry", "evaluation", "navigation"]
+    ] = Query(None, alias="type", description="Filter results by entity or navigation type."),
     page: int = Query(1, ge=1, description="Requested page index offset."),
     limit: int = Query(20, ge=1, le=50, description="Max entities per pagination slice."),
     db: AsyncSession = Depends(get_db_session),

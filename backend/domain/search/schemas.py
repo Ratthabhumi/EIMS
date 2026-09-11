@@ -23,6 +23,7 @@ class SearchResultSchema(BaseModel):
     url: str = Field(..., description="Canonical frontend route for navigation.")
     timestamp: Optional[datetime] = Field(None, description="When the entity was created or updated (UTC).")
     relevance: float = Field(default=0.0, ge=0.0, le=1.0, description="0.0-1.0 relevance score.")
+    result_kind: str = Field(default="entity", description="Result category: navigation or entity.")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional flexible context.")
 
 

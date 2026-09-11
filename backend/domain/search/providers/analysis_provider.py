@@ -72,6 +72,7 @@ class AnalysisSearchProvider(SearchProvider):
             url="/analyzer",
             timestamp=row.created_at,
             relevance=relevance,
+            result_kind="entity",
             metadata={
                 "event_id": row.event_id,
                 "provider": provider,
