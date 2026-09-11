@@ -8,22 +8,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [v0.3.0] - 2026-09-11
 
-### Phase 12: Universal Global Search & Auth Hardening (Graduation Complete)
+### Phase 12.6: Universal Global Search & Auth Hardening (Graduation Complete)
 - **Universal Global Search & Command Center (`Ctrl+K` / `Cmd+K`)**:
   - Implemented dual result classification: `result_kind` (`navigation` | `entity`) preserving backward-compatible domain `type`.
   - Expanded search surface from 3 to 9 operational Search Providers: `NavigationSearchProvider`, `AssetSearchProvider`, `AuditLogSearchProvider`, `AnalysisSearchProvider`, `WindowsEventLogSearchProvider`, `UsbAuditorSearchProvider`, `OcrSearchProvider`, `TelemetrySearchProvider` (contextual anomaly/diagnostic discovery without bulk dumps), and `EvaluationSearchProvider`.
-  - Contextual deep-linking: direct navigation to `/endpoints?id=...`, `/timeline?type=...&entity_id=...`, `/ocr`, `/usb`, `/analyzer`, and `/evaluations`.
+  - Contextual deep-linking: direct navigation to `/endpoints?id=...`, `/timeline?type=...&entity_id=...`, `/ocr-history`, `/endpoints` (USB report modal), `/analyzer`, and `/evaluations/admin`.
   - Frontend Command Center UI: Grouped sections, badges, arrow-key navigation, enter-to-open, and query quick-filters.
 - **Authentication Hardening**:
   - Typed configuration `AUTH_MODE: Literal["demo", "secure"]` with Pydantic case-insensitive validation.
   - Demo Mode: Allows normal dashboard operation and evaluation writes without authentication or hardcoded tokens.
   - Secure Mode: Enforces strict zero-trust boundary. Admin write operations require valid Admin JWT (`role == "admin"`) or server-side `ADMIN_TOKEN`.
+  - Removed hardcoded `EIMS-ADMIN-TOKEN` from evaluations frontend pages.
   - Public default credentials sanitized in `.env.example` and `backend/core/config.py`.
 - **System Stability & Reliability**:
   - Redis PubSub background listener task safely cancelled and awaited during FastAPI lifespan shutdown, resolving test hang.
-  - Next.js frontend TypeScript errors resolved cleanly without `any` / `as any`.
+  - Next.js frontend TypeScript clean with zero errors (`npx tsc --noEmit`).
   - Real PostgreSQL database integration tests added (`tests/test_global_search_integration.py` and `tests/test_auth_modes.py`) with transaction rollback and zero destructive operations.
   - All 76 automated backend tests GREEN (including `test_closed_loop_telemetry_ingestion_and_batch_processing`).
+
+### Phase 12.7: AI Log Analyzer Operational Catalog, Dynamic Metrics & Visual Polish
+- **141 Operational Event Catalog**:
+  - Static read-only reference knowledge base covering 141 critical Windows, security, and infrastructure event definitions (Security 4625, 4624, 4740, 1102; System 7036, 6008, 41; PowerShell 4104; Defender 1116; Firewall 5152, etc.).
+  - Provenance isolation: catalog entries serve as reference definitions and are never conflated with runtime analyzed log metrics.
+- **Honest Metric Semantics**:
+  - `Total Logs Analyzed`: Derived strictly from `analysis_history` table (9 real records: 8 Windows event logs + 1 AI incident investigation).
+  - `Critical Errors`: Derived strictly from analyzed records (`AINC-2026-0910-0001` flagged critical = 1).
+  - Client-Side Latency: Replaced static `0.00s` with dynamic `performance.now()` measurement displaying session search average (e.g., 16 ms).
+- **Event Types by Category Analytics**:
+  - Horizontal bar chart classifying logs into 7 operator categories (Authentication, System, Account Management, Windows Update, Application, Security, Incident Investigation) totaling 9 records.
+- **Layout & Visual Polish**:
+  - Responsive `ResizeObserver` bottom alignment syncing the Result Panel flush with the Common Event IDs sidebar.
+  - Muted enterprise palette: softened electric blue, neon green, and bright purple into cohesive dark enterprise tones.
 
 ---
 

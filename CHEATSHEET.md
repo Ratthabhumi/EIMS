@@ -9,8 +9,8 @@ Welcome to the **Enterprise Infrastructure Management System (EIMS)**. This guid
 Before starting any code, ensure all backing services (PostgreSQL, PgBouncer, Redis, MinIO, Prometheus, Grafana, Loki) are running.
 
 ```powershell
-# Navigate to project root
-cd C:\Users\Ratthabhumi\Desktop\EIMS
+# Navigate to repository root
+cd <repository-root>
 
 # Start all infrastructure containers in detached mode
 docker-compose up -d
@@ -29,11 +29,11 @@ docker-compose ps
 
 ## 🐍 2. Start Backend API (FastAPI)
 
-The backend handles the Asset Registry, Telemetry Ingestion, and WebSocket streams. It uses `uvicorn` as the ASGI server.
+The backend handles the Asset Registry, Telemetry Ingestion, Search, Analyzer, and WebSocket streams. It uses `uvicorn` as the ASGI server.
 
 ```powershell
-# Open a NEW terminal
-cd C:\Users\Ratthabhumi\Desktop\EIMS
+# Open a NEW terminal at repository root
+cd <repository-root>
 
 # Activate the Virtual Environment
 .\venv\Scripts\activate
@@ -47,22 +47,27 @@ python -m uvicorn backend.main:app --reload
 - **Backend API URL**: [http://localhost:8000](http://localhost:8000)
 - **Interactive Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
+### Authentication Modes (`EIMS_AUTH_MODE`)
+- **Demo Mode** (Default): `EIMS_AUTH_MODE=demo` in `.env`. Dashboard navigation, log analysis, and evaluations work immediately without a login gate.
+- **Secure Mode**: `EIMS_AUTH_MODE=secure`. Protected routes enforce JWT verification; admin write operations require `role == "admin"` or `ADMIN_TOKEN`.
+
 *(Note: Keep this terminal open and running)*
 
 ---
 
 ## ⚛️ 3. Start Frontend Dashboard (Next.js)
 
-The Operational Dashboard provides a real-time UI to monitor registered endpoints and security alerts.
+The Operational Dashboard provides a real-time UI to monitor registered endpoints, security alerts, and operational tools.
 
 ```powershell
 # Open a NEW terminal
-cd C:\Users\Ratthabhumi\Desktop\EIMS\clients\dashboard
+cd clients/dashboard
 
 # Start the Next.js development server
 npm run dev
 ```
 - **Dashboard URL**: [http://localhost:3001](http://localhost:3001)
+- **Universal Search (Command Center)**: Press `Ctrl+K` or `Cmd+K` anywhere in the dashboard to search navigation routes, assets, audit trails, event logs, USB evidence, OCR records, and analysis history.
 
 *(Note: Keep this terminal open and running)*
 
@@ -70,14 +75,14 @@ npm run dev
 
 ## 📡 4. Simulating Telemetry (Discovery & Alerts)
 
-EIMS is event-driven. To see the dashboard populate with data, you need to simulate agent data.
+EIMS is event-driven. To see the dashboard populate with data, you can simulate agent data or upload operational reports.
 
 ### Option A: Use the Agent Simulator Script
-We have a Python simulator that continuously generates mock telemetry and pushes it to the backend.
+Continuous mock telemetry generator:
 
 ```powershell
-# Open a NEW terminal
-cd C:\Users\Ratthabhumi\Desktop\EIMS
+# Open a NEW terminal at repository root
+cd <repository-root>
 .\venv\Scripts\activate
 
 # Run the agent simulator
@@ -97,36 +102,36 @@ Invoke-RestMethod -Uri "http://localhost:8000/api/v1/telemetry/winlog" -Method P
 ```
 
 ### Option C: Import USB Auditor Report
-You can import an offline JSON payload containing hardware and security specs into the USB Auditor.
+You can import an offline JSON payload containing hardware and security specs into the USB Auditor:
 ```powershell
-# Using curl to upload the generated USB auditor report
-curl.exe -v -F "file=@C:\Users\Ratthabhumi\Desktop\EIMS\clients\usb_auditor\reports\report_name.json" http://localhost:8000/api/v1/assets/import-report
+# Using curl to upload a USB auditor report
+curl.exe -v -F "file=@clients/usb_auditor/reports/sample_report.json" http://localhost:8000/api/v1/assets/import-report
 ```
-*Note: You can also use the **Import Offline Report** button or launch executable directly via **[Client Agents Hub](http://localhost:3001/agents)** in the web UI.*
+*Note: You can view imported USB evidence in the **Endpoint Auditor** modal ([http://localhost:3001/endpoints](http://localhost:3001/endpoints)) or inspect agent scripts in **[Client Agents Hub](http://localhost:3001/agents)**.*
 
 ### Option D: Upload Sticker OCR Image
-You can simulate scanning a hardware asset's sticker via the REST API to trigger background OCR parsing.
+Upload a physical hardware sticker photo to trigger background OCR parsing:
 ```powershell
-# Using curl to upload a mock sticker image
-curl.exe -v -F "file=@C:\path\to\your\sticker.jpg" -H "X-Client-Cert-Fingerprint: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" http://localhost:8000/api/v1/assets/ocr-upload
+# Using curl to upload a sticker image
+curl.exe -v -F "file=@path/to/sticker.jpg" -H "X-Client-Cert-Fingerprint: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" http://localhost:8000/api/v1/assets/ocr-upload
 ```
-*Note: You can view these processed images and their results in the **Sticker OCR** dashboard UI ([http://localhost:3001/ocr-history](http://localhost:3001/ocr-history)).*
+*Note: Processed sticker records and extracted metadata appear in the **Sticker OCR History** dashboard ([http://localhost:3001/ocr-history](http://localhost:3001/ocr-history)).*
 
 ---
 
 ## 📋 5. Service Evaluation System (QR & Admin)
 
-The Service Evaluation System allows you to generate dynamic QR codes for post-service customer satisfaction surveys.
+The Service Evaluation System enables post-service customer satisfaction surveys.
 
 **1. Create a Service Session (Admin):**
-Via Dashboard UI: Go to **Admin -> Evaluations** and click "New Session".
-Via API:
+- Via Web UI: Navigate to **[Evaluations Admin](http://localhost:3001/evaluations/admin)** and click "New Session".
+- Via API:
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8000/api/v1/evaluations/sessions" -Method Post -Headers @{"Content-Type"="application/json"} -Body '{"title": "Network Troubleshooting", "customer_name": "KYB", "engineer_name": "MEW"}'
 ```
 
 **2. Access Mobile QR Form:**
-Scan the generated QR Code on the Admin page, or manually navigate to the generated Next.js URL (e.g. `http://localhost:3001/evaluate/<SESSION_ID>`).
+Scan the generated QR Code on the Admin page, or navigate to `http://localhost:3001/evaluate/<SESSION_ID>`.
 
 ---
 
@@ -134,7 +139,7 @@ Scan the generated QR Code on the Admin page, or manually navigate to the genera
 
 The AI Log Analyzer provides intelligent Root Cause Analysis (RCA) across Windows, Linux, JSON, and Firewall logs with Local Semantic Vector Search.
 
-**1. Analyze a Raw Log via cURL (API):**
+**1. Analyze a Raw Log via API:**
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8000/api/v1/analyze/" -Method Post -Form @{
     text = "Event ID: 41 Source: Microsoft-Windows-Kernel-Power The system has rebooted without cleanly shutting down first."
@@ -142,29 +147,28 @@ Invoke-RestMethod -Uri "http://localhost:8000/api/v1/analyze/" -Method Post -For
 }
 ```
 
-**2. Run Enterprise Benchmark Test Suite (10 Real-world Windows Scenarios):**
+**2. Query Analyzer Statistics & Operational Catalog (API):**
 ```powershell
-python backend\test_enterprise_benchmark.py
+# Get analytics metrics & 7-day daily trends (derived from actual analysis_history)
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/history/stats" -Method Get
+
+# Fetch complete 141 Operational Event Catalog (read-only reference knowledge)
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/history/catalog" -Method Get
 ```
 
-**3. Run Multi-Platform Benchmark Test Suite (Linux, JSON, Fortinet, Cisco):**
+**3. Access via Web Dashboard:**
+Navigate to [http://localhost:3001/analyzer](http://localhost:3001/analyzer) to search the 141-event catalog, view 7-day volume trends, and inspect event category analytics.
+
+**4. Run Non-Destructive Unit Verification Suites:**
 ```powershell
+# Run standalone Windows log analyzer benchmark (10 scenarios)
+python backend\test_enterprise_benchmark.py
+
+# Run multi-platform benchmark (Linux, JSON, Fortinet, Cisco)
 python backend\test_multi_platform_benchmark.py
 ```
 
-**4. Access via Web Dashboard:**
-Navigate to [http://localhost:3001/analyzer](http://localhost:3001/analyzer) to upload `.evtx`, `.xml`, `.csv`, `.log`, or paste text / screenshot images directly.
-- **Operational Event Catalog**: Complete 141 Windows/Security event knowledge base searchable offline with real-time measured latency.
-- **Real-time Analytics**: View 7-day volume trends and event category breakdowns (Authentication, System, Security, etc.) derived from real analysis records.
-
-**5. Query Analyzer Statistics & Operational Catalog (API):**
-```powershell
-# Get analytics metrics & 7-day daily trends
-Invoke-RestMethod -Uri "http://localhost:8000/api/v1/history/stats" -Method Get
-
-# Fetch complete 141 Operational Event Catalog
-Invoke-RestMethod -Uri "http://localhost:8000/api/v1/history/catalog" -Method Get
-```
+> ⚠️ **CRITICAL BENCHMARK SAFETY**: Do NOT execute high-scale synthetic benchmark scripts (such as `tools/sprint11_benchmark.py`) against your primary application database. The benchmark script contains destructive setup operations and requires a dedicated, isolated database specified via `EIMS_BENCHMARK_DATABASE_URL`. It will refuse to run against any database ending in `registry`.
 
 ---
 
@@ -180,22 +184,20 @@ docker-compose down
 docker-compose down -v
 ```
 
-For the Frontend and Backend terminals, simply click into the terminal and press `Ctrl + C` to stop the running process.
+For Frontend and Backend terminals, press `Ctrl + C` in the respective terminal window.
 
 ---
 
 ## 🔧 8. Troubleshooting
 
-If you encounter errors after pulling the latest code from the repository:
-
 **1. Backend `ModuleNotFoundError` (e.g. `requests`)**
-- Cause: New Python dependencies were added.
-- Fix: Run `pip install -r requirements.txt` in the virtual environment.
+- Cause: Missing Python dependencies.
+- Fix: Run `pip install -r requirements.txt` in your virtual environment.
 
 **2. Frontend `Module not found` (e.g. `react-hot-toast`)**
-- Cause: New Node.js packages were added.
+- Cause: Missing Node.js packages.
 - Fix: Navigate to `clients/dashboard` and run `npm install`.
 
 **3. Telemetry Worker Database Errors (e.g. `ForeignKeyViolationError`)**
-- Cause: The database was cleared or migrated, but the Redis cache and `simulate_traffic.py` are still using old Asset UUIDs.
+- Cause: The database was re-migrated, but the Redis cache still holds stale Asset UUIDs.
 - Fix: Flush the Redis cache (`docker-compose exec redis_cache redis-cli FLUSHALL`) and restart `simulate_traffic.py` to register fresh endpoints.

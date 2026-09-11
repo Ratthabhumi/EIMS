@@ -141,8 +141,6 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 
 ---
 
-## 🏃 Upcoming Phases
-
 ### ✅ Phase 12.2: Auth Boundary / Access Hardening
 - **Goal**: Implement explicit Demo Mode / Secure Mode boundary.
 - **Accomplishments**:
@@ -236,3 +234,38 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 - **Layout Height Alignment & UX Polish**:
   - Responsive `ResizeObserver` sync (`xl:h-[var(--left-col-height)]`) guaranteeing the right Result Panel bottom aligns flush with the left sidebar's Common Event IDs panel (zero page-level scrolling)
   - Muted enterprise theme: softened electric blue, neon green, and bright purple accents into an elegant dark enterprise palette while retaining semantic color identities
+
+---
+
+## 🔭 Future / Post-Graduation Roadmap
+
+> **Status Legend**:
+> - ✅ **Completed**: Implemented, verified in test suites, and delivered in release `v0.3.0`.
+> - ⏳ **Deferred**: Conceptually scoped in initial Master Plan (formerly referenced as Sprint 7+), intentionally deferred past graduation hardening.
+> - 💡 **Future / Unimplemented**: Planned enterprise capabilities for post-graduation product lifecycle stages; not implemented in the current repository.
+
+### ⏳ Milestone 1: High Availability & Enterprise Scale Production Clustering (Deferred)
+*Note: Originally forecasted in early planning as "Sprint 7+", production clustering was deferred to focus on core platform verifiability, data recovery, search, and graduation hardening. These items are NOT currently implemented.*
+
+- **Database High Availability**:
+  - PostgreSQL Read-Replica cluster configuration with streaming replication.
+  - PgBouncer automatic read/write routing and connection failover.
+- **Distributed Caching & Brokering**:
+  - Redis Sentinel / Redis Cluster high-availability broker configuration.
+  - Broker partition tolerance and automated split-brain recovery testing.
+- **Container Orchestration**:
+  - Multi-node Kubernetes (K8s) deployment manifests and production Helm charts.
+  - Pod horizontal autoscaling (HPA) for telemetry ingestion workers.
+- **Disaster Recovery**:
+  - Automated point-in-time recovery (PITR) pipelines and off-site backup replication.
+
+### 💡 Milestone 2: Enterprise Commercialization & Advanced Integrations (Future)
+- **Enterprise Single Sign-On (SSO)**:
+  - SAML 2.0 and OpenID Connect (OIDC) integration for Active Directory / Okta.
+  - Granular Role-Based Access Control (RBAC) policy administration UI.
+- **Large-Scale Fleet Management**:
+  - Distributed Discovery Agent deployment management across 10,000+ endpoints.
+  - Agent auto-update and certificate rotation automation.
+- **Automated Regulatory Compliance Engines**:
+  - CIS Benchmark Level 1 & 2 automated rule evaluations.
+  - Automated exportable audit reports for ISO 27001, PCI-DSS, and HIPAA frameworks.

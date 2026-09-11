@@ -2,8 +2,9 @@
 
 [![License: All Rights Reserved](https://img.shields.io/badge/License-All%20Rights%20Reserved-red.svg)](LICENSE)
 [![Licensing Model](https://img.shields.io/badge/Model-Source--Available-E11D48.svg)](NOTICE)
+[![Canonical Release](https://img.shields.io/badge/Release-v0.3.0-0284C7.svg)](CHANGELOG.md)
 [![EDS Constitution](https://img.shields.io/badge/EDS%20Constitution-v1.0.0%20Approved-047857.svg)](docs/index.md)
-[![Build Status](https://img.shields.io/badge/Build-Active%20Development-1E40AF.svg)](CHANGELOG.md)
+[![Build Status](https://img.shields.io/badge/Build-Graduation%20Hardening-1E40AF.svg)](CHANGELOG.md)
 
 **EIMS (Enterprise Infrastructure Management System)** is an enterprise-grade platform engineered to centralize compute infrastructure discovery, hardware inventory tracking, automated optical character recognition (OCR) asset registration, continuous Windows log diagnostics, rules-based compliance auditing, and live operational visibility.
 
@@ -32,7 +33,7 @@
 
 ## 🚧 Project Status
 
-This project is in pre-graduation hardening. Core platform features are complete.
+The project is currently at canonical release **`v0.3.0`** (Graduation Hardening Complete). Core platform features and Phase 12 hardening are fully implemented.
 
 - **Sprint 0 – Documentation Foundation** ✅
 - **Sprint 1 – Engineering Specifications** ✅
@@ -110,10 +111,10 @@ flowchart LR
 EIMS features a unified Command Center modal that searches operational navigation routes and deep domain evidence simultaneously:
 
 - **Two Result Classes (`result_kind`)**:
-  - `navigation`: Direct routing to verified pages (`/dashboard`, `/endpoints`, `/observability`, `/timeline`, `/compliance`, `/analyzer`, `/usb`, `/ocr`, `/evaluations`, `/settings`).
+  - `navigation`: Direct routing to verified application pages (`/`, `/endpoints`, `/observability`, `/timeline`, `/analyzer`, `/evaluations/admin`, `/evaluate`, `/agents`, `/ocr-history`, `/settings`).
   - `entity`: Deep-linking to specific asset records, audit trails, event logs, USB devices, or OCR records with context filters.
 - **9 Specialized Search Providers**:
-  1. **Navigation Provider**: Maps intent to routes (`timeline` → `/timeline`, `analyzer` → `/analyzer`, `usb` → `/usb`, `ocr` → `/ocr`).
+  1. **Navigation Provider**: Maps intent to verified application routes (`timeline` → `/timeline`, `analyzer` → `/analyzer`, `usb` → `/endpoints`, `ocr` → `/ocr-history`, `agents` → `/agents`).
   2. **Asset Provider**: Searches hostname, IP, MAC, serial, model, vendor in `infrastructure_assets`.
   3. **Audit Log Provider**: Traces security actions, actors, and payload metadata in `audit_logs`.
   4. **Analysis Provider**: Retrieves historical AI diagnostics, summaries, and remediations from `analysis_history`.
