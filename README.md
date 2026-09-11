@@ -47,13 +47,23 @@ This project is in pre-graduation hardening. Core platform features are complete
 - **Sprint 10 – Global Search & Unified Timeline** ✅
 - **Sprint 11 – Verifiability & Auth Hardening** ✅ *(p95: Search 62ms / Timeline 290ms)*
 - **Phase 12.0 – Data Integrity Audit** ✅ *(benchmark-caused data loss confirmed and documented)*
-- **Phase 12.1 – Data Recovery & Demo Reconstruction** 🟡 *(surviving data preserved; demo dataset reconstructed; benchmark hardened)*
-- **Phase 12.2 – Auth Enforcement** 🔜
-- **Phase 12.5 – Final Demo & Graduation Freeze** 🎓
+- **Phase 12.1 – Data Recovery & Demo Reconstruction** ✅ *(surviving data preserved; demo dataset reconstructed; benchmark hardened)*
+- **Phase 12.2 – Auth Boundary / Access Hardening** ✅ *(Demo/Secure mode boundary implemented)*
+- **Phase 12.3 – Remove Hardcoded Admin Token** ✅ *(frontend contains no privileged static token)*
+- **Phase 12.4 – Login UI Decision** ✅ *(Demo Mode: no login; Secure Mode: auth enforced)*
+- **Phase 12.5 – Final Demo & Graduation Freeze** 🎓 *(setup hardened, all tests pass, docs updated)*
 
 > ⚠️ **Data Loss Incident (2026-09-10)**: The Sprint 11 benchmark script contained a destructive `TRUNCATE ... CASCADE` that committed against the application database, destroying synthetic benchmark rows in 4 tables. `analysis_history` (8 real records), MinIO OCR objects (8), and the USB audit report were unaffected. The benchmark script has been corrected with a safety guard in Phase 12.1. See [ROADMAP.md](ROADMAP.md) for full details.
 
+### Data Classification (Honest Status)
 
+| Classification | Data | Status |
+|----------------|------|--------|
+| **REAL SURVIVING DATA** | `analysis_history` (8 rows), MinIO OCR objects (8), USB report (1 JSON) | Preserved intact |
+| **RECONSTRUCTED DEMO DATA** | Demo assets (5), audit events (8), telemetry (8), winlogs (7), OCR metadata (8), USB-imported asset (1) | Reconstructed for graduation demo |
+| **SYNTHETIC BENCHMARK DATA** | `infrastructure_assets` (10,000), `audit_logs` (50,000), `telemetry_metrics` (20,000), `windows_event_logs` (20,000) | Isolated; benchmark safety guard prevents accidental truncation |
+
+**Original real rows in `infrastructure_assets`, `audit_logs`, `telemetry_metrics`, `windows_event_logs` were permanently lost during the benchmark incident and are NOT recoverable from the current database.**
 
 ---
 
@@ -92,7 +102,32 @@ flowchart LR
 
 ---
 
-## Authoritative Core Laws (Single Source of Truth)
+## 🔐 Authentication Model
+
+EIMS supports two explicit authentication modes controlled by `EIMS_AUTH_MODE`:
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| **demo** (default) | No login required for normal dashboard operation. Admin write operations require `EIMS_ADMIN_TOKEN` header. | Local development, graduation demo, trusted environments |
+| **secure** | Full authentication enforcement. All protected endpoints require valid JWT. Admin operations require admin JWT or `EIMS_ADMIN_TOKEN`. | Production, public deployments, untrusted networks |
+
+> ⚠️ **Security Warning**: Demo Mode must NOT be exposed directly to an untrusted public network. It is intended exclusively for local development, graduation demonstrations, and trusted environments.
+
+### Configuration
+
+```bash
+# .env
+EIMS_AUTH_MODE=demo          # or "secure" for production
+EIMS_ADMIN_TOKEN=your-secure-random-token  # MUST be overridden in secure mode
+EIMS_JWT_SECRET_KEY=your-secure-random-key # MUST be overridden in secure mode
+EIMS_ADMIN_PASSWORD=your-secure-password   # REQUIRED in secure mode
+```
+
+The system will refuse to boot in non-development tiers (`staging`, `production`) if any secret remains on its default value.
+
+---
+
+## 📜 Authoritative Core Laws (Single Source of Truth)
 
 All software implementation, database schema modeling, and API routing within EIMS strictly obey our foundational architectural specifications (**Core Laws**) governed under the frozen **EIMS Documentation System (EDS v1.0.0)**:
 

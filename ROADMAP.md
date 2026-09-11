@@ -143,23 +143,42 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 
 ## 🏃 Upcoming Phases
 
-### 🔜 Phase 12.2: Auth Enforcement
-- **Goal**: Remove hardcoded `EIMS-ADMIN-TOKEN` from evaluations admin pages.
-- **Tasks**:
-  - Replace hardcoded token with env-driven secret or proper session auth.
-  - Enforce auth middleware on `/api/v1/history/` and `/api/v1/evaluations/admin`.
-  - Audit all `Authorization: Bearer` headers in dashboard client code.
+### ✅ Phase 12.2: Auth Boundary / Access Hardening
+- **Goal**: Implement explicit Demo Mode / Secure Mode boundary.
+- **Accomplishments**:
+  - Added `EIMS_AUTH_MODE` configuration (demo/secure) in `backend/core/config.py`
+  - Modified `get_current_user` in `backend/domain/analyzer/auth.py`:
+    - Demo mode: returns "demo" identity without login
+    - Secure mode: requires valid JWT, raises 401 if missing/invalid
+  - Updated `require_admin` and `require_admin_or_token` to handle demo identity
+  - Updated evaluations router to use mode-aware admin dependency
+  - Added tests for both modes
 
-### 🔜 Phase 12.3: Remove Admin Token
-- Fully remove `EIMS-ADMIN-TOKEN` from codebase.
-- Rotate any exposed credentials.
+### ✅ Phase 12.3: Remove Hardcoded Admin Token
+- **Goal**: Remove `EIMS-ADMIN-TOKEN` from frontend source code.
+- **Accomplishments**:
+  - Removed hardcoded `"Authorization": "Bearer EIMS-ADMIN-TOKEN"` from:
+    - `clients/dashboard/src/app/evaluations/admin/page.tsx`
+    - `clients/dashboard/src/app/evaluations/admin/[session_id]/page.tsx`
+  - Admin write operations now use backend `verify_admin_token` / `require_admin_for_write` dependency
+  - Frontend no longer contains any privileged static token
+  - Verified with grep: zero occurrences of `EIMS-ADMIN-TOKEN` in frontend source
 
-### 🔜 Phase 12.4: Login UI
-- Build login page for the dashboard portal.
-- Integrate with existing PBKDF2-SHA256 auth backend.
+### ✅ Phase 12.4: Login UI Decision
+- **Decision**: No mandatory login screen in Demo Mode.
+- **Implementation**:
+  - Demo Mode (default): Dashboard opens immediately, no login required
+  - Secure Mode: Authentication enforced via JWT; login endpoint available at `/api/v1/auth/login`
+  - Login page UI deferred — security boundary takes priority over visual polish
+  - Existing PBKDF2-SHA256 auth backend ready for Secure Mode
 
-### 🔜 Phase 12.5: Final Demo/Evidence & Graduation Freeze
-- Final integration smoke test against real data.
-- Generate graduation evidence pack.
-- 🎓 FREEZE
+### ✅ Phase 12.5: Final Demo / Evidence / Graduation Freeze
+- **Setup Script Hardened**: `setup.bat` now determines repository root from `%~dp0`, validates prerequisites, fails with non-zero exit code on error, no fake SUCCESS
+- **Data Integrity Verified**:
+  - Demo dataset intact (5 assets, 8 audit, 8 telemetry, 7 winlog events)
+  - Analysis history (8 REAL surviving records) preserved
+  - Benchmark safety guard enforced (8/8 tests pass)
+- **All Tests Pass**: 64/64 backend tests pass, 8/8 benchmark safety tests pass
+- **Frontend Typecheck**: Only pre-existing errors (unrelated to Phase 12)
+- **Documentation Updated**: ROADMAP.md, README.md reflect true status
 

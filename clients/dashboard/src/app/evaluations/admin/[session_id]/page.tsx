@@ -66,9 +66,7 @@ export default function EvaluationDetails() {
     try {
       const res = await fetch(`http://localhost:8000/api/v1/evaluations/responses/${evaluationId}`, {
         method: "DELETE",
-        headers: {
-          "Authorization": "Bearer EIMS-ADMIN-TOKEN"
-        }
+        headers: { "Content-Type": "application/json" }
       });
       if (res.ok) {
         toast.success("Response deleted successfully", { id: toastId });

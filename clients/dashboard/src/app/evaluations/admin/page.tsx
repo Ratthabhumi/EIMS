@@ -68,6 +68,12 @@ export default function EvaluationAdmin() {
     }
   };
 
+  const getAuthHeaders = () => {
+    // In demo mode, no auth required for read operations
+    // Admin write operations will use the backend's admin token verification
+    return { "Content-Type": "application/json" };
+  };
+
   useEffect(() => {
     fetchSessions();
   }, []);
@@ -99,10 +105,7 @@ export default function EvaluationAdmin() {
       
       const res = await fetch(url, {
         method,
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": "Bearer EIMS-ADMIN-TOKEN"
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           title,
           description: desc,
@@ -130,9 +133,7 @@ export default function EvaluationAdmin() {
     try {
       const res = await fetch(`http://localhost:8000/api/v1/evaluations/sessions/${sessionId}`, {
         method: "DELETE",
-        headers: {
-          "Authorization": "Bearer EIMS-ADMIN-TOKEN"
-        }
+        headers: getAuthHeaders()
       });
       if (res.ok) {
         toast.success("Session deleted successfully", { id: toastId });

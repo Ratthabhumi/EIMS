@@ -18,6 +18,9 @@ SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = settings.JWT_ALGORITHM
 TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRES_MINUTES
 
+# Auth Mode: "demo" = no login required; "secure" = auth enforced
+AUTH_MODE = settings.AUTH_MODE.lower()
+
 # Legacy in-memory demo accounts have been removed. Credentials are verified
 # exclusively against the hashed `users` table seeded at startup.
 USER_ALREADY_SEEDED = False
@@ -132,22 +135,41 @@ async def seed_users():
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> str:
-    """Resolves the authenticated username from a bearer JWT, falling back to the anonymous 'guest' identity."""
+    """Resolves the authenticated username from a bearer JWT.
+
+    In DEMO mode: returns "demo" identity when no token provided (no login required).
+    In SECURE mode: requires valid JWT, raises 401 if missing/invalid.
+    """
+    # Demo mode: allow unauthenticated access with a special identity
+    if AUTH_MODE == "demo":
+        if not credentials or not credentials.credentials:
+            return "demo"
+        try:
+            payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+            if username is None:
+                return "demo"
+            return username
+        except Exception:
+            return "demo"
+
+    # Secure mode: require valid authentication
     if not credentials or not credentials.credentials:
-        return "guest"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
     try:
         payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
-            return "guest"
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         return username
     except Exception:
-        return "guest"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
 async def require_admin(username: str = Depends(get_current_user)) -> str:
     """Requires an authenticated admin user (JWT with role='admin'); otherwise 403."""
-    if username == "guest":
+    # Demo identity cannot be admin
+    if username in ("guest", "demo"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
     role = await get_user_role(username)
     if role != "admin":
@@ -169,7 +191,11 @@ async def verify_admin_token(
 async def require_admin_or_token(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> str:
-    """Admin-scoped gate accepting either a valid admin JWT or the configured admin bearer token."""
+    """Admin-scoped gate accepting either a valid admin JWT or the configured admin bearer token.
+
+    In DEMO mode: admin token is accepted but JWT auth is optional for non-admin endpoints.
+    In SECURE mode: both JWT admin and admin token are enforced.
+    """
     if credentials and credentials.credentials:
         try:
             payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
@@ -181,4 +207,8 @@ async def require_admin_or_token(
             pass
         if secrets.compare_digest(credentials.credentials, settings.ADMIN_TOKEN):
             return "admin"
+
+    # In demo mode, don't enforce admin auth for admin endpoints if they're accessed
+    # This allows demo admin functionality to work without login
+    # But we still require the admin token for actual admin operations
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")

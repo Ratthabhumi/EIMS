@@ -49,6 +49,11 @@ class EIMSSettings(BaseSettings):
         default=None,
         description="Initial admin account password (hashed at first seed). Auto-generated when unset in the development tier; required in non-development tiers."
     )
+    # Auth Mode: "demo" = no login required for normal operation; "secure" = authentication enforced
+    AUTH_MODE: str = Field(
+        default="demo",
+        description="Authentication mode: 'demo' (no login for normal use) or 'secure' (auth enforced)."
+    )
     
     # MinIO Object Storage Configurations (Core Law 4 OCR Registration)
     MINIO_ENDPOINT: str = Field(default="localhost:9000", description="MinIO S3 Gateway endpoint")
@@ -85,6 +90,8 @@ class EIMSSettings(BaseSettings):
         overrides_missing = [name for name, default in dev_defaults.items() if getattr(self, name) == default]
         if self.ADMIN_PASSWORD is None:
             overrides_missing.append("ADMIN_PASSWORD")
+        if self.AUTH_MODE == "demo":
+            overrides_missing.append("AUTH_MODE (must be 'secure' in production)")
         if overrides_missing:
             raise RuntimeError(
                 f"Refusing to boot EIMS in '{self.ENVIRONMENT}' tier without explicit secrets. "
