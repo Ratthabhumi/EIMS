@@ -31,7 +31,7 @@ echo ===================================================
 echo   [4/4] Spawning Backend and Frontend Servers...
 echo ===================================================
 :: Start Backend in a new terminal window
-start "EIMS Backend (FastAPI)" cmd /k "venv\Scripts\activate && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
+start "EIMS Backend (FastAPI)" cmd /k "venv\Scripts\python.exe -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
 
 :: Start Frontend Dashboard in a new terminal window
 start "EIMS Dashboard (Next.js)" cmd /k "cd clients\dashboard && npm run dev -- -p 3001"

@@ -30,6 +30,7 @@ MANIFEST
 # Virtual Environments
 venv/
 .venv/
+venv_backup_*/
 env/
 .env
 .env.*

@@ -168,7 +168,7 @@ python backend\test_enterprise_benchmark.py
 python backend\test_multi_platform_benchmark.py
 ```
 
-> ⚠️ **CRITICAL BENCHMARK SAFETY**: Do NOT execute high-scale synthetic benchmark scripts (such as `tools/sprint11_benchmark.py`) against your primary application database. The benchmark script contains destructive setup operations and requires a dedicated, isolated database specified via `EIMS_BENCHMARK_DATABASE_URL`. It will refuse to run against any database ending in `registry`.
+> ⚠️ **CRITICAL BENCHMARK SAFETY**: Do NOT execute high-scale synthetic benchmark scripts (such as `tools/sprint11_benchmark.py`) against your primary application database. The benchmark script contains destructive setup operations and requires a dedicated, isolated database specified via `EIMS_BENCHMARK_DATABASE_URL`. Registry-targeting is blocked by default. An explicit dangerous override exists for exceptional operator-controlled use and must never be used against the normal EIMS application database.
 
 ---
 

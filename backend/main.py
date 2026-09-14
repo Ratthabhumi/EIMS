@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Asynchronous lifecycle context manager handling core connection bootstrapping
     and graceful termination across relational and in-memory persistence tiers.
     """
-    logger.info("Initializing EIMS Core Gateway Services (v0.2.0-dev)...")
+    logger.info("Initializing EIMS Core Gateway Services (v0.3.0)...")
     logger.info(f"Connecting to Postgres Relational Pool at: {settings.DB_HOST}:{settings.DB_PORT}")
     await database_engine.initialize()
     
@@ -91,7 +91,7 @@ app = FastAPI(
         "hardware inventory tracking, automated OCR asset registration, continuous Windows log analysis, "
         "and rules-based compliance auditing. Governed strictly under EDS v1.0.0 and Core Law 5."
     ),
-    version="0.2.0-dev",
+    version="0.3.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",

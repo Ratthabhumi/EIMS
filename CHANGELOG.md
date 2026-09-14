@@ -31,8 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - Static read-only reference knowledge base covering 141 critical Windows, security, and infrastructure event definitions (Security 4625, 4624, 4740, 1102; System 7036, 6008, 41; PowerShell 4104; Defender 1116; Firewall 5152, etc.).
   - Provenance isolation: catalog entries serve as reference definitions and are never conflated with runtime analyzed log metrics.
 - **Honest Metric Semantics**:
-  - `Total Logs Analyzed`: Derived strictly from `analysis_history` table (9 real records: 8 Windows event logs + 1 AI incident investigation).
-  - `Critical Errors`: Derived strictly from analyzed records (`AINC-2026-0910-0001` flagged critical = 1).
+  - `Total Logs Analyzed`: Derived strictly from `analysis_history` table. Graduation baseline: 9 `analysis_history` records total (8 real surviving historical records + 1 synthetic AI demo incident); runtime history may grow as new analyses are performed.
+  - `Critical Errors`: Derived strictly from analyzed records. Graduation baseline critical count: 1 (`AINC-2026-0910-0001` flagged `isCritical: true`); runtime critical count may grow with subsequent analyses.
   - Client-Side Latency: Replaced static `0.00s` with dynamic `performance.now()` measurement displaying session search average (e.g., 16 ms).
 - **Event Types by Category Analytics**:
   - Horizontal bar chart classifying logs into 7 operator categories (Authentication, System, Account Management, Windows Update, Application, Security, Incident Investigation) totaling 9 records.

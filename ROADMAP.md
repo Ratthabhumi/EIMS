@@ -120,7 +120,7 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 ### 🟡 Phase 12.1: Data Recovery & Demo Reconstruction
 - **Status**: Complete — original real data NOT recoverable from DB; surviving sources preserved and demo data reconstructed.
 - **Backup**: `backups/eims_pre_recovery_20260910_162200.dump` (~5 MB, PostgreSQL custom format, gitignored).
-- **Benchmark Safety Fixed**: `tools/sprint11_benchmark.py` now requires `EIMS_BENCHMARK_DATABASE_URL` and refuses to run against any database whose name ends in `registry`. Safety guard tested by `tests/test_benchmark_safety.py` (8/8 PASS).
+- **Benchmark Safety Fixed**: `tools/sprint11_benchmark.py` now requires `EIMS_BENCHMARK_DATABASE_URL` and blocks databases ending in `registry` by default (with an explicit dangerous override for exceptional operator-controlled use). Safety guard tested by `tests/test_benchmark_safety.py` (8/8 PASS).
 - **Demo Dataset Reconstructed** (non-destructive, alongside benchmark rows):
   - 5 demo assets: AI-WORKER-001, KEL-PROD-WEB-01, KEL-PROD-DB-01, SECURITY-SIEM-01, KEL-OFFICE-PC-001
   - 8 audit events (coherent incident story: GPU spike → AUTH_FAILURE → SIEM alert → analysis)
@@ -215,8 +215,8 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
   - Full operational descriptions, categories, keyword indexes, related events, and administrator mitigation advice
   - Strict provenance isolation: catalog items serve as reference knowledge and are never counted as runtime analyzed logs
 - **Data Integrity & Metric Semantics**:
-  - `Total Logs Analyzed`: Derived strictly from the `analysis_history` table (9 real records: 8 Windows event logs + 1 AI incident investigation)
-  - `Critical Errors`: Derived strictly from actual analyzed records (`AINC-2026-0910-0001` flagged with `isCritical: true` = 1)
+  - `Total Logs Analyzed`: Derived strictly from the `analysis_history` table. Graduation baseline: 9 `analysis_history` records total (8 real surviving historical records + 1 synthetic AI demo incident). Runtime history may grow as additional analyses are performed
+  - `Critical Errors`: Derived strictly from actual analyzed records. Graduation baseline critical count: 1 (`AINC-2026-0910-0001` flagged with `isCritical: true`). Runtime critical count may grow with subsequent analyses
   - `Avg Search Time`: Replaced static/misleading `0.00s` with honest dynamic `performance.now()` client-side latency measurement. Displays `—` initially, then averages all real user searches performed in the session (e.g., 16 ms)
 - **Event Types by Category Analytics**:
   - Replaced coarse provider chart with a horizontal bar chart (`BarChart layout="vertical"`)

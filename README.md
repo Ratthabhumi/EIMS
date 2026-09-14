@@ -62,7 +62,8 @@ The project is currently at canonical release **`v0.3.0`** (Graduation Hardening
 
 | Classification | Data | Status |
 |----------------|------|--------|
-| **REAL SURVIVING DATA** | `analysis_history` (8 real rows + 1 real AI incident), MinIO OCR objects (8), USB report (1 JSON) | Preserved intact |
+| **REAL SURVIVING DATA** | `analysis_history` (8 real surviving historical records), MinIO OCR objects (8), USB report (1 JSON) | Preserved intact |
+| **SYNTHETIC AI DEMO** | `analysis_history` incident `AINC-2026-0910-0001` (1 synthetic investigation row + linked demo evidence) | Graduation/demo baseline (total 9 `analysis_history` records: 8 real surviving historical records + 1 synthetic AI demo). Runtime `analysis_history` grows as operators perform new analyses |
 | **OPERATIONAL EVENT KNOWLEDGE** | Static catalog (141 common Windows/security event definitions) | Read-only reference index; isolated from runtime analytics |
 | **RECONSTRUCTED DEMO DATA** | Demo assets (5), audit events (8), telemetry (8), winlogs (7), OCR metadata (8), USB-imported asset (1) | Reconstructed for graduation demo |
 | **SYNTHETIC BENCHMARK DATA** | `infrastructure_assets` (10,000), `audit_logs` (50,000), `telemetry_metrics` (20,000), `windows_event_logs` (20,000) | Isolated; benchmark safety guard prevents accidental truncation |
