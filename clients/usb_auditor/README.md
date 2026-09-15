@@ -32,6 +32,8 @@ USB_Auditor/
 │   ├── services.py            # Windows Services audit
 │   ├── registry.py            # Registry security checks (UAC, RDP, SMBv1)
 │   └── compliance.py          # Score aggregation engine
+├── sync/
+│   └── eims_sync.py           # One-shot, offline-first auto-sync to EIMS
 ├── exporters/
 │   ├── json_exporter.py       # Per-machine JSON report
 │   └── excel_exporter.py      # Aggregate all JSONs → Summary.xlsx
@@ -67,6 +69,81 @@ python main.py --export
 # Only export Summary.xlsx from existing reports (no scan)
 python main.py --only-export
 ```
+
+---
+
+## 🔄 Auto-Sync to EIMS (offline-first)
+
+After a scan completes, the auditor optionally pushes the **just-saved JSON
+report** to a running EIMS backend so the endpoint record is updated without a
+manual file upload.
+
+> ⚠️ **Auto-sync is convenience, NOT a requirement.** The JSON report is always
+> written to disk locally **first** and remains the authoritative copy. If EIMS
+> is unreachable, the audit still completes normally and you can manually
+> import the same JSON file later — the manual import UI on the EIMS dashboard
+> is unaffected.
+
+### How it works
+
+1. The audit runs exactly as before (steps `[1/8]`–`[7/8]`).
+2. `[7/8]` saves the JSON report to `reports/` (local save always wins).
+3. `[8/8]` makes **one** upload attempt to the existing EIMS endpoint:
+   `POST {EIMS_API_URL}/api/v1/assets/import-report` (multipart field `file`).
+4. Success → the EIMS asset record is upserted (existing asset updated, no
+   duplicate records for repeated scans).
+5. Failure (backend offline, timeout, HTTP 4xx/5xx, bad response) → a short
+   `[WARN]` is shown and the audit **continues with the same exit code** it
+   would have had without sync. **Nothing is retried** — one attempt per run.
+
+### Configuration (environment variables)
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `EIMS_AUTO_SYNC` | `true` | Enable auto-sync. Enabled values (case-insensitive): `1`, `true`, `yes`, `on`. Anything else (or empty) disables it. |
+| `EIMS_API_URL` | `http://localhost:8000` | Base URL of the EIMS backend. Trailing slash is optional. |
+
+Examples:
+
+```powershell
+# Offline / portable USB use — never touch the network
+$env:EIMS_AUTO_SYNC = "false"
+python main.py
+
+# Point at a specific EIMS backend
+$env:EIMS_API_URL = "https://eims.internal:8443"
+python main.py
+```
+
+### Failure behavior
+
+| Situation | Result |
+|-----------|--------|
+| EIMS disabled (`EIMS_AUTO_SYNC=false`) | `[SKIP]` — no network request, audit complete |
+| Backend offline / Docker stopped / DNS / connection refused | `[WARN]` — local report preserved, manual import available |
+| Timeout (bounded to 8s total) | `[WARN]` — local report preserved |
+| HTTP 400/401/403/5xx | `[WARN]` — local report preserved, nothing logged that contains report contents |
+| Invalid response body | Ignored safely — report is already saved locally |
+
+The auditor's exit code (`0` Compliant / `1` Non-Compliant / `2` fatal) is
+driven **only** by audit/compliance results. An upload success or failure never
+changes it.
+
+### Authentication
+
+The EIMS backend currently runs in **demo mode** (`EIMS_AUTH_MODE=demo`), where
+the import endpoint accepts reports without credentials — matching the manual
+upload UI. This client sends **no** token, API key, or password. If EIMS is
+later configured in **secure mode** (and no machine-to-machine credential is
+provisioned for this endpoint), the server rejects the upload with an HTTP 4xx
+and auto-sync fails safely; the local report is never destroyed or invalidated.
+Configure whatever existing EIMS auth mechanism applies before relying on
+auto-sync in a hardened environment.
+
+### Delivery guarantee
+
+Auto-sync is a best-effort convenience link. It does **not** guarantee delivery
+or retry; for guaranteed ingestion use the manual import flow.
 
 ---
 
@@ -187,6 +264,7 @@ reports/COMPUTERNAME_20250106_143022.json
 - **openpyxl** — Excel export
 - **winreg** — Registry access (built-in)
 - **subprocess** — PowerShell integration (built-in)
+- **urllib** — EIMS auto-sync HTTP (built-in, no new dependency)
 
 ---
 

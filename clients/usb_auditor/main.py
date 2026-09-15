@@ -38,6 +38,7 @@ from scanner.setup_verify   import get_setup_verify_info
 from scanner.compliance     import calculate_compliance
 from exporters.json_exporter  import save_report
 from exporters.excel_exporter import export_summary
+from sync.eims_sync           import sync_report
 
 
 # ── Logging Setup ────────────────────────────────────────────────────────────
@@ -150,12 +151,18 @@ def run_scan(logger: logging.Logger) -> int:
         4. Audit Registry
         5. Post-clone Setup Verification
         6. Calculate compliance score
-        7. Save JSON report
+        7. Save JSON report (always LOCAL FIRST)
+        8. One-shot, non-fatal EIMS auto-sync (if enabled)
+
+    Auto-sync is convenience only. If EIMS is unreachable, the local JSON
+    report is preserved untouched and manual import remains available.
 
     Returns:
         Exit code: 0 = Compliant, 1 = Non-Compliant, 2 = Fatal error
+        Exit code is driven ONLY by audit/compliance results, never by
+        auto-sync upload status.
     """
-    print("\n[1/7] Collecting system information...")
+    print("\n[1/8] Collecting system information...")
     try:
         system = get_system_info()
         print(f"      [OK]  Computer : {system['computer_name']}")
@@ -165,7 +172,7 @@ def run_scan(logger: logging.Logger) -> int:
         logger.critical("FATAL: Could not collect system info: %s", exc)
         return 2
 
-    print("\n[2/7] Auditing Windows Security...")
+    print("\n[2/8] Auditing Windows Security...")
     try:
         security = get_security_info()
         for name, result in security.items():
@@ -180,7 +187,7 @@ def run_scan(logger: logging.Logger) -> int:
         logger.critical("FATAL: Security scan failed: %s", exc)
         return 2
 
-    print("\n[3/7] Auditing Windows Services...")
+    print("\n[3/8] Auditing Windows Services...")
     try:
         services = get_services_info()
         for svc_name, result in services.items():
@@ -195,7 +202,7 @@ def run_scan(logger: logging.Logger) -> int:
         logger.critical("FATAL: Services scan failed: %s", exc)
         return 2
 
-    print("\n[4/7] Auditing Registry...")
+    print("\n[4/8] Auditing Registry...")
     try:
         registry = get_registry_info()
         for key_name, result in registry.items():
@@ -205,7 +212,7 @@ def run_scan(logger: logging.Logger) -> int:
         logger.critical("FATAL: Registry scan failed: %s", exc)
         return 2
 
-    print("\n[5/7] Verifying Post-Clone Setup...")
+    print("\n[5/8] Verifying Post-Clone Setup...")
     try:
         setup_verify = get_setup_verify_info()
         for check_name, result in setup_verify.items():
@@ -220,7 +227,7 @@ def run_scan(logger: logging.Logger) -> int:
         logger.critical("FATAL: Setup verification failed: %s", exc)
         return 2
 
-    print("\n[6/7] Calculating Compliance Score...")
+    print("\n[6/8] Calculating Compliance Score...")
     try:
         compliance = calculate_compliance(security, services, registry, setup_verify)
         score   = compliance["score"]
@@ -235,13 +242,37 @@ def run_scan(logger: logging.Logger) -> int:
         logger.critical("FATAL: Compliance calculation failed: %s", exc)
         return 2
 
-    print("\n[7/7] Saving JSON Report...")
+    print("\n[7/8] Saving JSON Report...")
     try:
         report_path = save_report(system, security, services, registry, compliance, setup_verify)
         print(f"      [OK]  Saved: {report_path}")
     except OSError as exc:
         logger.critical("FATAL: Could not save report: %s", exc)
         return 2
+
+    # ── One-shot, non-fatal EIMS auto-sync (offline-first) ────────────────
+    # Local save already succeeded above, so a sync failure can NEVER lose
+    # data. A sync error is logged and warned about — never fatal.
+    print("\n[8/8] Syncing with EIMS...")
+    try:
+        sync_result = sync_report(report_path)
+    except Exception as exc:  # defensive: auto-sync must never fail the audit
+        logger.error("Unexpected auto-sync error: %s", exc)
+        sync_result = None
+
+    if sync_result is None:
+        print("      [WARN] EIMS auto-sync skipped (unexpected error)")
+        print("      [OK]  Report remains saved locally")
+        print("      [INFO] Manual import can be used later")
+    elif not sync_result.attempted:
+        print("      [SKIP] Auto-sync disabled (EIMS_AUTO_SYNC=false)")
+    elif sync_result.success:
+        print("      [OK]  Backend reachable")
+        print(f"      [OK]  {sync_result.message}")
+    else:
+        print(f"      [WARN] {sync_result.message}")
+        print("      [OK]  Report remains saved locally")
+        print("      [INFO] Manual import can be used later")
 
     # Return exit code based on compliance verdict
     return 0 if verdict == "Compliant" else 1

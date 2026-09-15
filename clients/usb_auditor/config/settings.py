@@ -9,6 +9,7 @@ Design Principle:
     Supports easy extension in Version 2/3 without touching scanner logic.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -36,6 +37,32 @@ LOGS_DIR.mkdir(parents=True, exist_ok=True)
 # ─────────────────────────────────────────────
 
 LOG_FILE: Path = LOGS_DIR / "auditor.log"   # fallback (used if called outside main)
+
+# ─────────────────────────────────────────────
+# EIMS Auto-Sync (offline-first convenience)
+# ─────────────────────────────────────────────
+# Auto-sync is CONVENIENCE, never a requirement. The JSON report is always
+# saved locally first and the audit always completes without it.
+#
+# EIMS_AUTO_SYNC  → enabled values (case-insensitive): 1, true, yes, on.
+#                   anything else (or empty) disables auto-sync.
+#                   Defaults to enabled for the local EIMS project workflow;
+#                   failure is strictly non-fatal, so an unreachable backend
+#                   never blocks an audit.
+# EIMS_API_URL    → base URL of the EIMS backend (no trailing slash needed).
+EIMS_AUTO_SYNC_DEFAULT: str = "true"
+EIMS_API_URL: str = os.getenv("EIMS_API_URL", "http://localhost:8000").strip().rstrip("/")
+
+
+def _parse_flag(raw: str) -> bool:
+    """Parse an enabled-value flag: 1, true, yes, on (case-insensitive)."""
+    return raw.strip().lower() in ("1", "true", "yes", "on")
+
+
+def is_auto_sync_enabled() -> bool:
+    """Return True when EIMS_AUTO_SYNC is one of: 1, true, yes, on (case-insensitive)."""
+    return _parse_flag(os.getenv("EIMS_AUTO_SYNC", EIMS_AUTO_SYNC_DEFAULT))
+
 
 # ─────────────────────────────────────────────
 # Compliance Score Weights
