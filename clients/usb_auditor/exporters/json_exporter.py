@@ -39,6 +39,7 @@ def save_report(
     registry: dict,
     compliance: dict,
     setup_verify: dict | None = None,
+    event_logs: dict | None = None,
 ) -> Path:
     """
     Assemble all scan results into a single report dict and save as JSON.
@@ -98,6 +99,9 @@ def save_report(
         "compliance_score": compliance["score"],
         "compliance":       compliance,
     }
+
+    if event_logs is not None:
+        report["event_logs"] = event_logs
 
     # ── Write JSON ───────────────────────────────────────────────────────────
     # indent=2   → human-readable (important for audit review)

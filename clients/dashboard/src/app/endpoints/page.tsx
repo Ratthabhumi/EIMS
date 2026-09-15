@@ -161,6 +161,15 @@ function EndpointsDashboardContent() {
   };
 
   const [launchingAgent, setLaunchingAgent] = useState(false);
+  const [assetHistory, setAssetHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!selectedAsset) { setAssetHistory([]); return; }
+    fetch(`http://localhost:8000/api/v1/history?asset_id=${selectedAsset.asset_id}`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setAssetHistory(Array.isArray(data) ? data : []))
+      .catch(() => setAssetHistory([]));
+  }, [selectedAsset?.asset_id]);
 
   const handleLaunchAgent = async () => {
     setLaunchingAgent(true);
@@ -516,6 +525,76 @@ function EndpointsDashboardContent() {
                 </div>
               </div>
             </div>
+
+            {/* Sprint 13: Event Evidence & AI Findings Section */}
+            {(selectedAsset.offline_report_data?.event_logs || assetHistory.length > 0) && (
+              <div className="mt-6 pt-4 border-t border-eims-border">
+                <h4 className="text-sm font-semibold text-eims-text flex items-center gap-2 border-b border-eims-border pb-2 mb-4">
+                  <Clock className="w-4 h-4 text-red-400" />
+                  Event Evidence & AI Findings
+                </h4>
+                {selectedAsset.offline_report_data?.event_logs && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                    <div className="bg-eims-bg rounded-md px-3 py-2 border border-eims-border">
+                      <div className="text-eims-text-muted text-xs">Collected</div>
+                      <div className="text-eims-text font-semibold text-lg">{selectedAsset.offline_report_data.event_logs.collected ?? "N/A"}</div>
+                    </div>
+                    <div className="bg-eims-bg rounded-md px-3 py-2 border border-eims-border">
+                      <div className="text-eims-text-muted text-xs">Time Window</div>
+                      <div className="text-eims-text font-medium">{selectedAsset.offline_report_data.event_logs.collection_hours ?? "N/A"}h</div>
+                    </div>
+                    <div className="bg-eims-bg rounded-md px-3 py-2 border border-eims-border">
+                      <div className="text-eims-text-muted text-xs">Channels</div>
+                      <div className="text-eims-text font-medium text-xs">{(selectedAsset.offline_report_data.event_logs.channels || []).join(", ")}</div>
+                    </div>
+                    <div className="bg-eims-bg rounded-md px-3 py-2 border border-eims-border">
+                      <div className="text-eims-text-muted text-xs">Collection Status</div>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border mt-0.5 ${
+                        selectedAsset.offline_report_data.event_logs.status === "ok"
+                          ? "bg-eims-success/10 text-eims-success border-eims-success/20"
+                          : "bg-eims-error/10 text-eims-error border-eims-error/20"
+                      }`}>
+                        {selectedAsset.offline_report_data.event_logs.status ?? "unknown"}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {assetHistory.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr>
+                          <th className="px-3 py-2 text-eims-text-muted uppercase tracking-wider border-b border-eims-border">Event ID</th>
+                          <th className="px-3 py-2 text-eims-text-muted uppercase tracking-wider border-b border-eims-border">Provider</th>
+                          <th className="px-3 py-2 text-eims-text-muted uppercase tracking-wider border-b border-eims-border">Severity</th>
+                          <th className="px-3 py-2 text-eims-text-muted uppercase tracking-wider border-b border-eims-border">Summary</th>
+                          <th className="px-3 py-2 text-eims-text-muted uppercase tracking-wider border-b border-eims-border">Analyzed</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-eims-border/50">
+                        {assetHistory.map((h: any) => (
+                          <tr key={h.id} className="hover:bg-eims-surface-subtle/30">
+                            <td className="px-3 py-2 font-mono text-eims-text">{h.eventId}</td>
+                            <td className="px-3 py-2 text-eims-text-secondary">{h.provider}</td>
+                            <td className="px-3 py-2">
+                              <span className={`font-medium ${h.eventMetadata?.isCritical ? "text-eims-error" : "text-eims-text-secondary"}`}>
+                                {h.eventMetadata?.level || "N/A"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 text-eims-text-secondary truncate max-w-[250px]" title={h.aiSummary}>
+                              {h.aiSummary ? h.aiSummary.substring(0, 100) + (h.aiSummary.length > 100 ? "..." : "") : "—"}
+                            </td>
+                            <td className="px-3 py-2 text-eims-text-muted">{h.created_at ? new Date(h.created_at).toLocaleDateString() : "N/A"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-eims-text-muted text-xs italic">No AI findings yet. Analysis runs automatically when a report with event evidence is imported.</p>
+                )}
+              </div>
+            )}
 
             <div className="mt-8 pt-4 border-t border-eims-border flex justify-end gap-3">
               <button 

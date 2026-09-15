@@ -43,6 +43,7 @@ class AssetResponse(BaseModel):
     created_at: Optional[datetime] = Field(None, description="Record initial ingestion timestamp (UTC).")
     updated_at: Optional[datetime] = Field(None, description="Timestamp of most recent attribute mutation.")
     offline_report_data: Optional[dict] = Field(None, description="Full raw JSON report uploaded from offline Auditor tools.")
+    event_ingestion: Optional[dict] = Field(None, description="Sprint 13 offline event evidence ingestion counters (set only when the report carried event_logs).")
 
 
 class PaginationMetadata(BaseModel):

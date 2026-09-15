@@ -30,12 +30,34 @@ async def get_operational_catalog(
 async def get_all_history(
     db: AsyncSession = Depends(get_db),
     _user: str = Depends(get_current_user),
+    asset_id: Optional[str] = None,
 ):
-    history_records = (await db.execute(select(AnalysisHistory).order_by(AnalysisHistory.created_at.desc()))).scalars().all()
+    stmt = select(AnalysisHistory)
+    if asset_id:
+        from sqlalchemy import cast
+        from sqlalchemy.dialects.postgresql import JSONB as PGJSONB
+        stmt = stmt.filter(
+            cast(AnalysisHistory.event_metadata, PGJSONB)["asset_id"].astext == asset_id
+        )
+    history_records = (await db.execute(stmt.order_by(AnalysisHistory.created_at.desc()))).scalars().all()
     results = []
     for record in history_records:
         solution = SolutionSummary(**record.solution_summary) if record.solution_summary else None
         metadata = EventMetadata(**record.event_metadata) if record.event_metadata else None
+        provenance = None
+        if record.event_metadata:
+            meta = record.event_metadata
+            if meta.get("source_type") or meta.get("asset_id"):
+                provenance = {
+                    "source_type": meta.get("source_type"),
+                    "source_subtype": meta.get("source_subtype"),
+                    "asset_id": meta.get("asset_id"),
+                    "event_source_id": meta.get("event_source_id"),
+                    "channel": meta.get("channel"),
+                    "provider": meta.get("provider"),
+                    "record_id": meta.get("record_id"),
+                    "occurrence_time": meta.get("occurrence_time"),
+                }
         results.append({
             "id": record.id,
             "eventId": record.event_id,
@@ -51,6 +73,7 @@ async def get_all_history(
             "username": record.username,
             "feedback_by": record.feedback_by,
             "feedback_score": record.feedback_score,
+            "provenance": provenance,
         })
     return results
 

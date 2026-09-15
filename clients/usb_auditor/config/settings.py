@@ -59,9 +59,42 @@ def _parse_flag(raw: str) -> bool:
     return raw.strip().lower() in ("1", "true", "yes", "on")
 
 
+def _clamp_int(value: int, lo: int, hi: int) -> int:
+    """Clamp an integer to [lo, hi]."""
+    return max(lo, min(hi, value))
+
+
 def is_auto_sync_enabled() -> bool:
     """Return True when EIMS_AUTO_SYNC is one of: 1, true, yes, on (case-insensitive)."""
     return _parse_flag(os.getenv("EIMS_AUTO_SYNC", EIMS_AUTO_SYNC_DEFAULT))
+
+
+# ─────────────────────────────────────────────
+# Windows Event Log Collection (Sprint 13)
+# ─────────────────────────────────────────────
+# Bounded evidence collection for offline AI analysis.
+# Collection failure is ALWAYS non-fatal — audit continues.
+#
+# EIMS_EVENT_LOG_ENABLED     → true/false (default: true)
+# EIMS_EVENT_LOG_HOURS       → 1..168 (default: 24)
+# EIMS_EVENT_LOG_MAX_RECORDS → 1..5000 (default: 500)
+
+def _parse_int_env(raw: str, default: int) -> int:
+    """Parse an integer from env, returning default on failure."""
+    try:
+        return int(raw.strip())
+    except (ValueError, AttributeError):
+        return default
+
+EVENT_LOG_ENABLED: bool = _parse_flag(os.getenv("EIMS_EVENT_LOG_ENABLED", "true"))
+EVENT_LOG_HOURS: int = _clamp_int(
+    _parse_int_env(os.getenv("EIMS_EVENT_LOG_HOURS", "24"), 24),
+    1, 168
+)
+EVENT_LOG_MAX_RECORDS: int = _clamp_int(
+    _parse_int_env(os.getenv("EIMS_EVENT_LOG_MAX_RECORDS", "500"), 500),
+    1, 5000
+)
 
 
 # ─────────────────────────────────────────────
