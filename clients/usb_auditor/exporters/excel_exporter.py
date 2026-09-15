@@ -61,7 +61,10 @@ COLUMNS: list[tuple[str, list[str], int]] = [
     ("Firewall",         ["security", "firewall", "status"],                        12),
     ("Defender",         ["security", "defender", "status"],                        12),
     ("BitLocker",        ["security", "bitlocker", "status"],                       12),
-    ("BitLocker Key",    ["security", "bitlocker", "recovery_key"],                 50),
+    ("BitLocker Protection", ["security", "bitlocker", "protection_status"],        14),
+    ("BitLocker Encrypt %",  ["security", "bitlocker", "encryption_percentage"],    13),
+    ("BitLocker Method",     ["security", "bitlocker", "encryption_method"],        15),
+    ("Recovery Protector",   ["security", "bitlocker", "recovery_protector_present"], 16),
     ("Windows Update",   ["security", "windows_update", "status"],                  16),
     ("WinDefend Svc",    ["services", "WinDefend", "status"],                       16),
     ("BITS Svc",         ["services", "BITS", "status"],                            12),
@@ -126,12 +129,33 @@ def _thin_border() -> Border:
     return Border(left=thin, right=thin, top=thin, bottom=thin)
 
 
+# ── Secret-Sensitive Field Guard ─────────────────────────────────────────────
+# Key names that must NEVER be exported to Summary.xlsx. The scanner no longer
+# produces them; this guard also strips them from any legacy report loaded from
+# disk so a stale file can never leak into a new workbook. Disk/DB files are
+# NEVER modified — only the in-memory copy used for export.
+SECRET_KEYS = ("recovery_key", "recovery_password", "recoverypassword")
+
+
+def _strip_secret_keys(data: object) -> object:
+    """
+    Recursively remove any key whose name matches SECRET_KEYS from a report
+    dict (copy-safe: only affects the passed-in parsed structure).
+    """
+    if isinstance(data, dict):
+        return {k: _strip_secret_keys(v) for k, v in data.items() if k not in SECRET_KEYS}
+    if isinstance(data, list):
+        return [_strip_secret_keys(item) for item in data]
+    return data
+
+
 def _load_reports() -> list[dict]:
     """
     Load all JSON report files from the reports/ directory.
 
     Skips files that cannot be parsed (corrupted/incomplete).
     Returns a list of report dicts sorted by scan timestamp (oldest first).
+    Any secret-sensitive keys present in legacy files are stripped in memory.
     """
     report_files = sorted(REPORTS_DIR.glob("*.json"))
 
@@ -144,7 +168,7 @@ def _load_reports() -> list[dict]:
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                reports.append(data)
+                reports.append(_strip_secret_keys(data))
         except (json.JSONDecodeError, OSError) as exc:
             logger.warning("Skipping corrupted report '%s': %s", filepath.name, exc)
 
@@ -208,6 +232,12 @@ def export_summary() -> Path:
         "Computer Name (Serial)", "Timezone", "SentinelOne", "WiFi Profiles", "New Outlook", "Xbox",
     }
     VERDICT_COLUMN = "Verdict"
+    BITLOCKER_PROTECTION_FILL = {
+        "On": "PASS",
+        "Off": "FAIL",
+        "Unknown": "WARNING",
+        "Unavailable": "FAIL",
+    }
 
     for row_idx, report in enumerate(reports, start=2):
         # Alternating row background
@@ -239,8 +269,28 @@ def export_summary() -> Path:
                     cell.fill = PatternFill(fill_type="solid", fgColor=COLORS["noncompliant"])
                     cell.font = Font(name="Calibri", bold=True, size=10, color="FFFFFFFF")
 
+            # BitLocker protection status (On/Off/Unknown/Unavailable)
+            elif header_text == "BitLocker Protection":
+                mapped = BITLOCKER_PROTECTION_FILL.get(str(value).strip(), "UNKNOWN")
+                cell.fill = _status_fill(mapped)
+                cell.font = Font(name="Calibri", bold=True, size=10, color="FFFFFFFF")
+
+            # Recovery protector presence (safe, non-secret boolean)
+            elif header_text == "Recovery Protector":
+                present = str(value).lower() == "true"
+                cell.fill = _status_fill("PASS" if present else "UNKNOWN")
+                cell.font = Font(
+                    name="Calibri", bold=True, size=10,
+                    color="FFFFFFFF" if present else "FF000000",
+                )
+
             # Compliance score — bold
             elif header_text == "Compliance Score":
+                cell.fill = row_fill
+                cell.font = Font(name="Calibri", bold=True, size=10)
+
+            # BitLocker encryption percentage — bold
+            elif header_text == "BitLocker Encrypt %":
                 cell.fill = row_fill
                 cell.font = Font(name="Calibri", bold=True, size=10)
 

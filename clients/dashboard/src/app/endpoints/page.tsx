@@ -142,6 +142,15 @@ function EndpointsDashboardContent() {
     return <span className="text-eims-text-secondary truncate max-w-[100px]" title={detailText}>{String(displayStatus)}</span>;
   };
 
+  // Display-only compliance label for the BitLocker check. Never shows a key.
+  const bitlockerLabel = (bl: any) => {
+    const s = typeof bl === "object" && bl !== null ? bl.status : bl;
+    if (s === "PASS") return "COMPLIANT";
+    if (s === "WARNING") return "REVIEW";
+    if (s === "FAIL") return "NON-COMPLIANT";
+    return "UNKNOWN";
+  };
+
   const [launchingAgent, setLaunchingAgent] = useState(false);
 
   const handleLaunchAgent = async () => {
@@ -416,13 +425,38 @@ function EndpointsDashboardContent() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-eims-text-secondary">BitLocker</span>
-                    <StatusIcon status={selectedAsset.offline_report_data?.security?.bitlocker || "Unknown"} />
+                    <span className="flex items-center gap-2">
+                      <StatusIcon status={selectedAsset.offline_report_data?.security?.bitlocker || "Unknown"} />
+                      <span className={`text-xs font-medium ${
+                        selectedAsset.offline_report_data?.security?.bitlocker?.status === "PASS" ? "text-eims-success"
+                        : selectedAsset.offline_report_data?.security?.bitlocker?.status === "FAIL" ? "text-eims-error"
+                        : "text-eims-text-secondary"
+                      }`}>
+                        {bitlockerLabel(selectedAsset.offline_report_data?.security?.bitlocker)}
+                      </span>
+                    </span>
                   </div>
-                  <div>
-                    <div className="text-eims-text-muted text-xs mb-1">BitLocker Key</div>
-                    <div className="text-eims-text font-mono text-xs truncate" title={selectedAsset.offline_report_data?.security?.bitlocker?.recovery_key}>
-                      {selectedAsset.offline_report_data?.security?.bitlocker?.recovery_key || "N/A"}
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-eims-text-secondary">BitLocker Protection</span>
+                    <span className="text-eims-text font-mono text-xs">{selectedAsset.offline_report_data?.security?.bitlocker?.protection_status || "N/A"}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-eims-text-secondary">Volume Status</span>
+                    <span className="text-eims-text font-mono text-xs">{selectedAsset.offline_report_data?.security?.bitlocker?.volume_status || "N/A"}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-eims-text-secondary">Encryption</span>
+                    <span className="text-eims-text font-mono text-xs">
+                      {selectedAsset.offline_report_data?.security?.bitlocker?.encryption_percentage != null
+                        ? `${selectedAsset.offline_report_data?.security?.bitlocker?.encryption_percentage}%`
+                        : "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-eims-text-secondary">Recovery Protector</span>
+                    <span className="text-eims-text font-mono text-xs">
+                      {selectedAsset.offline_report_data?.security?.bitlocker?.recovery_protector_present === true ? "Present" : "None"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-eims-border/50">
                     <span className="text-eims-text-secondary">UAC Enabled</span>

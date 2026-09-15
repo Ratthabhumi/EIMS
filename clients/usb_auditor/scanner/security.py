@@ -229,19 +229,186 @@ def _check_defender() -> dict:
     }
 
 
+# ── BitLocker Constants ───────────────────────────────────────────────────────
+
+# PowerShell one-liner that gathers ONLY safe, non-secret BitLocker fields.
+# SECURITY CONTRACT:
+#   - Never selects, expands, prints, or returns a RecoveryPassword value.
+#   - Key protectors are filtered by KeyProtectorType and COUNTED — the
+#     protector's secret material is never read.
+#   - Output format is one "Key=Value" line per field, which Python parses.
+_BITLOCKER_PS_COMMAND = r"""
+$vol = Get-BitLockerVolume -MountPoint 'C:' -ErrorAction SilentlyContinue
+if ($null -eq $vol) {
+    Write-Output 'BITLOCKER_AVAILABLE=False'
+} else {
+    $rp = @()
+    try {
+        $rp = @($vol.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' })
+    } catch {}
+
+    $method = 'None'
+    if ($null -ne $vol.EncryptionMethod) { $method = $vol.EncryptionMethod.ToString() }
+
+    $tpm = Get-Tpm -ErrorAction SilentlyContinue
+
+    [string]$tpmPresent = 'False'
+    [string]$tpmReady   = 'False'
+    if ($null -ne $tpm) {
+        $tpmPresent = $tpm.TpmPresent.ToString()
+        $tpmReady   = $tpm.TpmReady.ToString()
+    }
+
+    Write-Output 'BITLOCKER_AVAILABLE=True'
+    Write-Output ('VolumeStatus=' + $vol.VolumeStatus)
+    Write-Output ('ProtectionStatus=' + $vol.ProtectionStatus)
+    Write-Output ('EncryptionPercentage=' + $vol.EncryptionPercentage)
+    Write-Output ('EncryptionMethod=' + $method)
+    Write-Output ('RecoveryProtectorCount=' + $rp.Count)
+    Write-Output ('TpmPresent=' + $tpmPresent)
+    Write-Output ('TpmReady=' + $tpmReady)
+}
+"""
+
+
+def _parse_bitlocker_output(output: str) -> dict:
+    """
+    Parse the "Key=Value" output emitted by _BITLOCKER_PS_COMMAND.
+
+    Keys are strictly whitelisted (fail-safe): any unexpected line is
+    DISCARDED so unknown/secret material can never leak into the report.
+    """
+    fields: dict = {"bitlocker_available": False}
+
+    bool_keys = {"TpmPresent": "tpm_present", "TpmReady": "tpm_ready"}
+
+    for line in output.splitlines():
+        line = line.strip()
+        if "=" not in line:
+            continue
+        key, _, raw_value = line.partition("=")
+        key = key.strip()
+        value = raw_value.strip()
+
+        if key == "BITLOCKER_AVAILABLE":
+            fields["bitlocker_available"] = value.lower() == "true"
+        elif key == "VolumeStatus":
+            fields["volume_status"] = value
+        elif key == "ProtectionStatus":
+            fields["protection_status"] = value
+        elif key == "EncryptionMethod":
+            fields["encryption_method"] = value
+        elif key == "EncryptionPercentage":
+            fields["encryption_percentage"] = int(value) if value.isdigit() else 0
+        elif key == "RecoveryProtectorCount":
+            fields["recovery_protector_count"] = int(value) if value.isdigit() else 0
+        elif key in bool_keys:
+            fields[bool_keys[key]] = value.lower() == "true"
+        # Any other key (e.g. a stray RecoveryPassword line) is ignored.
+
+    return fields
+
+
+def _evaluate_bitlocker(fields: dict) -> dict:
+    """
+    Convert parsed BitLocker fields into a compliance verdict.
+
+    Scoring logic (preserves PASS / WARNING / FAIL):
+        PASS    → ProtectionStatus On, volume FullyEncrypted, 100%, recovery
+                  protector present.
+        WARNING → Encryption in progress, protection unknown, suspension
+                  suspected, or protection on without a recovery protector.
+        FAIL    → Not encrypted, decryption in progress, or BitLocker
+                  unavailable (Home edition).
+
+    Returns:
+        Only NON-SECRET fields. A recovery password is never retrieved,
+        therefore it can never appear in this dict.
+    """
+    if not fields.get("bitlocker_available"):
+        return {
+            "status": "FAIL",
+            "detail": "BitLocker not available (requires Windows Pro/Enterprise)",
+            "protection_status": "Unavailable",
+            "volume_status": "Unavailable",
+            "encryption_percentage": None,
+            "encryption_method": None,
+            "recovery_protector_present": False,
+            "recovery_protector_count": 0,
+            "tpm_present": False,
+            "tpm_ready": False,
+        }
+
+    volume      = fields.get("volume_status", "Unknown")
+    protection  = fields.get("protection_status", "Unknown")
+    progress    = fields.get("encryption_percentage")
+    rp_count    = fields.get("recovery_protector_count", 0)
+
+    base = {
+        "protection_status":         protection,
+        "volume_status":             volume,
+        "encryption_percentage":     progress,
+        "encryption_method":         fields.get("encryption_method"),
+        "recovery_protector_present": rp_count > 0,
+        "recovery_protector_count":   rp_count,
+        "tpm_present": fields.get("tpm_present", False),
+        "tpm_ready":   fields.get("tpm_ready", False),
+    }
+
+    if volume in ("EncryptionInProgress", "EncryptionPaused"):
+        pct = f" ({progress}%)" if progress is not None and progress < 100 else ""
+        return {
+            "status": "WARNING",
+            "detail": f"BitLocker encryption is in progress{pct}",
+            **base,
+        }
+
+    if volume in ("DecryptionInProgress", "DecryptionPaused"):
+        return {
+            "status": "FAIL",
+            "detail": "BitLocker decryption is in progress — drive is not protected",
+            **base,
+        }
+
+    if protection == "On":
+        if volume == "FullyEncrypted" and (progress or 0) >= 100:
+            if rp_count > 0:
+                return {
+                    "status": "PASS",
+                    "detail": "BitLocker is enabled and protecting C: drive",
+                    **base,
+                }
+            return {
+                "status": "WARNING",
+                "detail": "BitLocker is on but no recovery protector is present",
+                **base,
+            }
+        return {
+            "status": "WARNING",
+            "detail": "BitLocker protection is on but the volume is not fully encrypted",
+            **base,
+        }
+
+    if protection == "Off":
+        return {
+            "status": "FAIL",
+            "detail": "BitLocker is OFF — C: drive is not encrypted",
+            **base,
+        }
+
+    return {
+        "status": "WARNING",
+        "detail": "BitLocker status is Unknown — may be suspended",
+        **base,
+    }
+
+
 def _check_bitlocker() -> dict:
     """
-    Check BitLocker encryption status on the C: (system) drive.
+    Check BitLocker encryption state on the C: (system) drive (READ-ONLY).
 
-    Get-BitLockerVolume returns ProtectionStatus:
-        0 = Off (unprotected)
-        1 = On  (protected)
-        2 = Unknown
-
-    Scoring logic:
-        PASS    → ProtectionStatus is On (1)
-        WARNING → BitLocker exists but protection is Unknown
-        FAIL    → Not encrypted, or BitLocker not available (Home edition)
+    Only safe, non-secret fields are collected and reported. The Recovery
+    Password is NEVER retrieved, stored, exported, or logged.
 
     Note:
         BitLocker is only available on Windows Pro/Enterprise/Education.
@@ -249,64 +416,27 @@ def _check_bitlocker() -> dict:
 
     Returns:
         {
-            "status"              : "PASS" | "WARNING" | "FAIL",
-            "detail"              : human-readable description,
-            "protection_status"   : "On" | "Off" | "Unknown" | "Unavailable",
-            "recovery_key"        : "ghp_..." | "Unavailable/Requires Admin"
+            "status"                    : "PASS" | "WARNING" | "FAIL",
+            "detail"                    : human-readable description,
+            "protection_status"         : "On" | "Off" | "Unknown" | "Unavailable",
+            "volume_status"             : volume state string,
+            "encryption_percentage"     : int | None,
+            "encryption_method"         : str | None,
+            "recovery_protector_present": bool,
+            "recovery_protector_count"  : int,
+            "tpm_present"               : bool,
+            "tpm_ready"                 : bool,
         }
     """
     logger.info("Checking BitLocker...")
 
-    ps_command = (
-        "(Get-BitLockerVolume -MountPoint 'C:').ProtectionStatus"
-    )
-    output = _run_powershell(ps_command)
+    output = _run_powershell(_BITLOCKER_PS_COMMAND)
+    if not output:
+        # Fail-safe default: no output → treat BitLocker as unavailable.
+        return _evaluate_bitlocker({"bitlocker_available": False})
 
-    status_map = {"0": "Off", "1": "On", "2": "Unknown"}
-    protection = status_map.get(output, "Unavailable")
-
-    recovery_key = "Unavailable"
-
-    if protection == "On":
-        # Attempt to retrieve Recovery Key (Requires Admin privileges)
-        key_cmd = (
-            "(Get-BitLockerVolume -MountPoint 'C:').KeyProtector | "
-            "Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword'} | "
-            "Select-Object -ExpandProperty RecoveryPassword"
-        )
-        key_output = _run_powershell(key_cmd)
-        if key_output:
-            recovery_key = key_output
-        else:
-            recovery_key = "Requires Administrator Privileges"
-
-        return {
-            "status": "PASS",
-            "detail": "BitLocker is enabled and protecting C: drive",
-            "protection_status": protection,
-            "recovery_key": recovery_key,
-        }
-    elif protection == "Unknown":
-        return {
-            "status": "WARNING",
-            "detail": "BitLocker status is Unknown — may be suspended",
-            "protection_status": protection,
-            "recovery_key": "Unknown",
-        }
-    elif protection == "Off":
-        return {
-            "status": "FAIL",
-            "detail": "BitLocker is OFF — C: drive is not encrypted",
-            "protection_status": protection,
-            "recovery_key": "None",
-        }
-    else:
-        return {
-            "status": "FAIL",
-            "detail": "BitLocker not available (requires Windows Pro/Enterprise)",
-            "protection_status": protection,
-            "recovery_key": "None",
-        }
+    fields = _parse_bitlocker_output(output)
+    return _evaluate_bitlocker(fields)
 
 
 def _check_windows_update() -> dict:
