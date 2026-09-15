@@ -170,3 +170,57 @@ def test_excel_exporter_strips_legacy_secrets():
     assert "recovery_key" not in serialized
     assert "recovery_password" not in serialized
     assert cleaned["security"]["bitlocker"]["status"] == "PASS"
+
+
+@pytest.mark.parametrize("secret_key, kept_value", [
+    ("Recovery_Key", "legacy-secret"),
+    ("RECOVERY_KEY", "legacy-secret"),
+    ("recovery_key", "legacy-secret"),
+    ("RecoveryPassword", FAKE_RECOVERY_PASSWORD),
+    ("RECOVERYPASSWORD", FAKE_RECOVERY_PASSWORD),
+    ("recovery_password", FAKE_RECOVERY_PASSWORD),
+    ("Recovery_Password", FAKE_RECOVERY_PASSWORD),
+])
+def test_strip_secret_keys_is_case_insensitive(secret_key, kept_value):
+    from exporters.excel_exporter import _strip_secret_keys
+
+    report = {"security": {"bitlocker": {secret_key: kept_value, "status": "PASS"}}}
+    cleaned = _strip_secret_keys(report)
+    serialized = json.dumps(cleaned)
+    assert kept_value not in serialized
+    assert secret_key not in serialized
+    assert cleaned["security"]["bitlocker"]["status"] == "PASS"
+
+
+def test_strip_preserves_safe_recovery_metadata():
+    from exporters.excel_exporter import _strip_secret_keys
+
+    report = {
+        "security": {
+            "bitlocker": {
+                "status": "PASS",
+                "recovery_protector_present": True,
+                "recovery_protector_count": 1,
+                "RecoveryPassword": FAKE_RECOVERY_PASSWORD,
+                "RECOVERY_KEY": "legacy-secret",
+            }
+        }
+    }
+    cleaned = _strip_secret_keys(report)
+    bl = cleaned["security"]["bitlocker"]
+    assert bl["recovery_protector_present"] is True
+    assert bl["recovery_protector_count"] == 1
+    serialized = json.dumps(cleaned)
+    assert FAKE_RECOVERY_PASSWORD not in serialized
+    assert "legacy-secret" not in serialized
+
+
+def test_excel_columns_never_reference_secret_paths():
+    from exporters.excel_exporter import COLUMNS, _SECRET_KEY_LOOKUP
+
+    for header, json_path, _ in COLUMNS:
+        for key in json_path:
+            assert str(key).lower() not in _SECRET_KEY_LOOKUP, (
+                f"column '{header}' references secret key '{key}'"
+            )
+    assert "BitLocker Key" not in [c[0] for c in COLUMNS]

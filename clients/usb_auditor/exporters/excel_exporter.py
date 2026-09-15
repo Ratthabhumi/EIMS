@@ -135,15 +135,25 @@ def _thin_border() -> Border:
 # disk so a stale file can never leak into a new workbook. Disk/DB files are
 # NEVER modified — only the in-memory copy used for export.
 SECRET_KEYS = ("recovery_key", "recovery_password", "recoverypassword")
+# Normalized (lower-cased) lookup so additional casing variations — e.g.
+# RECOVERY_KEY, Recovery_Key, RecoveryPassword, RECOVERYPASSWORD — also fail
+# closed. Safe metadata (recovery_protector_present / _count) does not collide
+# with this set and is intentionally never stripped.
+_SECRET_KEY_LOOKUP = {str(k).lower() for k in SECRET_KEYS}
 
 
 def _strip_secret_keys(data: object) -> object:
     """
-    Recursively remove any key whose name matches SECRET_KEYS from a report
-    dict (copy-safe: only affects the passed-in parsed structure).
+    Recursively remove any key whose name matches a secret-sensitive key
+    (case-insensitively) from a report dict (copy-safe: only affects the
+    passed-in parsed structure).
     """
     if isinstance(data, dict):
-        return {k: _strip_secret_keys(v) for k, v in data.items() if k not in SECRET_KEYS}
+        return {
+            k: _strip_secret_keys(v)
+            for k, v in data.items()
+            if str(k).lower() not in _SECRET_KEY_LOOKUP
+        }
     if isinstance(data, list):
         return [_strip_secret_keys(item) for item in data]
     return data

@@ -151,6 +151,15 @@ function EndpointsDashboardContent() {
     return "UNKNOWN";
   };
 
+  // Tri-state recovery protector display. A LEGACY report that predates
+  // recovery_protector_present must show "N/A" (unknown), never "None"
+  // (which would imply a confirmed absence).
+  const recoveryProtectorLabel = (present: any) => {
+    if (present === true) return "Present";
+    if (present === false) return "None";
+    return "N/A";
+  };
+
   const [launchingAgent, setLaunchingAgent] = useState(false);
 
   const handleLaunchAgent = async () => {
@@ -455,7 +464,7 @@ function EndpointsDashboardContent() {
                   <div className="flex items-center justify-between">
                     <span className="text-eims-text-secondary">Recovery Protector</span>
                     <span className="text-eims-text font-mono text-xs">
-                      {selectedAsset.offline_report_data?.security?.bitlocker?.recovery_protector_present === true ? "Present" : "None"}
+                      {recoveryProtectorLabel(selectedAsset.offline_report_data?.security?.bitlocker?.recovery_protector_present)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-eims-border/50">
