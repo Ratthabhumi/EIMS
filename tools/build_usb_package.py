@@ -126,7 +126,7 @@ def _git(repo_root: Path, args: list[str]) -> str:
 def version_text(repo_root: Path, runtime_sha: str | None = None) -> str:
     commit = _git(repo_root, ["rev-parse", "HEAD"])
     branch = _git(repo_root, ["rev-parse", "--abbrev-ref", "HEAD"])
-    porcelain = _git(repo_root, ["status", "--porcelain"])
+    porcelain = _git(repo_root, ["status", "--porcelain", "--untracked-files=no"])
     if not commit and not branch:
         commit = "Unknown"
         worktree = "Unknown"

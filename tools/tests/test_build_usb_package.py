@@ -139,6 +139,26 @@ def test_version_text_contains_required_fields(tmp_path: Path) -> None:
         assert field in text
 
 
+def test_version_worktree_ignores_untracked_files(tmp_path: Path) -> None:
+    import subprocess
+
+    def git(*args: str) -> None:
+        subprocess.run(["git", *args], cwd=tmp_path, check=True,
+                       capture_output=True, text=True)
+
+    git("init", "-q")
+    git("config", "user.email", "audit@eims.local")
+    git("config", "user.name", "EIMS audit")
+    (tmp_path / "tracked.txt").write_text("v1\n", encoding="utf-8")
+    git("add", "tracked.txt")
+    git("commit", "-qm", "init")
+    assert "CLEAN" in b.version_text(tmp_path)
+    (tmp_path / "untracked.txt").write_text("x\n", encoding="utf-8")
+    assert "Git Worktree       : CLEAN" in b.version_text(tmp_path)
+    (tmp_path / "tracked.txt").write_text("v2\n", encoding="utf-8")
+    assert "Git Worktree       : DIRTY" in b.version_text(tmp_path)
+
+
 def test_runner_is_offline_safe() -> None:
     runner = b.RUNNER_SOURCE.read_text(encoding="utf-8", errors="replace")
     assert "EIMS_AUTO_SYNC=false" in runner
