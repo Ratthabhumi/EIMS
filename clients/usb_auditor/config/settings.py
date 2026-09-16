@@ -25,8 +25,14 @@ if getattr(sys, "frozen", False):
 else:
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
 
-REPORTS_DIR: Path = BASE_DIR / "reports"
-LOGS_DIR: Path = BASE_DIR / "logs"
+# Portable-mode path overrides (optional, additive):
+#   EIMS_REPORTS_DIR → absolute directory for JSON evidence reports
+#   EIMS_LOGS_DIR     → absolute directory for audit logs
+# When unset, directories stay package-relative (BASE_DIR / "reports" | "logs").
+# Used by the portable USB package smoke tests and operators who want to
+# redirect evidence without touching source code.
+REPORTS_DIR: Path = Path(os.getenv("EIMS_REPORTS_DIR", "").strip() or (BASE_DIR / "reports"))
+LOGS_DIR: Path = Path(os.getenv("EIMS_LOGS_DIR", "").strip() or (BASE_DIR / "logs"))
 
 # Ensure directories exist at import time
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
