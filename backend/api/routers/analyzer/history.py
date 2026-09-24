@@ -1,7 +1,7 @@
 from sqlalchemy.future import select
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional
 
 from backend.domain.analyzer.auth import get_current_user
 
