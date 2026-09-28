@@ -5,7 +5,7 @@ The purpose of this chapter is to articulate the foundational engineering princi
 
 ## 2.1 Infrastructure Asset Management
 
-Infrastructure Asset Management (IAM) in enterprise computing constitutes the systematic process of cataloging, monitoring, and governing physical and virtual compute resources throughout their operational lifecycles [CITATION REQUIRED â€” ITIL 4 Foundation: IT Asset Management]. An effective asset management framework provides authoritative answers regarding what equipment exists within the organization, where it is logically and physically located, how it is configured, and what security posture it maintains.
+Infrastructure Asset Management (IAM) in enterprise computing constitutes the systematic process of cataloging, monitoring, and governing physical and virtual compute resources throughout their operational lifecycles [1]. An effective asset management framework provides authoritative answers regarding what equipment exists within the organization, where it is logically and physically located, how it is configured, and what security posture it maintains.
 
 At the core of asset management is the concept of asset identity. In distributed computing environments, assigning and maintaining immutable identity across physical and virtual compute instances is challenging. Ephemeral attributes such as assigned Internet Protocol (IP) addresses, dynamic hostnames, and localized machine aliases frequently change as systems migrate across network subnets or undergo administrative reconfiguration. Consequently, robust asset management architectures rely on composite cryptographic fingerprints derived from immutable hardware attributes. These attributes typically incorporate Motherboard Serial Numbers, Central Processing Unit (CPU) Identification strings, and Media Access Control (MAC) addresses of physical network interfaces.
 
@@ -32,7 +32,7 @@ Crucial to the defensibility of endpoint collection is the principle of read-onl
 
 ## 2.3 Windows Management Technologies
 
-In environments dominated by the Microsoft Windows operating system family, programmatic interrogation of hardware and system state relies on Windows Management Instrumentation (WMI) and the Common Information Model (CIM) [CITATION REQUIRED â€” Microsoft Learn: Windows Management Instrumentation Architecture].
+In environments dominated by the Microsoft Windows operating system family, programmatic interrogation of hardware and system state relies on Windows Management Instrumentation (WMI) and the Common Information Model (CIM) [2].
 
 WMI represents Microsoft's native implementation of Web-Based Enterprise Management (WBEM) and CIM, an open industry standard developed by the Distributed Management Task Force (DMTF). WMI provides an object-oriented, scriptable infrastructure for querying operating system internals, hardware enumerations, device drivers, and service configurations:
 - **WMI Architecture:** WMI functions as an abstraction layer between administrative management tools and underlying operating system components. It operates via the WMI Core (`WmiPrvSE.exe` provider hosts), a Common Object Model (COM) interface, and a structured schema repository (the CIM repository).
@@ -55,7 +55,7 @@ In portable execution environments where external C++ compilation tools or Pytho
 
 ## 2.4 Windows Event Logging
 
-The Microsoft Windows Event Log infrastructure provides a centralized, standardized subsystem for recording hardware, operating system, application, and security occurrences [CITATION REQUIRED â€” Microsoft Learn: Windows Event Log Reference]. Originating with the Windows Vista and Windows Server 2008 architectures, Windows Event Logging superseded the legacy Event Logging format, replacing flat textual logs with structured, schema-validated binary XML (`.evtx`) files stored within `%SystemRoot%\System32\Winevt\Logs\`.
+The Microsoft Windows Event Log infrastructure provides a centralized, standardized subsystem for recording hardware, operating system, application, and security occurrences [3]. Originating with the Windows Vista and Windows Server 2008 architectures, Windows Event Logging superseded the legacy Event Logging format, replacing flat textual logs with structured, schema-validated binary XML (`.evtx`) files stored within `%SystemRoot%\System32\Winevt\Logs\`.
 
 ### Event Log Structural Hierarchy
 
@@ -80,7 +80,7 @@ Conversely, the `Security` channel is dedicated strictly to security auditing (e
 
 ## 2.5 Evidence Provenance and Deduplication
 
-In distributed systems engineering, data provenance denotes the end-to-end documentation of data origin, historical lineage, transformation chronology, and custodial custody [CITATION REQUIRED â€” Buneman et al., Principles of Data Provenance]. When operational logs and diagnostic reports are gathered across distributed hosts and ingested into a central platform, establishing unbreakable provenance is critical to validating the integrity of downstream analytical findings.
+In distributed systems engineering, data provenance denotes the end-to-end documentation of data origin, historical lineage, transformation chronology, and custodial custody [4]. When operational logs and diagnostic reports are gathered across distributed hosts and ingested into a central platform, establishing unbreakable provenance is critical to validating the integrity of downstream analytical findings.
 
 Data provenance in evidence management requires explicit referential linkage across three architectural tiers:
 1. **Asset Linkage:** Every ingested artifact must reference a verified canonical asset identifier (`asset_id`), binding operational records directly to a physical or virtual machine entity.
@@ -119,13 +119,13 @@ When sorting candidate events within identical severity levels, deterministic ti
 
 ## 2.7 AI-assisted Log Analysis
 
-Artificial intelligence and natural language processing techniques have increasingly transitioned from academic research into applied infrastructure engineering. When applied to system administration, AI models serve as intelligent investigation aids, accelerating the triage of complex operational failures without replacing human operational authority [CITATION REQUIRED â€” He et al., A Survey on Automated Log Analysis for Reliability Engineering].
+Artificial intelligence and natural language processing techniques have increasingly transitioned from academic research into applied infrastructure engineering. When applied to system administration, AI models serve as intelligent investigation aids, accelerating the triage of complex operational failures without replacing human operational authority [5].
 
 ### Semantic Vector Embeddings
 
 Traditional log analysis relied predominantly on regular expressions (regex) and keyword substring matching (e.g., searching for "failed" or "timeout"). However, raw event log messages exhibit high syntactic variance: different software providers and driver versions articulate identical underlying failure modes using completely distinct terminology.
 
-To overcome lexical brittleness, modern systems leverage semantic vector embeddings. An embedding modelâ€”such as the sentence-transformer architecture `all-MiniLM-L6-v2` [CITATION REQUIRED â€” Reimers and Gurevych, Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks]â€”maps textual log descriptions into a dense, continuous vector space (specifically a 384-dimensional Euclidean space $\mathbb{R}^{384}$). In this embedding space, semantically similar sentences are positioned in close spatial proximity, regardless of whether they share exact vocabulary. The mathematical similarity between two text embeddings $\mathbf{u}$ and $\mathbf{v}$ is evaluated using Cosine Distance:
+To overcome lexical brittleness, modern systems leverage semantic vector embeddings. An embedding modelâ€”such as the sentence-transformer architecture `all-MiniLM-L6-v2` [6]â€”maps textual log descriptions into a dense, continuous vector space (specifically a 384-dimensional Euclidean space $\mathbb{R}^{384}$). In this embedding space, semantically similar sentences are positioned in close spatial proximity, regardless of whether they share exact vocabulary. The mathematical similarity between two text embeddings $\mathbf{u}$ and $\mathbf{v}$ is evaluated using Cosine Distance:
 
 $$D_C(\mathbf{u}, \mathbf{v}) = 1 - \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\|_2 \|\mathbf{v}\|_2}$$
 
@@ -137,7 +137,7 @@ While Large Language Models exhibit impressive conversational reasoning, deployi
 - **Hallucination:** General-purpose models frequently invent non-existent command-line switches, erroneous registry keys, or fictional technical manuals when attempting to resolve obscure operating system errors.
 - **Absence of Domain Context:** Pre-trained models lack awareness of internal enterprise knowledge bases, historical incident post-mortems, and specific infrastructure architectures.
 
-To neutralize these limitations, systems implement Retrieval-Augmented Generation (RAG) [CITATION REQUIRED â€” Lewis et al., Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks]. In a RAG pipeline:
+To neutralize these limitations, systems implement Retrieval-Augmented Generation (RAG) [7]. In a RAG pipeline:
 1. An incoming, prioritized operational event is parsed and vectorized into an embedding.
 2. A high-performance vector database executes an approximate nearest neighbor (ANN) or exact $k$-nearest neighbor search to retrieve relevant, pre-curated diagnostic solutions and historical incident resolutions matching the event.
 3. The retrieved reference snippets are injected into a structured prompt alongside the raw event metadata.
@@ -151,7 +151,7 @@ Persistent data management in enterprise infrastructure platforms necessitates b
 
 ### PostgreSQL Relational Datastore
 
-PostgreSQL is an advanced, open-source object-relational database management system known for reliability, feature robustness, and strict adherence to ANSI SQL standards [CITATION REQUIRED â€” PostgreSQL Global Development Group: PostgreSQL 16 Documentation]. PostgreSQL provides full ACID (Atomicity, Consistency, Isolation, Durability) guarantees, ensuring that multi-table transactionsâ€”such as registering an asset, inserting hardware components, and logging an audit transactionâ€”either commit entirely or roll back safely without corrupting database integrity.
+PostgreSQL is an advanced, open-source object-relational database management system known for reliability, feature robustness, and strict adherence to ANSI SQL standards [8]. PostgreSQL provides full ACID (Atomicity, Consistency, Isolation, Durability) guarantees, ensuring that multi-table transactionsâ€”such as registering an asset, inserting hardware components, and logging an audit transactionâ€”either commit entirely or roll back safely without corrupting database integrity.
 
 ### Handling Polymorphic Telemetry via JSONB
 
@@ -162,13 +162,13 @@ Rather than forcing heterogeneous data into fragmented, sparse relational tables
 
 ### Vector Persistence via pgvector
 
-To support artificial intelligence and semantic search within the relational boundary, the open-source PostgreSQL extension `pgvector` introduces native vector data types and specialized mathematical index structures [CITATION REQUIRED â€” pgvector GitHub Repository and Specification]. `pgvector` enables database engines to store dense vector representations (e.g., `Vector(384)`) directly alongside relational attributes, supporting exact and approximate nearest neighbor queries using cosine distance (`<=>`), L2 Euclidean distance (`<->`), or inner product (`<#>`) operators natively within standard SQL statements. In this architecture, `pgvector` functions as a specialized indexing and distance-calculating persistence layer, while embedding models and language processors execute within separate application runtimes.
+To support artificial intelligence and semantic search within the relational boundary, the open-source PostgreSQL extension `pgvector` introduces native vector data types and specialized mathematical index structures [9]. `pgvector` enables database engines to store dense vector representations (e.g., `Vector(384)`) directly alongside relational attributes, supporting exact and approximate nearest neighbor queries using cosine distance (`<=>`), L2 Euclidean distance (`<->`), or inner product (`<#>`) operators natively within standard SQL statements. In this architecture, `pgvector` functions as a specialized indexing and distance-calculating persistence layer, while embedding models and language processors execute within separate application runtimes.
 
 ## 2.9 Redis and Asynchronous Processing
 
 In high-throughput telemetry platforms, direct synchronous database writes create severe performance bottlenecks. If hundreds of endpoints submit diagnostic reports simultaneously, or if long-running analytical operations (such as OCR extraction or LLM embedding generation) are executed synchronously within HTTP request lifecycles, backend web workers quickly exhaust their connection pools, leading to thread starvation and elevated request latency.
 
-To decouple ingestion from persistence and processing, architectures integrate Redis [CITATION REQUIRED â€” Redis: In-Memory Data Structures Documentation]. Redis is an open-source, in-memory key-value data structure store operating with sub-millisecond retrieval latencies. In modern distributed platforms, Redis fulfills three vital architectural functions:
+To decouple ingestion from persistence and processing, architectures integrate Redis [10]. Redis is an open-source, in-memory key-value data structure store operating with sub-millisecond retrieval latencies. In modern distributed platforms, Redis fulfills three vital architectural functions:
 1. **Asynchronous Ingestion Broker:** Incoming diagnostic payloads are rapidly accepted by API gateways, validated, and pushed onto Redis message queues or Redis Streams. The API gateway immediately returns an HTTP 202 Accepted response to the client, while dedicated background worker processes consume payloads from the queue and execute batch database operations out of band.
 2. **Distributed Caching:** Frequently accessed, computationally expensive database queriesâ€”such as asset compliance distributions and global infrastructure countsâ€”are cached in Redis with defined Time-to-Live (TTL) expiration windows.
 3. **Session and State Tracking:** Transient tokens, rate-limiting quotas, and active user session states are maintained in Redis to enable rapid validation without burdening primary relational databases.
@@ -177,15 +177,15 @@ To decouple ingestion from persistence and processing, architectures integrate R
 
 In addition to structured telemetry and relational metadata, enterprise asset onboarding frequently involves unstructured binary files. Specifically, physical server deployments produce paper hardware manifests, shipping invoices, and physical chassis specification stickers.
 
-To persist binary imagery securely and scalably, modern architectures utilize S3-compatible object storage engines, such as MinIO [CITATION REQUIRED â€” MinIO High Performance Object Storage Documentation]. Object storage abstracts physical storage drives into logical buckets containing immutable binary blobs accessible via standard RESTful HTTP/S3 APIs. Rather than storing large binary blobs (BLOBs) inside relational database tablesâ€”which causes severe database bloat and degrades database backup performanceâ€”the system stores the raw image in MinIO and maintains the corresponding Uniform Resource Identifier (URI) within PostgreSQL.
+To persist binary imagery securely and scalably, modern architectures utilize S3-compatible object storage engines, such as MinIO [11]. Object storage abstracts physical storage drives into logical buckets containing immutable binary blobs accessible via standard RESTful HTTP/S3 APIs. Rather than storing large binary blobs (BLOBs) inside relational database tablesâ€”which causes severe database bloat and degrades database backup performanceâ€”the system stores the raw image in MinIO and maintains the corresponding Uniform Resource Identifier (URI) within PostgreSQL.
 
-To extract actionable asset metadata from physical server chassis stickers or shipping labels, systems deploy Optical Character Recognition (OCR) pipelines [CITATION REQUIRED â€” Smith, An Overview of the Tesseract OCR Engine]. An OCR engine extracts alphanumeric text strings from image binaries, which are subsequently parsed via regular expression heuristics to extract vendor part numbers, serial codes, and hardware specifications. Within EIMS, OCR serves as a specialized supporting capability to accelerate manual hardware entry rather than acting as the primary telemetry collection path.
+To extract actionable asset metadata from physical server chassis stickers or shipping labels, systems deploy Optical Character Recognition (OCR) pipelines [12]. An OCR engine extracts alphanumeric text strings from image binaries, which are subsequently parsed via regular expression heuristics to extract vendor part numbers, serial codes, and hardware specifications. Within EIMS, OCR serves as a specialized supporting capability to accelerate manual hardware entry rather than acting as the primary telemetry collection path.
 
 ## 2.11 Backend API Framework
 
 The backend routing and business logic of modern infrastructure platforms require high concurrency, strong typing guarantees, and standardized interface specifications.
 
-FastAPI is a modern, high-performance web framework for building APIs with Python 3.10+ based on standard Python type hints [CITATION REQUIRED â€” RamÃ­rez, FastAPI Framework Documentation]. FastAPI is constructed upon two foundational libraries:
+FastAPI is a modern, high-performance web framework for building APIs with Python 3.10+ based on standard Python type hints [13]. FastAPI is constructed upon two foundational libraries:
 - **Starlette:** Provides lightweight, high-performance Asynchronous Server Gateway Interface (ASGI) routing, WebSocket support, and background task management.
 - **Pydantic:** Delivers deep data validation, type enforcement, and serialization using Python type annotations. Incoming JSON payloads are automatically deserialized into strongly typed schema models, rejecting malformed requests with detailed HTTP 422 Unprocessable Entity error envelopes before reaching application business logic.
 - **OpenAPI Compilation:** FastAPI automatically inspects endpoint definitions, type models, and docstrings, compiling standard OpenAPI 3.1 and JSON Schema definitions. This enables the automatic generation of interactive API documentation (Swagger UI and ReDoc) and guarantees synchronization between backend code and client interface contracts.
@@ -194,7 +194,7 @@ FastAPI is a modern, high-performance web framework for building APIs with Pytho
 
 Operational infrastructure dashboards require modern, responsive web interfaces capable of presenting dense, complex telemetry clearly to system operators without introducing noticeable interface latency.
 
-Next.js is an enterprise-grade React framework providing hybrid rendering architectures, file-system routing, and built-in optimization pipelines [CITATION REQUIRED â€” Vercel: Next.js Documentation]. In complex administrative dashboards, frontend architecture balances two rendering models:
+Next.js is an enterprise-grade React framework providing hybrid rendering architectures, file-system routing, and built-in optimization pipelines [14]. In complex administrative dashboards, frontend architecture balances two rendering models:
 - **Server-Side Rendering (SSR):** Components are pre-rendered into static HTML on the server runtime, accelerating First Contentful Paint (FCP) and ensuring that initial page loads display complete layouts immediately.
 - **Client-Side Rendering (CSR):** Interactive components, such as dynamic telemetry charts, modal inspection dialogues, and keyboard-navigated search palettes, execute dynamically within the client browser DOM using React state hooks (`useState`, `useEffect`).
 
@@ -204,13 +204,13 @@ A critical architectural consideration in hybrid Next.js/React applications is t
 
 ## 2.13 Authentication and Security Boundary
 
-Enterprise infrastructure systems manage privileged access to hardware assets, requiring well-defined authentication and authorization boundaries [CITATION REQUIRED â€” NIST Special Publication 800-207: Zero Trust Architecture].
+Enterprise infrastructure systems manage privileged access to hardware assets, requiring well-defined authentication and authorization boundaries [15].
 
 ### Authentication Modes: Demo vs. Secure Architecture
 
 Software engineering platforms developed through iterative milestones often incorporate configurable authentication operational modes:
 - **Demo Mode:** Designed for rapid local evaluation, developer testing, and automated integration suites in isolated sandbox environments. In Demo Mode, administrative endpoints provide trusted bypass mechanisms, returning standardized mock identities (such as a default `demo` operator) without requiring external authentication tokens.
-- **Secure Mode:** Enforces strict cryptographic identity verification. All protected API interfaces require valid, signed JSON Web Tokens (JWT) conforming to RFC 7519 [CITATION REQUIRED â€” Jones et al., RFC 7519: JSON Web Token (JWT)]. Requests lacking valid authorization headers or carrying expired tokens are rejected immediately with HTTP 401 Unauthorized errors.
+- **Secure Mode:** Enforces strict cryptographic identity verification. All protected API interfaces require valid, signed JSON Web Tokens (JWT) conforming to RFC 7519 [16]. Requests lacking valid authorization headers or carrying expired tokens are rejected immediately with HTTP 401 Unauthorized errors.
 
 ### Server-Side Administrative Boundary
 
@@ -218,9 +218,9 @@ In secure enterprise architectures, privileged administrative credentialsâ€�
 
 ## 2.14 Observability Technologies
 
-Operational stability in multi-service platforms depends on comprehensive observability, traditionally categorized into metrics, logs, and traces [CITATION REQUIRED â€” Sridharan, Distributed Systems Observability].
+Operational stability in multi-service platforms depends on comprehensive observability, traditionally categorized into metrics, logs, and traces [17].
 
-- **Prometheus:** An open-source systems monitoring and alerting toolkit operating on a pull-based metrics scraping architecture [CITATION REQUIRED â€” Prometheus Authors: Prometheus Documentation]. Prometheus collects numerical time-series metrics (such as CPU consumption, memory saturation, HTTP request latencies, and active database connections) from application endpoints exposing standardized `/metrics` interfaces.
+- **Prometheus:** An open-source systems monitoring and alerting toolkit operating on a pull-based metrics scraping architecture [18]. Prometheus collects numerical time-series metrics (such as CPU consumption, memory saturation, HTTP request latencies, and active database connections) from application endpoints exposing standardized `/metrics` interfaces.
 - **Grafana:** A multi-platform visualization suite that queries Prometheus data stores, rendering interactive, real-time dashboards displaying platform health, API throughput, and system resource saturation.
 - **Health Check Endpoints:** Standardized REST endpoints (such as `GET /api/v1/health`) that execute non-destructive diagnostic probes against core subsystem dependencies (PostgreSQL database connectivity, Redis broker responsiveness, and MinIO storage availability), returning structured health summaries to monitoring agents and container orchestrators.
 
@@ -230,37 +230,14 @@ To contextualize the architectural positioning of EIMS, it is instructive to exa
 
 | Paradigm / Category | Exemplary Representative Systems | Primary Operational Domain | Typical Telemetry Ingestion Model | Offline / Portable Media Collection |
 | :--- | :--- | :--- | :--- | :--- |
-| **Infrastructure Monitoring Systems** | Nagios, Zabbix, Datadog [CITATION REQUIRED â€” Enterprise Monitoring Systems Survey] | Real-time host availability, hardware metrics, and uptime alerting. | Active network polling (SNMP/ICMP) or streaming agent daemons. | Typically unsupported; architectures assume continuous network reachability. |
-| **IT Asset Management (ITAM / CMDB)** | ServiceNow CMDB, Snipe-IT [CITATION REQUIRED â€” IT Asset Management Systems Survey] | Hardware procurement, lifecycle accounting, depreciation, and ownership. | Periodic inventory imports, manual database forms, or discovery scans. | Primarily text/CSV imports; lacks native operating system event log triage. |
-| **Log Management & SIEM** | Splunk, Elastic SIEM [CITATION REQUIRED â€” Security Information and Event Management Survey] | Enterprise security auditing, regulatory compliance, and threat correlation. | Continuous high-velocity log forwarders (syslog, agent beats). | Designed for enterprise network streams; requires substantial cluster infrastructure. |
-| **Endpoint Security Agents** | OSquery, Wazuh [CITATION REQUIRED â€” Endpoint Detection and Response Survey] | Host-based intrusion detection, compliance queries, and file integrity monitoring. | Persistent background daemons executing scheduled local checks. | Requires persistent daemon installation and ongoing network connectivity. |
-| **Offline Diagnostic Collectors** | Microsoft Sysinternals, Dell SupportAssist [CITATION REQUIRED â€” Hardware Diagnostic Utilities] | Ad-hoc local troubleshooting and component hardware diagnostics. | Local interactive execution producing standalone text/HTML reports. | Standalone local report generation; traditionally unintegrated with central AI triage. |
+| **Infrastructure Monitoring Systems** | Nagios, Zabbix, Datadog [17] | Real-time host availability, hardware metrics, and uptime alerting. | Active network polling (SNMP/ICMP) or streaming agent daemons. | Typically unsupported; architectures assume continuous network reachability. |
+| **IT Asset Management (ITAM / CMDB)** | ServiceNow CMDB, Snipe-IT [1] | Hardware procurement, lifecycle accounting, depreciation, and ownership. | Periodic inventory imports, manual database forms, or discovery scans. | Primarily text/CSV imports; lacks native operating system event log triage. |
+| **Log Management & SIEM** | Splunk, Elastic SIEM [5] | Enterprise security auditing, regulatory compliance, and threat correlation. | Continuous high-velocity log forwarders (syslog, agent beats). | Designed for enterprise network streams; requires substantial cluster infrastructure. |
+| **Endpoint Security Agents** | OSquery, Wazuh [15] | Host-based intrusion detection, compliance queries, and file integrity monitoring. | Persistent background daemons executing scheduled local checks. | Requires persistent daemon installation and ongoing network connectivity. |
+| **Offline Diagnostic Collectors** | Microsoft Sysinternals, Dell SupportAssist [2] | Ad-hoc local troubleshooting and component hardware diagnostics. | Local interactive execution producing standalone text/HTML reports. | Standalone local report generation; traditionally unintegrated with central AI triage. |
 
 As illustrated by this descriptive comparison, EIMS occupies a focused operational niche. Rather than functioning as a fleet-scale SIEM or a financial asset accounting ledger, EIMS unifies infrastructure asset registry tracking, air-gapped portable evidence acquisition, centralized relational ingestion, and AI-assisted operational event triage within a lightweight, coherent platform architecture.
 
-## 2.16 Citation Acquisition Checklist
-
-The following authoritative external sources and technical references are required to complete formal bibliographic indexing:
-
-1. **ITIL 4 Foundation:** IT Asset Management practices and lifecycle governance.
-2. **Microsoft Learn:** Windows Management Instrumentation (WMI) architecture and CIM cmdlets.
-3. **Microsoft Learn:** Windows Event Log reference and binary XML (`.evtx`) schema.
-4. **Buneman et al.:** Principles and foundations of data provenance in scientific and database systems.
-5. **He et al.:** Automated log analysis surveys for software and system reliability engineering.
-6. **Reimers & Gurevych:** Sentence-BERT and the `all-MiniLM-L6-v2` dense vector embedding architecture.
-7. **Lewis et al.:** Retrieval-Augmented Generation (RAG) architectures for knowledge-intensive NLP.
-8. **PostgreSQL Global Development Group:** PostgreSQL 16 relational database architecture and JSONB indexing.
-9. **pgvector Development Community:** pgvector vector similarity search extension and index structures.
-10. **Redis Documentation:** In-memory caching, transient message queuing, and data structures.
-11. **MinIO Inc.:** High-performance S3-compatible object storage architectures.
-12. **Smith (Google):** Overview of the Tesseract Optical Character Recognition engine.
-13. **RamÃ­rez (FastAPI):** Asynchronous Server Gateway Interface (ASGI) and FastAPI framework documentation.
-14. **Vercel:** Next.js hybrid server/client rendering and React architecture.
-15. **NIST SP 800-207:** Zero Trust Architecture guidelines and identity verification boundaries.
-16. **IETF RFC 7519:** JSON Web Token (JWT) architecture specification.
-17. **Sridharan:** Distributed systems observability: metrics, logging, and tracing principles.
-18. **Prometheus Authors:** Prometheus time-series monitoring and pull-based metrics collection.
-
-## 2.17 Chapter Summary
+## 2.16 Chapter Summary
 
 This chapter presented the theoretical concepts, foundational standards, and technical architectures underlying EIMS. The discussion explored the principles of infrastructure asset management and cryptographic hardware identity, the trade-offs between connected and portable endpoint collection, the structure of Windows WMI/CIM and binary Event Logs, the mathematics of semantic embeddings and RAG architectures, and the persistent capabilities of PostgreSQL, JSONB, and pgvector. Furthermore, the operational roles of Redis, MinIO, FastAPI, Next.js, and observability stacks were systematically defined. With these foundational engineering concepts established, Chapter 3 details the concrete system design, software architecture, and implementation details of the EIMS platform.
