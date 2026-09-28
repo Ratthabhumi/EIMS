@@ -63,12 +63,12 @@ To ensure academic and engineering rigor, the platform must satisfy the followin
 
 | # | Gate | Requirement & Acceptance Criteria | Verification Status |
 |---|---|---|---|
-| 1 | **Portable Collector** | Standalone PowerShell USB collector runs on target Windows hosts with zero dependencies (no Python, no pip, no Git, no Docker). Local JSON report generated with cryptographic integrity. | VERIFIED |
+| 1 | **Portable Collector** | Portable USB Auditor package with an embedded Python runtime; the target Windows host requires no preinstalled Python, pip, Git, Docker, or EIMS backend. Local JSON report generated with package integrity verification. | VERIFIED |
 | 2 | **Offline Evidence Import** | EIMS backend successfully imports JSON report via `/api/v1/assets/import-report`, creating or updating the asset record and persisting raw telemetry. | VERIFIED |
 | 3 | **Windows Event Evidence** | Ingested System and Application event logs are properly structured, categorized, and visible in asset-linked views with complete collection metadata. | VERIFIED |
 | 4 | **Sequential Dedup** | Application-level sequential deduplication prevents duplicate log creation when identical reports are imported sequentially. *(Note: Documented honestly as sequential application protection; does NOT guarantee concurrent DB-level uniqueness).* | VERIFIED |
 | 5 | **Analyzer Integration** | Priority-ranked events from imported evidence feed directly into the analyzer pipeline, strictly capped at a maximum of 10 events per import run. | VERIFIED |
-| 6 | **AnalysisHistory Provenance** | Analysis records maintain complete audit provenance: linked `asset_id`, `event_source_id`, and `collection_method = USB_OFFLINE_COLLECTION`. | VERIFIED |
+| 6 | **AnalysisHistory Provenance** | Analysis records maintain complete audit provenance: linked `asset_id`, `event_source_id`, and `source_type = USB_OFFLINE_COLLECTION`. | VERIFIED |
 | 7 | **Filtered History API** | Backend endpoint `/api/v1/history/?asset_id={id}` successfully returns historical analysis records scoped to the specified asset without HTTP 500 errors. | VERIFIED |
 | 8 | **Endpoint AI Findings UI** | Dashboard endpoints page displays AI diagnostic findings and recommendations corresponding to the specific asset. | FIELD VERIFY REQUIRED *(Real-data browser field verification in environment with authorized Windows Server evidence)* |
 | 9 | **Test & Build Evidence** | Backend automated test suites pass cleanly with zero regression; Next.js frontend builds cleanly (`npm run build`) with zero TypeScript errors. | VERIFIED |
@@ -84,10 +84,10 @@ The primary demonstration for faculty and industry mentors follows a single defe
 [ Authorized Windows Endpoint ]
               │
               ▼
-[ Portable USB Auditor (PowerShell / WMI / CIM / EVTX) ]
+[ Portable USB Auditor (BAT Runner + Embedded Python + WMI / EVTX) ]
               │
               ▼
-[ Cryptographically Signed Offline JSON Evidence ]
+[ Offline JSON Evidence (Verified Portable Package) ]
               │
               ▼
 [ EIMS Central Ingestion Engine (/api/v1/assets/import-report) ]
@@ -127,8 +127,8 @@ The graduation evaluation is backed by six structured operational evidence workf
 | # | Workflow Domain | Engineering Question Demonstrated | Execution / Evidence Needed | Expected Proof | Confidentiality Requirement | Current Status |
 |---|---|---|---|---|---|---|
 | 1 | **Infrastructure Asset Management** | Can EIMS accurately track hardware, network configurations, and lifecycle metadata for diverse enterprise hosts? | Ingest offline reports and view asset inventory in web dashboard. | Asset cards, interface listings, storage stats, serial/vendor tracking. | Anonymize hostnames, MAC addresses, internal IP subnets, and serials. | **VERIFIED** |
-| 2 | **Portable USB / Offline Auditor** *(Hero)* | Can infrastructure evidence be collected from isolated/air-gapped Windows servers without agent installation? | Run portable script on target machine; verify generated JSON schema and integrity. | Portable directory structure, execution log, validated JSON output. | Sanitize customer host identity, domain names, and user accounts. | **VERIFIED** |
-| 3 | **Windows Event Evidence** *(Hero)* | Can critical event logs (System, Security, Application) be parsed, structured, and presented contextually? | Import evidence JSON; inspect parsed Windows events linked to asset. | Event table showing EventID, Level, Provider, and parsed XML data. | Strip raw user SIDs, customer account names, and private network IPs. | **VERIFIED** |
+| 2 | **Portable USB / Offline Auditor** *(Hero)* | Can infrastructure evidence be collected from isolated/air-gapped Windows servers without agent installation? | Run portable USB Auditor package (`Run-EIMS-Audit.bat`) on target machine; verify generated JSON schema and integrity. | Portable directory structure, execution log, validated JSON output. | Sanitize customer host identity, domain names, and user accounts. | **VERIFIED** |
+| 3 | **Windows Event Evidence** *(Hero)* | Can critical event logs (System and Application) be parsed, structured, and presented contextually? | Import evidence JSON; inspect parsed Windows events linked to asset. | Event table showing EventID, Level, Provider, and parsed XML data. | Strip raw user SIDs, customer account names, and private network IPs. | **VERIFIED** |
 | 4 | **AI-assisted Log Analysis** *(Hero)* | Can vector RAG and rule heuristics assist system operators in triaging Windows operational failures? | Execute analyzer on imported evidence; observe Top-10 prioritized events and mitigation advice. | Cosine similarity scores, RAG reference citations, AnalysisHistory records. | Mask customer-specific application log paths or internal server names. | **FIELD VERIFY REQUIRED** *(Browser UI with server data)* |
 | 5 | **Security & Compliance** | Can automated checks evaluate endpoint security posture (firewall, BitLocker, antivirus, updates)? | Ingest and inspect security posture metrics in endpoint details view. | Security posture score, BitLocker status, AV definition state. | **STRICT:** Redact BitLocker recovery IDs/passwords; mask policy names. | **VERIFIED** |
 | 6 | **Global Search & Historical Tracking** | Can administrators efficiently locate assets, audit trails, and historical analyses across system domains? | Perform `Ctrl+K` searches across 9 registered search providers; query timeline. | Keyboard-navigated search palette results, latency metrics (<300ms). | Ensure sample search queries do not expose proprietary enterprise data. | **VERIFIED** |
@@ -262,7 +262,7 @@ The Final Report will follow the standard 5-chapter academic engineering framewo
   - 3.1 Operational Requirements & Use Case Analysis
   - 3.2 High-Level System Architecture
   - 3.3 Database Schema & Relational Data Model
-  - 3.4 Standalone Portable USB Evidence Collector
+  - 3.4 Portable USB Evidence Collector (Embedded Python Runtime)
   - 3.5 Offline Telemetry Ingestion Pipeline
   - 3.6 Event Deduplication and Priority Scoring Engine
   - 3.7 Local Vector AI Analysis Pipeline & Provenance Model
@@ -298,7 +298,7 @@ The graduation defense will follow a structured 11-step narrative flow focused o
 5. **Architectural Concepts:** Technology choices (portable collector, FastAPI, pgvector, Next.js).
 6. **System Implementation:** Core engineering components and integration patterns.
 7. **Hero Workflow Demonstration:** Live or recorded walk-through:
-   *Authorized Host → Portable USB Collector → Signed JSON → Central Ingestion → Asset Registration → Deduplication → AI Analyzer → Provenance History → Filtered Findings UI*.
+   *Authorized Host → Portable USB Auditor → Offline JSON Evidence → Central Ingestion → Asset Registration → Windows Event Evidence → Deduplication → AI Analyzer → Provenance History → Filtered Findings UI*.
 8. **Measured Validation:** Quantitative test suite results, search latencies (<300ms), and ingestion accuracy.
 9. **Known Limitations:** Honest discussion of application-level dedup limits, air-gap transfer friction, and benchmark data loss history.
 10. **Summary:** Key engineering achievements against initial objectives.
