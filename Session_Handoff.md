@@ -190,3 +190,74 @@ compliance/BitLocker posture without manual upload; local JSON still on disk.
    `git status -sb` must show HEAD == origin/main, clean tree.
 7. Verify `v0.3.0` still `bb9210f06256c3adc0c7901352d08e1a026a8027`.
 8. Report STATUS / COMMIT / FILES / TEST EVIDENCE / REMOTE / GIT SAFETY.
+
+---
+
+## 2026-09-28 — On-Site Graduation Field Validation
+
+### 1. Runtime State
+- **Backend:** PASS (`http://localhost:8000`)
+- **Frontend:** PASS (`http://localhost:3001`)
+- **PostgreSQL (`pgvector:pg16`):** PASS
+- **Redis (`redis:7-alpine`):** PASS
+- **MinIO S3:** PASS
+
+### 2. Existing Live Asset Verification
+- **Live assets returned:** 8
+- **Offline-report candidate assets:** 2
+- **Selected field asset alias:** `ASSET-01` (Windows Server / Offline Host)
+*(Note: Real asset UUID, hostname, IP, MAC, serial, username, and customer details are strictly withheld from repository documentation in compliance with the public-repository confidentiality policy).*
+
+### 3. Windows Event Evidence
+- **Query:** `GET /api/v1/telemetry/winlogs?asset_id=<ASSET-01>`
+- **HTTP Status:** 200 OK
+- **Persisted Rows:** 49
+- **Asset Linkage:** PASS
+- **Metadata:** PASS (`channel`, `provider`, `record_id`, `occurrence_time`, `severity_level`)
+- **Deduplication Metadata:** PASS (`_reporter_dedup` SHA-256 hash populated across all 49 rows)
+- **Channels in UI:** System (34), Application (15)
+- **Collection Window:** 24h (Max Records: 500)
+
+### 4. AnalysisHistory & Filtered Query
+- **Query:** `GET /api/v1/history?asset_id=<ASSET-01>`
+- **HTTP Status:** 200 OK (Clean query execution, 0 server errors)
+- **Filtered Rows for Asset:** 10 (Strictly capped at max 10 per import)
+- **Unfiltered Total Rows:** 21
+- **Asset Linkage:** PASS
+- **Event Source Linkage:** PASS (`event_source_id` populated)
+- **Source Type:** `USB_OFFLINE_COLLECTION`
+- **Analysis Content:** Structured diagnostic mitigation advice and confidence scores present
+
+### 5. Critical A9 UI Gate
+- **Browser Runtime Verification:** PASS
+- **Endpoint Event Evidence Visible:** YES (49 events, 24h window, System & Application channels)
+- **AI Findings Visible:** YES (Active diagnostic summaries and remediation steps rendered inline)
+- **"No AI findings yet" Displayed:** NOT SHOWN
+- **A9 Verdict:** **PASS**
+*(This officially resolves and closes the previously pending browser-runtime verification following the filtered-history Optional import bug fix in commit `acb855f`).*
+
+### 6. Current Provenance Classification
+- **Classification:** **`USB_OFFLINE_COLLECTION` provenance CONFIRMED**
+- **Evidence Support:**
+  - Asset-linked Windows event metadata (`source_type: USB_OFFLINE_COLLECTION`, `_reporter_dedup`)
+  - AnalysisHistory record provenance (`source_type: USB_OFFLINE_COLLECTION`, `parseMethod: USB_OFFLINE_COLLECTION:USB_OFFLINE_COLLECTION`)
+  - Direct foreign key mapping from `analysis_history` to `windows_event_logs` via `event_source_id`
+
+### 7. Scope & Academic Transparency
+- **Downstream Hero E2E:** **VERIFIED**
+- **Historical Acquisition/Import/Dedup:** PREVIOUSLY VERIFIED / NOT RE-VERIFIED IN THIS SESSION
+*(Historical artifacts such as raw USB audit console output, original field JSON, and first import response were from earlier on-site acquisition sessions and were not re-generated today. Downstream pipeline integrity from database persistence to API and web UI is 100% verified).*
+
+### 8. Evidence Storage
+- **Private Evidence Directory:** `C:\Users\Ratthabhumi\Documents\EIMS_COOP_EVIDENCE_2026\`
+- **A9 UI Screenshot:** Archived privately in `screenshots/` and `sanitized/` subdirectories.
+- **Git Safety:** Zero raw evidence, customer logs, or unredacted screenshots have been added to the Git repository.
+
+### 9. Repository State
+- Clean working tree; zero application or test code changes.
+
+### 10. Next Work Session
+- **Primary Action:** BEGIN FINAL REPORT AUTHORING — CHAPTERS 1–3
+  1. **Chapter 1 — Introduction:** Background, operational problem, objectives, scope, methodology overview, expected benefits.
+  2. **Chapter 2 — Concepts & Technologies:** Infrastructure management, Windows telemetry (WMI/CIM/EVTX), vector search & RAG (FastEmbed, pgvector), FastAPI lifespan, Next.js architecture.
+  3. **Chapter 3 — System Design & Implementation:** Architecture, relational schema, portable USB collector, offline ingestion, sequential dedup, prioritization, AI analysis, provenance, web dashboard, security/compliance, validation methodology.
