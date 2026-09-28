@@ -1,7 +1,308 @@
-# EIMS Project Roadmap
-*Enterprise Information Management System*
+# Enterprise Infrastructure Management System (EIMS) — Project Roadmap
+*Cooperative Education Engineering Roadmap & Finalization Freeze*
 
-This document tracks the historical and upcoming Sprints for the EIMS project, providing a high-level overview of our progress toward the ultimate World-Class Enterprise Portal.
+This document tracks the engineering lifecycle, release provenance, historical sprints, and cooperative education finalization roadmap for the EIMS project.
+
+---
+
+## 📌 Source of Truth & Release Provenance
+
+### A. Canonical Frozen Release: `v0.3.0`
+- **Release Tag:** `v0.3.0` (Annotated tag, immutable release baseline)
+- **Dereferenced Commit:** `bb9210f06256c3adc0c7901352d08e1a026a8027`
+- **Scope Included:** Sprints 1–11, Phase 11.5, Phase 12.0–12.7 (Universal Search, Auth Boundary, 141 Operational Catalog, Honest Metric Semantics, Visual Polish).
+- **Release Status:** **FROZEN**. The `v0.3.0` release tag will not be moved, retagged, or updated.
+
+### B. Post-`v0.3.0` Main Hardening & Field Integration
+- **Branch:** `main` (HEAD: `acb855f2f47b8ea8aa17073d504ec522c7d1a104`)
+- **Nature of Changes:** Targeted field integration, preflight safety, and reliability fixes following real field testing. These commits are *not* part of `v0.3.0` and represent post-release operational hardening:
+  - `0761211`: **feat: connect portable infrastructure evidence to analyzer** — Ingests offline JSON evidence into central registry and routes prioritized event evidence to the AI analyzer.
+  - `9ef3580` / `8f25c68`: **feat(usb-auditor): add portable USB builder** — Standalone USB auditor packager; reports worktree cleanliness from tracked git state only.
+  - `a682627` / `d7c1fc3` / `9ad9566`: **feat(tools) / fix(usb-auditor): harden EIMS USB builder preflight and drive safety** — Eliminates BitLocker recovery key exposure risk, adds drive preflight safety guards, and strips sensitive material.
+  - `c16b820`: **fix(dashboard): resolve responsive sidebar hydration mismatch** — Eliminates SSR/client React hydration discrepancies in the navigation layout.
+  - `acb855f`: **fix(backend): import Optional in analyzer history router so asset_id filter stops 500** — Restores filtered history queries by asset ID for endpoint-specific AI findings.
+
+---
+
+## 🛑 CO-OP Finalization & Graduation Evidence Freeze
+
+- **Freeze Window:** 2026-09-28 → 2026-10-20
+- **Operational Mode:** **MAJOR FEATURE DEVELOPMENT IS STRICTLY FROZEN**
+- **Core Mission:** The project has completed its feature-building phase. The objective from 2026-09-28 through 2026-10-20 is stabilizing existing capabilities, executing authorized real-world validation, gathering defensible engineering evidence, preparing the graduation thesis report and defense materials, and preventing scope creep.
+
+### Allowed Activities (2026-09-28 → 2026-10-20)
+- P0/P1 blocker and regression fixes
+- Test suite and CI/CD stabilization
+- Demo workflow reliability and deterministic seeding
+- Engineering and academic documentation
+- Real field evidence capture and strict data anonymization
+- KMITL cooperative education report preparation (Chapters 1–5)
+- Presentation slides, runbook rehearsal, and A1 poster layout
+- Accessibility, hydration, or error-state polish *only* when justified by a verified defect with low regression risk
+
+### Prohibited Activities (Frozen without explicit authorization)
+- ❌ Cross-Endpoint Correlation
+- ❌ Distributed Kubernetes (K8s) deployment or Helm packaging
+- ❌ High-Availability (HA) clustering (PostgreSQL replicas, Redis Sentinel)
+- ❌ Enterprise SSO (SAML 2.0 / OIDC / Active Directory)
+- ❌ Major RBAC architecture redesign
+- ❌ New AI models, vector stores, or search engines
+- ❌ Database schema overhauls or disruptive migrations
+- ❌ Agent fleet management automation or remote daemon distribution
+- ❌ Mobile application development
+- ❌ External SIEM / syslog forwarder integrations
+- ❌ Large-scale architectural refactoring
+
+*All features above are deferred to the Post-Graduation Roadmap.*
+
+---
+
+## 🎯 Current Definition of Done (CO-OP DoD)
+
+To ensure academic and engineering rigor, the platform must satisfy the following 10 verification gates prior to graduation sign-off:
+
+| # | Gate | Requirement & Acceptance Criteria | Verification Status |
+|---|---|---|---|
+| 1 | **Portable Collector** | Standalone PowerShell USB collector runs on target Windows hosts with zero dependencies (no Python, no pip, no Git, no Docker). Local JSON report generated with cryptographic integrity. | VERIFIED |
+| 2 | **Offline Evidence Import** | EIMS backend successfully imports JSON report via `/api/v1/assets/import-report`, creating or updating the asset record and persisting raw telemetry. | VERIFIED |
+| 3 | **Windows Event Evidence** | Ingested System and Application event logs are properly structured, categorized, and visible in asset-linked views with complete collection metadata. | VERIFIED |
+| 4 | **Sequential Dedup** | Application-level sequential deduplication prevents duplicate log creation when identical reports are imported sequentially. *(Note: Documented honestly as sequential application protection; does NOT guarantee concurrent DB-level uniqueness).* | VERIFIED |
+| 5 | **Analyzer Integration** | Priority-ranked events from imported evidence feed directly into the analyzer pipeline, strictly capped at a maximum of 10 events per import run. | VERIFIED |
+| 6 | **AnalysisHistory Provenance** | Analysis records maintain complete audit provenance: linked `asset_id`, `event_source_id`, and `collection_method = USB_OFFLINE_COLLECTION`. | VERIFIED |
+| 7 | **Filtered History API** | Backend endpoint `/api/v1/history/?asset_id={id}` successfully returns historical analysis records scoped to the specified asset without HTTP 500 errors. | VERIFIED |
+| 8 | **Endpoint AI Findings UI** | Dashboard endpoints page displays AI diagnostic findings and recommendations corresponding to the specific asset. | FIELD VERIFY REQUIRED *(Real-data browser field verification in environment with authorized Windows Server evidence)* |
+| 9 | **Test & Build Evidence** | Backend automated test suites pass cleanly with zero regression; Next.js frontend builds cleanly (`npm run build`) with zero TypeScript errors. | VERIFIED |
+| 10 | **Confidentiality Review** | 100% of artifacts, screenshots, reports, and presentation slides are sanitized and anonymized (no customer hostnames, IPs, MACs, serials, accounts, or secrets). | ACTIVE AUDIT |
+
+---
+
+## 🎬 Primary Hero Demonstration Workflow
+
+The primary demonstration for faculty and industry mentors follows a single defensible end-to-end engineering pipeline:
+
+```
+[ Authorized Windows Endpoint ]
+              │
+              ▼
+[ Portable USB Auditor (PowerShell / WMI / CIM / EVTX) ]
+              │
+              ▼
+[ Cryptographically Signed Offline JSON Evidence ]
+              │
+              ▼
+[ EIMS Central Ingestion Engine (/api/v1/assets/import-report) ]
+              │
+              ▼
+[ Central Asset Registry + 49 Structured Windows Events ]
+              │
+              ▼
+[ Sequential Dedup + Priority Ranking Filter ]
+              │
+              ▼
+[ AI Log Analyzer (RAG Vector Similarity, max 10 events) ]
+              │
+              ▼
+[ AnalysisHistory DB Persistence (Provenance & Audit Trail) ]
+              │
+              ▼
+[ Filtered History API (/api/v1/history/?asset_id=...) ]
+              │
+              ▼
+[ Endpoint AI Findings & Mitigation View in Dashboard ]
+```
+
+### Engineering Rationale
+- **End-to-End Cohesion:** Demonstrates the complete operational lifecycle: offline field acquisition, central ingestion, schema normalization, automated AI-assisted diagnostics, and interactive administrative visibility.
+- **Defensible Scope:** Focuses on air-gapped infrastructure management where agents cannot be installed as persistent daemons due to customer security constraints.
+- **Honest Positioning:**
+  - EIMS is an **operational management and triage assistance platform**, not a certified digital forensics acquisition suite.
+  - AI diagnostic outputs are **investigative recommendations**, not guaranteed or authoritative root-cause conclusions.
+
+---
+
+## 📊 Graduation Evidence Pack Matrix
+
+The graduation evaluation is backed by six structured operational evidence workflows:
+
+| # | Workflow Domain | Engineering Question Demonstrated | Execution / Evidence Needed | Expected Proof | Confidentiality Requirement | Current Status |
+|---|---|---|---|---|---|---|
+| 1 | **Infrastructure Asset Management** | Can EIMS accurately track hardware, network configurations, and lifecycle metadata for diverse enterprise hosts? | Ingest offline reports and view asset inventory in web dashboard. | Asset cards, interface listings, storage stats, serial/vendor tracking. | Anonymize hostnames, MAC addresses, internal IP subnets, and serials. | **VERIFIED** |
+| 2 | **Portable USB / Offline Auditor** *(Hero)* | Can infrastructure evidence be collected from isolated/air-gapped Windows servers without agent installation? | Run portable script on target machine; verify generated JSON schema and integrity. | Portable directory structure, execution log, validated JSON output. | Sanitize customer host identity, domain names, and user accounts. | **VERIFIED** |
+| 3 | **Windows Event Evidence** *(Hero)* | Can critical event logs (System, Security, Application) be parsed, structured, and presented contextually? | Import evidence JSON; inspect parsed Windows events linked to asset. | Event table showing EventID, Level, Provider, and parsed XML data. | Strip raw user SIDs, customer account names, and private network IPs. | **VERIFIED** |
+| 4 | **AI-assisted Log Analysis** *(Hero)* | Can vector RAG and rule heuristics assist system operators in triaging Windows operational failures? | Execute analyzer on imported evidence; observe Top-10 prioritized events and mitigation advice. | Cosine similarity scores, RAG reference citations, AnalysisHistory records. | Mask customer-specific application log paths or internal server names. | **FIELD VERIFY REQUIRED** *(Browser UI with server data)* |
+| 5 | **Security & Compliance** | Can automated checks evaluate endpoint security posture (firewall, BitLocker, antivirus, updates)? | Ingest and inspect security posture metrics in endpoint details view. | Security posture score, BitLocker status, AV definition state. | **STRICT:** Redact BitLocker recovery IDs/passwords; mask policy names. | **VERIFIED** |
+| 6 | **Global Search & Historical Tracking** | Can administrators efficiently locate assets, audit trails, and historical analyses across system domains? | Perform `Ctrl+K` searches across 9 registered search providers; query timeline. | Keyboard-navigated search palette results, latency metrics (<300ms). | Ensure sample search queries do not expose proprietary enterprise data. | **VERIFIED** |
+
+*Supporting Capabilities Note:* Optical Character Recognition (Sticker OCR) and System Observability (Prometheus/Grafana) serve as secondary supporting workflows and will be referenced in documentation rather than showcased live.
+
+---
+
+## ⚖️ Claims & Academic Honesty Policy
+
+EIMS maintains strict engineering transparency and academic integrity across all documentation, presentations, and reports:
+
+### Permitted Claims (Verified by Repository & Test Evidence)
+- Fully functioning offline Windows infrastructure evidence collector requiring zero target dependencies.
+- Centralized web portal for asset management, event investigation, and administrative auditing.
+- Automated application-level sequential deduplication of imported telemetry reports.
+- Offline-capable AI log triage assistance leveraging local FastEmbed vector embeddings and pgvector semantic retrieval.
+- Multi-domain universal search (`Ctrl+K`) indexing assets, logs, analyses, and navigation routes.
+- Basic security compliance indicators (BitLocker protection status, firewall profile state, OS patch recency).
+
+### Prohibited Claims (Strictly Forbidden)
+- ❌ **Do NOT claim production-ready commercial SaaS readiness.** EIMS is an architectural prototype and cooperative education engineering project.
+- ❌ **Do NOT claim certified digital forensic acquisition capabilities.** EIMS collects administrative diagnostics via standard WMI/CIM/EVTX; it is not a forensically sound evidentiary tool (no write-blockers, no raw disk imaging).
+- ❌ **Do NOT claim concurrent DB-level uniqueness guarantees.** Deduplication is performed at the application layer during sequential ingestion; race conditions during concurrent imports remain an unmitigated limitation.
+- ❌ **Do NOT claim recovery of original database rows destroyed during the 2026-09-10 benchmark incident.** Historical truth: original pre-benchmark rows in 4 tables were destroyed by `TRUNCATE CASCADE`; surviving data comprises 8 real analysis records, MinIO OCR objects, and 1 USB JSON report, alongside reconstructed demo data.
+- ❌ **Do NOT conflate the static 141 Operational Event Catalog with runtime analyzed events.** The 141 entries serve purely as reference knowledge definitions; analyzed metrics must reflect only true `analysis_history` records.
+- ❌ **Do NOT claim AI findings represent authoritative or guaranteed root cause diagnoses.** AI findings are diagnostic assistance tools with explicit confidence ratings and vendor references.
+- ❌ **Do NOT claim High Availability, Kubernetes orchestration, or Enterprise SSO as implemented features.** These remain conceptual roadmap items for post-graduation lifecycle development.
+
+---
+
+## 🔒 Public-Repository Confidentiality Policy
+
+Because the `Ratthabhumi/EIMS` repository is publicly accessible for portfolio evaluation, strict data protection protocols apply:
+
+### Prohibited Artifacts in Git Tracking
+Under no circumstances may the following data types be committed, staged, or pushed:
+- Real customer or enterprise hostnames and domain names
+- Public or private customer IP addresses (IPv4/IPv6)
+- Physical MAC addresses and hardware serial numbers
+- Customer usernames, administrator accounts, or user SIDs
+- Raw customer business logs or proprietary application data
+- Internal corporate network topologies and IP routing tables
+- Passwords, API keys, JWT secret keys, or cryptographic private keys
+- **BitLocker Recovery Passwords or recovery key identifiers**
+- Unredacted screenshots displaying customer-identifiable data
+
+### Academic Screenshot & Artifact Sanitization Rules
+- All screenshots utilized in the Final Report, presentation slides, or poster must be sanitized, cropped, or masked.
+- Standard synthetic replacement identifiers must be used (e.g., `KEL-PROD-WEB-01`, `192.168.1.100`, `00:1A:2B:3C:4D:5E`).
+- Real-world evidence gathered during field testing must be stored strictly in local, untracked, gitignored directories or company-managed secure storage.
+
+---
+
+## 🏷️ Release & Tagging Policy
+
+- **Canonical Baseline:** Release tag `v0.3.0` (`bb9210f06256c3adc0c7901352d08e1a026a8027`) is permanently frozen.
+- **Git State:** Current `main` contains post-`v0.3.0` field integration, bug fixes, and safety hardening.
+- **Future Tagging:** If a final graduation release snapshot tag is desired (e.g., `v0.3.1` or `v0.4.0`), it will:
+  1. Be created as a **new** tag, never reusing or moving `v0.3.0`.
+  2. Require explicit human authorization after all field validation gates are verified.
+  3. **No new git tag will be created during this documentation update.**
+
+---
+
+## 🎓 CO-OP Academic & Administrative Deliverables
+
+To fulfill KMITL Cooperative Education requirements, project outputs must align with official university evaluation standards:
+
+### KMITL Evaluation Weight Distribution
+| Document / Event | Evaluator | Weight | Key Criteria & Evaluation Scope |
+|---|---|---|---|
+| **COOP.201** | Faculty Supervisor & Job Supervisor | **20%** | Workplace supervision record; tripartite consultation between academic advisor, student, and industrial mentor regarding project progress and workplace conduct. |
+| **COOP.202** | Examination Committee | **40%** | Post-internship evaluation upon return to university:<br>• **Presentation Examination:** 20% (Clarity, flow, defense, live demo)<br>• **Final Report Quality:** 20% (Technical depth, structure, academic rigor) |
+| **COOP.304** | Company Job Supervisor | **40%** | Workplace performance and final project evaluation:<br>• Evaluates work planning, project execution, independence, and technical quality.<br>• Must be submitted within one week following internship completion.<br>• **Confidential Document:** Must be handled through official corporate channels, not transported openly by the student. |
+
+### Administrative Planning Tracking
+- **COOP.104 (Job Assignment):** Completed. Recorded initial general assignment as *Infrastructure Deployment, Configuration and Support*.
+- **COOP.105 (Action Plan):** Completed. Officially established the project title as **Development of an Enterprise Infrastructure Management System (EIMS)** with an 8-stage work breakdown (Requirement/Design, Asset Management, Endpoint Auditing, Event Logs, Troubleshooting, Security/Compliance, Testing, Documentation).
+- **COOP.303 (Pre-Evaluation):** Completed / pending final administrative confirmation.
+- **Project Title Consistency Policy:**
+  - All formal outputs (Final Report, Presentation Slides, A1 Poster, COOP.201, COOP.202, COOP.304) will consistently utilize the official project title:
+    > **"Development of an Enterprise Infrastructure Management System (EIMS)"**
+  - Historical differences between COOP.104 and COOP.105 represent standard assignment maturation and project evolution, permitted by university guidelines. Prior forms will not be retroactively altered.
+
+### Privacy Policy for Public Documentation
+- Student ID, personal telephone numbers, personal email addresses, home addresses, company HR contacts, and mentor direct phone/email data **must never be published** in this repository or tracked files.
+
+---
+
+## 📅 Date-Based Closeout Timeline (2026-09-28 → 2026-10-20)
+
+| Timeframe | Phase | Key Engineering & Academic Outputs | Exit Gate |
+|---|---|---|---|
+| **2026-09-28 → 2026-09-30** | **Scope Freeze & Audit** | • Finalize scope boundaries and freeze major feature development.<br>• Update authoritative `ROADMAP.md`.<br>• Audit documentation, git status, and test suites.<br>• Coordinate COOP.201 supervision schedule. | Zero new major feature branches initiated. |
+| **2026-10-01 → 2026-10-04** | **Field Validation & Evidence Capture** | • Execute USB collector on authorized Windows Server endpoints.<br>• Import real evidence into EIMS; verify asset creation and event parsing.<br>• Validate AI Analyzer prioritization and History API.<br>• Capture clean, anonymized screenshots for report. | Hero E2E workflow successfully demonstrated and documented. |
+| **2026-10-05 → 2026-10-08** | **Blocker Fixes & Demo Stabilization** | • Resolve P0/P1 blockers or regressions discovered during field validation.<br>• Stabilize local demo runner scripts (`start_eims.bat`, seeders).<br>• Lock demo dataset candidate. | Full test suite green; demo environment repeatable and stable. |
+| **2026-10-09 → 2026-10-12** | **Final Report: Chapters 1–3** | • Author Chapter 1: Introduction, Problem Statement, Objectives, Scope.<br>• Author Chapter 2: Concepts, Technologies, Related Work (FastAPI, Next.js, pgvector, EVTX).<br>• Author Chapter 3: System Design, Architecture, Data Model, USB Workflow, Ingestion, AI Pipeline. | Chapters 1–3 draft complete and internally reviewed. |
+| **2026-10-13 → 2026-10-16** | **Final Report: Chapters 4–5 & Front Matter** | • Author Chapter 4: Results, Measured Performance, Test Verification.<br>• Author Chapter 5: Summary, Known Limitations, Recommendations.<br>• Compose Thai Abstract, English Abstract, References, and Appendices. | Complete full report draft compiled. |
+| **2026-10-17 → 2026-10-19** | **Review, Rehearsal & Package Readiness** | • Industrial mentor review of draft report.<br>• Rehearse oral presentation and live hero demo execution.<br>• Prepare offline backup demo video / screenshots.<br>• Finalize COOP.304 company evaluation package. | Submission-ready package assembled; demo rehearsed. |
+| **2026-10-20** | **Workplace Stage Closeout** | • Conclude on-site cooperative education workplace duties.<br>• Hand off confidential COOP.304 evaluation to company supervisor.<br>• Securely preserve company-approved evidence artifacts. | Workplace phase formally concluded. |
+| **Post-2026-10-20** | **Academic Submission & Examination** | • Incorporate advisor feedback into final report.<br>• Design and print A1 Academic Poster.<br>• Prepare final PowerPoint slide deck and PDF submission.<br>• Attend final defense examination. | *Official 2026 faculty submission deadline: TBD / must be confirmed from the current academic-year announcement.* |
+
+> [!WARNING]
+> **Academic Deadline Notice:** Prior KMITL manuals cite a historical deadline of *15 December 2025*. That date is specific to the 2025 academic calendar and must **not** be assumed for 2026. Official 2026 faculty deadlines must be confirmed directly from the current institutional schedule.
+
+---
+
+## 📖 Cooperative Education Final Report Structure
+
+The Final Report will follow the standard 5-chapter academic engineering framework:
+
+- **Front Matter**
+  - Thai Abstract (บทคัดย่อภาษาไทย)
+  - English Abstract
+  - Acknowledgments (กิตติกรรมประกาศ)
+  - Table of Contents, List of Tables, List of Figures
+- **Chapter 1: Introduction**
+  - 1.1 Background and Problem Significance
+  - 1.2 Project Objectives
+  - 1.3 Scope of the Project
+  - 1.4 Project Methodology Overview
+  - 1.5 Expected Academic and Operational Benefits
+- **Chapter 2: Theoretical Concepts and Related Technologies**
+  - 2.1 Enterprise Infrastructure Management Principles
+  - 2.2 Windows Diagnostics & Event Telemetry (WMI, CIM, EVTX architecture)
+  - 2.3 Semantic Vector Search and Retrieval-Augmented Generation (FastEmbed, pgvector)
+  - 2.4 Modern Web Architecture (FastAPI async lifespan, Next.js React 19 SSR)
+  - 2.5 Relational Schema Design and Search Indexing (PostgreSQL pg_trgm, tsvector)
+- **Chapter 3: System Design and Implementation Methodology**
+  - 3.1 Operational Requirements & Use Case Analysis
+  - 3.2 High-Level System Architecture
+  - 3.3 Database Schema & Relational Data Model
+  - 3.4 Standalone Portable USB Evidence Collector
+  - 3.5 Offline Telemetry Ingestion Pipeline
+  - 3.6 Event Deduplication and Priority Scoring Engine
+  - 3.7 Local Vector AI Analysis Pipeline & Provenance Model
+  - 3.8 Security Posture Evaluation & Secret Remediation
+  - 3.9 Web Investigation Dashboard & Command Center UI
+  - 3.10 System Verification and Testing Methodology
+- **Chapter 4: Implementation Results and System Validation**
+  - 4.1 Asset Registry & Inventory Validation
+  - 4.2 Portable Ingestion & Sequential Dedup Performance
+  - 4.3 AI Log Analyzer Diagnostics Accuracy & Latency Measurements
+  - 4.4 Universal Search Index Efficiency & Response Times
+  - 4.5 Automated Test Suite Verification (Unit, Integration, Lifespan)
+- **Chapter 5: Conclusion, Limitations, and Future Recommendations**
+  - 5.1 Project Conclusion & Objectives Fulfillment
+  - 5.2 Technical & Operational Limitations
+  - 5.3 Recommendations for Future Enterprise Enhancement
+- **Back Matter**
+  - References (IEEE format)
+  - Appendix A: Database Schema Specifications
+  - Appendix B: Operational Event Knowledge Catalog
+  - Author Biography
+
+---
+
+## 🎤 Final Presentation & Defense Strategy
+
+The graduation defense will follow a structured 11-step narrative flow focused on defensible engineering rather than commercial feature lists:
+
+1. **Company & Industrial Context:** Operating environment, scale of infrastructure, and constraints (air-gapped systems, security boundaries).
+2. **Routine Operational Duties:** Practical workplace responsibilities informing system requirements.
+3. **Problem Statement:** The friction of manual Windows server diagnostics, air-gapped data collection, and operational alert fatigue.
+4. **Project Objectives:** Engineering goals established in COOP.105.
+5. **Architectural Concepts:** Technology choices (portable collector, FastAPI, pgvector, Next.js).
+6. **System Implementation:** Core engineering components and integration patterns.
+7. **Hero Workflow Demonstration:** Live or recorded walk-through:
+   *Authorized Host → Portable USB Collector → Signed JSON → Central Ingestion → Asset Registration → Deduplication → AI Analyzer → Provenance History → Filtered Findings UI*.
+8. **Measured Validation:** Quantitative test suite results, search latencies (<300ms), and ingestion accuracy.
+9. **Known Limitations:** Honest discussion of application-level dedup limits, air-gap transfer friction, and benchmark data loss history.
+10. **Summary:** Key engineering achievements against initial objectives.
+11. **Future Work:** Phased roadmap for post-graduation enterprise scaling.
 
 ---
 
@@ -68,7 +369,7 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
 
 ---
 
-###  Sprint 10: Global Search & Timeline ✅ COMPLETED
+### Sprint 10: Global Search & Timeline ✅ COMPLETED
 - **Goal**: Implement cross-domain search capability and unified event timeline for operational visibility.
 - **Accomplishments**:
   - Removed the placeholder portal search bar and replaced it with a fully functional `⌘K` Global Search command palette (Cmd/Ctrl+K, normalized results, safe internal navigation).
@@ -260,12 +561,17 @@ This document tracks the historical and upcoming Sprints for the EIMS project, p
   - Automated point-in-time recovery (PITR) pipelines and off-site backup replication.
 
 ### 💡 Milestone 2: Enterprise Commercialization & Advanced Integrations (Future)
+- **Cross-Endpoint Correlation**:
+  - Multi-host incident timeline reconstruction and distributed attack chain tracking.
+  - Graph-based dependency visualization and anomaly correlation across network tiers.
 - **Enterprise Single Sign-On (SSO)**:
   - SAML 2.0 and OpenID Connect (OIDC) integration for Active Directory / Okta.
   - Granular Role-Based Access Control (RBAC) policy administration UI.
 - **Large-Scale Fleet Management**:
   - Distributed Discovery Agent deployment management across 10,000+ endpoints.
-  - Agent auto-update and certificate rotation automation.
+  - Agent auto-update, configuration sync, and certificate rotation automation.
+- **SIEM & Security Ecosystem Integration**:
+  - External Syslog/CEF forwarder and bidirectional enterprise SIEM synchronization.
+  - Automated exportable audit reports for ISO 27001, PCI-DSS, and HIPAA frameworks.
 - **Automated Regulatory Compliance Engines**:
   - CIS Benchmark Level 1 & 2 automated rule evaluations.
-  - Automated exportable audit reports for ISO 27001, PCI-DSS, and HIPAA frameworks.
