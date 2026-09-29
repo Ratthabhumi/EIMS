@@ -11,22 +11,47 @@
 ## 1. Specifications & Physical Formatting
 
 - **Standard Paper Size:** ISO 216 A1 (594 mm × 841 mm / 23.386 in × 33.110 in)
-- **Orientation:** Portrait (Portrait orientation selected to follow the supplied KMITL poster example and enable clean 1:1 downscaling to standard A4 for supervisor review).
+- **Orientation:** Portrait (3-column academic layout aligned with official KMITL cooperative education poster guidelines).
+- **Proportional Scaling & A4 Supervisor Review Proof:**
+  - A1 and A4 use the same ISO A-series aspect ratio ($1:\sqrt{2}$), so the poster can be proportionally reduced to A4 without letterboxing.
+  - Actual linear scale: A1 → A4 ≈ 35.36% linear scale ($1 / (\sqrt{2})^3 \approx 0.35355$, exact dimensional ratio $210 / 594$). This reduction spans three ISO A-series steps (A1 → A2 → A3 → A4) and is strictly proportional, not 1:1 scaling.
+  - Point Size Equivalence Formula: `A4 equivalent point size = A1 point size × 0.3536`
+  - Representative Point Size Scale:
+    - Poster Title: 40 pt on A1 → approximately 14.1 pt on A4
+    - Card Section Headings: 21 pt on A1 → approximately 7.4 pt on A4
+    - Metric Numerals: 21 pt on A1 → approximately 7.4 pt on A4
+    - Header Subtitles: 16–18 pt on A1 → approximately 5.7–6.4 pt on A4
+    - Body Text & Objectives: 16.5–17 pt on A1 → approximately 5.8–6.0 pt on A4
+    - Results Notes & Dedup Points: 15–16 pt on A1 → approximately 5.3–5.7 pt on A4
+    - Limitations & Future Work: 14.5–15.5 pt on A1 → approximately 5.1–5.5 pt on A4
+    - Deduplication Equation: 14 pt Consolas on A1 → approximately 5.0 pt on A4
+    - Conclusion: 13.5–15 pt on A1 → approximately 4.8–5.3 pt on A4
+    - Acknowledgment & Signature: 12.5–13 pt on A1 → approximately 4.4–4.6 pt on A4
+  - Physical Readability Requirement: While digital inspection validates layout geometry, vector diagram fidelity, and font glyph rendering, physical readability on A4 paper must remain a HUMAN verification performed by the supervisor prior to final A1 print sign-off.
 - **Deliverable Formats:**
-  - `docs/poster/EIMS_COOP_POSTER_2026.pptx` (Native editable PowerPoint shapes, text boxes, and embedded high-resolution diagrams)
-  - `docs/poster/EIMS_COOP_POSTER_2026.pdf` (Fixed 1-page A1 vector PDF exported via PowerPoint COM)
+  - `docs/poster/EIMS_COOP_POSTER_2026.pptx` (Native editable PowerPoint shapes, text boxes, and embedded high-resolution diagrams; 1 slide)
+  - `docs/poster/EIMS_COOP_POSTER_2026.pdf` (Fixed 1-page A1 vector PDF exported via PowerPoint COM: 594 mm × 841 mm)
   - `docs/poster/EIMS_COOP_POSTER_2026.png` (High-resolution 2376 × 3364 raster preview)
+  - `docs/poster/EIMS_COOP_POSTER_A4_REVIEW_2026.pdf` (Dedicated 1-page A4 physical review proof: 210 mm × 297 mm, 35.36% proportional scale)
   - `docs/poster/EIMS_COOP_POSTER_SOURCE_2026.md` (Reproducible source specification)
 - **Primary Typography:**
-  - Official Approved Fonts: TH SarabunPSK or Angsana New (active poster renders with TH Sarabun New)
+  - Official Poster Guidance: TH SarabunPSK or Angsana New
+  - Active Selected Font: Angsana New (applied consistently across all headers, cards, and metadata)
+  - Font Selection Rationale: System audit verified that `Angsana New` is installed on the host system (`angsana.ttc` in Windows Fonts registry). `TH SarabunPSK` is not installed. `TH Sarabun New` is not treated as explicitly approved because official guidance specifies `TH SarabunPSK` or `Angsana New`.
   - Poster Title: 40 pt, Bold
-  - Header Metadata / Subtitles: 15–17 pt, Bold / Regular
+  - Header Metadata / Subtitles: 16–18 pt, Bold / Regular
   - Card Section Headings: 21 pt, Bold (Navy `#0F172A` banner, height: 15 mm)
-  - Body Text: 14.5–15.5 pt, Regular (with Navy bold lead-in titles)
+  - Body Text: 16.5–17 pt, Regular (with Navy bold lead-in titles)
   - Metric Numerals: 21 pt, Bold (Emerald `#047857` / Navy `#0F172A`)
   - Metric Labels: 11.5 pt, Bold
-  - Deduplication Equation: 13 pt Consolas, Bold (`#1E40AF`)
-  - Acknowledgment & Signature: 11.5–13.5 pt
+  - Deduplication Equation: 14 pt Consolas, Bold (`#1E40AF`)
+  - Acknowledgment & Signature: 12.5–13 pt
+- **Institutional Seal Metadata:**
+  - Source: Extracted directly from official KMITL supplied document (`แปล_คู่มือใหม่ (2025).pdf`, page 23 appointment order seal).
+  - Seal Asset Dimensions: 344 × 344 px.
+  - Container Dimensions: 34 mm × 34 mm (1.339 in × 1.339 in).
+  - Effective DPI at 34 mm: 256.9 DPI ($\ge 200\text{ DPI}$ proof-acceptable range, $< 300\text{ DPI}$ production print threshold).
+  - Status: Embedded for A4 supervisor review proof; official high-resolution vector/raster seal from faculty required for final A1 printing.
 - **Color Palette (High-contrast print-oriented palette):**
   - Background Canvas: Clean White (`#FFFFFF`) with subtle slate grid card fills (`#F8FAFC`)
   - Primary Headers & Card Banners: Deep Navy (`#0F172A`)
@@ -40,7 +65,7 @@
 ## 2. Poster Layout Structure (Three-Column Academic Format)
 
 ### 2.1 Header Banner (Full Width: 562 mm × 82 mm, y: 10 mm)
-- **Reserved Institutional Seal:** Clean dedicated 34 mm × 34 mm container on the left reserved for official KMITL seal placement.
+- **Official KMITL Seal Container:** Dedicated 34 mm × 34 mm white rounded card on the left containing the extracted official KMITL seal (256.9 DPI proof asset).
 - **Institutional Subtitle:**
   `FACULTY OF ENGINEERING • KING MONGKUT'S INSTITUTE OF TECHNOLOGY LADKRABANG`
   `COMPUTER ENGINEERING (INTERNATIONAL PROGRAM) • COOPERATIVE EDUCATION 2026`
@@ -118,12 +143,12 @@ Enterprise infrastructure auditing across isolated corporate networks is hindere
 - **Metric Cards (3 Rows × 2 Columns Grid):**
   - **37 / 0 / 4:** Sprint 13 Hermetic Ingestion Test Suite (37 passed, 0 failed, 4 warnings).
   - **49 Events:** Persisted Field Telemetry (34 System + 15 Application events).
-  - **10 Records:** AnalysisHistory Cap (10/10 prioritized events triaged; cap <= 10).
+  - **10 Records:** AnalysisHistory Records (10 AnalysisHistory records associated with the selected field dataset; analyzer cap <= 10).
   - **HTTP 200:** Filtered History REST API (`GET /api/v1/history?asset_id=...`).
   - **Gate A9 PASS:** Browser Runtime Verification Gate (Event Evidence & AI Findings verified in UI).
   - **0 Errors:** Frontend Quality Gates (strict `tsc` & Next.js production build PASS).
 - **Precision Validation Notes:**
-  - **Workload Bounding Distinction:** The 49 events represent persisted evidence in the database. The analyzer is strictly bounded to at most 10 selected new events per import (not claiming all 49 were analyzed by AI).
+  - **Workload Bounding Distinction:** The 49 events represent persisted evidence in the database. 10 AnalysisHistory records were created associated with the selected field dataset, matching the analyzer's strict cap of at most 10 selected new events per import.
   - **Validation Scope Boundary:** Earlier field trials verified physical USB execution and JSON extraction. The latest on-site session verified downstream data integrity (persisted DB rows, filtered API, and UI) without re-running physical USB collection.
   - **A9 Runtime Verification:** The field dataset contained 49 persisted Windows Event Evidence rows. The A9 browser check confirmed that Event Evidence and AI Findings were both available in the endpoint investigation view.
 
@@ -141,7 +166,7 @@ Enterprise infrastructure auditing across isolated corporate networks is hindere
 - **Conclusion:**
   - EIMS centralizes asset inventory and operational evidence through hardware fingerprints.
   - Portable collection safely acquires air-gapped evidence via embedded CPython 3.14.3.
-  - Multi-tier validation confirmed end-to-end evidence ingestion and triage integrity.
+  - Combined validation evidence covered portable acquisition/import behavior and the downstream database, API, analysis-history, and UI path.
 - **Acknowledgment:**
   *Sincere gratitude to KANEMATSU ELECTRONICS (THAILAND) for host enterprise support, Workplace Supervisor Mr. Chalermpol Phuangchalam for professional guidance, and Academic Supervisor Asst. Prof. Dr. Phongsak Keeratiwintakorn for academic mentorship.*
 - **Advisor Signature Block (Blank for physical signing):**
