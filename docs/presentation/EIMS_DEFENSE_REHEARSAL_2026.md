@@ -178,7 +178,7 @@ Because academic committees may adjust presentation allowances on defense day, r
 ### Slide 9 — Bounded AI-Assisted Investigation & Traceable Metadata
 - **Purpose:** Clarify the assistive, bounded role of the AI triage engine.
 - **Must Say:**
-  1. Workload bounding: The evaluated workflow caps analysis at at most 10 selected new events per import.
+  1. Workload bounding: The evaluated workflow caps analysis at most 10 selected new events per import.
   2. Deterministic sorting: Events are prioritized: `Critical (1) > Error (2) > Warning (3) > Information (4)`.
   3. Semantic retrieval: FastEmbed (`BAAI/bge-small-en-v1.5`) dense 384-d vectors matched via pgvector cosine distance, with SentenceTransformer as fallback.
   4. Assistive boundary: The model synthesizes diagnostic summaries and verification steps; it does NOT autonomously execute remediation scripts or alter system states.
@@ -429,7 +429,7 @@ Each of the 14 established defense questions is structured into a concise Short 
 
 ---
 
-### Q7: Why cap AI analysis at at most 10 events per import?
+### Q7: Why cap AI analysis at most 10 events per import?
 - **Short Answer (20s):** Workload bounding protects system performance and operator focus. Dense embedding generation and language model synthesis incur computational overhead; capping the workload limits processing cost during large imports and presents operators with the top prioritized failures.
 - **Expanded Answer (50s):** An enterprise Windows server can produce hundreds of warning and error events during an outage. Passing hundreds of events to an embedding or language model pipeline introduces substantial latency and token cost, overwhelming both system resources and human operators. EIMS sorts candidate events deterministically by severity (`Critical > Error > Warning > Information`) and selects at most the top 10 prioritized anomalies. This guarantees that critical hardware and system failures are triaged immediately without delaying the ingestion pipeline.
 - **Examiner Follow-Up:** *"What if an import contains 12 critical errors? What happens to the other 2?"*
