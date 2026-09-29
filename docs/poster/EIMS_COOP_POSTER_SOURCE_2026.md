@@ -17,14 +17,15 @@
   - `docs/poster/EIMS_COOP_POSTER_2026.pdf` (Fixed 1-page A1 vector PDF exported via PowerPoint COM)
   - `docs/poster/EIMS_COOP_POSTER_SOURCE_2026.md` (Reproducible source specification)
 - **Primary Typography:** TH Sarabun New / TH SarabunPSK (fallback: Calibri / Arial for universal system rendering)
-  - Poster Title: 44–48 pt, Bold
-  - Metadata / Subtitles: 18–20 pt, Regular / Medium
-  - Section Headings: 24–26 pt, Bold
-  - Subsection Headings: 18–20 pt, Bold
-  - Body Text: 15–17 pt, Regular
-  - Metric Numerals: 36–42 pt, Bold
-  - Metric Labels: 13–15 pt, Regular / Medium
-  - Figure Captions: 13–15 pt, Italic / Regular
+  - Poster Title: 50 pt, Bold
+  - Metadata / Subtitles: 18–20 pt, Bold / Regular
+  - Section Headings: 26 pt, Bold
+  - Subsection Headings: 18–19 pt, Bold
+  - Body Text: 17.5–19 pt, Regular (with Navy bold lead-in titles)
+  - Metric Numerals: 30–32 pt, Bold (Emerald / Navy)
+  - Metric Labels: 15–16 pt, Bold
+  - Metric Descriptions: 12.5–13 pt, Regular
+  - Deduplication Equation: 15 pt Consolas, Bold
 - **Color Palette (Restrained Academic Engineering Style):**
   - Background Canvas: Clean White (`#FFFFFF`) with subtle slate grid card fills (`#F8FAFC`)
   - Primary Headers & Cards: Deep Navy (`#0F172A`, `#1E293B`)
