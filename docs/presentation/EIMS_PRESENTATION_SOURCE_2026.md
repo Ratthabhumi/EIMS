@@ -18,8 +18,7 @@
 
 ## Slide 2: Cooperative Education Context & Operational Responsibilities
 - **Host Enterprise Context:**
-  - Host Organization: KANEMATSU ELECTRONICS (THAILAND)
-  - Industry Domain: Enterprise Systems Integration, Compute Infrastructure, and Cloud Managed Services
+  - Context: Cooperative education placement at KANEMATSU ELECTRONICS (THAILAND)
   - Placement Duration: Full-time 4th-year Cooperative Education (Academic Year 2026)
   - Workplace Division: Enterprise Infrastructure Deployment & Systems Support Engineering
   - Supervision: Under direct technical mentorship of Mr. Chalermpol Phuangchalam
@@ -38,14 +37,14 @@
 ---
 
 ## Slide 3: Problem Statement: Infrastructure Evidence Fragmentation
-- **Core Friction Points:**
+- **Main Problems:**
   1. **Network Enclave Isolation:** High-security production servers reside in air-gapped or segmented enclaves. Continuous streaming daemons cannot cross firewall boundaries, leaving endpoints invisible to central monitoring.
   2. **Fragile Ephemeral Identity:** Dynamic IPs, DHCP leases, and server renames break historical tracking. Infrastructure lacks immutable hardware-anchored identity across server migrations.
   3. **Labor-Intensive Manual Diagnostics:** Engineers must physically access servers and manually execute disparate PowerShell/CMD scripts, producing fragmented, unstructured notes without verification guarantees.
   4. **High-Volume Telemetry Overload:** Windows endpoints generate thousands of routine event logs daily. Triage is slow, prone to oversight, and lacks deterministic prioritization.
   5. **Absence of Provenance & History:** Ad-hoc investigation findings are rarely linked back to specific events, preventing retrospective auditing and historical incident cross-referencing.
 - **Speaker Notes:**
-  > In enterprise IT, infrastructure evidence is scattered. Air-gapped systems cannot run continuous agents, dynamic hostnames make servers hard to identify reliably, and log volumes overwhelm staff. EIMS was designed specifically to solve these five core operational friction points.
+  > In enterprise IT, infrastructure evidence is scattered. Air-gapped systems cannot run continuous agents, dynamic hostnames make servers hard to identify reliably, and log volumes overwhelm staff. EIMS was designed specifically to solve these five main problems.
 
 ---
 
@@ -66,13 +65,13 @@
 ## Slide 5: EIMS System Overview & Technology Stack
 - **Target Endpoints:** Windows endpoints; field validation on an authorized Windows Server host (WMI/CIM queries and Windows Event Log `.evtx` channels).
 - **Portable USB Auditor:** Embedded CPython 3.14.3 amd64. Bundled runtime executing `Run-EIMS-Audit.bat`; read-only queries with outputs written to configured USB directories.
-- **Core Backend API:** FastAPI + Pydantic + Starlette. Asynchronous Python 3.10+ gateway delivering OpenAPI 3.1 endpoints and strict schema validation.
+- **Core Backend API:** FastAPI + Pydantic + Starlette backend providing REST APIs and schema validation.
 - **Relational & Vector Store:** PostgreSQL 16 + pgvector. ACID transactional relational entity store combined with 384-dimensional vector cosine distance search.
-- **Broker & Caching:** Redis 7 & MinIO Object Storage. In-memory caching and message queuing paired with S3-compatible immutable blob persistence.
+- **Broker & Caching:** Redis 7 & MinIO Object Storage. In-memory caching and message queuing paired with S3-compatible object storage.
 - **AI Analysis Engine:** FastEmbed (`BAAI/bge-small-en-v1.5`) primary / SentenceTransformer (`all-MiniLM-L6-v2`) fallback. Bounded assistive analysis generating contextual diagnostic summaries with traceable metadata.
-- **Operator Dashboard:** Next.js 14 App Router + Tailwind CSS. Server/Client hybrid rendering dashboard presenting real-time asset telemetry and AI findings.
+- **Operator Dashboard:** Next.js 14 App Router + Tailwind CSS. Server/Client hybrid rendering dashboard presenting asset details, compliance status, event evidence, and AI findings.
 - **Speaker Notes:**
-  > EIMS is built on modern, battle-tested open-source technologies. The collection runtime uses an embedded CPython 3.14.3 distribution on USB. The backend uses FastAPI and PostgreSQL with pgvector, decoupled through Redis and MinIO, and served via a Next.js App Router interface. The embedding service initializes FastEmbed with BAAI/bge-small-en-v1.5, with SentenceTransformer all-MiniLM-L6-v2 as fallback.
+  > Here are the main technologies used in EIMS. The collection runtime uses an embedded CPython 3.14.3 distribution on USB. The backend uses FastAPI and PostgreSQL with pgvector, decoupled through Redis and MinIO, and served via a Next.js App Router interface. The embedding service initializes FastEmbed with BAAI/bge-small-en-v1.5, with SentenceTransformer all-MiniLM-L6-v2 as fallback.
 
 ---
 
@@ -81,7 +80,7 @@
 - **Architectural Highlights:**
   - Hybrid Modular Monolith: Consolidates domain services into a cohesive, maintainable codebase without microservice networking overhead.
   - Episodic Disconnected Collection: USB Auditor bridges network isolation gaps without requiring continuous agent daemons.
-  - Bounded Ingestion Pipeline: Strict schema checks and sequential deduplication ensure database integrity.
+  - Bounded Ingestion Pipeline: Strict schema checks and sequential deduplication help maintain consistent stored data.
   - Persistence & Vector Separation: Relational tables store entities; pgvector handles mathematical distance operations.
 - **Speaker Notes:**
   > This slide presents Figure 3.1 from our report. EIMS employs a hybrid modular monolith. On the left, endpoints are audited episodically via USB media. The central FastAPI service ingests and deduplicates payloads, storing records in PostgreSQL while pgvector computes vector similarity for the AI analyzer.

@@ -71,7 +71,7 @@ To define the scope within the cooperative education framework, the capabilities
 - **Endpoint Security and Compliance Auditing:** Algorithmic evaluation of endpoint security configurations, assessing Windows Defender status, Windows Firewall enforcement, Windows Update recency, and BitLocker encryption status (strictly constrained to posture state without collecting recovery keys).
 - **Supporting Optical Character Recognition (OCR):** Secondary ingestion pipeline accepting multipart physical hardware manifests, invoices, or chassis specification labels, storing raw binaries in S3-compatible object storage (MinIO) and extracting serial metadata to assist asset onboarding.
 - **AI-Assisted Investigation Pipeline:** Local semantic embedding generation (384-dimensional vectors) and vector database cosine distance querying to retrieve diagnostic solutions for prioritized events, bounded to an operational workload limit of at most 10 analyzed events per import.
-- **Audit and Provenance Tracking:** Complete relational linkage between asset entities, persisted event logs, and analysis history records, including explicit `source_type` classification (`USB_OFFLINE_COLLECTION`) and cryptographic deduplication metadata.
+- **Audit and Provenance Tracking:** Traceable linkage between asset entities, persisted event logs, and analysis history metadata, including `source_type` classification (`USB_OFFLINE_COLLECTION`) and event-level deduplication metadata.
 - **Web Investigation Portal:** Centralized web dashboard providing asset inventory navigation, detailed endpoint inspection, global keyboard search (`Ctrl+K`), unified multi-domain timelines, and diagnostic visualization.
 - **Prototype Deployment Architecture:** Containerized multi-service deployment orchestrating FastAPI, PostgreSQL with pgvector, Redis, PgBouncer, MinIO, Prometheus, and Grafana using Docker Compose.
 
@@ -111,7 +111,7 @@ The implementation of EIMS delivers substantial qualitative and operational bene
 - **Less Manual Effort to Connect Related Records:** Eliminates the necessity for operators to manually aggregate data across multiple local administration consoles, automatically associating incoming operational events with asset identity and configuration state.
 - **Verifiable Audit Provenance:** Ensures that every persisted event and analytical diagnostic finding maintains explicit traceability back to its originating host, collection timestamp, and ingestion transaction.
 - **Cognitive Workload Reduction via AI-Assisted Prioritization:** Mitigates diagnostic fatigue by filtering informational noise, isolating high-severity operational anomalies, and providing contextual remediation references to assist human troubleshooting.
-- **Transparent Security Posture Auditing:** Provides clear, continuous visibility into vital endpoint protection mechanisms, such as BitLocker encryption, firewall enforcement, and antimalware status, supporting organizational compliance objectives.
+- **Transparent Security Posture Auditing:** Provides consolidated visibility into vital endpoint protection mechanisms, such as BitLocker encryption, firewall enforcement, and antimalware status, supporting organizational compliance objectives.
 
 ## 1.7 Chapter Summary
 

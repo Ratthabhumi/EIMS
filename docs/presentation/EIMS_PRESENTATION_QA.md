@@ -18,7 +18,7 @@ While enterprise SIEM platforms focus on real-time streaming security log correl
 ### Q2: Why does EIMS need offline / portable media collection?
 **Answer:**
 In enterprise infrastructure administration, two fundamental constraints prevent connected collection:
-1. **Network Segmentation & Air-Gapping:** High-security financial, industrial, or database hosts are physically or logically segregated from corporate networks. They cannot open outbound network connections to a central server.
+1. **Network Segmentation & Air-Gapping:** High-security segmented or isolated enterprise hosts are physically or logically segregated from corporate networks. They cannot open outbound network connections to a central server.
 2. **Non-Destructive Posture:** Production servers cannot tolerate the installation of external software packages, package managers, or third-party background daemons.
 
 The portable auditor runs from the removable USB package using the bundled Python runtime. It performs read-only queries against the target system and writes its report/log output to configured directories on the USB package. The resulting JSON artifact serves as a structured local evidence source prior to central ingestion.
@@ -69,7 +69,7 @@ The System channel records hardware health, driver events, and operating system 
 ### Q7: Why cap AI analysis at most 10 events per import?
 **Answer:**
 Workload bounding is an important design choice for system stability:
-1. **Computational Bounding:** Dense embedding generation and language model prompt synthesis incur noticeable latency and memory overhead. Capping the workload prevents worker thread saturation and API backpressure during large imports.
+1. **Computational Bounding:** Dense embedding generation and language model prompt synthesis incur noticeable latency and memory overhead. Capping the workload limits processing cost during large imports.
 2. **Operator Focus:** A systems engineer responding to a server disruption needs a concise list of high-severity events rather than hundreds of routine notifications.
 3. **Deterministic Prioritization:** EIMS sorts candidate events strictly by severity: `Critical (Level 1) > Error (Level 2) > Warning (Level 3) > Information (Level 4)`. The analyzer selects at most the top 10 prioritized events, ensuring system resources are focused on critical errors and warnings.
 
@@ -80,7 +80,7 @@ Workload bounding is an important design choice for system stability:
 AI in EIMS functions strictly as an **assistive investigation aid**, NOT an autonomous authority:
 - It does NOT make unassisted diagnostic decisions.
 - It does NOT automatically apply patches, reboot servers, or alter registry configurations.
-- It uses Retrieval-Augmented Generation (RAG) to match parsed event logs with verified administrative playbooks, synthesizing concise diagnostic explanations and recommended verification steps for human engineers.
+- It uses Retrieval-Augmented Generation (RAG) to match parsed event logs with retrieved solution/reference context, synthesizing concise diagnostic explanations and recommended verification steps for human engineers.
 - All AI findings are recorded in the `AnalysisHistory` table with traceable event and asset metadata, preserving human operational oversight.
 
 ---
@@ -142,7 +142,7 @@ EIMS proves the engineering feasibility of unified evidence management and offli
 - Implemented the WMI/CIM hardware discovery and Windows Event Log extraction modules.
 - Built the FastAPI ingestion pipeline, Pydantic data contracts, and SHA-256 deduplication logic.
 - Configured PostgreSQL 16 with pgvector and implemented semantic cosine similarity search.
-- Constructed the Next.js 14 App Router dashboard with real-time evidence inspection views.
+- Constructed the Next.js 14 App Router dashboard with evidence inspection views.
 
 **Key Technical Lessons:**
 1. **Strict Data Contracts:** Handling real-world Windows event logs requires strict schema validation at the gateway boundary to prevent downstream database corruption.

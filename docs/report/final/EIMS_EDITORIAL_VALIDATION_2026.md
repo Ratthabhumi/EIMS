@@ -135,3 +135,36 @@ The following items are external prerequisites that require physical institution
 1. **Sanitized Screenshots (Figures 4.1–4.5):** Requires inserting genuine, sanitized image captures from authorized field systems.
 2. **Faculty Certification Page:** Requires inserting the signed institutional approval form with official signatures upon successful oral defense.
 3. **Official Institutional Template Verification:** Physical layout matches standard KMITL engineering guidelines; final binding should verify against the latest printed faculty handbook.
+
+---
+
+## 6. Final Micro-Correction Pass (True Content Freeze)
+
+**Execution Date:** 29 September 2026
+**Status:** **GREEN — TRUE CONTENT FREEZE READY**
+
+A final surgical micro-correction pass was applied to eliminate residual overclaims, harmonize technical terminology, and ensure natural student speakability across the report, presentation deck, and oral defense Q&A guide:
+
+1. **Chapter 1 Provenance Wording (§1.4):** Replaced *"Complete relational linkage"* with *"Traceable linkage between asset entities, persisted event logs, and analysis history metadata, including source_type classification (USB_OFFLINE_COLLECTION) and event-level deduplication metadata"* to accurately reflect structured application metadata rather than a full relational foreign-key chain.
+2. **Chapter 1 Visibility Wording (§1.6):** Replaced *"continuous visibility"* with *"consolidated visibility"* to accurately reflect episodic offline acquisition.
+3. **Presentation Storage Claim (Slide 5):** Replaced *"S3-compatible immutable blob persistence"* with *"S3-compatible object storage"*, avoiding unsupported claims of object lock or WORM immutability.
+4. **Presentation Dashboard Scope (Slide 5):** Replaced *"real-time asset telemetry and AI findings"* with *"asset details, compliance status, event evidence, and AI findings"*, eliminating unsupported live-streaming or WebSocket implications.
+5. **Presentation Backend Runtime (Slide 5):** Removed redundant runtime version claim (*"Python 3.10+ gateway"*), standardizing on *"FastAPI + Pydantic + Starlette backend providing REST APIs and schema validation"*. The portable collector runtime remains explicitly *"CPython 3.14.3 amd64 embedded runtime"*.
+6. **Presentation Speakability & Natural Tone:** Replaced brochure phrases with natural engineering phrasing:
+   - *"modern, battle-tested open-source technologies"* → *"the main technologies used in EIMS"*
+   - *"ensure database integrity"* → *"help maintain consistent stored data"*
+   - *"Core Friction Points"* → *"Main Problems"*
+7. **Host Enterprise Context (Slide 2):** Standardized placement description to *"Cooperative education placement at KANEMATSU ELECTRONICS (THAILAND)"*, removing unverified industry domain marketing statements while preserving documented routine responsibilities.
+8. **Defense Q&A Guide Precision:** Refined Q&A responses:
+   - Q2: Replaced specific host lists with *"segmented or isolated enterprise hosts"*.
+   - Q7: Replaced *"worker thread saturation and API backpressure"* with *"limits processing cost during large imports"*.
+   - Q8: Replaced *"verified administrative playbooks"* with *"retrieved solution/reference context"*.
+   - Q13: Standardized dashboard description to *"evidence inspection views"*.
+
+### Final Deliverable Verification Audit
+- `docs/report/final/EIMS_FINAL_COOP_REPORT_2026.docx`: 122 pages, explicit `#000000` text, native tables, updated fields.
+- `docs/report/final/EIMS_FINAL_COOP_REPORT_2026.pdf`: 122 pages, Roman (i–xiv) / Arabic (1–105) pagination, exported via Word COM.
+- `docs/presentation/EIMS_COOP_PRESENTATION_2026.pptx`: 15 slides, 16:9 canvas, black body copy, complete speaker notes.
+- `docs/presentation/EIMS_COOP_PRESENTATION_2026.pdf`: 15 slides, exported via PowerPoint COM.
+- Target Audit Occurrences: Zero occurrences of forbidden phrases, 0 mojibake, 0 control characters, 0 raw LaTeX leakage.
+- Preserved Core Facts: 37/0/4 hermetic test suite, 49 field events (34 System, 15 Application), 10 AnalysisHistory records, HTTP 200 filtered API, A9 UI PASS, default max 500 combined events.
