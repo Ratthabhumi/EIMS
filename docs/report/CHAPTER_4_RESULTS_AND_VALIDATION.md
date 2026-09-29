@@ -16,7 +16,7 @@ The verification of EIMS was structured to demonstrate that the implemented arch
 7. **Traceable Audit Provenance:** Validating end-to-end provenance linking persisted AI diagnostic findings back to their originating Windows Event Log records and parent asset entities.
 8. **Operational Web Interface Delivery (A9 Gate):** Confirming via browser runtime verification that asset-linked event evidence and active AI diagnostic findings are successfully presented on the web dashboard.
 
-To ensure academic and professional defensibility, validation activities combined hermetic automated testing with real-world field verification conducted on authorized enterprise Windows endpoints.
+Validation activities combined hermetic automated testing with field verification conducted on authorized enterprise Windows endpoints.
 
 ## 4.2 Validation Environment
 
@@ -34,7 +34,7 @@ Field validation was executed within an authorized enterprise test environment u
 | **Field Validation Target** | `ASSET-01` (Authorized enterprise Windows Server host) |
 | **Monitored Event Channels** | Windows `System` and `Application` channels |
 | **Event Collection Window** | Preceding 24 hours of operational history |
-| **Event Acquisition Bound** | Default threshold of 500 events per channel |
+| **Event Acquisition Bound** | Default maximum 500 events across combined System/Application query |
 
 *Note: While field validation was conducted on the specified Windows Server host, EIMS architecture supports diverse Windows compute endpoints, including Windows 11 Enterprise and Windows 10 Pro workstations.*
 
@@ -44,13 +44,13 @@ Prior to field deployment and downstream data verification, automated test suite
 
 | Validation Suite / Gate | Tooling / Command Executed | Observed Result | Engineering Significance |
 | :--- | :--- | :--- | :--- |
-| **Event Evidence Ingestion Suite** | `pytest clients/usb_auditor/tests/` | **37 passed, 0 failed, 4 warnings** | Validates event normalization, SHA-256 deduplication hashing, severity sorting, and non-fatal error isolation. |
+| **Event Evidence Ingestion Suite** | `pytest tests/test_sprint13_evidence_ingestion.py` | **37 passed, 0 failed, 4 warnings** | Reported hermetic ingestion tests (mocked database/analyzer); separate historical/live PostgreSQL checks. |
 | **USB Auditor Sync Suite** | `pytest clients/usb_auditor/tests/test_auto_sync.py` | **18 passed, 0 failed** | Validates bounded HTTP upload, fallback to local storage, and configuration flag parsing. |
 | **Frontend Static Typing** | `npx tsc --noEmit` (Dashboard root) | **PASS (Exit Code 0)** | Asserts zero TypeScript compilation errors, verifying strict interface contract alignment with backend models. |
 | **Frontend Production Build** | `npm run build` (Next.js App Router) | **PASS (Exit Code 0)** | Confirms static page pre-rendering, bundle tree-shaking, and zero broken module imports. |
 | **Git Whitespace & Syntax Gate** | `git diff --check` | **PASS (Exit Code 0)** | Asserts zero trailing whitespace, merge conflict remnants, or line ending corruption across all committed files. |
 
-In the executed regression scope, no functional failure was observed. Automated test coverage confirmed that core helper algorithmsâ€”specifically cryptographic key derivation and JSON normalizationâ€”behave deterministically across edge-case permutations.
+In the executed regression scope, no functional failure was observed. Automated test coverage confirmed that core helper algorithms—specifically cryptographic key derivation and JSON normalization—behave deterministically across edge-case permutations.
 
 ## 4.4 Portable Evidence Collection Validation
 
@@ -59,13 +59,13 @@ The operational behavior of the Portable USB Auditor (`clients/usb_auditor/`) wa
 During earlier field acquisition testing, the portable utility demonstrated the following operational capabilities:
 - **Zero-Dependency Execution:** The auditor executed successfully on target hosts running Windows Server without requiring preinstalled Python interpreters, package managers (`pip`), Git, Docker, or external application dependencies. The CPython 3.14.3 amd64 embedded runtime executed cleanly from the removable USB medium.
 - **Batch Script Initiation:** The batch launcher (`Run-EIMS-Audit.bat`) established relative execution paths, completed runtime preflight checks, and executed the collection sequence upon double-click invocation.
-- **Local Evidence Generation:** The scanning engine generated structured JSON reports stored under `reports/audit_<hostname>_<timestamp>.json` on the USB drive. Local evidence creation was authoritative, preserving data on disk regardless of subsequent network upload success.
+- **Local Evidence Generation:** The scanning engine generated structured JSON reports stored under `reports/audit_<hostname>_<timestamp>.json` on the USB drive. Local evidence creation was self-contained, preserving data on disk regardless of subsequent network upload success.
 - **Package Manifest Integrity:** The SHA-256 manifest verification routine successfully validated internal script hashes prior to scanning, ensuring that corrupted or tampered files halted execution.
-- **Non-Destructive Execution:** System interrogation was performed exclusively via read-only CIM cmdlets and event querying utilities, causing zero service interruptions, zero registry alterations, and zero system state modifications on audited hosts.
+- **Non-Destructive Execution:** System interrogation was performed exclusively via read-only CIM cmdlets and event querying utilities, using read-only queries and writing output to configured report and log directories without persistent host software installation.
 
-[FIGURE PLACEHOLDER â€” Portable USB Auditor Batch Launcher Console Output]
+[FIGURE PLACEHOLDER — Portable USB Auditor Batch Launcher Console Output]
 *Suggested caption: Figure 4.1. Console output generated during the execution of Run-EIMS-Audit.bat on a target Windows host.*
-*Confidentiality note: Ensure target hostname and internal file paths are sanitized prior to publication.*
+*Note: Identifiers and host paths have been anonymized.*
 
 ## 4.5 Asset Registry and Compliance Results
 
@@ -74,12 +74,12 @@ Ingestion of offline report data into the central platform was verified by inspe
 Verification confirmed:
 1. **Canonical Asset Entity:** `ASSET-01` was indexed within the `infrastructure_assets` table with an assigned UUIDv4 canonical identifier.
 2. **Metadata Population:** Hostname, primary network interface IP address, operating system build, and total physical memory were successfully parsed from the report and persisted.
-3. **Security Posture Evaluation:** Security configuration flagsâ€”including Windows Firewall profile status, Windows Defender antimalware definition timestamps, and BitLocker volume encryption statusâ€”were successfully mapped to the asset entity.
+3. **Security Posture Evaluation:** Security configuration flags—including Windows Firewall profile status, Windows Defender antimalware definition timestamps, and BitLocker volume encryption status—were successfully mapped to the asset entity.
 4. **Secret Exclusion:** In accordance with the security design established in Chapter 3, zero BitLocker Recovery Passwords or plaintext protector secrets were present in the database records or API responses.
 
-[FIGURE PLACEHOLDER â€” Asset Overview and Security Posture View]
+[FIGURE PLACEHOLDER — Asset Overview and Security Posture View]
 *Suggested caption: Figure 4.2. Operational Dashboard detail view displaying hardware specifications and security compliance posture for ASSET-01.*
-*Confidentiality note: System serial numbers and private IP addresses must be replaced with academic aliases.*
+*Note: Identifiers have been anonymized.*
 
 ## 4.6 Windows Event Evidence Results
 
@@ -87,7 +87,7 @@ Downstream verification evaluated the persistence and retrieval of operating sys
 
 The live API endpoint was queried using an asset-filtered request:
 
-$$\text{GET } /api/v1/telemetry/winlogs?asset\_id=\text{<ASSET-01>}$$
+`GET /api/v1/telemetry/winlogs?asset_id=<ASSET-01>`
 
 ### Observed Field Metrics
 
@@ -103,15 +103,15 @@ $$\text{GET } /api/v1/telemetry/winlogs?asset\_id=\text{<ASSET-01>}$$
 
 It is vital to distinguish between raw collected evidence and events selected for artificial intelligence analysis. The 49 persisted rows represent the raw operational events collected from the endpoint; only a prioritized subset was subsequently routed to the AI Analyzer.
 
-[FIGURE PLACEHOLDER â€” Windows Event Evidence Table View]
+[FIGURE PLACEHOLDER — Windows Event Evidence Table View]
 *Suggested caption: Figure 4.3. Next.js Event Evidence table rendering 49 persisted Windows Event Log records filtered by ASSET-01 across System and Application channels.*
-*Confidentiality note: Real server computer names and user SIDs must be masked.*
+*Note: Identifiers have been anonymized.*
 
 ## 4.7 Sequential Deduplication Validation
 
 Deduplication behavior was evaluated based on the application-level sequential fingerprinting algorithm specified in Section 3.7. The deduplication key for each event is derived deterministically:
 
-$$\text{DedupKey} = \text{SHA-256}(\text{asset\_id} \parallel \text{channel} \parallel \text{provider} \parallel \text{record\_id} \parallel \text{occurrence\_time})$$
+DedupKey = SHA-256(asset_id | channel | provider | record_id | occurrence_time)
 
 ### Previously Validated Ingestion Behavior
 
@@ -136,7 +136,7 @@ The prioritization and triage pipeline was evaluated against the persisted analy
 
 The ingestion engine ranks events according to severity:
 
-$$\text{Critical (Priority 3)} > \text{Error (Priority 2)} > \text{Warning (Priority 1)} > \text{Information (Priority 0)}$$
+Critical (Priority 3) > Error (Priority 2) > Warning (Priority 1) > Information (Priority 0)
 
 In accordance with the bounded workload constraint established in Section 3.8, the implementation limits analysis to at most 10 newly ingested events per import run.
 
@@ -153,7 +153,7 @@ AI-generated summaries functioned as operational investigation aids, providing s
 
 Traceability from analytical findings back to originating event evidence was validated by querying the filtered history API:
 
-$$\text{GET } /api/v1/history?asset\_id=\text{<ASSET-01>}$$
+`GET /api/v1/history?asset_id=<ASSET-01>`
 
 ### Observed Metrics and Query Integrity
 
@@ -173,11 +173,11 @@ Every analysis record returned for `ASSET-01` was inspected for provenance compl
 
 This verification confirms that `event_source_id` operates as an effective JSON-embedded audit link, ensuring that any finding displayed to an operator can be traced backward to the originating raw event log.
 
-[FIGURE PLACEHOLDER â€” Filtered History JSON API Response Payload]
+[FIGURE PLACEHOLDER — Filtered History JSON API Response Payload]
 *Suggested caption: Figure 4.4. Raw JSON response payload from GET /api/v1/history?asset_id=... demonstrating provenance metadata attributes.*
 *Confidentiality note: Anonymize customer asset UUIDs.*
 
-## 4.10 Endpoint Investigation UI Validation â€” A9 Gate
+## 4.10 Endpoint Investigation UI Validation — A9 Gate
 
 The A9 validation gate represents the primary end-to-end integration checkpoint of the EIMS project. This milestone verifies that operational evidence persisted in the backend database is delivered and rendered accurately within the Next.js web dashboard.
 
@@ -196,13 +196,13 @@ During live browser testing on the operational dashboard (`/endpoints/[asset_id]
 
 The passing of the A9 gate definitively verified the downstream data pipeline: from database persistence through backend API routing to client-side React rendering.
 
-[FIGURE PLACEHOLDER â€” A9 UI Gate: Endpoint AI Findings and Event Evidence View]
+[FIGURE PLACEHOLDER — A9 UI Gate: Endpoint AI Findings and Event Evidence View]
 *Suggested caption: Figure 4.5. Browser runtime verification (A9 Gate) showing simultaneous rendering of Windows Event Evidence and inline AI Findings for ASSET-01.*
 *Confidentiality note: Redacted screenshot from private archive; all real enterprise identifiers masked.*
 
 ## 4.11 Supporting Search and Observability Results
 
-In addition to the primary Hero E2E workflow, supporting architectural subsystems were inspected to verify baseline operational health.
+In addition to the primary downstream validation workflow, supporting architectural subsystems were inspected to verify baseline operational health.
 
 ### Core Service Health
 
@@ -218,7 +218,7 @@ To maintain academic transparency, the operational testing status of secondary c
 - **Unified Timeline:** The timeline API endpoint (`GET /api/v1/timeline`) was verified structurally, but chronological cross-domain aggregation was **not tested in detail during this field session**.
 - **Sticker OCR Ingestion:** Multipart upload endpoints and MinIO storage commits were verified in automated test suites; physical chassis sticker scanning was **not tested during this field session**.
 
-These supporting features remain functional prototype components, while the core Hero E2E workflow represents the fully verified operational path.
+These supporting features remain functional prototype components, while the core downstream validation workflow represents the verified operational path.
 
 ## 4.12 Defects Identified and Corrected During Validation
 
@@ -231,13 +231,13 @@ Iterative testing and field deployment identified several technical defects that
 | **DEF-03: Environment Dataset Discrepancy** | Local developer testing in home environment. | Querying the history API returned zero records for `ASSET-01` when executed on a clean developer machine. | Investigation confirmed this was not an application bug, but the expected result of environment isolation: the developer database lacked the field dataset present on the authorized work machine. | Verified documentation standards and confirmed dataset provenance boundaries across environments. |
 | **DEF-04: Historical Benchmark Data-Loss Incident** | Historical database audit during early engineering sprint. | A destructive benchmark script was executed against the primary database container, exposing insufficient isolation between benchmarking routines and real operational data stores. Original asset records were lost. | Implemented strict separation of validation environments, permanently prohibited running destructive benchmark scripts in standard workflows, and introduced safety guards. | Verification protocols now strictly utilize non-destructive validation suites; surviving real sources (MinIO objects, USB reports) were preserved. |
 
-Documenting these defects demonstrates the iterative engineering rigor applied throughout the project lifecycle.
+Documenting these defects explains the technical issues encountered and resolved during development.
 
 ## 4.13 Evidence Handling and Confidentiality
 
 To satisfy corporate non-disclosure obligations while maintaining academic traceability, all evidence captured during testing was governed by a strict data handling protocol:
 
-1. **Physical Separation of Raw Artifacts:** Raw field evidenceâ€”including unredacted JSON reports, raw operating system event dumps, and full-resolution unredacted browser screenshotsâ€”is stored in a private evidence workspace located entirely outside the public Git repository.
+1. **Physical Separation of Raw Artifacts:** Raw field evidence—including unredacted JSON reports, raw operating system event dumps, and full-resolution unredacted browser screenshots—is stored in a private evidence workspace located entirely outside the public Git repository.
 2. **Repository Anonymization:** No customer hostnames, enterprise IP subnets, MAC addresses, hardware serial numbers, employee account names, or internal Active Directory domain names were committed to version control.
 3. **Use of Academic Aliases:** All documentation, reports, and presentation slides consistently utilize standardized aliases (`ASSET-01`, `Windows Server A`).
 4. **Exclusion of Cryptographic Secrets:** In accordance with the BitLocker secret boundary rule, zero recovery keys or plaintext passwords were collected, stored, or exposed.
@@ -252,9 +252,9 @@ To ensure objective and defensible academic reporting, the limitations of the va
 3. **Application-Level Deduplication Boundary:** Event deduplication is enforced sequentially in application logic. It does not provide database-level concurrency guarantees against simultaneous parallel uploads.
 4. **Windows-Centric Scope:** Field validation was conducted exclusively on Microsoft Windows operating systems. Linux distributions and macOS endpoints were not evaluated.
 5. **Bounded Analytical Workload:** The AI Analyzer was evaluated against a bounded batch size of 10 events. System behavior under catastrophic log flooding exceeding hundreds of simultaneous critical failures was not evaluated.
-6. **Assistive Nature of AI:** Artificial intelligence findings were evaluated as diagnostic triage assistance; they were not assessed as authoritative or legally binding root-cause determinations.
+6. **Assistive Nature of AI:** Artificial intelligence findings were evaluated as diagnostic triage assistance; they were not assessed as autonomous or legally binding root-cause determinations.
 7. **Single-Node Prototype Infrastructure:** Validation was conducted on single-node container infrastructure. High-availability clustering, automated PostgreSQL failover, and distributed Kubernetes deployments were not evaluated.
-8. **Selective Secondary Feature Testing:** Supporting featuresâ€”specifically Global Search, Unified Timeline, and Sticker OCRâ€”were verified at the component level but were not subjected to comprehensive field validation during the final session.
+8. **Selective Secondary Feature Testing:** Supporting features—specifically Global Search, Unified Timeline, and Sticker OCR—were verified at the component level but were not subjected to comprehensive field validation during the final session.
 
 ## 4.15 Validation Summary
 
@@ -279,4 +279,4 @@ The matrix below consolidates the empirical findings across all evaluated engine
 | **Sticker OCR Pipeline** | Automated integration tests | MinIO upload & text extraction valid | **NOT TESTED IN DETAIL** |
 | **Upstream Reacquisition in Final Session** | Field operational protocol | Final session inspected downstream data | **NOT RE-RUN IN LATEST SESSION** |
 
-In conclusion, the experimental and field validation demonstrated the functional integrity, data provenance, and user interface delivery of the primary downstream Hero E2E workflow. The platform successfully bridges air-gapped field evidence collection with centralized relational persistence and AI-assisted operational triage.
+In conclusion, the experimental and field validation demonstrated the functional integrity, data provenance, and user interface delivery of the primary downstream validation workflow. The platform successfully bridges air-gapped field evidence collection with centralized relational persistence and AI-assisted operational triage.

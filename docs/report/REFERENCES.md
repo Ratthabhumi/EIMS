@@ -6,13 +6,13 @@
 
 [3] Microsoft Corporation, "About the Windows Event Log," *Microsoft Learn*, Jan. 2021. [Online]. Available: https://learn.microsoft.com/en-us/windows/win32/wes/about-the-windows-event-log. Accessed: Sep. 29, 2026.
 
-[4] P. Buneman, S. Khanna, and W.-C. Tan, "Why and where: A characterization of data provenance," in *Database Theory — ICDT 2001 (Lecture Notes in Computer Science)*, vol. 1973, J. Van den Bussche and V. Vianu, Eds., London, UK: Springer Berlin Heidelberg, 2001, pp. 316–330. doi: 10.1007/3-540-44503-X_20.
+[4] P. Buneman, S. Khanna, and W.-C. Tan, "Why and where: A characterization of data provenance," in *Database Theory - ICDT 2001 (Lecture Notes in Computer Science)*, vol. 1973, J. Van den Bussche and V. Vianu, Eds., London, UK: Springer Berlin Heidelberg, 2001, pp. 316–330. doi: 10.1007/3-540-44503-X_20.
 
-[5] P. He, J. Zhu, Z. Zheng, and M. R. Lyu, "A Survey on Automated Log Analysis for Reliability Engineering," *ACM Computing Surveys*, vol. 54, no. 6, art. 130, pp. 1–37, Jul. 2021. doi: 10.1145/3460345.
+[5] S. He, P. He, Z. Chen, T. Yang, Y. Su, and M. R. Lyu, "A Survey on Automated Log Analysis for Reliability Engineering," *ACM Computing Surveys*, vol. 54, no. 6, art. 130, pp. 1–37, Jul. 2021. doi: 10.1145/3460345.
 
 [6] N. Reimers and I. Gurevych, "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks," in *Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)*, Hong Kong, China: Association for Computational Linguistics, Nov. 2019, pp. 3982–3992. doi: 10.18653/v1/D19-1410.
 
-[7] P. Lewis, E. Perez, A. Piktus, F. Petroni, V. Karpukhin, N. Goyal, H. Küttler, M. Lewis, W. tau Yih, T. Rocktäschel, S. Riedel, and D. Kiela, "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks," in *Advances in Neural Information Processing Systems (NeurIPS 2020)*, vol. 33, H. Larochelle, M. Ranzato, R. Hadsell, M. F. Balcan, and H. Lin, Eds., 2020, pp. 9459–9474.
+[7] P. Lewis, E. Perez, A. Piktus, F. Petroni, V. Karpukhin, N. Goyal, H. Küttler, M. Lewis, W.-t. Yih, T. Rocktäschel, S. Riedel, and D. Kiela, "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks," in *Advances in Neural Information Processing Systems (NeurIPS 2020)*, vol. 33, H. Larochelle, M. Ranzato, R. Hadsell, M. F. Balcan, and H. Lin, Eds., 2020, pp. 9459–9474.
 
 [8] PostgreSQL Global Development Group, "PostgreSQL 16.0 Documentation," *PostgreSQL Documentation*, Sep. 2023. [Online]. Available: https://www.postgresql.org/docs/16/index.html. Accessed: Sep. 29, 2026.
 

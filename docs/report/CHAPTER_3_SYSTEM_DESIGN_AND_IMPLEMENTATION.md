@@ -1,7 +1,7 @@
 # Chapter 3
 # System Design and Implementation
 
-This chapter provides an exhaustive technical analysis of the design, architectural realization, and implementation details of the Enterprise Infrastructure Management System (EIMS). It details the functional and non-functional requirements, presents the overall system architecture with structural diagrams, specifies the relational and vector data models, documents the portable collection utility, details the ingestion and AI-assisted analysis pipelines, and formalizes the validation and security governance frameworks.
+This chapter explains the system requirements, design, and implementation of the Enterprise Infrastructure Management System (EIMS). It details the functional and non-functional requirements, presents the overall system architecture with structural diagrams, specifies the relational and vector data models, documents the portable collection utility, details the ingestion and AI-assisted analysis pipelines, and formalizes the validation and security governance frameworks.
 
 ## 3.1 Requirement Analysis
 
@@ -20,7 +20,7 @@ EIMS defines four distinct operational personas reflecting enterprise organizati
 
 The platform requirements originated in the Product Requirements Document (EIMS-PRD-001) as long-term architectural specifications and target baselines:
 
-#### Canonical Functional Requirements
+### Canonical Functional Requirements
 - **REQ-REG-01 (Canonical Entity Indexing):** The system must assign a universally unique identifier (UUIDv4) to every verified infrastructure asset, persisting canonical properties (hostname, assigned IP address, operating system kernel, lifecycle state) in normalized relational tables.
 - **REQ-REG-02 (Telemetry State Deduplication):** Ingestion pipelines must identify existing asset records via composite cryptographic fingerprints (derived from hardware serials and MAC addresses) to execute relational upsert operations, preventing redundant entity creation.
 - **REQ-REG-03 (Lifecycle State Machine Enforcement):** The platform must constrain asset state transitions strictly to approved operational lifecycle stages: `Discovered`, `PendingAudit`, `Compliant`, `NonCompliant`, `Quarantined`, and `Decommissioned`.
@@ -41,7 +41,7 @@ The platform requirements originated in the Product Requirements Document (EIMS-
 - **REQ-UI-02 (Live Telemetry Streaming):** Dashboard client sessions must support live metric rendering without requiring manual page reloads.
 - **REQ-UI-03 (RBAC Enforcement UI):** The interface must enforce role-based access control, rendering administrative controls for privileged operators while restricting analytical views for read-only auditors.
 
-#### Canonical Non-Functional Requirements
+### 3.1.3 Canonical Non-Functional Requirements
 - **NFR-PERF-01 (API Latency):** Synchronous REST API read operations querying the asset registry must achieve response latencies under 50 milliseconds at the 99th percentile (p99) under baseline operational loads.
 - **NFR-PERF-02 (Ingestion Throughput):** The combined gateway and caching tier must reliably absorb burst telemetry payloads without queue backpressure.
 - **NFR-PERF-03 (OCR Processing Duration):** Asynchronous OCR extraction pipelines must complete text parsing and database commits within bounded operational thresholds.
@@ -53,9 +53,9 @@ The platform requirements originated in the Product Requirements Document (EIMS-
 - **NFR-SCALE-01 (Horizontal Stateless Scaling):** Backend ingestion gateways and web interface runners must maintain stateless execution contexts to support containerized scaling.
 - **NFR-SCALE-02 (Telemetry Data Retention):** Historical time-series metrics must support chronological table partitioning and long-term archival.
 
-### 3.1.3 Implemented Graduation System Scope
+### 3.1.4 Implemented Graduation System Scope
 
-A crucial distinction must be maintained between the comprehensive target specifications in the canonical PRD and the verified implementation delivered for the cooperative education graduation baseline (v0.3.0 with post-release operational hardening):
+A crucial distinction must be maintained between the initial target specifications in the canonical PRD and the verified implementation delivered for the cooperative education graduation baseline (v0.3.0 with post-release operational hardening):
 
 1. **Streaming Agents vs. Portable Offline Collection:** While the canonical PRD specifies autonomous background discovery daemons continuously streaming telemetry via mTLS/WebSockets (`REQ-DISC-01`, `REQ-DISC-02`), the graduation implementation prioritizes the zero-dependency Portable USB Auditor (`USB_OFFLINE_COLLECTION`). This directly resolves the core enterprise operational constraint where persistent third-party daemons are restricted on mission-critical, air-gapped, or segmented endpoints.
 2. **Event Channel Scope:** While the canonical PRD outlines generalized multi-channel event ingestion (`REQ-LOG-01`), the portable graduation workflow intentionally scopes Windows Event Log collection to the `System` and `Application` channels.
@@ -70,13 +70,13 @@ EIMS is implemented as a **Hybrid Modular Monolith paired with an Asynchronous I
 ### Major Architectural Components
 
 1. **Target Windows Endpoints:** Physical servers, virtual machines, or workstations running supported Windows operating systems.
-2. **Portable USB Auditor:** A zero-dependency, self-contained auditing package featuring an embedded CPython 3.14.3 amd64 runtime, executed on target endpoints via batch scripts to generate authoritative local JSON reports.
+2. **Portable USB Auditor:** A zero-dependency, self-contained auditing package featuring an embedded CPython 3.14.3 amd64 runtime, executed on target endpoints via batch scripts to generate local JSON reports.
 3. **FastAPI Core Gateway:** High-performance asynchronous Python backend providing RESTful API endpoints, Pydantic request validation, business logic orchestration, and OpenAPI contract publication.
 4. **PostgreSQL Relational Datastore:** Primary persistent ACID datastore equipped with the `pgvector` extension for semantic vector similarity search and `JSONB` binary structures for polymorphic telemetry.
 5. **Redis Cache & Event Broker:** In-memory key-value data store used for transient message queuing, rate limiting, and caching computationally intensive query aggregates.
 6. **PgBouncer Connection Pooler:** Lightweight connection pooler managing PostgreSQL connection lifecycle, mitigating database thread exhaustion under high connection concurrency.
 7. **MinIO Object Storage:** S3-compatible local object storage storing binary files, including hardware sticker images and shipping documentation.
-8. **AI Log Analyzer:** Semantic retrieval and diagnostic triage service utilizing local vector embeddings (`all-MiniLM-L6-v2`) and pgvector cosine distance matching to generate contextual mitigation advice.
+8. **AI Log Analyzer:** Semantic retrieval and diagnostic triage service utilizing FastEmbed (`BAAI/bge-small-en-v1.5` primary, with SentenceTransformer `all-MiniLM-L6-v2` fallback) and pgvector cosine distance matching to generate contextual mitigation advice.
 9. **Next.js Operational Dashboard:** Responsive web application built with React and TypeScript, providing interactive interfaces for asset management, event investigation, global search, and timeline visualization.
 10. **Observability Stack:** Prometheus metrics scraper and Grafana visualization engine monitoring host and application telemetry via standardized health probe endpoints.
 
@@ -90,7 +90,7 @@ flowchart TB
         USB_EXEC["Portable USB Auditor\n(Embedded CPython 3.14.3 + BAT Launcher)"]
         WMI --> USB_EXEC
         EVTX --> USB_EXEC
-        JSON_OUT[("Authoritative Local JSON Report\nreports/audit_*.json")]
+        JSON_OUT[("Local Evidence JSON Report\nreports/audit_*.json")]
         USB_EXEC --> JSON_OUT
     end
 
@@ -103,7 +103,7 @@ flowchart TB
             PARSER["JSON Schema Normalizer"]
             DEDUP["Application-Level Dedup\nSHA-256 Fingerprinting"]
             PRIORITY["Severity Prioritization Queue\nCritical > Error > Warning"]
-            ANALYZER["AI Log Analyzer\n(FastEmbed all-MiniLM-L6-v2)"]
+            ANALYZER["AI Log Analyzer\n(FastEmbed BAAI/bge-small-en-v1.5 / all-MiniLM-L6-v2)"]
 
             PARSER --> DEDUP
             DEDUP --> PRIORITY
@@ -146,13 +146,13 @@ The EIMS persistent data model balances normalized relational entities with semi
 
 ### Core Relational Entities
 
-1. **`infrastructure_assets`:** The authoritative entity representing a registered compute endpoint.
+1. **`infrastructure_assets`:** The central entity representing a registered compute endpoint.
    - `asset_id` (UUIDv4, Primary Key): Canonical asset identifier.
    - `hostname` (VARCHAR): Operating system networking hostname.
    - `canonical_ip` (INET): Primary network IP address.
    - `cryptographic_fingerprint` (VARCHAR, Unique): SHA-256 hash of immutable hardware serials and MAC addresses.
    - `lifecycle_state` (VARCHAR): State machine indicator (`Discovered`, `Compliant`, `NonCompliant`, `Quarantined`, `Decommissioned`).
-   - `current_compliance_score` (SMALLINT): Integer score (0â€“100) reflecting security posture compliance.
+   - `current_compliance_score` (SMALLINT): Integer score (0–100) reflecting security posture compliance.
    - `created_at`, `updated_at` (TIMESTAMPTZ): Temporal tracking timestamps.
 2. **`windows_event_logs`:** Persists extracted Windows operating system events.
    - `log_id` (UUIDv4, Primary Key): Unique log processing identifier.
@@ -176,7 +176,7 @@ The EIMS persistent data model balances normalized relational entities with semi
    - `id` (INTEGER, Primary Key): Unique knowledge entry ID.
    - `event_id` (VARCHAR): Associated Windows event identifier.
    - `description` (VARCHAR): Technical failure description.
-   - `embedding` (VECTOR(384)): Dense vector embedding generated via `all-MiniLM-L6-v2`.
+   - `embedding` (VECTOR(384)): Dense vector embedding (384 dimensions) generated via FastEmbed `BAAI/bge-small-en-v1.5` (with SentenceTransformer `all-MiniLM-L6-v2` fallback).
    - `solution_json` (JSON): Recommended administrative mitigation procedures.
 5. **`hardware_inventories`:** Catalogs deep physical hardware configurations linked to an asset.
    - `inventory_id` (UUIDv4, Primary Key): Inventory snapshot identifier.
@@ -270,9 +270,9 @@ The Portable USB Auditor (`clients/usb_auditor/`) is a standalone auditing utili
 
 - **Self-Contained CPython Runtime:** The package incorporates an embedded, portable CPython 3.14.3 amd64 interpreter (downloaded as `python-3.14.3-embed-amd64.zip` during packaging). The target host requires no preinstalled Python, pip, Git, Docker, or external runtimes.
 - **Batch Launcher (`Run-EIMS-Audit.bat`):** Field technicians execute audits simply by double-clicking the batch script. The launcher establishes relative working paths, executes runtime integrity preflights, and invokes the Python scanning engine.
-- **Authoritative Local Evidence:** In portable execution mode, the configuration variable `EIMS_AUTO_SYNC` defaults to `false`. The scanning engine structures all collected telemetry into an authoritative JSON report written directly to the removable drive at `reports/audit_<hostname>_<timestamp>.json`.
+- **Local Evidence Artifacts:** In portable execution mode, the configuration variable `EIMS_AUTO_SYNC` defaults to `false`. The scanning engine structures all collected telemetry into a structured JSON report written directly to the removable drive at `reports/audit_<hostname>_<timestamp>.json`.
 - **Package Integrity Verification:** The package includes a cryptographic manifest (`manifest.sha256`) containing SHA-256 hashes of all internal audit scripts and dependencies. The launcher verifies manifest integrity prior to execution to detect media corruption or file tampering.
-- **Strict Read-Only Posture:** The auditor performs no system state modifications, executes no registry changes, installs no persistent services, and performs no automated remediation.
+- **Strict Read-Only Posture:** Runs from a USB drive with a bundled runtime; uses read-only queries and writes its output to configured report/log directories. No persistent agent installation is required.
 - **BitLocker Secret Exclusion Boundary:** The scanner interrogates BitLocker drive encryption via CIM, recording posture attributes (`protection_status`, `volume_status`, `encryption_percentage`, `encryption_method`, `recovery_protector_present`, and `recovery_protector_count`). The collection script strictly excludes recovery keys; parameters such as `RecoveryPassword`, `recovery_key`, and plaintext protector secrets are never extracted or stored. A case-insensitive secret stripping function cleans all memory structures prior to report generation.
 
 ### Builder Safety Controls
@@ -291,7 +291,7 @@ The USB Auditor scanning engine gathers evidence across seven operational catego
 3. **Network Configurations:** Active network adapters, MAC addresses, IPv4/IPv6 addresses, subnet masks, default gateways, and DNS servers.
 4. **Security & Hardening Posture:** Windows Defender antimalware status and definition age, Windows Firewall profile enforcement (Domain, Private, Public), Windows Update service status, and BitLocker encryption posture.
 5. **Running Services:** Windows services inventory, highlighting critical infrastructure daemons.
-6. **Compliance Scoring:** Local evaluation of baseline hardening metrics yielding a local preliminary compliance score (0â€“100).
+6. **Compliance Scoring:** Local evaluation of baseline hardening metrics yielding a local preliminary compliance score (0–100).
 7. **Windows Event Log Evidence:** Scoped extraction of operational event logs.
 
 ### Event Collection Constraints
@@ -299,13 +299,15 @@ The USB Auditor scanning engine gathers evidence across seven operational catego
 To balance diagnostic visibility with storage and performance constraints:
 - **Channels:** The portable graduation workflow intentionally scopes Windows Event Log collection to the `System` and `Application` channels, focusing diagnostic evidence acquisition directly on core operating system reliability, hardware health, and enterprise software execution.
 - **Temporal Window:** Defaults to the preceding 24 hours of operational history.
-- **Record Threshold:** Bounded to a maximum of 500 events per channel, preventing memory exhaustion on unstable hosts experiencing severe log flooding.
+- **Record Threshold:** Default maximum of 500 events across the combined query (`-MaxEvents 500` across System and Application, filtering Critical, Error, and Warning events), preventing memory exhaustion on unstable hosts experiencing severe log flooding.
 
 ## 3.6 Offline Report Schema and Ingestion
 
 Ingestion of offline evidence into the centralized platform is handled via the canonical API endpoint:
 
-$$\text{POST } /api/v1/assets/import-report$$
+```http
+POST /api/v1/assets/import-report
+```
 
 The endpoint accepts a multipart form upload containing the raw JSON report emitted by the USB Auditor.
 
@@ -314,7 +316,7 @@ The endpoint accepts a multipart form upload containing the raw JSON report emit
 1. **Payload Reception & Deserialization:** The endpoint receives the multipart file stream, deserializes the JSON content, and validates schema conformance using Pydantic models.
 2. **Asset Entity Upsert:** The repository extracts the asset's cryptographic fingerprint (or networking hostname) and performs a PostgreSQL relational upsert:
    - If the asset exists, its hardware inventory, network configuration, and compliance score are updated.
-   - If the asset is novel, a new `infrastructure_assets` entity is created with state `Compliant` (if score $\ge 70$) or `NonCompliant`.
+   - If the asset is novel, a new `infrastructure_assets` entity is created with state `Compliant` (if score >= 70) or `NonCompliant`.
 3. **Event Normalization:** The pipeline extracts the `event_logs` array. Individual events are validated for structural integrity, mapping fields to canonical schema parameters (`event_id`, `severity_level`, `occurrence_time`, `channel`, `provider`, `record_id`, `message`).
 4. **Sequential Deduplication:** The service computes SHA-256 deduplication keys for each normalized event and queries existing records in PostgreSQL to eliminate duplicate entries.
 5. **Batch Persistence:** Novel, non-duplicate events are inserted into `windows_event_logs` within an atomic database transaction.
@@ -370,7 +372,7 @@ To prevent duplicate operational records during recurring offline audits, EIMS i
 
 For each incoming event, the pipeline computes a deterministic SHA-256 hash across five immutable operational attributes:
 
-$$\text{DedupKey} = \text{SHA-256}(\text{asset\_id} \parallel \text{channel} \parallel \text{provider} \parallel \text{record\_id} \parallel \text{occurrence\_time})$$
+DedupKey = SHA-256(asset_id | channel | provider | record_id | occurrence_time)
 
 This composite key is stored within the event's `evtx_metadata` JSONB column under the key `_reporter_dedup`.
 
@@ -389,7 +391,7 @@ Matching keys returned by the query are classified as duplicate events and skipp
 
 ### Architectural Limitation and Concurrency Boundary
 
-It is vital to state the architectural boundary of this implementation: **deduplication is enforced at the application level during sequential processing**. It is not enforced by a PostgreSQL table-level `UNIQUE` constraint across the JSONB path. Consequently, while this mechanism reliably prevents duplicate record insertion during normal sequential report imports, concurrent parallel uploads of identical reports across multiple threads could experience race conditions. This limitation was accepted as a conscious design trade-off to avoid write amplification and high index overhead on high-velocity JSONB columns.
+It is vital to state the architectural boundary of this implementation: **deduplication is enforced at the application level during sequential processing**. It is not enforced by a PostgreSQL table-level `UNIQUE` constraint across the JSONB path. Consequently, while this mechanism reliably prevents duplicate record insertion during normal sequential report imports, concurrent parallel uploads of identical reports across multiple threads could experience race conditions. Deduplication is enforced at the application level during sequential processing. Database-level unique constraints and concurrency control across concurrent imports remain future work.
 
 ## 3.8 Event Prioritization
 
@@ -411,7 +413,7 @@ The EIMS AI Analyzer (`backend/domain/analyzer/`) provides contextual diagnostic
 ### Semantic Retrieval Pipeline
 
 1. **Event Parsing:** The analyzer constructs a normalized event description combining Event ID, Provider name, Channel, and extracted message content.
-2. **Local Vector Embedding:** The system generates a 384-dimensional vector embedding of the event description using the local `FastEmbed` library executing the `all-MiniLM-L6-v2` transformer model. This executes entirely within the backend container without transmitting data to external cloud services.
+2. **Local Vector Embedding:** The system generates a 384-dimensional vector embedding using FastEmbed (primary model `BAAI/bge-small-en-v1.5`, with SentenceTransformer `all-MiniLM-L6-v2` fallback). Analysis evaluates curated answers first, then retrieval from `ai_knowledge`, optional Gemini synthesis when configured, retrieved answers, and web-derived fallback.
 3. **pgvector Similarity Query:** The embedding is queried against the `ai_knowledge` table using PostgreSQL's cosine distance operator (`<=>`):
    ```sql
    SELECT id, event_id, description, solution_json, (embedding <=> :query_vector) AS distance
@@ -420,11 +422,11 @@ The EIMS AI Analyzer (`backend/domain/analyzer/`) provides contextual diagnostic
    LIMIT 3;
    ```
 4. **Synthesis of Mitigation Advice:** The retrieved solution snippets, combined with curated catalog heuristics, are processed by the diagnostic synthesis service, producing structured mitigation advice, relevant Microsoft documentation links, and diagnostic confidence scores.
-5. **Non-Fatal Error Isolation:** The entire analytical pipeline is wrapped in non-fatal exception handling. If embedding generation or synthesis encounters an error (such as a timeout or database contention), the failure is logged, but the parent transaction safely commits the persisted `windows_event_logs` records. Evidence is never lost due to downstream analytical failures.
+5. **Non-Fatal Error Isolation:** The entire analytical pipeline is wrapped in non-fatal exception handling. If embedding generation or synthesis encounters an error (such as a timeout or database contention), the failure is logged, but the parent transaction safely commits the persisted `windows_event_logs` records. Committed event rows are retained when a later analysis attempt fails.
 
 ## 3.10 Analysis Provenance
 
-To guarantee academic and operational defensibility, every finding generated by the AI Analyzer records explicit audit provenance within the `analysis_history.event_metadata` JSON column:
+Every finding generated by the AI Analyzer records explicit audit provenance within the `analysis_history.event_metadata` JSON column:
 
 ```json
 {
@@ -440,7 +442,7 @@ To guarantee academic and operational defensibility, every finding generated by 
 }
 ```
 
-- `source_type`: Establishes the authoritative collection methodology (`USB_OFFLINE_COLLECTION`).
+- `source_type`: Identifies the collection methodology (`USB_OFFLINE_COLLECTION`).
 - `asset_id`: Formally links the analysis record to the parent infrastructure asset.
 - `event_source_id`: Establishes a JSON-embedded foreign reference pointing to the specific `windows_event_logs.log_id` record that triggered the analysis.
 - `parse_method`: Recorded as `USB_OFFLINE_COLLECTION:USB_OFFLINE_COLLECTION` in the table's classification column.
@@ -490,7 +492,7 @@ The frontend interface (`clients/dashboard/`) is developed with Next.js, React, 
    - Security and compliance posture meters (BitLocker encryption status, Windows Defender recency, Firewall enforcement).
    - Event Evidence Table: Interactive event viewer rendering ingested `System` and `Application` logs with severity badges, channel filters, and record timestamps.
    - Inline AI Findings: Dynamic panel rendering synthesized diagnostic findings, root-cause explanations, and mitigation action checklists corresponding to the specific asset.
-3. **Global Search Palette (`Ctrl+K`):** Keyboard-driven search interface querying assets, hostnames, IP addresses, and event identifiers across nine registered search providers with sub-300ms response latencies.
+3. **Global Search Palette (`Ctrl+K`):** Keyboard-driven search interface querying assets, hostnames, IP addresses, and event identifiers across nine registered search providers .
 4. **Unified Operational Timeline (`/timeline`):** Synchronized chronological stream correlating configuration changes, telemetry spikes, and critical event failures.
 
 *Note: Formal browser runtime verification and UI rendering validation results are presented in Chapter 4.*
@@ -556,7 +558,7 @@ To maintain academic and professional honesty, the architectural boundaries and 
 - **Windows-First Scope:** The current implementation of the portable collector and event ingestion pipeline is specialized for the Microsoft Windows operating system ecosystem. Cross-platform support for Linux distributions or macOS endpoints is deferred to future work.
 - **Manual Physical Transport (Sneaker-Net):** In air-gapped environments, transferring the offline JSON evidence report from the target machine to the centralized EIMS platform requires manual physical transport of the USB drive by an operator.
 - **Application-Level Sequential Deduplication:** Event deduplication is enforced at the application level during sequential processing. Simultaneous parallel imports of identical reports across concurrent threads could experience race conditions due to the absence of database-level unique constraints on JSONB fields.
-- **Bounded AI Workload:** The AI Analyzer processes at most 10 prioritized events per batch import. While this safeguards system stability and controls computational latency, catastrophic incidents featuring dozens of distinct critical errors will require sequential batch triage.
+- **Bounded AI Workload:** The AI Analyzer processes at most 10 prioritized events per batch import. While this safeguards system stability and controls computational latency, events outside the selected subset are not automatically analyzed by re-importing the same report; a separate review or reanalysis workflow would be future work.
 - **Non-Destructive Read-Only Operation:** EIMS deliberately omits automated host remediation capabilities. The system identifies failures and suggests mitigation procedures, but does not execute automated configuration changes on monitored endpoints.
 - **Operational Triage vs. Certified Forensics:** EIMS is designed as an infrastructure management and operational triage aid. It is not certified as a court-admissible digital forensics acquisition platform.
 - **AI as Assistive Triage:** AI-generated diagnostic explanations and remediation plans represent probabilistic recommendations derived from semantic vector matching; they do not constitute infallible or legally binding root-cause guarantees.

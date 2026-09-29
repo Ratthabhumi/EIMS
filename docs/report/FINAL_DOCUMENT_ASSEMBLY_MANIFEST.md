@@ -7,7 +7,7 @@ This manifest defines the canonical structure, file mappings, asset requirements
 
 ## 1. Canonical Document Structure and Page Order
 
-The assembled report adheres to the academic guidelines of the School of Engineering, King Mongkut's Institute of Technology Ladkrabang (KMITL).
+The assembled report adheres to the academic guidelines of the Faculty of Engineering, King Mongkut's Institute of Technology Ladkrabang (KMITL).
 
 | Section Order | Section / Document Element | Source File / Input Mechanism | Pagination Style |
 | :--- | :--- | :--- | :--- |
@@ -54,12 +54,12 @@ The following items must be verified or provided by the author prior to finalizi
 
 | Field Identifier | Description | Current Value in Repo | Action Required |
 | :--- | :--- | :--- | :--- |
-| `[HOST ORGANIZATION NAME]` | Name of host enterprise company / division | Explicit placeholder | Fill real company name |
-| `[WORKPLACE SUPERVISOR NAME]` | Workplace mentor / supervisor title and name | Explicit placeholder | Fill mentor name and title |
-| `[ACADEMIC SUPERVISOR NAME]` | KMITL faculty advisor title and name | Explicit placeholder | Fill advisor name and academic title |
-| `[STUDENT_NAME]` | Student author full name (Thai and English) | Ratthabhumi ... | Confirm official spelling |
-| `[STUDENT_ID]` | KMITL student registration ID | Not committed in repo | Insert on cover and bio pages |
-| `[ACADEMIC_YEAR]` | Cooperative education academic year | Academic Year 2026 | Confirm semester / academic year |
+| `KANEMATSU ELECTRONICS (THAILAND)` | Name of host enterprise company / division | Explicit placeholder | Fill real company name |
+| `Mr. Chalermpol Phuangchalam` | Workplace mentor / supervisor title and name | Explicit placeholder | Fill mentor name and title |
+| `Asst. Prof. Dr. Phongsak Keeratiwintakorn` | KMITL faculty advisor title and name | Explicit placeholder | Fill advisor name and academic title |
+| `Ratthabhumi Peansukmanee / นาย รัฐภูมิ เพียรสุขมณี` | Student author full name (Thai and English) | Ratthabhumi ... | Confirm official spelling |
+| `66011198` | KMITL student registration ID | Not committed in repo | Insert on cover and bio pages |
+| `2026` | Cooperative education academic year | Academic Year 2026 | Confirm semester / academic year |
 | `[FACULTY_PAGE]` | KMITL Co-op Certification / Sign-off form | N/A | Bind official department form |
 
 ---
@@ -142,7 +142,7 @@ To guarantee consistency, the DOCX compilation script or template setup must con
 
 ## 7. KMITL Formatting Items Requiring Confirmation
 
-Prior to final PDF generation, check the official School of Engineering cooperative education manual:
+Prior to final PDF generation, check the official Faculty of Engineering cooperative education manual:
 1. **Binding Margin:** Verify if left margin requires 1.5 inches (3.81 cm) and top/right/bottom require 1.0 inch (2.54 cm).
 2. **Thai vs English Typography:** Confirm whether English reports in KMITL require standard Times New Roman (12 pt, 1.5 line spacing) or bilingual TH Sarabun PSK (16 pt).
 3. **Approval Signatures:** Confirm required signatory roles (Workplace Supervisor, Faculty Advisor, Head of Department).
