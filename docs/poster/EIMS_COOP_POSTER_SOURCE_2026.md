@@ -4,137 +4,152 @@
 **Author:** Ratthabhumi Peansukmanee (Student ID: 66011198)
 **Host Organization:** KANEMATSU ELECTRONICS (THAILAND)
 **Workplace Supervisor:** Mr. Chalermpol Phuangchalam
-**Academic Supervisor:** Asst. Prof. Dr. Phongsak Keeratiwintakorn
+**Academic Supervisor / Project Advisor:** Asst. Prof. Dr. Phongsak Keeratiwintakorn
 
 ---
 
 ## 1. Specifications & Physical Formatting
 
 - **Standard Paper Size:** ISO 216 A1 (594 mm × 841 mm / 23.386 in × 33.110 in)
-- **Orientation:** Portrait (chosen to match KMITL Faculty of Engineering standard vertical display panels and allow clean 1:1 scaling down to standard A4 portrait for supervisor review).
+- **Orientation:** Portrait (Portrait orientation selected to follow the supplied KMITL poster example and enable clean 1:1 downscaling to standard A4 for supervisor review).
 - **Deliverable Formats:**
-  - `docs/poster/EIMS_COOP_POSTER_2026.pptx` (Native editable PowerPoint shapes, text boxes, and embedded high-resolution vector diagrams)
+  - `docs/poster/EIMS_COOP_POSTER_2026.pptx` (Native editable PowerPoint shapes, text boxes, and embedded high-resolution diagrams)
   - `docs/poster/EIMS_COOP_POSTER_2026.pdf` (Fixed 1-page A1 vector PDF exported via PowerPoint COM)
+  - `docs/poster/EIMS_COOP_POSTER_2026.png` (High-resolution 2376 × 3364 raster preview)
   - `docs/poster/EIMS_COOP_POSTER_SOURCE_2026.md` (Reproducible source specification)
-- **Primary Typography:** TH Sarabun New / TH SarabunPSK (fallback: Calibri / Arial for universal system rendering)
-  - Poster Title: 50 pt, Bold
-  - Metadata / Subtitles: 18–20 pt, Bold / Regular
-  - Section Headings: 26 pt, Bold
-  - Subsection Headings: 18–19 pt, Bold
-  - Body Text: 17.5–19 pt, Regular (with Navy bold lead-in titles)
-  - Metric Numerals: 30–32 pt, Bold (Emerald / Navy)
-  - Metric Labels: 15–16 pt, Bold
-  - Metric Descriptions: 12.5–13 pt, Regular
-  - Deduplication Equation: 15 pt Consolas, Bold
-- **Color Palette (Restrained Academic Engineering Style):**
+- **Primary Typography:**
+  - Official Approved Fonts: TH SarabunPSK or Angsana New (active poster renders with TH Sarabun New)
+  - Poster Title: 40 pt, Bold
+  - Header Metadata / Subtitles: 15–17 pt, Bold / Regular
+  - Card Section Headings: 21 pt, Bold (Navy `#0F172A` banner, height: 15 mm)
+  - Body Text: 14.5–15.5 pt, Regular (with Navy bold lead-in titles)
+  - Metric Numerals: 21 pt, Bold (Emerald `#047857` / Navy `#0F172A`)
+  - Metric Labels: 11.5 pt, Bold
+  - Deduplication Equation: 13 pt Consolas, Bold (`#1E40AF`)
+  - Acknowledgment & Signature: 11.5–13.5 pt
+- **Color Palette (High-contrast print-oriented palette):**
   - Background Canvas: Clean White (`#FFFFFF`) with subtle slate grid card fills (`#F8FAFC`)
-  - Primary Headers & Cards: Deep Navy (`#0F172A`, `#1E293B`)
-  - Accent / Highlights: Engineering Blue (`#2563EB`, `#1D4ED8`)
-  - Text: Black `#000000` / Charcoal `#0F172A` (high contrast, WCAG AAA compliant)
+  - Primary Headers & Card Banners: Deep Navy (`#0F172A`)
+  - Accent / Highlights: Engineering Blue (`#1E40AF`, `#2563EB`)
+  - Text: Black `#000000` / Charcoal `#0F172A`
   - Success Metric Accents: Deep Emerald (`#047857`)
-  - Borders: Crisp Light Slate (`#E2E8F0`, `#CBD5E1`)
+  - Borders: Crisp Light Slate (`#CBD5E1`, `#E2E8F0`)
 
 ---
 
-## 2. Complete Visible Poster Content & Layout Structure
+## 2. Poster Layout Structure (Three-Column Academic Format)
 
-### 2.1 Header Banner (Full Width: 594 mm)
-- **University & Project Header:**
-  *Faculty of Engineering | King Mongkut's Institute of Technology Ladkrabang*
-  *Computer Engineering (International Program) | Cooperative Education Project 2026*
+### 2.1 Header Banner (Full Width: 562 mm × 82 mm, y: 10 mm)
+- **Reserved Institutional Seal:** Clean dedicated 34 mm × 34 mm container on the left reserved for official KMITL seal placement.
+- **Institutional Subtitle:**
+  `FACULTY OF ENGINEERING • KING MONGKUT'S INSTITUTE OF TECHNOLOGY LADKRABANG`
+  `COMPUTER ENGINEERING (INTERNATIONAL PROGRAM) • COOPERATIVE EDUCATION 2026`
 - **Main Project Title:**
-  **Development of an Enterprise Infrastructure Management System (EIMS)**
-- **Author & Institutional Metadata:**
-  **Student:** Ratthabhumi Peansukmanee (Student ID: 66011198)
-  **Host Enterprise:** KANEMATSU ELECTRONICS (THAILAND)
-  **Workplace Supervisor:** Mr. Chalermpol Phuangchalam
-  **Academic Supervisor:** Asst. Prof. Dr. Phongsak Keeratiwintakorn
+  `Development of an Enterprise Infrastructure Management System (EIMS)`
+- **Student & Advisor Metadata:**
+  `Student: Ratthabhumi Peansukmanee (Student ID: 66011198) | Project Advisor: Asst. Prof. Dr. Phongsak Keeratiwintakorn`
+- **Host Enterprise Metadata:**
+  `Host Enterprise: KANEMATSU ELECTRONICS (THAILAND) | Workplace Supervisor: Mr. Chalermpol Phuangchalam`
 
 ---
 
-### 2.2 Left Column Content (Width: ~265 mm)
+### 2.2 Left Column Content (x: 16 mm, Width: 178 mm)
 
-#### Section 1: Background & Problem Statement
-- **Context:** Managing enterprise infrastructure requires auditing heterogeneous servers across well-connected and isolated networks.
-- **Operational Problems:**
-  - **Network Isolation:** Air-gapped and high-security endpoints cannot maintain continuous outbound connections to cloud monitoring daemons.
-  - **Ephemeral Identity:** Dynamic DHCP IP leases and server renames break historical tracking across server migrations.
-  - **Manual Diagnostic Friction:** Field technicians execute disparate ad-hoc scripts, producing fragmented notes without provenance.
-  - **Telemetry Overload:** Windows Event Logs generate thousands of routine records daily, creating severe triage fatigue.
+#### Section 1: Abstract (y: 98 mm, h: 144 mm)
+Enterprise infrastructure auditing across isolated corporate networks is hindered by air-gapped endpoints and fragmented diagnostic records. When failures occur on hosts lacking persistent agents, administrators face manual triage without verifiable traceability. The Enterprise Infrastructure Management System (EIMS) addresses this challenge through an integrated evidence management and AI-assisted investigation platform. EIMS combines a central PostgreSQL asset registry with a portable USB collector powered by embedded CPython 3.14.3, extracting non-destructive WMI telemetry and Windows Event Logs (System and Application channels, default maximum 500 events) into schema-validated JSON reports. Upon ingestion, sequential SHA-256 deduplication and bounded semantic retrieval triage prioritized events (cap <= 10). Empirical validation confirmed end-to-end data flow across 49 persisted field events, 10 AnalysisHistory records, HTTP 200 API responses, and browser runtime verification (A9 PASS).
 
-#### Section 2: Project Objectives (7 Canonical Objectives)
-1. **Central Asset Registry:** Anchor asset records with cryptographic hardware composite fingerprints.
-2. **Portable Windows Collector:** Build a lightweight, read-only collection package using embedded CPython 3.14.3.
-3. **Offline Ingestion Pipeline:** Ingest and normalize offline multipart JSON evidence into relational schemas.
-4. **Sequential Deduplication:** Enforce application-level SHA-256 event fingerprinting and severity ranking.
-5. **AI-Assisted Investigation:** Deploy pgvector cosine similarity search to retrieve contextual solution playbooks.
-6. **Unified Web Dashboard:** Deliver a responsive Next.js 14 interface for asset details and event evidence.
-7. **Empirical System Validation:** Validate data integrity from offline collection to live browser display.
+#### Section 2: Background & Problem Statement (y: 248 mm, h: 220 mm)
+- **Disconnected & Enclave Isolation:** High-security enterprise servers prohibit continuous outbound monitoring connections to central services.
+- **Fragile Ephemeral Tracking:** Dynamic DHCP IP churn and host renames disrupt historical telemetry without hardware-anchored identity.
+- **Manual Diagnostic Friction:** Ad-hoc scripts produce fragmented diagnostic notes without verifiable provenance across server fleets.
+- **Telemetry Volume Overload:** Windows Event Logs generate thousands of routine records daily, obscuring actionable infrastructure faults.
 
-#### Section 3: Multi-Tier System Architecture
-- **Visual Diagram:** Embedded high-resolution Figure 3.1 (`docs/report/final/fig3_1_architecture.png`).
-- **Caption:** *Figure 1: Hybrid Modular Monolith Architecture of the EIMS Platform.*
-- **Key Architectural Highlights:**
-  - **Portable Edge:** Standalone USB collection without persistent host agent installation.
-  - **Central Core:** Asynchronous FastAPI backend delivering strict Pydantic contract validation.
-  - **Unified Datastore:** PostgreSQL 16 combining ACID relational tables with pgvector similarity search.
-  - **Decoupled Services:** Redis for queuing/caching, MinIO for S3-compatible object storage, and Next.js 14 App Router for visualization.
-
-#### Section 4: Technology Implementation Stack
-- **Backend Service:** FastAPI + Pydantic + Starlette (REST APIs & schema validation)
-- **Persistence & Vector:** PostgreSQL 16 + pgvector (384-dimensional cosine distance)
-- **Broker & Object Store:** Redis 7 (caching/queuing) & MinIO (S3-compatible storage)
-- **Operator Dashboard:** Next.js 14 App Router + React + Tailwind CSS
-- **Portable Collector:** Embedded CPython 3.14.3 amd64 distribution (USB-based)
-- **AI Retrieval Models:** FastEmbed `BAAI/bge-small-en-v1.5` primary / SentenceTransformer fallback
+#### Section 3: Project Engineering Objectives (y: 474 mm, h: 354 mm)
+- **OBJ-1 Central Asset Registry:** Anchor canonical asset records with cryptographic hardware composite fingerprints across lifecycle changes.
+- **OBJ-2 Portable USB Auditor:** Lightweight, non-destructive collection utility executing on embedded CPython 3.14.3.
+- **OBJ-3 Offline Ingestion Pipeline:** Schema-validated normalization of offline multipart JSON evidence reports into relational schemas.
+- **OBJ-4 Deterministic Deduplication:** Application-level sequential SHA-256 deduplication and severity queue ordering.
+- **OBJ-5 Bounded AI Investigation:** pgvector cosine similarity retrieval for prioritized events (bounded workload cap <= 10).
+- **OBJ-6 Unified Web Dashboard:** Responsive Next.js 14 App Router UI for asset telemetry, evidence inspection, and AI findings.
+- **OBJ-7 Empirical Validation:** End-to-end multi-tier verification from portable USB extraction to live browser display.
 
 ---
 
-### 2.3 Right Column Content (Width: ~265 mm)
+### 2.3 Center Column Content (x: 208 mm, Width: 178 mm)
 
-#### Section 5: Portable Offline Collection Workflow
-- **Visual Diagram:** Embedded high-resolution Figure 3.3 (`docs/report/final/fig3_3_sequence.png`).
-- **Caption:** *Figure 2: Disconnected Evidence Acquisition and Ingestion Sequence.*
-- **Operational Guarantees:**
-  - **Zero Target Dependencies:** Bundled CPython 3.14.3; no target Python, pip, Git, or Docker required.
-  - **Read-Only Interrogation:** Non-destructive WMI/CIM queries and Windows Event Log parsing.
-  - **Bounded Collection Scope:** Scoped to System and Application channels over 24 hours (default max 500 events).
-  - **Structured Local Output:** Emits schema-validated JSON artifact to USB storage prior to central upload.
+#### Section 4: Multi-Tier System Architecture (y: 98 mm, h: 280 mm)
+- **Primary Technical Diagram:** Embedded high-resolution Figure 3.1 (`docs/report/final/fig3_1_architecture.png`).
+- **Architectural Highlights:**
+  - **Hybrid Modular Monolith:** Consolidates collection, ingestion, dedup, and AI triage in a single maintainable service without microservice networking overhead.
+  - **Persistence & Vector Separation:** PostgreSQL 16 handles ACID relational entities while pgvector computes 384-dimensional cosine distance in unified SQL queries.
+  - **Decoupled Supporting Tier:** Redis manages message caching/queues, MinIO provides S3-compatible storage, and Next.js 14 delivers hybrid server/client rendering.
 
-#### Section 6: Empirical Validation Results
-- **Metric Cards (Prominent Visual Grid):**
-  - **37 Passed / 0 Failed / 4 Warnings:** Sprint 13 Hermetic Ingestion Test Suite (`tests/test_sprint13_evidence_ingestion.py`).
-  - **49 Persisted Events:** Field evidence records stored in PostgreSQL (34 System channel, 15 Application channel).
-  - **10 AnalysisHistory Rows:** Bounded AI triage records for test host `ASSET-01` (analyzer workload cap <= 10).
-  - **HTTP 200 OK:** Filtered History REST API (`GET /api/v1/history?asset_id=...`).
-  - **A9 Gate PASS:** Live browser runtime verification (simultaneous display of 49 events and active AI findings).
-  - **Frontend Build PASS:** Strict TypeScript compilation (`tsc --noEmit`) and Next.js production build (`next build`).
-- **Workload Bounding Note:** *Note: AI analysis is bounded to at most 10 selected new events per import.*
+#### Section 5: Technology Implementation Stack (y: 384 mm, h: 210 mm)
+- **Backend API Gateway:** FastAPI + Pydantic + Starlette delivering REST APIs and schema validation.
+- **Database & Vector Store:** PostgreSQL 16 with pgvector (384-d dense vector cosine distance search).
+- **Broker & Object Store:** Redis 7 (caching/queues) and MinIO (S3-compatible storage for OCR/specs).
+- **Operator Web Dashboard:** Next.js 14 App Router, React 18, TypeScript, and Tailwind CSS.
+- **Portable USB Auditor:** Embedded CPython 3.14.3 amd64 distribution (no target dependencies).
+- **AI Embedding Hierarchy:** FastEmbed BAAI/bge-small-en-v1.5 primary / SentenceTransformer fallback.
 
-#### Section 7: Event Deduplication & Bounded AI Role
+#### Section 6: Event Deduplication & Bounded AI Role (y: 600 mm, h: 228 mm)
 - **Deduplication Formulation:**
-  $$\text{DedupKey} = \text{SHA-256}(\text{asset\_id} \parallel \text{channel} \parallel \text{provider} \parallel \text{record\_id} \parallel \text{occurrence\_time})$$
-  *Sequential application-level deduplication filters duplicates in memory prior to insertion. (Concurrent identical imports may race as database-level uniqueness is not currently enforced).*
-- **AI-Assisted Investigation Role:**
-  - Prioritizes incoming anomalies by severity (`Critical > Error > Warning > Information`).
-  - Retrieves relevant solution context using cosine similarity without autonomous execution.
-  - Persists diagnostic summaries in `AnalysisHistory` with traceable event and asset foreign metadata.
+  `DedupKey = SHA-256(asset_id || channel || provider || record_id || occurrence_time)`
+- **Operational Points:**
+  - **Sequential In-Memory Dedup:** Windows record_id is monotonically assigned; SHA-256 hash enables deterministic duplicate skipping across sequential imports.
+  - **Concurrency Boundary:** Enforced sequentially in memory. Concurrent identical imports may race as database-level uniqueness is not currently enforced.
+  - **Severity Priority Ranking:** Candidate events prioritized: Critical (Level 1) > Error (Level 2) > Warning (Level 3) > Info (Level 4).
+  - **Bounded Workload Cap:** Analyzer strictly triages at most 10 selected new events per import, protecting worker threads from load spikes.
+  - **Assistive Role Boundary:** AI provides diagnostic hypotheses and suggested verification checks; does NOT execute autonomous remediation or guaranteed RCA.
 
-#### Section 8: Scoped Limitations & Future Roadmap
-- **Design Limitations:**
+---
+
+### 2.4 Right Column Content (x: 400 mm, Width: 178 mm)
+
+#### Section 7: Portable Offline Workflow (y: 98 mm, h: 240 mm)
+- **Sequence Diagram:** Embedded high-resolution Figure 3.3 (`docs/report/final/fig3_3_sequence.png`).
+- **Operational Guarantees:**
+  - **Bundled Portable Runtime:** Embedded CPython 3.14.3 amd64; requires NO preinstalled Python, pip, Git, or Docker on target hosts.
+  - **Non-Destructive Posture:** Read-only WMI/CIM and event queries; writes reports/logs strictly to configured USB directories.
+  - **Scoped Telemetry Window:** Captures System and Application logs over 24h (default maximum 500 events across combined query).
+  - **Deterministic JSON Output:** Produces structured, schema-compliant JSON payloads for central offline import.
+
+#### Section 8: Empirical Validation Results & Measured Metrics (y: 344 mm, h: 260 mm)
+- **Metric Cards (3 Rows × 2 Columns Grid):**
+  - **37 / 0 / 4:** Sprint 13 Hermetic Ingestion Test Suite (37 passed, 0 failed, 4 warnings).
+  - **49 Events:** Persisted Field Telemetry (34 System + 15 Application events).
+  - **10 Records:** AnalysisHistory Cap (10/10 prioritized events triaged; cap <= 10).
+  - **HTTP 200:** Filtered History REST API (`GET /api/v1/history?asset_id=...`).
+  - **Gate A9 PASS:** Browser Runtime Verification Gate (Event Evidence & AI Findings verified in UI).
+  - **0 Errors:** Frontend Quality Gates (strict `tsc` & Next.js production build PASS).
+- **Precision Validation Notes:**
+  - **Workload Bounding Distinction:** The 49 events represent persisted evidence in the database. The analyzer is strictly bounded to at most 10 selected new events per import (not claiming all 49 were analyzed by AI).
+  - **Validation Scope Boundary:** Earlier field trials verified physical USB execution and JSON extraction. The latest on-site session verified downstream data integrity (persisted DB rows, filtered API, and UI) without re-running physical USB collection.
+  - **A9 Runtime Verification:** The field dataset contained 49 persisted Windows Event Evidence rows. The A9 browser check confirmed that Event Evidence and AI Findings were both available in the endpoint investigation view.
+
+#### Section 9: Scoped Limitations & Future Work (y: 610 mm, h: 115 mm)
+- **Scoped Limitations:**
   - Windows-first collection focus (WMI/winevt); System and Application channels only.
-  - Sequential deduplication without database-level concurrency locks.
-  - Prototype baseline: lacks multi-region clustering and enterprise Active Directory SSO.
-  - Assistive triage: AI recommendations assist human operators and do not act as autonomous authorities.
-- **Future Engineering Roadmap:**
-  - Milestone 1: Multi-node PostgreSQL clustering and connection pooling.
-  - Milestone 2: Concurrency-safe database unique constraints (`ON CONFLICT DO NOTHING`).
-  - Milestone 3: Cross-endpoint event timeline correlation and Linux `systemd` collectors.
+  - Sequential deduplication in memory; concurrent identical imports may race.
+  - Prototype baseline; does not include multi-region HA or enterprise SSO.
+- **Future Engineering Work:**
+  - Database-level concurrency-safe deduplication (PostgreSQL composite UNIQUE constraints).
+  - Cross-endpoint event correlation (multi-host temporal incident clustering).
+  - Production reliability and identity integration (clustering, SAML 2.0 / OIDC SSO).
 
-#### Section 9: Conclusion
-- Demonstrated safe, non-destructive evidence gathering for isolated Windows environments.
-- Enforced deterministic sequential deduplication and severity-ranked triage pipelines.
-- Empirically validated end-to-end data flow from offline collection to interactive web dashboard.
+#### Section 10: Conclusion & Advisor Approval (y: 731 mm, h: 97 mm)
+- **Conclusion:**
+  - EIMS centralizes asset inventory and operational evidence through hardware fingerprints.
+  - Portable collection safely acquires air-gapped evidence via embedded CPython 3.14.3.
+  - Multi-tier validation confirmed end-to-end evidence ingestion and triage integrity.
+- **Acknowledgment:**
+  *Sincere gratitude to KANEMATSU ELECTRONICS (THAILAND) for host enterprise support, Workplace Supervisor Mr. Chalermpol Phuangchalam for professional guidance, and Academic Supervisor Asst. Prof. Dr. Phongsak Keeratiwintakorn for academic mentorship.*
+- **Advisor Signature Block (Blank for physical signing):**
+  ```
+  ___________________________________________________
+  Asst. Prof. Dr. Phongsak Keeratiwintakorn (Project Advisor)
+  Date: ________ / ________ / 2026
+  ```
 
 ---
 
