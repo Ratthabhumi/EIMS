@@ -88,6 +88,10 @@ class BundleFileResult(BaseModel):
 
 class BundleResponse(BaseModel):
     bundleId: Optional[int] = None
+    # Identity aliases so result views resolve history + follow-up uniformly.
+    historyId: Optional[int] = None
+    eventId: str = "Unknown"
+    provider: str = "Unknown"
     files: List[BundleFileResult] = Field(default_factory=list)
     correlationConfidence: str = "none"
     correlationReasons: List[str] = Field(default_factory=list)

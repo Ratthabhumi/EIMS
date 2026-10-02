@@ -599,8 +599,87 @@ def test_golden_veeam_acceptance_semantics():
 
 
 # ---------------------------------------------------------------------------
-# Phase 2: follow-up context retention (deterministic path, no network)
+# Phase 2.1: bounded upload reads + SHA256 + bundle limits
 # ---------------------------------------------------------------------------
+
+
+def test_bounded_upload_reads_exact():
+    import io
+    from backend.domain.analyzer.services.bundle import read_upload_bounded
+
+    up = io.BytesIO(b"hello world")
+    result = read_upload_bounded(up, 3)
+    assert result == b"hel"
+
+    up = io.BytesIO(b"hello world")
+    result = read_upload_bounded(up, 100)
+    assert result == b"hello world"
+
+    up = io.BytesIO(b"hello world")
+    result = read_upload_bounded(up, 0)
+    assert result == b""
+
+
+def test_bundle_sha256_known_vector():
+    assert sha256_hex(b"abc") == (
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    )
+
+
+def test_bundle_rejects_unsupported_extension():
+    try:
+        validate_bundle([("archive.zip", b"data")])
+    except ValueError as e:
+        assert "ZIP" in str(e) or "Unsupported" in str(e)
+    else:
+        raise AssertionError("expected ValueError for .zip")
+
+
+def test_bundle_path_traversal_neutralized():
+    cleaned = validate_bundle([("../../etc/passwd.log", b"line")])
+    assert cleaned[0][0] == "passwd.log"
+
+
+def test_bundle_per_file_limit():
+    try:
+        validate_bundle([("big.log", b"x" * (BUNDLE_MAX_FILE_BYTES + 1))])
+    except ValueError as e:
+        assert "too large" in str(e).lower()
+    else:
+        raise AssertionError("expected ValueError for oversized file")
+
+
+def test_bundle_total_limit():
+    files = [(f"f{i}.log", b"x" * BUNDLE_MAX_FILE_BYTES) for i in range(7)]
+    try:
+        validate_bundle(files)
+    except ValueError as e:
+        assert "total" in str(e).lower() or "large" in str(e).lower()
+    else:
+        raise AssertionError("expected ValueError for oversized bundle")
+    assert BUNDLE_MAX_TOTAL_BYTES == 30 * 1024 * 1024
+
+
+def test_bundle_file_count_limit():
+    files = [(f"f{i}.log", b"x") for i in range(BUNDLE_MAX_FILES + 1)]
+    try:
+        validate_bundle(files)
+    except ValueError as e:
+        assert "many" in str(e).lower() or "maximum" in str(e).lower()
+    else:
+        raise AssertionError("expected ValueError for too many files")
+
+
+def test_kb_results_are_official_with_real_links():
+    from backend.domain.analyzer.services.vendor_knowledge import vendor_reference_results
+
+    results = vendor_reference_results(
+        "VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT, "en"
+    )
+    assert results, "expected at least the 424591 reference"
+    for r in results:
+        assert r.sourceType == "official"
+        assert r.link.startswith("https://knowledge.broadcom.com/external/article/")
 
 
 def _veeam_vendor_summary():

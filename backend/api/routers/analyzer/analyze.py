@@ -17,6 +17,8 @@ from backend.domain.analyzer.schemas.analyze import (
     FollowUpRequest,
     FollowUpResponse,
     IncidentAssessment,
+    SearchResult,
+    SolutionSummary,
 )
 from backend.domain.analyzer.services.parser import parse_event_metadata
 from backend.domain.analyzer.services.evtx_parser import parse_evtx
@@ -380,6 +382,27 @@ async def submit_bundle(
     final_summary = format_summary_text(solution, lang)
     search_time_ms = (time.time() - start_time) * 1000
 
+    # Bundle provenance lives inside attributes["bundle"] so HistoryResponse
+    # reconstruction (EventMetadata(**...)) preserves it across reloads.
+    bundle_attrs = dict(primary_meta.attributes or {})
+    bundle_attrs["bundle"] = {
+        "files": [
+            {
+                "filename": e.filename,
+                "sizeBytes": e.sizeBytes,
+                "sha256": e.sha256,
+                "sourceFamily": e.sourceFamily,
+                "product": e.product,
+                "diagnosticCode": e.diagnosticCode,
+                "parserConfidence": e.parserConfidence,
+            }
+            for e in per_file
+        ],
+        "correlationConfidence": correlation.get("correlationConfidence"),
+        "correlationReasons": correlation.get("correlationReasons"),
+        "correlatedSources": correlation.get("correlatedSources"),
+    }
+    primary_meta.attributes = bundle_attrs
     db_history = AnalysisHistory(
         event_id=primary_meta.eventId,
         provider=primary_meta.provider,
@@ -387,24 +410,7 @@ async def submit_bundle(
         description=combined_text or "No raw text",
         ai_summary=final_summary,
         solution_summary=solution.model_dump(),
-        event_metadata={
-            **primary_meta.model_dump(),
-            "bundle": {
-                "files": [
-                    {
-                        "filename": e.filename,
-                        "sizeBytes": e.sizeBytes,
-                        "sha256": e.sha256,
-                        "sourceFamily": e.sourceFamily,
-                        "diagnosticCode": e.diagnosticCode,
-                    }
-                    for e in per_file
-                ],
-                "correlationConfidence": correlation.get("correlationConfidence"),
-                "correlationReasons": correlation.get("correlationReasons"),
-                "correlatedSources": correlation.get("correlatedSources"),
-            },
-        },
+        event_metadata=primary_meta.model_dump(),
         search_results=[res.model_dump() for res in results],
         search_time_ms=search_time_ms,
         username=_user,
@@ -428,6 +434,9 @@ async def submit_bundle(
 
     return BundleResponse(
         bundleId=db_history.id,
+        historyId=db_history.id,
+        eventId=primary_meta.eventId,
+        provider=primary_meta.provider,
         files=[
             BundleFileResult(
                 filename=e.filename,
@@ -457,60 +466,73 @@ async def followup_question(
     x_gemini_api_key: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
-    history_ctx = None
-    evidence_ctx = ""
-    source_family_ctx = None
-    diagnostic_code_ctx = None
-    product_ctx = ""
+    lang = body.language if body.language in ("th", "en") else "th"
+
+    # Authoritative path: the stored history row wins.  Caller-supplied
+    # eventId/provider NEVER override the recorded analysis, and no fresh
+    # web search or rebuild runs for ordinary follow-up.
     if getattr(body, "historyId", None) and db:
         try:
-            from backend.domain.analyzer.models.history import AnalysisHistory
-
             h = await db.get(AnalysisHistory, body.historyId)
-            if h:
-                history_ctx = h
-                evidence_ctx = (h.description or "")[:8000]
-                em = (h.event_metadata or {}) if isinstance(h.event_metadata, dict) else {}
-                sol = (h.solution_summary or {}) if isinstance(h.solution_summary, dict) else {}
-                source_family_ctx = em.get("sourceFamily") or sol.get("sourceFamily")
-                diagnostic_code_ctx = em.get("diagnosticCode") or sol.get("diagnosticCode")
-                product_ctx = em.get("product") or em.get("faultingApp") or ""
         except Exception:
-            history_ctx = None
+            h = None
+        if h is not None:
+            em = (h.event_metadata or {}) if isinstance(h.event_metadata, dict) else {}
+            sol_dict = (h.solution_summary or {}) if isinstance(h.solution_summary, dict) else {}
+            try:
+                stored_summary = SolutionSummary(**sol_dict)
+            except Exception:
+                stored_summary = SolutionSummary(
+                    overview=str(sol_dict.get("overview", "")),
+                    causes=[str(x) for x in sol_dict.get("causes", [])][:5],
+                    steps=[str(x) for x in sol_dict.get("steps", [])][:8],
+                )
+            stored_results: List[SearchResult] = []
+            try:
+                raw_refs = h.search_results or []
+                for ref in raw_refs[:8]:
+                    if isinstance(ref, dict):
+                        stored_results.append(SearchResult(**ref))
+            except Exception:
+                stored_results = []
+            answer = build_followup_answer(
+                body.question,
+                stored_summary,
+                stored_results,
+                lang,
+                x_gemini_api_key,
+                source_family=em.get("sourceFamily"),
+                event_id=h.event_id or "Unknown",
+                provider=h.provider or "Unknown",
+                diagnostic_code=em.get("diagnosticCode"),
+            )
+            return FollowUpResponse(answer=answer)
 
+    # Legacy path (no historyId): derive context from the request body.
     results, combined_snippets = await asyncio.to_thread(
         search_solutions,
         body.eventId,
         body.provider,
-        source_family=source_family_ctx,
-        diagnostic_code=diagnostic_code_ctx,
-        evidence_text=evidence_ctx,
-        product=product_ctx,
+        language=lang,
     )
     summary = await build_summary(
         body.eventId,
         body.provider,
         combined_snippets,
         results,
-        body.language,
+        lang,
         "",
         x_gemini_api_key,
-        evidence_ctx,
+        "",
         db,
-        source_family=source_family_ctx,
-        diagnostic_code=diagnostic_code_ctx,
-        product=product_ctx,
-        evidence_text=evidence_ctx,
     )
     answer = build_followup_answer(
         body.question,
         summary,
         results,
-        body.language,
+        lang,
         x_gemini_api_key,
-        source_family=source_family_ctx,
         event_id=body.eventId,
         provider=body.provider,
-        diagnostic_code=diagnostic_code_ctx,
     )
     return FollowUpResponse(answer=answer)

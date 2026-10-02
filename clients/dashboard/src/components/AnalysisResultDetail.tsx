@@ -29,12 +29,15 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
 
   if (!result) return null;
 
+  // Resolve in order: historyId -> bundleId (alias) -> id (history rows).
   const historyId: number | undefined =
     typeof result.historyId === "number"
       ? result.historyId
-      : typeof result.id === "number"
-        ? result.id
-        : undefined;
+      : typeof result.bundleId === "number"
+        ? result.bundleId
+        : typeof result.id === "number"
+          ? result.id
+          : undefined;
 
   const submitFollowUp = async () => {
     const q = question.trim();

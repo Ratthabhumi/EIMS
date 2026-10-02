@@ -43,6 +43,26 @@ MAX_EVIDENCE_ITEMS_TOTAL = 120
 # incident window.  Point events seconds apart must still correlate.
 BUNDLE_TIME_EPSILON_SECONDS = 300
 
+
+def read_upload_bounded(upload, max_bytes: int) -> bytes:
+    """Read an UploadFile in bounded chunks; stop immediately after max_bytes.
+
+    Returns exactly the bytes read (may be less than max_bytes if the upload
+    ends early).  Does NOT read past max_bytes.
+    """
+    data = bytearray()
+    chunk_size = max(1, max_bytes // 8)  # 8 small chunks max
+    remaining = max_bytes
+    while remaining > 0:
+        # read up to min(chunk_size, remaining) bytes
+        n = min(chunk_size, remaining)
+        raw = upload.read(n)
+        if not raw:
+            break
+        data.extend(raw)
+        remaining -= len(raw)
+    return bytes(data)
+
 FAILURE_LINE = re.compile(
     r"\b(error|failed|failure|exception|critical|"
     r"could not|cannot|unable to|invalid|missing|not found|"

@@ -27,5 +27,11 @@ class HistoryResponse(HistoryBase):
     feedback_by: Optional[str] = None
     feedback_score: Optional[int] = None
     provenance: Optional[dict] = None
+    # Bundle correlation surfaces top-level (no migration: derived from
+    # EventMetadata.attributes["bundle"] when present).
+    files: List[dict] = []
+    correlationConfidence: Optional[str] = None
+    correlationReasons: List[str] = []
+    correlatedSources: List[str] = []
 
     model_config = {"from_attributes": True}

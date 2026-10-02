@@ -58,6 +58,17 @@ async def get_all_history(
                     "record_id": meta.get("record_id"),
                     "occurrence_time": meta.get("occurrence_time"),
                 }
+        bundle = {}
+        try:
+            if isinstance(record.event_metadata, dict):
+                attrs = record.event_metadata.get("attributes") or {}
+                if isinstance(attrs, dict) and isinstance(attrs.get("bundle"), dict):
+                    bundle = attrs["bundle"]
+                elif isinstance(record.event_metadata.get("bundle"), dict):
+                    # Backward compat: Phase-2 rows stored a top-level key.
+                    bundle = record.event_metadata["bundle"]
+        except Exception:
+            bundle = {}
         results.append({
             "id": record.id,
             "eventId": record.event_id,
@@ -74,6 +85,10 @@ async def get_all_history(
             "feedback_by": record.feedback_by,
             "feedback_score": record.feedback_score,
             "provenance": provenance,
+            "files": bundle.get("files") or [],
+            "correlationConfidence": bundle.get("correlationConfidence"),
+            "correlationReasons": bundle.get("correlationReasons") or [],
+            "correlatedSources": bundle.get("correlatedSources") or [],
         })
     return results
 

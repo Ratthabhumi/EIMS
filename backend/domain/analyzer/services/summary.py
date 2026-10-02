@@ -62,8 +62,8 @@ FAMILY_OFFICIAL_DOMAINS = {
         "veeam.com",
     ),
     "vmware": (
+        "knowledge.broadcom.com",
         "support.broadcom.com",
-        "broadcom.com",
         "kb.vmware.com",
     ),
     "cisco_asa": (
@@ -187,6 +187,7 @@ def search_solutions(
     diagnostic_code: str | None = None,
     evidence_text: str = "",
     product: str = "",
+    language: str = "th",
 ) -> tuple[List[SearchResult], str]:
     family = source_family or "windows_event"
 
@@ -252,7 +253,9 @@ def search_solutions(
     except Exception:
         pass
 
-    # Insert default fallbacks (if any) avoiding duplicates.
+    # Insert default fallbacks (if any) avoiding duplicates.  Provenance goes
+    # through the same hostname classifier: vendor community hosts stay
+    # community even when listed as fallback references.
     default_fallbacks_list = []
     family_fallbacks = FAMILY_FALLBACK_REFS.get(family, None)
     if family_fallbacks:
@@ -261,7 +264,7 @@ def search_solutions(
                 title=title,
                 link=link,
                 snippet=f"Vendor documentation starting point for {provider or family} diagnostics.",
-                sourceType="official",
+                sourceType=_classify_source(link, "community", official_domains, community_domains),  # type: ignore[arg-type]
             )
             for title, link in family_fallbacks
         ]
@@ -802,11 +805,38 @@ def build_followup_answer(
     ))
 
     if api_key:
-        sysdesc = summary.overview or ""
+        sysdesc = (summary.overview or "")[:1500]
+        bounded_causes = list(summary.causes or [])[:5]
+        bounded_steps = list(summary.steps or [])[:8]
+        incident = summary.incident
+        incident_block = ""
+        if incident is not None:
+            try:
+                incident_block = (
+                    f"First observed failure: {incident.firstMeaningfulFailure}\n"
+                    f"Terminal failure: {incident.terminalFailure}\n"
+                    f"Operation stage: {incident.operationStage}\n"
+                    f"Observed paths: {list(incident.observedPaths or [])[:5]}"
+                )
+            except Exception:
+                incident_block = ""
+        bounded_evidence = list(summary.evidence or [])[:6]
+        try:
+            bounded_items = [
+                f"{i.sourceFile}:{i.lineNumber} {i.message}"
+                for i in list(summary.evidenceItems or [])[:6]
+            ]
+        except Exception:
+            bounded_items = []
         prompt = f"""You are an expert IT assistant. The user is asking a follow-up question about an analyzed log entry.
 Context overview: {sysdesc}
-Known causes: {summary.causes}
-Known steps: {summary.steps}
+Known causes: {bounded_causes}
+Known steps: {bounded_steps}
+{incident_block}
+Observed evidence: {bounded_evidence}
+Evidence with source files: {bounded_items}
+Still unknown: {list(summary.limitations or [])[:4]}
+Next evidence to collect: {list(summary.nextEvidence or [])[:4]}
 
 User Question: {text}
 Language: {'Thai' if language == 'th' else 'English'}
