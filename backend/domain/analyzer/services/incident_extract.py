@@ -163,8 +163,17 @@ def extract_incident(text: str, source_family: str = "") -> Dict[str, object]:
         "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
         "Whether the file was locked, corrupt, moved, renamed, or absent",
     ]
-    # If a concrete path IS present in a failure line, it is observed, not unknown.
-    observed_paths = sorted({m.group(0) for _, ln in failures for m in _PATH_RE.finditer(ln)})[:3]
+    # If a concrete path IS present in a failure/warning line — or in a nearby
+    # context line that literally names a file (/vmfs/, fileName=, drive
+    # path) — it is observed, not unknown.  Never inferred, only matched.
+    _PATH_HINT_RE = re.compile(r"filename\s*[:=]|/vmfs/|[A-Za-z]:\\")
+    path_lines = list(failures) + [w for w in warnings if w not in failures]
+    path_lines += [
+        (i, ln)
+        for i, ln, s in scored
+        if s == 0 and _PATH_HINT_RE.search(ln) and (i, ln) not in path_lines
+    ]
+    observed_paths = sorted({m.group(0) for _, ln in path_lines for m in _PATH_RE.finditer(ln)})[:3]
 
     next_evidence = list(_FAMILY_NEXT_EVIDENCE.get(source_family or "", _GENERIC_NEXT_EVIDENCE))
 

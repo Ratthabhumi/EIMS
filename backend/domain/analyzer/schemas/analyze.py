@@ -45,6 +45,21 @@ class IncidentAssessment(BaseModel):
     nextEvidence: List[str] = Field(default_factory=list)
 
 
+class EvidenceItem(BaseModel):
+    """One observed evidence line with file provenance.
+
+    Every field is populated ONLY from observed evidence — filename, line
+    number, path, and timestamp are never invented.  Missing fields stay "".
+    """
+
+    sourceFile: str = ""
+    lineNumber: int = 0
+    timestamp: str = ""
+    message: str = ""
+    signature: str = ""
+    observedPath: str = ""
+
+
 class SolutionSummary(BaseModel):
     overview: str = ""
     causes: List[str] = []
@@ -56,6 +71,31 @@ class SolutionSummary(BaseModel):
     nextEvidence: List[str] = Field(default_factory=list)
     # Structured incident sketch (optional: older records/rows ignore it).
     incident: Optional[IncidentAssessment] = None
+    # Structured evidence with file provenance (bundle path; single-file
+    # analyses keep using `evidence` for backward compatibility).
+    evidenceItems: List[EvidenceItem] = Field(default_factory=list)
+
+
+class BundleFileResult(BaseModel):
+    filename: str = ""
+    sizeBytes: int = 0
+    sha256: str = ""
+    sourceFamily: str = ""
+    product: str = ""
+    diagnosticCode: str = ""
+    parserConfidence: float = 0.0
+
+
+class BundleResponse(BaseModel):
+    bundleId: Optional[int] = None
+    files: List[BundleFileResult] = Field(default_factory=list)
+    correlationConfidence: str = "none"
+    correlationReasons: List[str] = Field(default_factory=list)
+    correlatedSources: List[str] = Field(default_factory=list)
+    eventMetadata: EventMetadata = EventMetadata()
+    aiSummary: str = ""
+    solutionSummary: SolutionSummary = SolutionSummary()
+    searchResults: List[SearchResult] = Field(default_factory=list)
 
 
 class AnalyzeResponse(BaseModel):

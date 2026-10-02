@@ -10,6 +10,7 @@ scope is environment-specific are only surfaced when the evidence text
 matches the required tokens (e.g. vSAN ESA, vVOLs), never universally.
 """
 
+import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
@@ -70,7 +71,9 @@ VENDOR_ARTICLES: List[VendorArticle] = [
         title="Virtual machine backups fail due to locked files even if the VM is moved to other ESXi hosts in the cluster",
         url="https://knowledge.broadcom.com/external/article/418256",
         applies_to=["VMWARE-CBT-DELETE-FAILED"],
-        requires_any=("lock", "cbt", "change tracking", "change-tracking", "backup"),
+        # Supports CTK missing/corrupt/mismatch assessment.  Locking is NEVER
+        # claimed by EIMS unless lock evidence exists (see entry text).
+        requires_any=("lock", "cbt", "change tracking", "change-tracking", "backup", "ctk", "missing", "corrupt", "mismatch"),
     ),
     VendorArticle(
         article_id="442155",
@@ -92,13 +95,15 @@ VENDOR_ARTICLES: List[VendorArticle] = [
         title="'Detected an invalid snapshot configuration' error creating a snapshot",
         url="https://knowledge.broadcom.com/external/article/318905",
         applies_to=["VMWARE-SNAPSHOT-FILE-MISSING", "VEEAM-REPLICA-SNAPSHOT-CHAIN"],
-        requires_any=("invalid snapshot config", "snapshot config", "invalid configuration"),
+        # Create-snapshot path only (custom gate in _article_applies).
+        requires_any=("invalid snapshot", "invalidsnapshotformat"),
     ),
     VendorArticle(
         article_id="450780",
         title="Error: 'A required file was not found' when deleting a snapshot or Virtual Machine",
         url="https://knowledge.broadcom.com/external/article/450780",
         applies_to=["VMWARE-SNAPSHOT-FILE-MISSING", "VEEAM-REPLICA-SNAPSHOT-CHAIN"],
+        # Snapshot deletion/consolidation only (custom gate).
         requires_any=("delet", "consolidat", "remov"),
     ),
     VendorArticle(
@@ -106,15 +111,57 @@ VENDOR_ARTICLES: List[VendorArticle] = [
         title="Error: 'A required file was not found' after manually renaming or moving virtual machine folder",
         url="https://knowledge.broadcom.com/external/article/452165",
         applies_to=["VMWARE-SNAPSHOT-FILE-MISSING", "VEEAM-REPLICA-SNAPSHOT-CHAIN"],
-        requires_any=("renam", "mov", "folder"),
+        # Rename/move/folder evidence only (custom word-boundary gate;
+        # bare "mov" would falsely match "remove").
+        requires_any=("renam", "folder", "path mismatch"),
     ),
 ]
+
+
+def _has_word(lowered: str, word: str) -> bool:
+    return re.search(r"\b" + re.escape(word) + r"\b", lowered) is not None
 
 
 def _article_applies(article: VendorArticle, diagnostic_code: str, text: str) -> bool:
     lowered = (text or "").lower()
     if article.applies_to and diagnostic_code not in article.applies_to:
         return False
+
+    # Context gates verified against the official articles.  Gated
+    # articles are never surfaced universally.
+    if article.article_id == "424591":
+        # RevertSnapshot + InvalidSnapshotFormat + required file not found.
+        if "revert" not in lowered:
+            return False
+        if "required file" not in lowered or "not found" not in lowered:
+            return False
+        if "invalidsnapshotformat" not in lowered and "invalid snapshot" not in lowered:
+            return False
+        return True
+    if article.article_id == "318905":
+        # Create-snapshot path only.
+        if "invalidsnapshotformat" not in lowered and "invalid snapshot" not in lowered:
+            return False
+        if not any(
+            token in lowered
+            for token in ("createsnapshot", "create snapshot", "creating", "creation")
+        ):
+            return False
+        return True
+    if article.article_id == "450780":
+        # Snapshot deletion/consolidation only.
+        if "snapshot" not in lowered:
+            return False
+        if not any(token in lowered for token in ("delet", "consolidat", "remov")):
+            return False
+        return True
+    if article.article_id == "452165":
+        # Rename/move/folder/path-mismatch evidence only.
+        if "renam" not in lowered and "folder" not in lowered and "path mismatch" not in lowered:
+            if not any(_has_word(lowered, w) for w in ("move", "moved", "moving")):
+                return False
+        return True
+
     if article.requires_all:
         if not all(needle in lowered for needle in article.requires_all):
             return False

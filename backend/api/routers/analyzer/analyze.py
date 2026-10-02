@@ -1,5 +1,5 @@
-from fastapi import APIRouter, File, UploadFile, Form, Depends, Header
-from typing import Optional
+from fastapi import APIRouter, File, HTTPException, UploadFile, Form, Depends, Header
+from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 import asyncio
 import io
@@ -9,11 +9,26 @@ import xml.etree.ElementTree as ET
 from backend.domain.analyzer.auth import get_current_user
 from backend.infrastructure.database import get_db_session as get_db
 from backend.domain.analyzer.models.history import AnalysisHistory
-from backend.domain.analyzer.schemas.analyze import AnalyzeResponse, FollowUpRequest, FollowUpResponse
+from backend.domain.analyzer.schemas.analyze import (
+    AnalyzeResponse,
+    BundleFileResult,
+    BundleResponse,
+    EvidenceItem,
+    FollowUpRequest,
+    FollowUpResponse,
+    IncidentAssessment,
+)
 from backend.domain.analyzer.services.parser import parse_event_metadata
 from backend.domain.analyzer.services.evtx_parser import parse_evtx
 from backend.domain.analyzer.services.compaction import compact_log_evidence
 from backend.domain.analyzer.services.incident_extract import extract_incident
+from backend.domain.analyzer.services.bundle import (
+    BUNDLE_MAX_FILES,
+    build_evidence_items,
+    correlate_bundle,
+    summarize_file_evidence,
+    validate_bundle,
+)
 from backend.domain.analyzer.services.summary import (
     search_solutions,
     build_summary,
@@ -192,6 +207,19 @@ async def submit_analysis(
         solution.limitations = [str(x) for x in incident["unknowns"][:4]]
     if not solution.confidence and metadata.sourceFamily in ("veeam_vbr", "vmware"):
         solution.confidence = "medium"
+    try:
+        solution.incident = IncidentAssessment(
+            firstMeaningfulFailure=str(incident.get("firstMeaningfulFailure", "")),
+            terminalFailure=str(incident.get("terminalFailure", "")),
+            timeline=[str(x) for x in incident.get("timeline", [])][:12],
+            operationStage=str(incident.get("operationStage", "")),
+            diagnosticSignatures=[str(x) for x in incident.get("diagnosticSignatures", [])][:8],
+            observedPaths=[str(x) for x in incident.get("observedPaths", [])][:8],
+            unknowns=[str(x) for x in incident.get("unknowns", [])][:6],
+            nextEvidence=[str(x) for x in incident.get("nextEvidence", [])][:6],
+        )
+    except Exception:
+        pass
     final_summary = format_summary_text(solution, lang)
     search_time_ms = (time.time() - start_time) * 1000
 
@@ -234,6 +262,191 @@ async def submit_analysis(
         solutionSummary=solution,
         searchResults=results,
         historyId=db_history.id,
+    )
+
+
+@router.post("/bundle", response_model=BundleResponse)
+async def submit_bundle(
+    files: List[UploadFile] = File(...),
+    language: str = Form("th"),
+    db: AsyncSession = Depends(get_db),
+    _user: str = Depends(get_current_user),
+    x_gemini_api_key: Optional[str] = Header(None),
+):
+    raw: List[tuple] = []
+    for upload in files or []:
+        try:
+            content = await upload.read()
+        except Exception:
+            raise HTTPException(status_code=400, detail="Failed to read an uploaded file.")
+        raw.append((upload.filename or "unnamed", content))
+    try:
+        cleaned = validate_bundle(raw)
+    except ValueError as e:
+        raise HTTPException(status_code=413, detail=str(e))
+
+    lang = language if language in ("th", "en") else "th"
+    per_file = []
+    combined_parts: List[str] = []
+    for filename, content in cleaned:
+        try:
+            extracted, _desc = _process_upload(content, filename, None)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"{filename}: {e}")
+        compacted = compact_log_evidence(extracted or "")
+        meta = parse_event_metadata(compacted, filename)
+        per_file.append(
+            summarize_file_evidence(
+                filename=filename,
+                content=content,
+                text=compacted,
+                source_family=meta.sourceFamily or "",
+                product=meta.product or "",
+                diagnostic_code=meta.diagnosticCode or "",
+                parser_confidence=float(meta.parserConfidence or 0.0),
+            )
+        )
+        combined_parts.append(f"===== FILE: {filename} =====\n{compacted}")
+
+    correlation = correlate_bundle(per_file)
+    combined_text = compact_log_evidence("\n\n".join(combined_parts))
+
+    # Primary identity: majority diagnostic code, else first file.
+    primary = per_file[0]
+    code_votes: dict = {}
+    for entry in per_file:
+        if entry.diagnosticCode:
+            code_votes[entry.diagnosticCode] = code_votes.get(entry.diagnosticCode, 0) + 1
+    if code_votes:
+        top_code = sorted(code_votes.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
+        for entry in per_file:
+            if entry.diagnosticCode == top_code:
+                primary = entry
+                break
+    primary_meta = parse_event_metadata(primary.text, primary.filename)
+
+    start_time = time.time()
+    results, combined_snippets = await asyncio.to_thread(
+        search_solutions,
+        primary_meta.eventId,
+        primary_meta.provider,
+        source_family=primary_meta.sourceFamily or None,
+        diagnostic_code=primary_meta.diagnosticCode or None,
+        evidence_text=combined_text,
+        product=primary_meta.product or "",
+    )
+    solution = await build_summary(
+        primary_meta.eventId,
+        primary_meta.provider,
+        combined_snippets,
+        results,
+        lang,
+        primary_meta.faultingApp,
+        x_gemini_api_key,
+        combined_text,
+        db,
+        source_family=primary_meta.sourceFamily or None,
+        diagnostic_code=primary_meta.diagnosticCode or None,
+        product=primary_meta.product or "",
+        evidence_text=combined_text,
+    )
+    incident = extract_incident(combined_text, primary_meta.sourceFamily or "")
+    if not solution.evidence and incident.get("evidence"):
+        solution.evidence = [str(x) for x in incident["evidence"][:8]]
+    if not solution.nextEvidence and incident.get("nextEvidence"):
+        solution.nextEvidence = [str(x) for x in incident["nextEvidence"][:6]]
+    if not solution.limitations and incident.get("unknowns"):
+        solution.limitations = [str(x) for x in incident["unknowns"][:4]]
+    if not solution.confidence and primary_meta.sourceFamily in ("veeam_vbr", "vmware"):
+        solution.confidence = "medium"
+    try:
+        items = build_evidence_items(per_file)
+        solution.evidenceItems = [EvidenceItem(**item) for item in items]
+    except Exception:
+        pass
+    try:
+        solution.incident = IncidentAssessment(
+            firstMeaningfulFailure=str(incident.get("firstMeaningfulFailure", "")),
+            terminalFailure=str(incident.get("terminalFailure", "")),
+            timeline=[str(x) for x in incident.get("timeline", [])][:12],
+            operationStage=str(incident.get("operationStage", "")),
+            diagnosticSignatures=[str(x) for x in incident.get("diagnosticSignatures", [])][:8],
+            observedPaths=[str(x) for x in incident.get("observedPaths", [])][:8],
+            unknowns=[str(x) for x in incident.get("unknowns", [])][:6],
+            nextEvidence=[str(x) for x in incident.get("nextEvidence", [])][:6],
+        )
+    except Exception:
+        pass
+    final_summary = format_summary_text(solution, lang)
+    search_time_ms = (time.time() - start_time) * 1000
+
+    db_history = AnalysisHistory(
+        event_id=primary_meta.eventId,
+        provider=primary_meta.provider,
+        parse_method=f"Evidence bundle ({len(per_file)} files)",
+        description=combined_text or "No raw text",
+        ai_summary=final_summary,
+        solution_summary=solution.model_dump(),
+        event_metadata={
+            **primary_meta.model_dump(),
+            "bundle": {
+                "files": [
+                    {
+                        "filename": e.filename,
+                        "sizeBytes": e.sizeBytes,
+                        "sha256": e.sha256,
+                        "sourceFamily": e.sourceFamily,
+                        "diagnosticCode": e.diagnosticCode,
+                    }
+                    for e in per_file
+                ],
+                "correlationConfidence": correlation.get("correlationConfidence"),
+                "correlationReasons": correlation.get("correlationReasons"),
+                "correlatedSources": correlation.get("correlatedSources"),
+            },
+        },
+        search_results=[res.model_dump() for res in results],
+        search_time_ms=search_time_ms,
+        username=_user,
+    )
+    db.add(db_history)
+    await db.commit()
+    await db.refresh(db_history)
+
+    try:
+        from backend.domain.analyzer.services.vector_db import add_solution
+        await add_solution(
+            db=db,
+            event_id=primary_meta.eventId,
+            description=combined_text or "No raw text",
+            solution_summary=solution.model_dump(),
+            feedback_score=0,
+            api_key=x_gemini_api_key
+        )
+    except Exception as e:
+        print(f"Failed to auto-export to Vector DB (safe ignore): {e}")
+
+    return BundleResponse(
+        bundleId=db_history.id,
+        files=[
+            BundleFileResult(
+                filename=e.filename,
+                sizeBytes=e.sizeBytes,
+                sha256=e.sha256,
+                sourceFamily=e.sourceFamily,
+                product=e.product,
+                diagnosticCode=e.diagnosticCode,
+                parserConfidence=e.parserConfidence,
+            )
+            for e in per_file
+        ],
+        correlationConfidence=str(correlation.get("correlationConfidence", "none")),
+        correlationReasons=[str(x) for x in correlation.get("correlationReasons", [])],
+        correlatedSources=[str(x) for x in correlation.get("correlatedSources", [])],
+        eventMetadata=primary_meta,
+        aiSummary=final_summary,
+        solutionSummary=solution,
+        searchResults=results,
     )
 
 
