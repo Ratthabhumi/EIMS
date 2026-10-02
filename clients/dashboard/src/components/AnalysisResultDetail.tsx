@@ -37,6 +37,16 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
   const metadata = result.eventMetadata || {};
   const searchResults = result.searchResults || [];
 
+  // Source-aware diagnostic identity (vendor logs show Product + Diagnostic
+  // Code instead of fake Event ID semantics).
+  const diagCode = metadata.diagnosticCode || "";
+  const product = metadata.product || "";
+  const hasVendorDiag = !!diagCode;
+  const solEvidence: string[] = result.solutionSummary?.evidence || [];
+  const solConfidence: string = result.solutionSummary?.confidence || "";
+  const solUnknowns: string[] = result.solutionSummary?.limitations || [];
+  const solNextEvidence: string[] = result.solutionSummary?.nextEvidence || [];
+
   // Detect language: use language prop if explicitly provided, else detect from text (Thai character check)
   const isThaiText = (text: string) => /[\u0E00-\u0E7F]/.test(text);
   const detectedEn = !isThaiText(summary) && (!steps.length || !isThaiText(steps.join(" ")));
@@ -69,6 +79,12 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
             <>
               <span className="text-eims-info dark:text-sky-400 font-bold">{displayTitle}</span>
               <span className="text-eims-text-secondary font-normal text-sm ml-1">({displayProvider} · Event {eventId})</span>
+            </>
+          ) : hasVendorDiag ? (
+            <>
+              <span className="text-eims-info dark:text-sky-400 font-bold">{product || provider}</span>
+              <span className="text-eims-text-secondary font-normal text-sm ml-1">· Diagnostic {diagCode}</span>
+              <span className="text-eims-text-secondary font-normal text-sm ml-2">{isEn ? "Number of events:" : "จำนวนเหตุการณ์:"} {numEvents}</span>
             </>
           ) : (
             <>
@@ -145,7 +161,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
         </div>
         {causes.length > 0 && (
           <div className="mt-3 pl-4 border-l-2 border-red-500/30">
-            <p className="text-sm text-red-500 mb-1 font-medium">{isEn ? "Root Causes:" : "สาเหตุที่เป็นไปได้:"}</p>
+            <p className="text-sm text-red-500 mb-1 font-medium">{isEn ? (hasVendorDiag ? "Likely Causes / Assessment:" : "Root Causes:") : "สาเหตุที่เป็นไปได้:"}</p>
             <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
               {causes.map((cause: string, idx: number) => (
                 <li key={idx}>{cause}</li>
@@ -173,6 +189,54 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
         </div>
       </div>
 
+      {/* Observed Evidence */}
+      {solEvidence.length > 0 && (
+        <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
+          <h4 className="text-md font-semibold text-eims-text mb-3">
+            {isEn ? "Observed Evidence" : "หลักฐานที่พบ"}
+          </h4>
+          <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
+            {solEvidence.map((e: string, idx: number) => (
+              <li key={idx} className="font-mono text-xs">{e}</li>
+            ))}
+          </ul>
+          {solConfidence && (
+            <p className="text-xs text-eims-text-muted mt-2">
+              {isEn ? "Confidence: " : "ความมั่นใจ: "}
+              <span className="font-semibold text-eims-text capitalize">{solConfidence}</span>
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* What Is Still Unknown */}
+      {solUnknowns.length > 0 && (
+        <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
+          <h4 className="text-md font-semibold text-eims-text mb-3">
+            {isEn ? "What Is Still Unknown" : "สิ่งที่ยังไม่ทราบ"}
+          </h4>
+          <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
+            {solUnknowns.map((u: string, idx: number) => (
+              <li key={idx}>{u}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Next Evidence to Collect */}
+      {solNextEvidence.length > 0 && (
+        <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
+          <h4 className="text-md font-semibold text-eims-text mb-3">
+            {isEn ? "Next Evidence to Collect" : "หลักฐานที่ควรเก็บเพิ่ม"}
+          </h4>
+          <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
+            {solNextEvidence.map((n: string, idx: number) => (
+              <li key={idx}>{n}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* References */}
       {searchResults.length > 0 && (
         <div>
@@ -191,7 +255,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
                 <div className="flex justify-between items-start mb-1">
                   <h5 className="text-blue-600 dark:text-blue-400 font-medium group-hover:underline text-sm">{ref.title}</h5>
                   <span className="text-[10px] bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 px-2 py-0.5 rounded border dark:border-blue-500/20 whitespace-nowrap ml-2">
-                    Official
+                    {ref.sourceType === "official" ? "Official" : "Community"}
                   </span>
                 </div>
                 <p className="text-xs text-eims-text-muted truncate mb-2">{ref.link}</p>

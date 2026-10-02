@@ -1,5 +1,19 @@
 # EventIQ Log Analyzer
 
+> **LEGACY / STANDALONE PROTOTYPE — NOT PART OF THE CANONICAL EIMS RUNTIME.**
+>
+> This directory is a self-contained earlier prototype (own backend, frontend,
+> and deploy files) and is **not** started by the EIMS `start_eims` flow.
+> Do not duplicate new analyzer logic here; it will drift.
+>
+> Canonical runtime:
+>
+> - `backend/domain/analyzer` + `backend/api/routers/analyzer` (diagnostic engine)
+> - `clients/dashboard` (dashboard UI, analyzer page)
+>
+> The content below documents the standalone prototype only and is kept
+> for reference.
+
 EventIQ analyzes Windows Event Log text, screenshots, XML files, and EVTX files. It stores analysis history, searches for references, and can export a Markdown report for sharing.
 
 ## Local Setup

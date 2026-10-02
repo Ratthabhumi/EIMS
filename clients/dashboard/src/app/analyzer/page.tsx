@@ -152,7 +152,11 @@ export default function AnalyzerPage() {
     if (!result) return;
     
     let content = `# AI Diagnostic Report\n\n`;
-    content += `**Event ID:** ${result.eventId}\n`;
+    const diagCode = result.eventMetadata?.diagnosticCode || "";
+    const product = result.eventMetadata?.product || "";
+    content += diagCode
+      ? `**Source:** ${product || result.provider}\n**Diagnostic Code:** ${diagCode}\n`
+      : `**Event ID:** ${result.eventId}\n`;
     content += `**Provider:** ${result.provider}\n`;
     content += `**Date:** ${new Date().toLocaleString()}\n\n`;
     
@@ -162,15 +166,28 @@ export default function AnalyzerPage() {
     
     if (result.solutionSummary) {
       content += `## Executive Summary\n${result.solutionSummary.overview || "N/A"}\n\n`;
-      content += `## Root Causes\n`;
+      content += diagCode ? `## Likely Causes / Assessment\n` : `## Root Causes\n`;
       (result.solutionSummary.causes || []).forEach((c: string) => { content += `- ${c}\n`; });
       content += `\n## Resolution Steps\n`;
       (result.solutionSummary.steps || []).forEach((s: string) => { content += `${s}\n`; });
+      if (result.solutionSummary.evidence && result.solutionSummary.evidence.length > 0) {
+        content += `\n## Observed Evidence\n`;
+        result.solutionSummary.evidence.forEach((e: string) => { content += `- ${e}\n`; });
+        if (result.solutionSummary.confidence) content += `\nConfidence: ${result.solutionSummary.confidence}\n`;
+      }
+      if (result.solutionSummary.limitations && result.solutionSummary.limitations.length > 0) {
+        content += `\n## What Is Still Unknown\n`;
+        result.solutionSummary.limitations.forEach((u: string) => { content += `- ${u}\n`; });
+      }
+      if (result.solutionSummary.nextEvidence && result.solutionSummary.nextEvidence.length > 0) {
+        content += `\n## Next Evidence to Collect\n`;
+        result.solutionSummary.nextEvidence.forEach((n: string) => { content += `- ${n}\n`; });
+      }
     }
     
     if (result.searchResults && result.searchResults.length > 0) {
       content += `\n## References\n`;
-      result.searchResults.forEach((r: any) => { content += `- [${r.title}](${r.link})\n`; });
+      result.searchResults.forEach((r: any) => { content += `- [${r.title}](${r.link})${r.sourceType && r.sourceType !== "official" ? " (community)" : ""}\n`; });
     }
 
     const blob = new Blob([content], { type: "text/markdown" });
@@ -200,10 +217,19 @@ export default function AnalyzerPage() {
       const causes = result.solutionSummary?.causes || [];
       const refs = result.searchResults || [];
       const meta = result.eventMetadata || {};
+      const evList: string[] = result.solutionSummary?.evidence || [];
+      const unknowns: string[] = result.solutionSummary?.limitations || [];
+      const nextEv: string[] = result.solutionSummary?.nextEvidence || [];
+      const conf: string = result.solutionSummary?.confidence || "";
+      const diagCode: string = meta.diagnosticCode || "";
+      const product: string = meta.product || "";
+      const titleLine = diagCode
+        ? `${product || result.provider || "Diagnostic"} — ${diagCode}`
+        : `Event ID: ${result.eventId || "Unknown"}`;
 
       container.innerHTML = `
         <h1 style="font-size:20px;font-weight:700;border-bottom:2px solid #68735C;padding-bottom:8px;margin-bottom:12px;">
-          Diagnostic Report â€” Event ID: ${result.eventId || "Unknown"}
+          Diagnostic Report — ${titleLine}
         </h1>
         <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${result.provider || "Unknown"}</strong> &nbsp;|&nbsp; Generated: ${new Date().toLocaleString()}</p>
 
@@ -219,12 +245,16 @@ export default function AnalyzerPage() {
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Summary</h2>
         <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${result.solutionSummary?.overview || result.aiSummary || "No summary available."}</div>
 
-        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Root Causes</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
+        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">${diagCode ? "Likely Causes / Assessment" : "Root Causes"}</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
 
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Resolution Steps</h2>
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
           ${steps.length > 0 ? `<ol style="padding-left:20px;margin:0;">${steps.map((s: string) => `<li style="margin-bottom:6px;">${s}</li>`).join("")}</ol>` : "<p>No specific steps provided.</p>"}
         </div>
+
+        ${evList.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Observed Evidence${conf ? ` (confidence: ${conf})` : ""}</h2><ul style="padding-left:20px;margin-bottom:12px;">${evList.map((e: string) => `<li style="margin-bottom:4px;">${e}</li>`).join("")}</ul>` : ""}
+        ${unknowns.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">What Is Still Unknown</h2><ul style="padding-left:20px;margin-bottom:12px;">${unknowns.map((u: string) => `<li style="margin-bottom:4px;">${u}</li>`).join("")}</ul>` : ""}
+        ${nextEv.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Next Evidence to Collect</h2><ul style="padding-left:20px;margin-bottom:12px;">${nextEv.map((n: string) => `<li style="margin-bottom:4px;">${n}</li>`).join("")}</ul>` : ""}
 
         ${refs.length > 0 ? `
           <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">References</h2>
@@ -310,10 +340,10 @@ export default function AnalyzerPage() {
                 onPaste={handlePaste}
                 tabIndex={0}
               >
-                <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*,.evtx,.txt,.log,.xml,.csv" />
+                <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*,.evtx,.txt,.log,.xml,.csv,.html,.htm" />
                 <FileText className="w-7 h-7 text-eims-text-muted mx-auto mb-2" />
                 <p className="text-xs font-medium text-eims-text">{file ? file.name : "Click or paste (Ctrl+V) image"}</p>
-                <p className="text-xs text-eims-text-muted mt-1">EVTX, XML, Image, CSV, LOG</p>
+                <p className="text-xs text-eims-text-muted mt-1">EVTX, XML, Image, CSV, LOG, HTML</p>
               </div>
             ) : (
               <textarea

@@ -385,10 +385,23 @@ export default function AnalyzerHistoryList({
       (item.solutionSummary.causes || []).forEach((c: string) => { content += `- ${c}\n`; });
       content += `\n## Resolution / Notes\n`;
       (item.solutionSummary.steps || []).forEach((s: string) => { content += `${s}\n`; });
+      if (item.solutionSummary.evidence && item.solutionSummary.evidence.length > 0) {
+        content += `\n## Observed Evidence\n`;
+        item.solutionSummary.evidence.forEach((e: string) => { content += `- ${e}\n`; });
+        if (item.solutionSummary.confidence) content += `\nConfidence: ${item.solutionSummary.confidence}\n`;
+      }
+      if (item.solutionSummary.limitations && item.solutionSummary.limitations.length > 0) {
+        content += `\n## What Is Still Unknown\n`;
+        item.solutionSummary.limitations.forEach((u: string) => { content += `- ${u}\n`; });
+      }
+      if (item.solutionSummary.nextEvidence && item.solutionSummary.nextEvidence.length > 0) {
+        content += `\n## Next Evidence to Collect\n`;
+        item.solutionSummary.nextEvidence.forEach((n: string) => { content += `- ${n}\n`; });
+      }
     }
     if (item.searchResults && item.searchResults.length > 0) {
       content += `\n## References\n`;
-      item.searchResults.forEach((r: any) => { content += `- [${r.title}](${r.link})\n`; });
+      item.searchResults.forEach((r: any) => { content += `- [${r.title}](${r.link})${r.sourceType && r.sourceType !== "official" ? " (community)" : ""}\n`; });
     }
     const blob = new Blob([content], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
@@ -418,6 +431,10 @@ export default function AnalyzerHistoryList({
       const causes = item.solutionSummary?.causes || [];
       const refs = item.searchResults || [];
       const meta = item.eventMetadata || {};
+      const evList: string[] = item.solutionSummary?.evidence || [];
+      const unknowns: string[] = item.solutionSummary?.limitations || [];
+      const nextEv: string[] = item.solutionSummary?.nextEvidence || [];
+      const conf: string = item.solutionSummary?.confidence || "";
 
       container.innerHTML = `
         <h1 style="font-size:20px;font-weight:700;border-bottom:2px solid #68735C;padding-bottom:8px;margin-bottom:12px;">
@@ -439,6 +456,9 @@ export default function AnalyzerHistoryList({
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
           ${steps.length > 0 ? `<ol style="padding-left:20px;margin:0;">${steps.map((s: string) => `<li style="margin-bottom:6px;">${s}</li>`).join("")}</ol>` : "<p>No specific steps provided.</p>"}
         </div>
+        ${evList.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Observed Evidence${conf ? ` (confidence: ${conf})` : ""}</h2><ul style="padding-left:20px;margin-bottom:12px;">${evList.map((e: string) => `<li style="margin-bottom:4px;">${e}</li>`).join("")}</ul>` : ""}
+        ${unknowns.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">What Is Still Unknown</h2><ul style="padding-left:20px;margin-bottom:12px;">${unknowns.map((u: string) => `<li style="margin-bottom:4px;">${u}</li>`).join("")}</ul>` : ""}
+        ${nextEv.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Next Evidence to Collect</h2><ul style="padding-left:20px;margin-bottom:12px;">${nextEv.map((n: string) => `<li style="margin-bottom:4px;">${n}</li>`).join("")}</ul>` : ""}
         ${refs.length > 0 ? `
           <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">References</h2>
           ${refs.map((r: any) => `
