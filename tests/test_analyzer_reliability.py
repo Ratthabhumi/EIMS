@@ -12,14 +12,27 @@ import pytest
 from backend.domain.analyzer.schemas.analyze import EventMetadata, SolutionSummary
 from backend.domain.analyzer.services import summary as summary_mod
 from backend.domain.analyzer.services import vector_db as vector_db_mod
+from backend.domain.analyzer.services.bundle import (
+    BUNDLE_MAX_FILE_BYTES,
+    BUNDLE_MAX_FILES,
+    BUNDLE_MAX_TOTAL_BYTES,
+    correlate_bundle,
+    sha256_hex,
+    summarize_file_evidence,
+    validate_bundle,
+)
 from backend.domain.analyzer.services.compaction import MAX_CHARS, compact_log_evidence
 from backend.domain.analyzer.services.incident_extract import extract_incident
 from backend.domain.analyzer.services.parser import parse_event_metadata
 from backend.domain.analyzer.services.source_classify import classify_source
-from backend.domain.analyzer.services.vendor_knowledge import get_vendor_summary
+from backend.domain.analyzer.services.vendor_knowledge import (
+    get_vendor_summary,
+    vendor_reference_results,
+)
 from backend.domain.analyzer.services.vendor_parsers import (
     html_to_text,
     is_vendor_diagnostic_code,
+    parse_syslog_hinted,
     parse_veeam,
 )
 
@@ -583,3 +596,405 @@ def test_golden_veeam_acceptance_semantics():
         assert token not in blob, f"contamination: {token}"
     assert "file is locked" not in blob.lower()
     assert "file was locked" not in blob.lower()
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: follow-up context retention (deterministic path, no network)
+# ---------------------------------------------------------------------------
+
+
+def _veeam_vendor_summary():
+    return get_vendor_summary("VEEAM-REPLICA-SNAPSHOT-CHAIN", "en")
+
+
+def test_veeam_followup_retains_veeam_context():
+    summary = _veeam_vendor_summary()
+    assert summary is not None
+    answer = summary_mod.build_followup_answer(
+        "What caused this?",
+        summary,
+        [],
+        "en",
+        None,
+        source_family="veeam_vbr",
+        event_id="VEEAM-REPLICA-SNAPSHOT-CHAIN",
+        provider="Veeam Backup & Replication",
+        diagnostic_code="VEEAM-REPLICA-SNAPSHOT-CHAIN",
+    )
+    for token in FORBIDDEN_VEEAM_TOKENS:
+        assert token not in answer, f"follow-up contamination: {token}"
+    assert "DCOM" not in answer
+    assert "GroupPolicy" not in answer
+
+
+def test_vmware_followup_retains_vmware_context():
+    summary = get_vendor_summary("VMWARE-SNAPSHOT-FILE-MISSING", "en")
+    assert summary is not None
+    answer = summary_mod.build_followup_answer(
+        "What caused this?",
+        summary,
+        [],
+        "en",
+        None,
+        source_family="vmware",
+        event_id="VMWARE-SNAPSHOT-FILE-MISSING",
+        provider="VMware ESXi",
+        diagnostic_code="VMWARE-SNAPSHOT-FILE-MISSING",
+    )
+    assert "Event ID 1129" not in answer
+    assert "GroupPolicy" not in answer
+    assert "DCOM" not in answer
+
+
+def test_unknown_followup_remains_unknown():
+    summary = asyncio.run(
+        summary_mod.build_summary(
+            "Unknown",
+            "Unknown",
+            "",
+            [],
+            "en",
+            "",
+            None,
+            UNKNOWN_TEXT,
+            None,
+            source_family="unknown_text",
+        )
+    )
+    answer = summary_mod.build_followup_answer(
+        "What caused this?", summary, [], "en", None,
+        source_family="unknown_text",
+    )
+    blob = f"{summary.overview} {answer}"
+    assert "Windows event log entry" not in blob
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: provenance — hostname equality, community precedence
+# ---------------------------------------------------------------------------
+
+
+def _official(domains_key):
+    return summary_mod.FAMILY_OFFICIAL_DOMAINS[domains_key]
+
+
+def _community(domains_key):
+    return summary_mod.FAMILY_COMMUNITY_DOMAINS.get(domains_key, ())
+
+
+def test_helpcenter_veeam_is_official():
+    assert summary_mod._classify_source(
+        "https://helpcenter.veeam.com/docs/x", "community", _official("veeam_vbr")
+    ) == "official"
+
+
+def test_forums_veeam_is_community():
+    assert summary_mod._classify_source(
+        "https://forums.veeam.com/topic/1",
+        "community",
+        _official("veeam_vbr"),
+        community_domains=_community("veeam_vbr"),
+    ) == "community"
+
+
+def test_lookalike_domain_is_not_official():
+    assert summary_mod._classify_source(
+        "https://notveeam.com/docs/x",
+        "community",
+        _official("veeam_vbr"),
+        community_domains=_community("veeam_vbr"),
+    ) == "community"
+    assert summary_mod._classify_source(
+        "https://veeam.com.evil.example/docs",
+        "community",
+        _official("veeam_vbr"),
+        community_domains=_community("veeam_vbr"),
+    ) == "community"
+
+
+def test_vendor_community_domains_are_community():
+    assert summary_mod._classify_source(
+        "https://community.cisco.com/t5/x/1", "community",
+        _official("cisco_asa"), community_domains=_community("cisco_asa"),
+    ) == "community"
+    assert summary_mod._classify_source(
+        "https://community.fortinet.com/t5/x/1", "community",
+        _official("fortinet"), community_domains=_community("fortinet"),
+    ) == "community"
+    assert summary_mod._classify_source(
+        "https://communities.vmware.com/t5/x/1", "community",
+        _official("vmware"), community_domains=_community("vmware"),
+    ) == "community"
+
+
+def test_linux_and_json_get_no_microsoft_fallback():
+    def _boom(*a, **k):
+        raise RuntimeError("offline")
+
+    orig = summary_mod.DDGS
+    summary_mod.DDGS = _boom
+    try:
+        for family in ("linux_syslog", "json"):
+            results, _ = summary_mod.search_solutions(
+                "Unknown", "sshd", source_family=family
+            )
+            assert results == [], f"{family} must yield no references offline"
+            for r in results:
+                assert "learn.microsoft.com" not in r.link
+                assert "support.microsoft.com" not in r.link
+    finally:
+        summary_mod.DDGS = orig
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: RFC5424 completeness
+# ---------------------------------------------------------------------------
+
+SYSLOG_VEEAM = (
+    "<134>1 2026-09-12T02:11:03Z TESTHOST Veeam_MP 48291 "
+    '[VeeamEvent@123 instanceId="1129" JobSessionID="48291" JobID="77" '
+    'JobType="Replica" Platform="VMware vSphere" '
+    'Description="Could not delete change tracking file"]'
+)
+
+
+def test_rfc5424_quoted_fields_parse():
+    parsed = parse_syslog_hinted(SYSLOG_VEEAM, "veeam_vbr")
+    assert parsed is not None
+    assert parsed["jobsessionid"] == "VEEAM-48291"
+    assert parsed["jobid"] == "VEEAM-77"
+    assert parsed["jobtype"] == "Replica"
+    assert parsed["platform"] == "VMware vSphere"
+    assert parsed["description"] == "Could not delete change tracking file"
+
+
+def test_numeric_instance_id_never_becomes_windows_event_id():
+    parsed = parse_syslog_hinted(SYSLOG_VEEAM, "veeam_vbr")
+    assert parsed is not None
+    assert parsed["instanceid"] == "VEEAM-1129"
+    meta = parse_event_metadata(SYSLOG_VEEAM)
+    assert meta.eventId != "1129"
+    assert meta.attributes.get("syslog", {}).get("instanceid") == "VEEAM-1129"
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: exact paths — surfaced only when observed
+# ---------------------------------------------------------------------------
+
+PATH_TEXT = (
+    "2026-09-12T02:15:44.001Z Er(02) vmx - SNAPSHOT: RevertSnapshot failed with InvalidSnapshotFormat\n"
+    "2026-09-12T02:15:44.002Z Er(02) vmx - SNAPSHOT: A required file was not found\n"
+    "2026-09-12T02:15:44.003Z Er(02) vmx - SNAPSHOT: fileName:'/vmfs/volumes/TEST-DS-01/TEST-VM-01/TEST-VM-01-000003.vmdk'\n"
+)
+
+
+def test_incident_exact_path_surfaced():
+    incident = extract_incident(PATH_TEXT, "vmware")
+    assert incident["observedPaths"], "exact observed path must be surfaced"
+    assert any("TEST-VM-01-000003.vmdk" in p for p in incident["observedPaths"])
+
+
+def test_no_path_means_no_filename_invented():
+    incident = extract_incident(VMWARE_MISSING_TEXT, "vmware")
+    assert incident["observedPaths"] == []
+    blob = " ".join(incident["observedPaths"]).lower()
+    assert ".ctk.vmdk" not in blob
+    assert "-delta.vmdk" not in blob
+    assert ".vmsd" not in blob
+    assert any("filename" in u.lower() or "path" in u.lower() for u in incident["unknowns"])
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: verified KB gates
+# ---------------------------------------------------------------------------
+
+
+def _kb_ids(code, text):
+    return [r.link.rsplit("/", 1)[-1] for r in vendor_reference_results(code, text, "en")]
+
+
+def test_revert_snapshot_selects_424591():
+    ids = _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT)
+    assert "424591" in ids
+
+
+def test_gated_articles_excluded_without_context():
+    ids = _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT)
+    assert "442155" not in ids  # needs vSAN + ESA
+    assert "411756" not in ids  # needs vVOL
+    assert "318905" not in ids  # revert context, not create-snapshot
+    assert "450780" not in ids  # no deletion/consolidation tokens
+    assert "452165" not in ids  # no rename/move evidence
+
+
+def test_vsan_esa_gate():
+    text = (
+        "vSAN ESA cluster snapshot usage is very high "
+        "Could not delete change tracking file DISKLIB result:2620"
+    )
+    assert "442155" in _kb_ids("VMWARE-CBT-DELETE-FAILED", text)
+    assert "442155" not in _kb_ids(
+        "VMWARE-CBT-DELETE-FAILED", "vSAN cluster snapshot usage is very high"
+    )
+    assert "442155" not in _kb_ids(
+        "VMWARE-CBT-DELETE-FAILED", "ESA partner snapshot cleanup guide"
+    )
+
+
+def test_vvol_gate():
+    text = "Snapshot consolidation failed for VM on vVOLs storage vvol://datastore/1"
+    assert "411756" in _kb_ids("VMWARE-CBT-DELETE-FAILED", text)
+    assert "411756" not in _kb_ids("VMWARE-CBT-DELETE-FAILED", VMWARE_CTK_TEXT)
+
+
+def test_create_snapshot_gate_for_318905():
+    text = (
+        "Detected an invalid snapshot configuration error creating a snapshot "
+        "CreateSnapshot failed"
+    )
+    assert "318905" in _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", text)
+    # Invalid config in a revert path must NOT select the create-snapshot article.
+    assert "318905" not in _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT)
+
+
+def test_deletion_gate_for_450780():
+    text = (
+        "Deleting snapshot: A required file was not found "
+        "snapshot consolidation failed"
+    )
+    assert "450780" in _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", text)
+    assert "450780" not in _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT)
+
+
+def test_rename_move_gate_for_452165():
+    text = (
+        "A required file was not found after manually renaming the virtual "
+        "machine folder and moving it to another datastore path mismatch"
+    )
+    assert "452165" in _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", text)
+    # "remove" contains "mov" as a substring but is NOT move evidence.
+    trap = "Please remove the snapshot: A required file was not found snapshot"
+    assert "452165" not in _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", trap)
+    assert "452165" not in _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT)
+
+
+def test_kb_results_are_official_with_real_links():
+    results = vendor_reference_results(
+        "VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT, "en"
+    )
+    assert results, "expected at least the 424591 reference"
+    for r in results:
+        assert r.sourceType == "official"
+        assert r.link.startswith("https://knowledge.broadcom.com/external/article/")
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: bundle safety limits + correlation tiers
+# ---------------------------------------------------------------------------
+
+
+def test_bundle_sha256_known_vector():
+    assert sha256_hex(b"abc") == (
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    )
+
+
+def test_bundle_rejects_unsupported_extension():
+    try:
+        validate_bundle([("archive.zip", b"data")])
+    except ValueError as e:
+        assert "ZIP" in str(e) or "Unsupported" in str(e)
+    else:
+        raise AssertionError("expected ValueError for .zip")
+
+
+def test_bundle_path_traversal_neutralized():
+    cleaned = validate_bundle([("../../etc/passwd.log", b"line")])
+    assert cleaned[0][0] == "passwd.log"
+
+
+def test_bundle_per_file_limit():
+    try:
+        validate_bundle([("big.log", b"x" * (BUNDLE_MAX_FILE_BYTES + 1))])
+    except ValueError as e:
+        assert "too large" in str(e).lower()
+    else:
+        raise AssertionError("expected ValueError for oversized file")
+
+
+def test_bundle_total_limit():
+    files = [(f"f{i}.log", b"x" * BUNDLE_MAX_FILE_BYTES) for i in range(7)]
+    try:
+        validate_bundle(files)
+    except ValueError as e:
+        assert "total" in str(e).lower() or "large" in str(e).lower()
+    else:
+        raise AssertionError("expected ValueError for oversized bundle")
+    assert BUNDLE_MAX_TOTAL_BYTES == 30 * 1024 * 1024
+
+
+def test_bundle_file_count_limit():
+    files = [(f"f{i}.log", b"x") for i in range(BUNDLE_MAX_FILES + 1)]
+    try:
+        validate_bundle(files)
+    except ValueError as e:
+        assert "many" in str(e).lower() or "maximum" in str(e).lower()
+    else:
+        raise AssertionError("expected ValueError for too many files")
+
+
+def _bundle_entry(filename, text):
+    return summarize_file_evidence(
+        filename=filename, content=text.encode("utf-8"), text=text
+    )
+
+
+def test_bundle_strong_jobsession_correlation():
+    a = _bundle_entry(
+        "Job.log",
+        "2026-09-12T02:11:03Z Veeam JobSessionID=48291 Job Type: Replica started",
+    )
+    b = _bundle_entry(
+        "Task.log",
+        "2026-09-12T02:12:41Z Veeam JobSessionID=48291 Could not delete change tracking file",
+    )
+    out = correlate_bundle([a, b])
+    assert out["correlationConfidence"] == "strong"
+    assert any("48291" in r for r in out["correlationReasons"])
+
+
+def test_bundle_medium_path_plus_time_correlation():
+    path = "/vmfs/volumes/TEST-DS-01/TEST-VM-01/TEST-VM-01-000003.vmdk"
+    a = _bundle_entry(
+        "vmware.log",
+        f"2026-09-12T02:15:44Z SNAPSHOT: RevertSnapshot failed fileName:'{path}'",
+    )
+    b = _bundle_entry(
+        "hostd.log",
+        f"2026-09-12T02:15:45Z SNAPSHOT: A required file was not found fileName:'{path}'",
+    )
+    out = correlate_bundle([a, b])
+    assert out["correlationConfidence"] == "medium"
+    assert "vmware.log" in out["correlatedSources"]
+    assert "hostd.log" in out["correlatedSources"]
+
+
+def test_bundle_weak_correlation_never_proven_causal():
+    a = _bundle_entry("a.log", "Error: A required file was not found")
+    b = _bundle_entry("b.log", "Error: A required file was not found")
+    out = correlate_bundle([a, b])
+    assert out["correlationConfidence"] == "weak"
+    blob = " ".join(out["correlationReasons"]).lower()
+    assert "not proven" in blob
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: schema backward compatibility
+# ---------------------------------------------------------------------------
+
+
+def test_solution_summary_backward_compatible():
+    s = SolutionSummary(**{"overview": "legacy row"})
+    assert s.incident is None
+    assert s.evidenceItems == []
+    assert s.evidence == []
