@@ -1,0 +1,48 @@
+name: analyzer-reliability
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  analyzer-hermetic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Hermetic analyzer reliability tests (no DB, no network)
+        run: python -m pytest tests/test_analyzer_reliability.py -q
+
+  dashboard-typecheck-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/dashboard
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: clients/dashboard/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
