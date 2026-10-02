@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import List, Literal, Optional
+from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Literal, Optional
 
 
 class EventMetadata(BaseModel):
@@ -11,6 +11,13 @@ class EventMetadata(BaseModel):
     computer: str = ""
     isCritical: bool = False
     faultingApp: str = ""
+    # Source-aware classification (optional: historical rows without these
+    # fields continue to deserialize unchanged).
+    sourceFamily: str = ""
+    product: str = ""
+    diagnosticCode: str = ""
+    parserConfidence: float = 0.0
+    attributes: Dict[str, Any] = Field(default_factory=dict)
 
 
 class SearchResult(BaseModel):
@@ -24,6 +31,11 @@ class SolutionSummary(BaseModel):
     overview: str = ""
     causes: List[str] = []
     steps: List[str] = []
+    # Evidence-first RCA (optional: older clients ignore unknown fields).
+    evidence: List[str] = Field(default_factory=list)
+    confidence: str = ""
+    limitations: List[str] = Field(default_factory=list)
+    nextEvidence: List[str] = Field(default_factory=list)
 
 
 class AnalyzeResponse(BaseModel):

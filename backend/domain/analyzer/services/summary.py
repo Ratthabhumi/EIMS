@@ -11,6 +11,8 @@ from duckduckgo_search import DDGS
 from backend.domain.analyzer.schemas.analyze import SearchResult, SolutionSummary
 from backend.domain.analyzer.services.event_knowledge import get_curated_summary
 from backend.domain.analyzer.services.vector_db import search_similar_logs
+from backend.domain.analyzer.services.vendor_knowledge import get_vendor_summary
+from backend.domain.analyzer.services.vendor_parsers import is_vendor_diagnostic_code
 
 ACTION_KEYWORDS = re.compile(
     r"\b(fix|resolve|open|run|enable|disable|restart|check|configure|set|modify|"
@@ -44,73 +46,193 @@ OFFICIAL_DOMAINS = (
     "docs.microsoft.com",
 )
 
-SEARCH_TIERS = (
-    ("official", "site:learn.microsoft.com troubleshoot"),
-    ("official", "site:support.microsoft.com"),
-    ("community", "site:stackoverflow.com OR site:superuser.com"),
-)
+# Vendor-owned documentation domains per source family.  Only these may
+# ever be labeled "official"; everything else is "community".
+FAMILY_OFFICIAL_DOMAINS = {
+    "windows_event": (
+        "learn.microsoft.com",
+        "support.microsoft.com",
+        "docs.microsoft.com",
+    ),
+    "veeam_vbr": (
+        "helpcenter.veeam.com",
+        "veeam.com",
+    ),
+    "vmware": (
+        "support.broadcom.com",
+        "broadcom.com",
+        "kb.vmware.com",
+    ),
+    "cisco_asa": (
+        "cisco.com",
+    ),
+    "fortinet": (
+        "docs.fortinet.com",
+        "fortinet.com",
+    ),
+}
+
+# Vendor documentation roots used as fallback references (roots only so no
+# deep article URL is ever fabricated).
+FAMILY_FALLBACK_REFS = {
+    "veeam_vbr": [
+        ("Veeam Help Center: Backup & Replication documentation", "https://helpcenter.veeam.com/"),
+        ("Veeam: Backup & Replication knowledge and support", "https://www.veeam.com/"),
+        ("Broadcom Support (VMware subsystem reference)", "https://support.broadcom.com/"),
+    ],
+    "vmware": [
+        ("Broadcom Support: VMware troubleshooting", "https://support.broadcom.com/"),
+    ],
+    "cisco_asa": [
+        ("Cisco: ASA documentation and troubleshooting", "https://www.cisco.com/"),
+        ("Cisco Community discussions", "https://community.cisco.com/"),
+    ],
+    "fortinet": [
+        ("Fortinet Docs: FortiGate troubleshooting", "https://docs.fortinet.com/"),
+        ("Fortinet Community discussions", "https://community.fortinet.com/"),
+    ],
+}
+
+# DDGS site-restricted tiers per source family (query, tier).
+FAMILY_SEARCH_TIERS = {
+    "windows_event": (
+        ("official", "site:learn.microsoft.com troubleshoot"),
+        ("official", "site:support.microsoft.com"),
+        ("community", "site:stackoverflow.com OR site:superuser.com"),
+    ),
+    "veeam_vbr": (
+        ("official", "site:helpcenter.veeam.com"),
+        ("official", "site:support.broadcom.com"),
+        ("community", "site:forums.veeam.com"),
+    ),
+    "vmware": (
+        ("official", "site:support.broadcom.com"),
+        ("official", "site:kb.vmware.com"),
+        ("community", "site:communities.vmware.com"),
+    ),
+    "cisco_asa": (
+        ("official", "site:cisco.com"),
+        ("community", "site:community.cisco.com"),
+    ),
+    "fortinet": (
+        ("official", "site:docs.fortinet.com"),
+        ("community", "site:community.fortinet.com"),
+    ),
+}
+
+SEARCH_TIERS = FAMILY_SEARCH_TIERS["windows_event"]
 
 
-def _classify_source(link: str, tier: str) -> str:
+def _classify_source(link: str, tier: str, official_domains=None) -> str:
+    allowed = tuple(official_domains) if official_domains else OFFICIAL_DOMAINS
     domain = urlparse(link).netloc.lower()
-    if any(official in domain for official in OFFICIAL_DOMAINS):
+    if any(official in domain for official in allowed):
         return "official"
     return tier
 
 
-def search_solutions(event_id: str, provider: str) -> tuple[List[SearchResult], str]:
+def _family_query(event_id: str, provider: str, source_family: str) -> str:
+    """Build a vendor-appropriate web query.  Never Windows-wash vendors."""
+    if source_family == "veeam_vbr":
+        code = event_id if event_id and event_id != "Unknown" else "replication snapshot"
+        return f"Veeam Backup Replication {code}"
+    if source_family == "vmware":
+        code = event_id if event_id and event_id != "Unknown" else "ESXi snapshot"
+        return f"VMware ESXi {code}"
+    if source_family == "cisco_asa":
+        return f"Cisco ASA {event_id} {provider}"
+    if source_family == "fortinet":
+        return f"FortiGate {event_id} {provider}"
+    if source_family in ("linux_syslog", "json"):
+        return f"{provider} {event_id} syslog"
+    provider_part = provider if provider not in ("Unknown", "DistributedCOM") else "DCOM"
+    return f"Windows Event ID {event_id} {provider_part} learn.microsoft.com"
+
+
+def search_solutions(
+    event_id: str,
+    provider: str,
+    source_family: str | None = None,
+    diagnostic_code: str | None = None,
+) -> tuple[List[SearchResult], str]:
+    family = source_family or "windows_event"
+
+    # Unknown sources must NOT run blind Windows searches.
+    if family == "unknown_text":
+        return [], ""
+
     results: List[SearchResult] = []
     combined_snippets = ""
-    provider_part = provider if provider not in ("Unknown", "DistributedCOM") else "DCOM"
+
+    tiers = FAMILY_SEARCH_TIERS.get(family, FAMILY_SEARCH_TIERS["windows_event"])
+    official_domains = FAMILY_OFFICIAL_DOMAINS.get(family, OFFICIAL_DOMAINS)
+    base_query = _family_query(event_id, provider, family)
+    if diagnostic_code:
+        base_query = f"{base_query} {diagnostic_code}"
 
     # Search web for relevant solutions
     try:
-        query = f"Windows Event ID {event_id} {provider_part} learn.microsoft.com"
-        with DDGS(timeout=3) as ddgs:
-            raw = list(ddgs.text(query, max_results=4))
-            for item in raw:
-                title = (item.get("title") or "").strip()
-                link = (item.get("href") or item.get("url") or "").strip()
-                snippet = (item.get("body") or item.get("snippet") or "").strip()
-                if not link or any(r.link == link for r in results):
-                    continue
-                source_type = _classify_source(link, "official")
-                results.append(
-                    SearchResult(
-                        title=title,
-                        link=link,
-                        snippet=snippet,
-                        sourceType=source_type,  # type: ignore[arg-type]
+        for tier, site in tiers:
+            if len(results) >= 3:
+                break
+            query = f"{base_query} {site}"
+            with DDGS(timeout=3) as ddgs:
+                raw = list(ddgs.text(query, max_results=4))
+                for item in raw:
+                    title = (item.get("title") or "").strip()
+                    link = (item.get("href") or item.get("url") or "").strip()
+                    snippet = (item.get("body") or item.get("snippet") or "").strip()
+                    if not link or any(r.link == link for r in results):
+                        continue
+                    # Only vendor-owned domains may be labeled official.
+                    source_type = _classify_source(link, tier, official_domains)
+                    results.append(
+                        SearchResult(
+                            title=title,
+                            link=link,
+                            snippet=snippet,
+                            sourceType=source_type,  # type: ignore[arg-type]
+                        )
                     )
-                )
-                if snippet:
-                    combined_snippets += f"{snippet}\n"
-                if len(results) >= 3:
-                    break
+                    if snippet:
+                        combined_snippets += f"{snippet}\n"
+                    if len(results) >= 3:
+                        break
     except Exception:
         pass
 
-    # If results are still fewer than 3, add reliable official reference resources
-    default_fallbacks = [
-        SearchResult(
-            title=f"Microsoft Learn: Troubleshoot Event ID {event_id}",
-            link=f"https://learn.microsoft.com/en-us/search/?terms=Event%20ID%20{event_id}",
-            snippet="Official Microsoft documentation and troubleshooting guide for this Windows Event ID.",
-            sourceType="official",
-        ),
-        SearchResult(
-            title=f"Windows Support: {provider} Diagnostics & Solutions",
-            link=f"https://support.microsoft.com/en-us/search?query=Windows%20Event%20{event_id}",
-            snippet="Search knowledge base articles, known issues, and recovery steps on Microsoft Support.",
-            sourceType="official",
-        ),
-        SearchResult(
-            title="Microsoft Q&A: Windows Event Logging & System Errors",
-            link="https://learn.microsoft.com/en-us/answers/tags/318/windows-server-event-logging",
-            snippet="Community and Microsoft engineer discussions regarding Windows system and application events.",
-            sourceType="community",
-        ),
-    ]
+    # Family-appropriate fallback references (vendor doc roots, never faked).
+    if family in FAMILY_FALLBACK_REFS:
+        default_fallbacks = [
+            SearchResult(
+                title=title,
+                link=link,
+                snippet=f"Vendor documentation starting point for {provider or family} diagnostics.",
+                sourceType="official" if _classify_source(link, "community", official_domains) == "official" else "community",
+            )
+            for title, link in FAMILY_FALLBACK_REFS[family]
+        ]
+    else:
+        default_fallbacks = [
+            SearchResult(
+                title=f"Microsoft Learn: Troubleshoot Event ID {event_id}",
+                link=f"https://learn.microsoft.com/en-us/search/?terms=Event%20ID%20{event_id}",
+                snippet="Official Microsoft documentation and troubleshooting guide for this Windows Event ID.",
+                sourceType="official",
+            ),
+            SearchResult(
+                title=f"Windows Support: {provider} Diagnostics & Solutions",
+                link=f"https://support.microsoft.com/en-us/search?query=Windows%20Event%20{event_id}",
+                snippet="Search knowledge base articles, known issues, and recovery steps on Microsoft Support.",
+                sourceType="official",
+            ),
+            SearchResult(
+                title="Microsoft Q&A: Windows Event Logging & System Errors",
+                link="https://learn.microsoft.com/en-us/answers/tags/318/windows-server-event-logging",
+                snippet="Community and Microsoft engineer discussions regarding Windows system and application events.",
+                sourceType="community",
+            ),
+        ]
 
     for fallback in default_fallbacks:
         if len(results) >= 3:
@@ -336,6 +458,38 @@ def _fallback_steps(language: str) -> List[str]:
     ]
 
 
+def _fallback_vendor_causes(family: str, who: str, language: str) -> List[str]:
+    if language == "th":
+        return [
+            f"ขั้นตอนของ {who or family} ล้มเหลวตามข้อความ error ที่พบใน log",
+            "สถานะของไฟล์/ทรัพยากรที่ operation นี้อ้างถึงไม่สอดคล้องกัน",
+        ]
+    return [
+        f"The {who or family} operation failed as recorded in the log lines",
+        "The files/resources referenced by this operation are in an inconsistent state",
+    ]
+
+
+def _fallback_vendor_steps(family: str, language: str) -> List[str]:
+    docs = {
+        "veeam_vbr": "Veeam Help Center",
+        "vmware": "Broadcom Support",
+        "cisco_asa": "Cisco documentation",
+        "fortinet": "Fortinet Docs",
+    }.get(family, "the vendor documentation")
+    if language == "th":
+        return [
+            "เก็บ log ต้นฉบับฉบับเต็มและบันทึกลำดับเหตุการณ์ตามเวลา",
+            f"ค้นหาข้อความ error หลักใน {docs}",
+            "ทำตามลิงก์อ้างอิงด้านล่าง อย่าดำเนินการที่ทำลายข้อมูลก่อนสำรองหลักฐาน",
+        ]
+    return [
+        "Preserve the complete original log and record the event sequence",
+        f"Search the primary error line in {docs}",
+        "Follow the references below; avoid destructive actions before preserving evidence",
+    ]
+
+
 def _build_from_web(
     event_id: str,
     provider: str,
@@ -343,7 +497,11 @@ def _build_from_web(
     results: List[SearchResult],
     language: str,
     faulting_app: str = "",
+    source_family: str | None = None,
+    diagnostic_code: str | None = None,
+    product: str = "",
 ) -> SolutionSummary:
+    family = source_family or "windows_event"
     official_text = snippets
     for result in results:
         if result.snippet:
@@ -353,6 +511,57 @@ def _build_from_web(
     sentences = [s for s in sentences if _is_usable_sentence(s)]
 
     target = "th" if language == "th" else "en"
+
+    if family == "unknown_text":
+        # Honest triage only: never fabricate a Windows identity or RCA.
+        if target == "th":
+            overview = (
+                "รูปแบบ log นี้ยังไม่ถูกระบุแหล่งที่มา (unknown source) "
+                "จึงยังสรุปสาเหตุไม่ได้ โปรดระบุผลิตภัณฑ์ต้นทางของไฟล์นี้"
+            )
+            causes = [
+                "ยังไม่ทราบผลิตภัณฑ์/ระบบที่สร้าง log นี้",
+                "รูปแบบข้อความไม่ตรงกับ Windows Event, Veeam, VMware, Fortinet, Cisco หรือ Linux syslog ที่รู้จัก",
+            ]
+            steps = [
+                "ระบุว่าซอฟต์แวร์หรืออุปกรณ์ใดสร้างไฟล์ log นี้ แล้วอัปโหลดพร้อมชื่อผลิตภัณฑ์",
+                "เก็บไฟล์ต้นฉบับไว้ครบถ้วน อย่าตัดเฉพาะบางส่วน",
+                "ค้นหาเอกสารของผู้ผลิต (vendor documentation) ด้วยข้อความ error หลัก",
+            ]
+        else:
+            overview = (
+                "This log format has an unidentified source (unknown source), "
+                "so no cause can be concluded yet. Please identify the emitting product."
+            )
+            causes = [
+                "The product/system that emitted this log is still unknown",
+                "The text does not match known Windows Event, Veeam, VMware, Fortinet, Cisco, or Linux syslog shapes",
+            ]
+            steps = [
+                "Identify which software or appliance produced this log file and re-submit with the product name",
+                "Preserve the complete original file instead of excerpts",
+                "Search the vendor documentation with the primary error line",
+            ]
+        return SolutionSummary(overview=overview, causes=causes, steps=steps)
+
+    if family in ("veeam_vbr", "vmware", "cisco_asa", "fortinet"):
+        label = diagnostic_code or event_id
+        who = product or provider
+        overview_base = f"{who}: diagnostic {label}."
+        if sentences:
+            overview_base += f" {sentences[0]}"
+        overview = _translate(overview_base, target)
+        cause_candidates = [s for s in sentences if CAUSE_KEYWORDS.search(s)]
+        step_candidates = [s for s in sentences if ACTION_KEYWORDS.search(s) and _is_usable_sentence(s)]
+        causes = _unique_items([_translate(c, target) for c in cause_candidates], 3)
+        steps = _unique_items([_translate(s, target) for s in step_candidates], 5)
+        steps = [s for s in steps if len(s) >= 25][:5]
+        if len(causes) < 2:
+            causes = _unique_items(causes + _fallback_vendor_causes(family, who, language), 3)
+        if len(steps) < 3:
+            steps = _fallback_vendor_steps(family, language)
+        return SolutionSummary(overview=overview, causes=causes, steps=steps)
+
     provider_label = provider if provider != "Unknown" else "Windows"
 
     overview_base = (
@@ -420,8 +629,27 @@ def _build_from_gemini(
 ) -> SolutionSummary | None:
     is_fortinet = "FortiGate" in provider or "fortinet" in provider.lower()
     is_cisco = "Cisco" in provider or "ASA" in provider or "FTD" in provider
+    is_veeam = "Veeam" in provider
+    is_vmware = "VMware" in provider or "ESXi" in provider
 
-    if is_fortinet:
+    if is_veeam:
+        system_context = "You are an expert Veeam Backup & Replication engineer and VMware infrastructure specialist."
+        log_type_hint = (
+            "\nThis is a Veeam Backup & Replication log (replication/backup job). Focus on: "
+            "job/session stages, snapshot cleanup and revert operations, change-tracking (CBT) errors, "
+            "and VMware snapshot chain health. Describe observed evidence only; do not invent filenames, "
+            "do not claim a causal link between failure phases unless the log proves it."
+        )
+        log_desc = f"Veeam diagnostic {event_id}"
+    elif is_vmware:
+        system_context = "You are an expert VMware vSphere/ESXi engineer."
+        log_type_hint = (
+            "\nThis is a VMware ESXi/host log. Focus on: DISKLIB/CBT errors, snapshot operations, "
+            "missing-file conditions, and datastore file state. Describe observed evidence only; "
+            "do not invent filenames or lock owners."
+        )
+        log_desc = f"VMware diagnostic {event_id}"
+    elif is_fortinet:
         system_context = "You are an expert Fortinet/FortiGate Firewall Administrator and Network Security Engineer."
         log_type_hint = (
             "\nThis is a Fortinet FortiGate firewall log. Focus on: traffic policy decisions, "
@@ -572,8 +800,19 @@ async def build_summary(
     api_key: str | None = None,
     description: str = "",
     db: AsyncSession | None = None,
+    source_family: str | None = None,
+    diagnostic_code: str | None = None,
+    product: str = "",
 ) -> SolutionSummary:
     lang = language if language in ("th", "en") else "th"
+    family = source_family or "windows_event"
+
+    # Deterministic vendor knowledge wins for recognized diagnostics:
+    # offline, no hallucinated filenames, honest confidence.
+    if diagnostic_code and is_vendor_diagnostic_code(diagnostic_code):
+        vendor = get_vendor_summary(diagnostic_code, lang)
+        if vendor:
+            return vendor
 
     curated = get_curated_summary(event_id, lang)
     if curated:
@@ -581,9 +820,16 @@ async def build_summary(
 
     rag_context = ""
     similar = []
-    if description and db:
+    if description and db and family != "unknown_text":
         try:
-            similar = await search_similar_logs(db=db, description=description, api_key=api_key, event_id=event_id)
+            similar = await search_similar_logs(
+                db=db,
+                description=description,
+                api_key=api_key,
+                event_id=event_id,
+                source_family=family,
+                diagnostic_code=diagnostic_code,
+            )
             if similar:
                 rag_context = json.dumps(similar, ensure_ascii=False)
         except Exception as e:
@@ -593,7 +839,7 @@ async def build_summary(
         gemini_summary = _build_from_gemini(event_id, provider, snippets, results, lang, faulting_app, api_key, rag_context)
         if gemini_summary:
             return gemini_summary
-            
+
     # If no Gemini API but we found a similar past solution in our local vector DB, use it!
     if similar:
         try:
@@ -601,7 +847,10 @@ async def build_summary(
         except Exception:
             pass
 
-    return _build_from_web(event_id, provider, snippets, results, lang, faulting_app)
+    return _build_from_web(
+        event_id, provider, snippets, results, lang, faulting_app,
+        source_family=family, diagnostic_code=diagnostic_code, product=product,
+    )
 
 
 def format_summary_text(summary: SolutionSummary, language: str = "th") -> str:

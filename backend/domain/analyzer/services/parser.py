@@ -1,6 +1,12 @@
 import re
 
 from backend.domain.analyzer.schemas.analyze import EventMetadata
+from backend.domain.analyzer.services.source_classify import classify_source
+from backend.domain.analyzer.services.vendor_parsers import (
+    parse_unknown_text,
+    parse_veeam,
+    parse_vmware,
+)
 
 KNOWN_PROVIDERS = {
     "10016": "DistributedCOM",
@@ -308,28 +314,51 @@ def _parse_linux_syslog(text: str) -> EventMetadata:
     return EventMetadata(eventId="Linux-Syslog", provider="Linux/System", level="Info")
 
 
-def parse_event_metadata(text: str) -> EventMetadata:
-    if not text:
-        return EventMetadata()
+def _stamp(meta: EventMetadata, family: str, product: str, confidence: float) -> EventMetadata:
+    """Attach source-aware identity without changing parsed field behavior."""
+    meta.sourceFamily = family
+    meta.product = product
+    meta.parserConfidence = confidence
+    return meta
 
-    # 1. Detect JSON Structured Log
+
+def parse_event_metadata(text: str, filename_hint: str = "") -> EventMetadata:
+    if not text:
+        return EventMetadata(sourceFamily="unknown_text", parserConfidence=0.3)
+
+    classification = classify_source(text, filename_hint)
+    family = str(classification.get("sourceFamily") or "unknown_text")
+    confidence = float(classification.get("parserConfidence") or 0.0)
+
+    # 1. Structured JSON logs keep their dedicated parser.
     json_data = _is_json_log(text)
     if json_data:
-        return _parse_json_log(json_data)
+        return _stamp(_parse_json_log(json_data), "json", "JSON structured log", max(confidence, 0.85))
 
-    # 2. Detect Fortinet log
-    if _is_fortinet_log(text):
-        return _parse_fortinet(text)
+    # 2. Veeam / VMware vendor adapters (deterministic, stdlib only).
+    if family == "veeam_vbr":
+        return parse_veeam(text, filename_hint)
+    if family == "vmware":
+        return parse_vmware(text, filename_hint)
 
-    # 3. Detect Cisco ASA/FTD
-    if _is_cisco_asa(text):
-        return _parse_cisco_asa(text)
+    # 3. Fortinet / Cisco / Linux keep their dedicated parsers.
+    if family == "fortinet":
+        return _stamp(_parse_fortinet(text), "fortinet", "Fortinet FortiGate", max(confidence, 0.85))
+    if family == "cisco_asa":
+        return _stamp(_parse_cisco_asa(text), "cisco_asa", "Cisco ASA/FTD", max(confidence, 0.85))
+    if family == "linux_syslog":
+        return _stamp(_parse_linux_syslog(text), "linux_syslog", "Linux syslog", max(confidence, 0.85))
 
-    # 4. Detect Linux Syslog / Auth / Kern
-    if _is_linux_syslog(text):
-        return _parse_linux_syslog(text)
+    # 4. Windows parsing requires positive Windows evidence.  Anything else
+    #    is unknown_text and MUST NOT fall through to Windows regex.
+    if family != "windows_event":
+        return parse_unknown_text(text, filename_hint)
 
-    # 5. Standard Windows Event Log Matching
+    return _stamp(_parse_windows(text), "windows_event", "Microsoft Windows", max(confidence, 0.8))
+
+
+def _parse_windows(text: str) -> EventMetadata:
+    """Standard Windows Event Log field matching (unchanged behavior)."""
     event_id = _field(text, r"Event\s*ID[:\s]+(\d+)", r'"id"[:\s]+(\d+)', r"'id'[:\s]+(\d+)")
     provider = _field(
         text,

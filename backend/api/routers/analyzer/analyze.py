@@ -12,6 +12,8 @@ from backend.domain.analyzer.models.history import AnalysisHistory
 from backend.domain.analyzer.schemas.analyze import AnalyzeResponse, FollowUpRequest, FollowUpResponse
 from backend.domain.analyzer.services.parser import parse_event_metadata
 from backend.domain.analyzer.services.evtx_parser import parse_evtx
+from backend.domain.analyzer.services.compaction import compact_log_evidence
+from backend.domain.analyzer.services.incident_extract import extract_incident
 from backend.domain.analyzer.services.summary import (
     search_solutions,
     build_summary,
@@ -81,6 +83,17 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
         except Exception as e:
             raise ValueError(f"XML Parse Failed: {e}")
 
+    if lower_name.endswith((".html", ".htm")):
+        try:
+            from backend.domain.analyzer.services.vendor_parsers import html_to_text
+            raw_html = content.decode("utf-8", errors="ignore")
+            extracted = html_to_text(raw_html)
+            if not extracted.strip():
+                return raw_html, f"Uploaded HTML file (no text extracted): {filename}"
+            return extracted, f"Parsed HTML report: {filename}"
+        except Exception as e:
+            raise ValueError(f"HTML Parse Failed: {e}")
+
     if lower_name.endswith(".csv"):
         try:
             import csv, io as _io
@@ -142,16 +155,39 @@ async def submit_analysis(
     if not description and combined_text:
         description = "Submitted via Text"
 
-    # Prevent DB bloat
-    if len(combined_text) > 50000:
-        combined_text = combined_text[:50000] + "... (truncated)"
-        
-    metadata = parse_event_metadata(combined_text)
+    # Bounded evidence-aware compaction: header + signal windows + tail.
+    # Never silently discards failures located past a fixed head offset.
+    combined_text = compact_log_evidence(combined_text)
+
+    metadata = parse_event_metadata(combined_text, (file.filename or "") if file else "")
     lang = language if language in ("th", "en") else "th"
 
     start_time = time.time()
-    results, combined_snippets = await asyncio.to_thread(search_solutions, metadata.eventId, metadata.provider)
-    solution = await build_summary(metadata.eventId, metadata.provider, combined_snippets, results, lang, metadata.faultingApp, x_gemini_api_key, combined_text, db)
+    results, combined_snippets = await asyncio.to_thread(
+        search_solutions,
+        metadata.eventId,
+        metadata.provider,
+        source_family=metadata.sourceFamily or None,
+        diagnostic_code=metadata.diagnosticCode or None,
+    )
+    solution = await build_summary(
+        metadata.eventId, metadata.provider, combined_snippets, results, lang,
+        metadata.faultingApp, x_gemini_api_key, combined_text, db,
+        source_family=metadata.sourceFamily or None,
+        diagnostic_code=metadata.diagnosticCode or None,
+        product=metadata.product or "",
+    )
+    # Evidence-first attachment: deterministic incident sketch fills fields
+    # the synthesis path did not provide (curated vendor paths already do).
+    incident = extract_incident(combined_text, metadata.sourceFamily or "")
+    if not solution.evidence and incident.get("evidence"):
+        solution.evidence = [str(x) for x in incident["evidence"][:8]]
+    if not solution.nextEvidence and incident.get("nextEvidence"):
+        solution.nextEvidence = [str(x) for x in incident["nextEvidence"][:6]]
+    if not solution.limitations and incident.get("unknowns"):
+        solution.limitations = [str(x) for x in incident["unknowns"][:4]]
+    if not solution.confidence and metadata.sourceFamily in ("veeam_vbr", "vmware"):
+        solution.confidence = "medium"
     final_summary = format_summary_text(solution, lang)
     search_time_ms = (time.time() - start_time) * 1000
 
