@@ -1,4 +1,5 @@
 import React from 'react';
+import { apiUrl } from '../lib/api';
 import {
   AlertCircle,
   Info,
@@ -21,8 +22,50 @@ interface AnalysisResultDetailProps {
 
 export default function AnalysisResultDetail({ result, language, onDownloadMD, onDownloadJSON }: AnalysisResultDetailProps) {
   const [feedback, setFeedback] = React.useState<number>(result?.feedback_score || 0);
+  const [question, setQuestion] = React.useState<string>("");
+  const [answer, setAnswer] = React.useState<string>("");
+  const [asking, setAsking] = React.useState<boolean>(false);
+  const [askError, setAskError] = React.useState<string>("");
 
   if (!result) return null;
+
+  const historyId: number | undefined =
+    typeof result.historyId === "number"
+      ? result.historyId
+      : typeof result.id === "number"
+        ? result.id
+        : undefined;
+
+  const submitFollowUp = async () => {
+    const q = question.trim();
+    if (!q || asking) return;
+    setAsking(true);
+    setAskError("");
+    setAnswer("");
+    try {
+      const res = await fetch(apiUrl("/api/v1/analyze/followup"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: q,
+          eventId,
+          provider,
+          language: language || "th",
+          historyId,
+        }),
+      });
+      if (!res.ok) {
+        const detail = await res.text();
+        throw new Error(detail || `Follow-up failed (${res.status})`);
+      }
+      const data = await res.json();
+      setAnswer(data.answer || "");
+    } catch (e: any) {
+      setAskError(e?.message || "Follow-up request failed.");
+    } finally {
+      setAsking(false);
+    }
+  };
 
   // Extract variables
   const eventId = result.eventId || "Unknown";
@@ -46,6 +89,13 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
   const solConfidence: string = result.solutionSummary?.confidence || "";
   const solUnknowns: string[] = result.solutionSummary?.limitations || [];
   const solNextEvidence: string[] = result.solutionSummary?.nextEvidence || [];
+  const incident = result.solutionSummary?.incident || null;
+  const evidenceItems: any[] = result.solutionSummary?.evidenceItems || [];
+  const bundleFiles: any[] = result.files || [];
+  const correlationConfidence: string = result.correlationConfidence || "";
+  const correlationReasons: string[] = result.correlationReasons || [];
+  const correlatedSources: string[] = result.correlatedSources || [];
+  const isBundle = bundleFiles.length > 0 || !!correlationConfidence;
 
   // Detect language: use language prop if explicitly provided, else detect from text (Thai character check)
   const isThaiText = (text: string) => /[\u0E00-\u0E7F]/.test(text);
@@ -282,7 +332,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
               onClick={async () => {
                 if (result.id && typeof result.id === "number") {
                   try {
-                    await fetch(`http://localhost:8000/api/v1/history/${result.id}/feedback?score=1`, { method: "POST" });
+                    await fetch(apiUrl(`/api/v1/history/${result.id}/feedback?score=1`), { method: "POST" });
                   } catch (e) {}
                 }
                 setFeedback(1);
@@ -299,7 +349,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
               onClick={async () => {
                 if (result.id && typeof result.id === "number") {
                   try {
-                    await fetch(`http://localhost:8000/api/v1/history/${result.id}/feedback?score=-1`, { method: "POST" });
+                    await fetch(apiUrl(`/api/v1/history/${result.id}/feedback?score=-1`), { method: "POST" });
                   } catch (e) {}
                 }
                 setFeedback(-1);
@@ -316,6 +366,102 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
         </div>
       )}
 
+      {/* Bundle correlation */}
+      {isBundle && (
+        <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
+          <h4 className="text-md font-semibold text-eims-text mb-3">
+            {isEn ? "Correlated Sources" : "แหล่งหลักฐานที่เชื่อมโยง"}
+            {correlationConfidence && (
+              <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded border border-eims-border text-eims-text-secondary capitalize">
+                {correlationConfidence}
+              </span>
+            )}
+          </h4>
+          {bundleFiles.length > 0 && (
+            <ul className="text-sm text-eims-text-secondary space-y-1 mb-2">
+              {bundleFiles.map((f: any, idx: number) => (
+                <li key={idx} className="font-mono text-xs">
+                  {f.filename}
+                  {f.diagnosticCode ? ` · ${f.diagnosticCode}` : ""}
+                  {f.sha256 ? ` · sha256:${String(f.sha256).slice(0, 12)}…` : ""}
+                </li>
+              ))}
+            </ul>
+          )}
+          {correlatedSources.length > 0 && (
+            <p className="text-xs text-eims-text-secondary mb-2">
+              {isEn ? "Correlated: " : "ไฟล์ที่เชื่อมโยง: "}{correlatedSources.join(", ")}
+            </p>
+          )}
+          {correlationReasons.length > 0 && (
+            <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
+              {correlationReasons.map((r: string, idx: number) => (
+                <li key={idx}>{r}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Structured incident */}
+      {incident && (incident.firstMeaningfulFailure || incident.terminalFailure || (incident.observedPaths || []).length > 0) && (
+        <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
+          <h4 className="text-md font-semibold text-eims-text mb-3">
+            {isEn ? "Failure Sequence (Observed)" : "ลำดับความล้มเหลว (ที่พบจริง)"}
+          </h4>
+          <div className="text-sm text-eims-text-secondary space-y-2">
+            {incident.firstMeaningfulFailure && (
+              <p><span className="font-medium text-eims-text">{isEn ? "First observed failure: " : "ความล้มเหลวแรกที่พบ: "}</span><span className="font-mono text-xs">{incident.firstMeaningfulFailure}</span></p>
+            )}
+            {incident.terminalFailure && (
+              <p><span className="font-medium text-eims-text">{isEn ? "Terminal failure: " : "ความล้มเหลวสุดท้าย: "}</span><span className="font-mono text-xs">{incident.terminalFailure}</span></p>
+            )}
+            {incident.operationStage && (
+              <p><span className="font-medium text-eims-text">{isEn ? "Operation stage: " : "ขั้นตอนการทำงาน: "}</span>{incident.operationStage}</p>
+            )}
+            {(incident.observedPaths || []).length > 0 && (
+              <div>
+                <p className="font-medium text-eims-text mb-1">{isEn ? "Observed paths:" : "พาธที่พบจริง:"}</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  {(incident.observedPaths || []).map((p: string, idx: number) => (
+                    <li key={idx} className="font-mono text-xs break-all">{p}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {(incident.timeline || []).length > 0 && (
+              <div>
+                <p className="font-medium text-eims-text mb-1">{isEn ? "Timeline:" : "ไทม์ไลน์:"}</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  {(incident.timeline || []).map((t: string, idx: number) => (
+                    <li key={idx} className="font-mono text-xs">{t}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Evidence with file provenance */}
+      {evidenceItems.length > 0 && (
+        <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
+          <h4 className="text-md font-semibold text-eims-text mb-3">
+            {isEn ? "Observed Evidence (with source file)" : "หลักฐานที่พบ (พร้อมไฟล์ต้นทาง)"}
+          </h4>
+          <ul className="space-y-2">
+            {evidenceItems.map((item: any, idx: number) => (
+              <li key={idx} className="text-xs border-l-2 border-eims-border pl-3">
+                <span className="font-mono text-eims-text-secondary break-all">{item.message}</span>
+                <span className="block text-eims-text-muted mt-0.5">
+                  {item.sourceFile}{item.lineNumber ? `:${item.lineNumber}` : ""}{item.timestamp ? ` · ${item.timestamp}` : ""}{item.observedPath ? ` · ${item.observedPath}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Interactive Chat Interface */}
       <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
         <h4 className="text-md font-semibold text-eims-text mb-4 flex items-center gap-2">
@@ -324,13 +470,28 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
         <div className="flex gap-3">
           <input
             type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") submitFollowUp(); }}
             placeholder={isEn ? "Ask follow-up questions about this event..." : "ถามคำถามเกี่ยวกับ Event นี้ เช่น จะหาเหตุผลหรือแก้ไขอย่างไร..."}
             className="flex-1 bg-eims-bg border border-eims-border rounded-lg px-4 py-2 text-sm text-eims-text placeholder-eims-text-muted focus:outline-none focus:border-eims-info transition-colors"
           />
-          <button className="bg-eims-info/20 hover:bg-eims-info/30 border border-eims-info/30 text-eims-info dark:text-sky-400 font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
-            <MessageSquare size={16} /> {isEn ? "Ask AI" : "ถามเพิ่มเติม"}
+          <button
+            onClick={submitFollowUp}
+            disabled={asking || !question.trim()}
+            className="bg-eims-info/20 hover:bg-eims-info/30 border border-eims-info/30 text-eims-info dark:text-sky-400 font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap disabled:opacity-50"
+          >
+            <MessageSquare size={16} /> {asking ? (isEn ? "Asking..." : "กำลังถาม...") : (isEn ? "Ask AI" : "ถามเพิ่มเติม")}
           </button>
         </div>
+        {askError && (
+          <p className="text-xs text-red-500 mt-2">{askError}</p>
+        )}
+        {answer && (
+          <div className="mt-3 text-sm text-eims-text-secondary leading-relaxed whitespace-pre-wrap border-t border-eims-border pt-3">
+            {answer}
+          </div>
+        )}
       </div>
 
     </div>

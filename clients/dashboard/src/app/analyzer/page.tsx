@@ -8,11 +8,13 @@ import AnalyzerDashboard from "@/components/AnalyzerDashboard";
 import AnalyzerHistoryList from "@/components/AnalyzerHistoryList";
 import AnalysisResultDetail from "@/components/AnalysisResultDetail";
 import SystemStatusCard from "@/components/SystemStatusCard";
+import { apiUrl } from "@/lib/api";
 
 export default function AnalyzerPage() {
   const [file, setFile] = useState<File | null>(null);
+  const [bundleFiles, setBundleFiles] = useState<File[]>([]);
   const [rawText, setRawText] = useState("");
-  const [uploadMode, setUploadMode] = useState<"file" | "text">("text");
+  const [uploadMode, setUploadMode] = useState<"file" | "text" | "bundle">("text");
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -20,6 +22,7 @@ export default function AnalyzerPage() {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bundleInputRef = useRef<HTMLInputElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
   const [leftColHeight, setLeftColHeight] = useState<number | null>(null);
   const [sessionSearchLatencies, setSessionSearchLatencies] = useState<number[]>([]);
@@ -55,6 +58,27 @@ export default function AnalyzerPage() {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
     }
+  };
+
+  const handleBundleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const picked = Array.from(e.target.files).slice(0, 12);
+      setBundleFiles((prev) => {
+        const names = new Set(prev.map((f) => f.name));
+        const merged = [...prev];
+        for (const f of picked) {
+          if (!names.has(f.name)) {
+            merged.push(f);
+            names.add(f.name);
+          }
+        }
+        return merged.slice(0, 12);
+      });
+    }
+  };
+
+  const removeBundleFile = (name: string) => {
+    setBundleFiles((prev) => prev.filter((f) => f.name !== name));
   };
 
   useEffect(() => {
@@ -110,39 +134,60 @@ export default function AnalyzerPage() {
       toast.error("Please paste some log text first.");
       return;
     }
+    if (uploadMode === "bundle" && bundleFiles.length === 0) {
+      toast.error("Please select at least one file for the bundle.");
+      return;
+    }
 
     setIsUploading(true);
-    toast.loading(uploadMode === "file" ? "Uploading file..." : "Sending text...", { id: "uploading" });
+    toast.loading(uploadMode === "bundle" ? "Uploading evidence bundle..." : uploadMode === "file" ? "Uploading file..." : "Sending text...", { id: "uploading" });
 
     try {
       const formData = new FormData();
-      if (uploadMode === "file" && file) {
+      let endpoint = "/api/v1/analyze/";
+      if (uploadMode === "bundle") {
+        for (const f of bundleFiles) {
+          formData.append("files", f);
+        }
+        endpoint = "/api/v1/analyze/bundle";
+      } else if (uploadMode === "file" && file) {
         formData.append("file", file);
       } else {
         formData.append("text", rawText);
       }
       formData.append("language", language);
-      
-      const res = await fetch("http://localhost:8000/api/v1/analyze/", {
+
+      const res = await fetch(apiUrl(endpoint), {
         method: "POST",
         body: formData,
       });
-      
-      if (!res.ok) throw new Error("Failed to upload file");
+
+      if (!res.ok) {
+        let detail = "Failed to upload file";
+        try {
+          const err = await res.json();
+          detail = err.detail || detail;
+        } catch {}
+        throw new Error(detail);
+      }
       const data = await res.json();
       setResult(data);
       setIsResultModalOpen(true);
       setRefreshTrigger(prev => prev + 1);
       toast.success("Analysis complete", { id: "uploading" });
-      
+
       // Clear input fields after successful analysis
       setRawText("");
       setFile(null);
+      setBundleFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    } catch (error) {
-      toast.error("Error during upload or analysis.", { id: "uploading" });
+      if (bundleInputRef.current) {
+        bundleInputRef.current.value = "";
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "Error during upload or analysis.", { id: "uploading" });
     } finally {
       setIsUploading(false);
     }
@@ -332,8 +377,42 @@ export default function AnalyzerPage() {
                 onClick={() => setUploadMode("file")}
                 className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${uploadMode === "file" ? "bg-eims-surface text-eims-text shadow-sm" : "text-eims-text-muted hover:text-eims-text"}`}
               >File Upload</button>
+              <button
+                onClick={() => setUploadMode("bundle")}
+                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${uploadMode === "bundle" ? "bg-eims-surface text-eims-text shadow-sm" : "text-eims-text-muted hover:text-eims-text"}`}
+              >Evidence Bundle</button>
             </div>
-            {uploadMode === "file" ? (
+            {uploadMode === "bundle" ? (
+              <div>
+                <div
+                  className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
+                  onClick={() => bundleInputRef.current?.click()}
+                  tabIndex={0}
+                >
+                  <input type="file" multiple className="hidden" ref={bundleInputRef} onChange={handleBundleChange} accept=".log,.txt,.html,.htm,.xml,.csv,.evtx" />
+                  <FileText className="w-7 h-7 text-eims-text-muted mx-auto mb-2" />
+                  <p className="text-xs font-medium text-eims-text">Click to add files (up to 12)</p>
+                  <p className="text-xs text-eims-text-muted mt-1">LOG, TXT, HTML, XML, CSV, EVTX · 5MB each · 30MB total</p>
+                </div>
+                {bundleFiles.length > 0 && (
+                  <ul className="mt-2 space-y-1.5 max-h-40 overflow-y-auto">
+                    {bundleFiles.map((f) => (
+                      <li key={f.name} className="flex items-center gap-2 text-xs bg-eims-bg border border-eims-border rounded-lg px-2.5 py-1.5">
+                        <span className="font-mono text-eims-text truncate flex-1">{f.name}</span>
+                        <span className="text-eims-text-muted shrink-0">{(f.size / 1024).toFixed(1)} KB</span>
+                        <button
+                          onClick={() => removeBundleFile(f.name)}
+                          className="p-1 hover:bg-eims-surface-subtle rounded text-eims-text-muted hover:text-eims-text shrink-0"
+                          aria-label={`Remove ${f.name}`}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : uploadMode === "file" ? (
               <div
                 className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
                 onClick={() => fileInputRef.current?.click()}
@@ -356,7 +435,7 @@ export default function AnalyzerPage() {
             )}
             <button
               onClick={handleUpload}
-              disabled={(uploadMode === "file" ? !file : !rawText) || isUploading || isAnalyzing}
+              disabled={(uploadMode === "file" ? !file : uploadMode === "bundle" ? bundleFiles.length === 0 : !rawText) || isUploading || isAnalyzing}
               className="mt-3 w-full bg-eims-accent hover:bg-eims-accent-hover text-white py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {(isUploading || isAnalyzing) ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Play className="w-4 h-4" />}
