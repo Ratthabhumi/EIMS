@@ -4,13 +4,16 @@ Available offline; web search is only supplementary references.  Each
 entry states what is OBSERVED and what is still UNKNOWN — entries never
 assert an exact missing/locked file unless the evidence names it.
 
-References name official vendor material as text (article numbers only);
-no article URLs are fabricated here.
+References name official vendor material — article numbers AND their
+canonical knowledge-base URLs (verified resolvable).  Articles whose
+scope is environment-specific are only surfaced when the evidence text
+matches the required tokens (e.g. vSAN ESA, vVOLs), never universally.
 """
 
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-from backend.domain.analyzer.schemas.analyze import SolutionSummary
+from backend.domain.analyzer.schemas.analyze import SearchResult, SolutionSummary
 
 
 def _summary(
@@ -35,6 +38,121 @@ def _summary(
 
 def _th_en(th: str, en: str, language: str) -> str:
     return th if language == "th" else en
+
+
+@dataclass(frozen=True)
+class VendorArticle:
+    article_id: str
+    title: str
+    url: str
+    # Codes this article is allowed to answer.  Empty list => universal
+    # (still subject to text-token gating below to avoid off-topic hits).
+    applies_to: List[str] = field(default_factory=list)
+    # All tokens required (case-insensitive) for gated articles.
+    requires_all: tuple = ()
+    # Any one of these tokens (case-insensitive) satisfies the gate.
+    requires_any: tuple = ()
+
+
+# Canonical knowledge-base URLs (slugless form; verified resolvable).
+# My apologies in advance: this honestly states which article applies to
+# which diagnosed condition and never presents a gated article as universal.
+VENDOR_ARTICLES: List[VendorArticle] = [
+    VendorArticle(
+        article_id="424591",
+        title="Reverting a virtual machine snapshot fails with error: 'A required file was not found'",
+        url="https://knowledge.broadcom.com/external/article/424591",
+        applies_to=["VMWARE-SNAPSHOT-FILE-MISSING", "VEEAM-REPLICA-SNAPSHOT-CHAIN"],
+        requires_all=("required file", "not found"),
+    ),
+    VendorArticle(
+        article_id="418256",
+        title="Virtual machine backups fail due to locked files even if the VM is moved to other ESXi hosts in the cluster",
+        url="https://knowledge.broadcom.com/external/article/418256",
+        applies_to=["VMWARE-CBT-DELETE-FAILED"],
+        requires_any=("lock", "cbt", "change tracking", "change-tracking", "backup"),
+    ),
+    VendorArticle(
+        article_id="442155",
+        title="Snapshot usage on ESA Cluster is very high",
+        url="https://knowledge.broadcom.com/external/article/442155",
+        applies_to=["VMWARE-CBT-DELETE-FAILED", "VMWARE-SNAPSHOT-FILE-MISSING"],
+        # vSAN Express Storage Architecture ONLY.  Both tokens must appear.
+        requires_all=("vsan", "esa"),
+    ),
+    VendorArticle(
+        article_id="411756",
+        title="Snapshot consolidation failed for VM on vVOLs storage",
+        url="https://knowledge.broadcom.com/external/article/411756",
+        applies_to=["VMWARE-CBT-DELETE-FAILED", "VMWARE-SNAPSHOT-FILE-MISSING"],
+        requires_all=("vvol",),
+    ),
+    VendorArticle(
+        article_id="318905",
+        title="'Detected an invalid snapshot configuration' error creating a snapshot",
+        url="https://knowledge.broadcom.com/external/article/318905",
+        applies_to=["VMWARE-SNAPSHOT-FILE-MISSING", "VEEAM-REPLICA-SNAPSHOT-CHAIN"],
+        requires_any=("invalid snapshot config", "snapshot config", "invalid configuration"),
+    ),
+    VendorArticle(
+        article_id="450780",
+        title="Error: 'A required file was not found' when deleting a snapshot or Virtual Machine",
+        url="https://knowledge.broadcom.com/external/article/450780",
+        applies_to=["VMWARE-SNAPSHOT-FILE-MISSING", "VEEAM-REPLICA-SNAPSHOT-CHAIN"],
+        requires_any=("delet", "consolidat", "remov"),
+    ),
+    VendorArticle(
+        article_id="452165",
+        title="Error: 'A required file was not found' after manually renaming or moving virtual machine folder",
+        url="https://knowledge.broadcom.com/external/article/452165",
+        applies_to=["VMWARE-SNAPSHOT-FILE-MISSING", "VEEAM-REPLICA-SNAPSHOT-CHAIN"],
+        requires_any=("renam", "mov", "folder"),
+    ),
+]
+
+
+def _article_applies(article: VendorArticle, diagnostic_code: str, text: str) -> bool:
+    lowered = (text or "").lower()
+    if article.applies_to and diagnostic_code not in article.applies_to:
+        return False
+    if article.requires_all:
+        if not all(needle in lowered for needle in article.requires_all):
+            return False
+    if article.requires_any:
+        if not any(needle in lowered for needle in article.requires_any):
+            return False
+    return True
+
+
+def vendor_reference_results(diagnostic_code: str, evidence_text: str, language: str) -> List[SearchResult]:
+    """Deterministic official KB references for a diagnostic code + evidence.
+
+    Environment-gated articles (vSAN ESA, vVOLs, deletion, rename/move) are
+    only returned when the supplied text satisfies their token gates.
+    """
+    if not diagnostic_code:
+        return []
+    language = language if language in ("th", "en") else "th"
+    results: List[SearchResult] = []
+    for article in VENDOR_ARTICLES:
+        if not _article_applies(article, diagnostic_code, evidence_text):
+            continue
+        snippet = _th_en(
+            f"Broadcom Support knowledge article {article.article_id} — "
+            f"ใช้ได้กับเงื่อนไขหมายเหตุในบทความเท่านั้น (ตรวจสภาพแวดล้อมก่อนใช้)",
+            f"Broadcom Support knowledge article {article.article_id} — "
+            f"applies under the conditions stated in the article (verify environment before applying)",
+            language,
+        )
+        results.append(
+            SearchResult(
+                title=f"Broadcom Support (official) — {article.title}",
+                link=article.url,
+                snippet=snippet,
+                sourceType="official",
+            )
+        )
+    return results
 
 
 def _vendor_entry(code: str, language: str) -> Optional[SolutionSummary]:
@@ -73,8 +191,8 @@ def _vendor_entry(code: str, language: str) -> Optional[SolutionSummary]:
                     lang,
                 ),
                 _th_en(
-                    "อ้างอิงเอกสารทางการของ Broadcom: Article 442155, Article 418256, Article 411756",
-                    "Refer to official Broadcom material: Article 442155, Article 418256, Article 411756",
+                    "อ้างอิงเอกสารทางการของ Broadcom: Article 442155 (vSAN ESA), Article 418256 (CTK), Article 411756 (vVOLs) — ตรวจสอบเงื่อนไขของแต่ละบทความก่อนนำไปใช้",
+                    "Refer to official Broadcom material: Article 442155 (vSAN ESA), Article 418256 (CTK), Article 411756 (vVOLs) — verify each article’s scope before applying",
                     lang,
                 ),
             ],
@@ -127,8 +245,8 @@ def _vendor_entry(code: str, language: str) -> Optional[SolutionSummary]:
                     lang,
                 ),
                 _th_en(
-                    "อ้างอิงเอกสารทางการของ Broadcom: Article 424591 และ Article 318905 (ถ้าเกี่ยวข้อง)",
-                    "Refer to official Broadcom material: Article 424591 and Article 318905 (where applicable)",
+                    "อ้างอิงเอกสารทางการของ Broadcom: Article 424591, Article 318905, Article 450780, Article 452165 (ถ้าเกี่ยวข้องกับสถานการณ์การลบ/rename/move/vVOLs/vSAN ESA)",
+                    "Refer to official Broadcom material: Article 424591, Article 318905, Article 450780, Article 452165 (where relevant: deletion/rename/move/vVOLs/vSAN ESA)",
                     lang,
                 ),
             ],

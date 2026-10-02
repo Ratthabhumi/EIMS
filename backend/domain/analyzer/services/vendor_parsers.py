@@ -261,22 +261,46 @@ def parse_unknown_text(text: str, filename_hint: str = "") -> EventMetadata:
 
 
 def parse_syslog_hinted(text: str, source_family: str) -> Optional[Dict[str, str]]:
-    """Extract Veeam RFC 5424 syslog fields when present.
+    """Extract Veeam RFC 5424 structured-data fields when present.
 
-    Numeric vendor instance IDs are prefixed so they can never collide
-    with Windows Event IDs.
+    Only runs when a Veeam signature is visible (APP-NAME ``Veeam_MP`` or a
+    ``Veeam`` marker).  Numeric vendor instance/session IDs are prefixed so
+    they can never collide with Windows Event IDs.  Values are stripped of
+    surrounding quotes.
     """
     lowered = (text or "").lower()
     if "veeam_mp" not in lowered and "veeam" not in lowered:
         return None
     out: Dict[str, str] = {}
-    for key in ("instanceid", "jobsessionid", "jobid"):
-        m = re.search(rf"{key}\s*[:=]\s*([^\s,;]+)", text, re.IGNORECASE)
+
+    def _value(raw: str) -> str:
+        raw = raw.strip()
+        if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in ("\"", "'"):
+            raw = raw[1:-1]
+        return raw.strip()
+
+    for key in ("instanceid", "jobsessionid", "jobid", "jobtype", "platform"):
+        m = re.search(
+            rf"\b{key}\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s,;]+)",
+            text,
+            re.IGNORECASE,
+        )
         if m:
-            raw = m.group(1).strip()
-            out[key] = f"VEEAM-{raw}" if raw.isdigit() else raw
-    m = re.search(r"description\s*[:=]\s*([^\r\n]{1,200})", text, re.IGNORECASE)
+            raw = _value(m.group(1))
+            if not raw:
+                continue
+            if key in ("instanceid", "jobsessionid", "jobid"):
+                out[key] = f"VEEAM-{raw}" if raw.isdigit() else raw
+            else:
+                out[key] = raw
+    m = re.search(
+        r"\bdescription\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s;]+)",
+        text,
+        re.IGNORECASE,
+    )
     if m:
-        out["description"] = m.group(1).strip()
+        raw = _value(m.group(1))
+        if raw:
+            out["description"] = raw
     out["sourceFamily"] = source_family
     return out or None

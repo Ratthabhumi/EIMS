@@ -163,12 +163,15 @@ async def submit_analysis(
     lang = language if language in ("th", "en") else "th"
 
     start_time = time.time()
+    evidence_text_ctx = combined_text or description or ""
     results, combined_snippets = await asyncio.to_thread(
         search_solutions,
         metadata.eventId,
         metadata.provider,
         source_family=metadata.sourceFamily or None,
         diagnostic_code=metadata.diagnosticCode or None,
+        evidence_text=evidence_text_ctx,
+        product=metadata.product or "",
     )
     solution = await build_summary(
         metadata.eventId, metadata.provider, combined_snippets, results, lang,
@@ -176,6 +179,7 @@ async def submit_analysis(
         source_family=metadata.sourceFamily or None,
         diagnostic_code=metadata.diagnosticCode or None,
         product=metadata.product or "",
+        evidence_text=evidence_text_ctx,
     )
     # Evidence-first attachment: deterministic incident sketch fills fields
     # the synthesis path did not provide (curated vendor paths already do).
@@ -240,7 +244,60 @@ async def followup_question(
     x_gemini_api_key: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
-    results, combined_snippets = search_solutions(body.eventId, body.provider)
-    summary = await build_summary(body.eventId, body.provider, combined_snippets, results, body.language, "", x_gemini_api_key, "", db)
-    answer = build_followup_answer(body.question, summary, results, body.language, x_gemini_api_key)
+    history_ctx = None
+    evidence_ctx = ""
+    source_family_ctx = None
+    diagnostic_code_ctx = None
+    product_ctx = ""
+    if getattr(body, "historyId", None) and db:
+        try:
+            from backend.domain.analyzer.models.history import AnalysisHistory
+
+            h = await db.get(AnalysisHistory, body.historyId)
+            if h:
+                history_ctx = h
+                evidence_ctx = (h.description or "")[:8000]
+                em = (h.event_metadata or {}) if isinstance(h.event_metadata, dict) else {}
+                sol = (h.solution_summary or {}) if isinstance(h.solution_summary, dict) else {}
+                source_family_ctx = em.get("sourceFamily") or sol.get("sourceFamily")
+                diagnostic_code_ctx = em.get("diagnosticCode") or sol.get("diagnosticCode")
+                product_ctx = em.get("product") or em.get("faultingApp") or ""
+        except Exception:
+            history_ctx = None
+
+    results, combined_snippets = await asyncio.to_thread(
+        search_solutions,
+        body.eventId,
+        body.provider,
+        source_family=source_family_ctx,
+        diagnostic_code=diagnostic_code_ctx,
+        evidence_text=evidence_ctx,
+        product=product_ctx,
+    )
+    summary = await build_summary(
+        body.eventId,
+        body.provider,
+        combined_snippets,
+        results,
+        body.language,
+        "",
+        x_gemini_api_key,
+        evidence_ctx,
+        db,
+        source_family=source_family_ctx,
+        diagnostic_code=diagnostic_code_ctx,
+        product=product_ctx,
+        evidence_text=evidence_ctx,
+    )
+    answer = build_followup_answer(
+        body.question,
+        summary,
+        results,
+        body.language,
+        x_gemini_api_key,
+        source_family=source_family_ctx,
+        event_id=body.eventId,
+        provider=body.provider,
+        diagnostic_code=diagnostic_code_ctx,
+    )
     return FollowUpResponse(answer=answer)

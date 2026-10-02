@@ -11,7 +11,10 @@ from duckduckgo_search import DDGS
 from backend.domain.analyzer.schemas.analyze import SearchResult, SolutionSummary
 from backend.domain.analyzer.services.event_knowledge import get_curated_summary
 from backend.domain.analyzer.services.vector_db import search_similar_logs
-from backend.domain.analyzer.services.vendor_knowledge import get_vendor_summary
+from backend.domain.analyzer.services.vendor_knowledge import (
+    get_vendor_summary,
+    vendor_reference_results,
+)
 from backend.domain.analyzer.services.vendor_parsers import is_vendor_diagnostic_code
 
 ACTION_KEYWORDS = re.compile(
@@ -91,6 +94,8 @@ FAMILY_FALLBACK_REFS = {
         ("Fortinet Docs: FortiGate troubleshooting", "https://docs.fortinet.com/"),
         ("Fortinet Community discussions", "https://community.fortinet.com/"),
     ],
+    "linux_syslog": [],
+    "json": [],
 }
 
 # DDGS site-restricted tiers per source family (query, tier).
@@ -118,15 +123,41 @@ FAMILY_SEARCH_TIERS = {
         ("official", "site:docs.fortinet.com"),
         ("community", "site:community.fortinet.com"),
     ),
+    "linux_syslog": (),
+    "json": (),
 }
 
 SEARCH_TIERS = FAMILY_SEARCH_TIERS["windows_event"]
 
 
-def _classify_source(link: str, tier: str, official_domains=None) -> str:
-    allowed = tuple(official_domains) if official_domains else OFFICIAL_DOMAINS
+def _host_matches(domain: str, expected: str) -> bool:
+    d = (domain or "").lower()
+    e = (expected or "").lower()
+    if not d or not e:
+        return False
+    if d == e:
+        return True
+    if d.endswith("." + e):
+        return True
+    return False
+
+
+FAMILY_COMMUNITY_DOMAINS = {
+    "windows_event": ("stackoverflow.com", "superuser.com", "answers.microsoft.com"),
+    "veeam_vbr": ("forums.veeam.com",),
+    "vmware": ("communities.vmware.com",),
+    "cisco_asa": ("community.cisco.com",),
+    "fortinet": ("community.fortinet.com",),
+}
+
+
+def _classify_source(link: str, tier: str, official_domains=None, community_domains=None) -> str:
     domain = urlparse(link).netloc.lower()
-    if any(official in domain for official in allowed):
+    community = tuple(community_domains) if community_domains else tuple()
+    if community and any(_host_matches(domain, c) for c in community):
+        return "community"
+    allowed = tuple(official_domains) if official_domains else OFFICIAL_DOMAINS
+    if any(_host_matches(domain, off) for off in allowed):
         return "official"
     return tier
 
@@ -154,6 +185,8 @@ def search_solutions(
     provider: str,
     source_family: str | None = None,
     diagnostic_code: str | None = None,
+    evidence_text: str = "",
+    product: str = "",
 ) -> tuple[List[SearchResult], str]:
     family = source_family or "windows_event"
 
@@ -164,56 +197,76 @@ def search_solutions(
     results: List[SearchResult] = []
     combined_snippets = ""
 
-    tiers = FAMILY_SEARCH_TIERS.get(family, FAMILY_SEARCH_TIERS["windows_event"])
+    tiers = FAMILY_SEARCH_TIERS.get(family, ())
     official_domains = FAMILY_OFFICIAL_DOMAINS.get(family, OFFICIAL_DOMAINS)
+    community_domains = FAMILY_COMMUNITY_DOMAINS.get(family, ())
     base_query = _family_query(event_id, provider, family)
     if diagnostic_code:
         base_query = f"{base_query} {diagnostic_code}"
+    if product:
+        base_query = f"{base_query} {product}"
 
-    # Search web for relevant solutions
+    # Search web for relevant solutions (only when tiers exist)
     try:
-        for tier, site in tiers:
-            if len(results) >= 3:
-                break
-            query = f"{base_query} {site}"
-            with DDGS(timeout=3) as ddgs:
-                raw = list(ddgs.text(query, max_results=4))
-                for item in raw:
-                    title = (item.get("title") or "").strip()
-                    link = (item.get("href") or item.get("url") or "").strip()
-                    snippet = (item.get("body") or item.get("snippet") or "").strip()
-                    if not link or any(r.link == link for r in results):
-                        continue
-                    # Only vendor-owned domains may be labeled official.
-                    source_type = _classify_source(link, tier, official_domains)
-                    results.append(
-                        SearchResult(
-                            title=title,
-                            link=link,
-                            snippet=snippet,
-                            sourceType=source_type,  # type: ignore[arg-type]
+        if tiers:
+            for tier, site in tiers:
+                if len(results) >= 3:
+                    break
+                query = f"{base_query} {site}"
+                with DDGS(timeout=3) as ddgs:
+                    raw = list(ddgs.text(query, max_results=4))
+                    for item in raw:
+                        title = (item.get("title") or "").strip()
+                        link = (item.get("href") or item.get("url") or "").strip()
+                        snippet = (item.get("body") or item.get("snippet") or "").strip()
+                        if not link or any(r.link == link for r in results):
+                            continue
+                        source_type = _classify_source(link, tier, official_domains, community_domains)
+                        results.append(
+                            SearchResult(
+                                title=title,
+                                link=link,
+                                snippet=snippet,
+                                sourceType=source_type,  # type: ignore[arg-type]
+                            )
                         )
-                    )
-                    if snippet:
-                        combined_snippets += f"{snippet}\n"
-                    if len(results) >= 3:
-                        break
+                        if snippet:
+                            combined_snippets += f"{snippet}\n"
+                        if len(results) >= 3:
+                            break
     except Exception:
         pass
 
-    # Family-appropriate fallback references (vendor doc roots, never faked).
-    if family in FAMILY_FALLBACK_REFS:
-        default_fallbacks = [
+    # Inject deterministic KB official references when available.
+    try:
+        if diagnostic_code:
+            kb_refs = vendor_reference_results(diagnostic_code, evidence_text or "", language)
+            if kb_refs:
+                for r in kb_refs:
+                    if len(results) >= max(3, len(kb_refs) + 3):
+                        break
+                    if not any(x.link == r.link for x in results):
+                        results.append(r)
+                        if r.snippet:
+                            combined_snippets += f"{r.snippet}\n"
+    except Exception:
+        pass
+
+    # Insert default fallbacks (if any) avoiding duplicates.
+    default_fallbacks_list = []
+    family_fallbacks = FAMILY_FALLBACK_REFS.get(family, None)
+    if family_fallbacks:
+        default_fallbacks_list = [
             SearchResult(
                 title=title,
                 link=link,
                 snippet=f"Vendor documentation starting point for {provider or family} diagnostics.",
-                sourceType="official" if _classify_source(link, "community", official_domains) == "official" else "community",
+                sourceType="official",
             )
-            for title, link in FAMILY_FALLBACK_REFS[family]
+            for title, link in family_fallbacks
         ]
-    else:
-        default_fallbacks = [
+    elif family == "windows_event":
+        default_fallbacks_list = [
             SearchResult(
                 title=f"Microsoft Learn: Troubleshoot Event ID {event_id}",
                 link=f"https://learn.microsoft.com/en-us/search/?terms=Event%20ID%20{event_id}",
@@ -234,7 +287,7 @@ def search_solutions(
             ),
         ]
 
-    for fallback in default_fallbacks:
+    for fallback in default_fallbacks_list:
         if len(results) >= 3:
             break
         if not any(r.link == fallback.link for r in results):
@@ -507,6 +560,7 @@ def _build_from_web(
         if result.snippet:
             official_text += f"\n{result.snippet}"
 
+
     sentences = [_clean_sentence(s) for s in _split_sentences(official_text)]
     sentences = [s for s in sentences if _is_usable_sentence(s)]
 
@@ -562,43 +616,59 @@ def _build_from_web(
             steps = _fallback_vendor_steps(family, language)
         return SolutionSummary(overview=overview, causes=causes, steps=steps)
 
-    provider_label = provider if provider != "Unknown" else "Windows"
+    if family == "windows_event":
+        provider_label = provider if provider != "Unknown" else "Windows"
+        overview_base = (
+            f"Event ID {event_id} from {provider_label} is a Windows event log entry."
+        )
+        if sentences:
+            overview_base += f" {sentences[0]}"
+        overview = _translate(overview_base, target)
 
-    overview_base = (
-        f"Event ID {event_id} from {provider_label} is a Windows event log entry."
-    )
-    if sentences:
-        overview_base += f" {sentences[0]}"
-    overview = _translate(overview_base, target)
+        cause_candidates = [s for s in sentences if CAUSE_KEYWORDS.search(s)]
+        step_candidates = [s for s in sentences if ACTION_KEYWORDS.search(s) and _is_usable_sentence(s)]
 
-    cause_candidates = [s for s in sentences if CAUSE_KEYWORDS.search(s)]
-    step_candidates = [s for s in sentences if ACTION_KEYWORDS.search(s) and _is_usable_sentence(s)]
+        causes = _unique_items([_translate(c, target) for c in cause_candidates], 3)
+        steps = _unique_items([_translate(s, target) for s in step_candidates], 5)
+        steps = [s for s in steps if len(s) >= 25][:5]
 
-    causes = _unique_items([_translate(c, target) for c in cause_candidates], 3)
-    steps = _unique_items([_translate(s, target) for s in step_candidates], 5)
-    steps = [s for s in steps if len(s) >= 25][:5]
+        if faulting_app:
+            app_causes = _get_specific_causes(faulting_app, language)
+            causes = app_causes + causes
+            causes = _unique_items(causes, 3)
 
-    # Enhance causes with specific app causes or fallback causes
-    if faulting_app:
-        app_causes = _get_specific_causes(faulting_app, language)
-        causes = app_causes + causes
-        causes = _unique_items(causes, 3)
+        if len(causes) < 2:
+            fb_causes = _fallback_causes(event_id, provider, language)
+            causes = _unique_items(causes + fb_causes, 3)
 
-    if len(causes) < 2:
-        fb_causes = _fallback_causes(event_id, provider, language)
-        causes = _unique_items(causes + fb_causes, 3)
+        if len(steps) < 3:
+            steps = _fallback_steps(language)
 
-    if len(steps) < 3:
-        steps = _fallback_steps(language)
-    
-    # Add specific recommendations if faulting app is provided
-    if faulting_app:
-        specific_recs = _get_specific_recommendations(faulting_app, language)
-        if specific_recs:
-            steps = specific_recs + steps
-            steps = _unique_items(steps, 5)
+        if faulting_app:
+            specific_recs = _get_specific_recommendations(faulting_app, language)
+            if specific_recs:
+                steps = specific_recs + steps
+                steps = _unique_items(steps, 5)
 
-    return SolutionSummary(overview=overview, causes=causes, steps=steps)
+        return SolutionSummary(overview=overview, causes=causes, steps=steps)
+    else:
+        provider_label = product or provider or family
+        overview_base = (
+            f"{provider_label} diagnostic record ({family})."
+        )
+        if sentences:
+            overview_base += f" {sentences[0]}"
+        overview = _translate(overview_base, target)
+        cause_candidates = [s for s in sentences if CAUSE_KEYWORDS.search(s)]
+        step_candidates = [s for s in sentences if ACTION_KEYWORDS.search(s) and _is_usable_sentence(s)]
+        causes = _unique_items([_translate(c, target) for c in cause_candidates], 3)
+        steps = _unique_items([_translate(s, target) for s in step_candidates], 5)
+        steps = [s for s in steps if len(s) >= 25][:5]
+        if len(causes) < 2:
+            causes = _unique_items(causes + _fallback_vendor_causes(family, provider_label, language), 3)
+        if len(steps) < 3:
+            steps = _fallback_vendor_steps(family, language)
+        return SolutionSummary(overview=overview, causes=causes, steps=steps)
 
 
 def _call_gemini(prompt: str, api_key: str) -> str:
@@ -715,6 +785,10 @@ def build_followup_answer(
     results: List[SearchResult],
     language: str = "th",
     api_key: str | None = None,
+    source_family: str | None = None,
+    event_id: str = "Unknown",
+    provider: str = "Unknown",
+    diagnostic_code: str | None = None,
 ) -> str:
     text = question.strip()
     if not text:
@@ -728,13 +802,15 @@ def build_followup_answer(
     ))
 
     if api_key:
-        prompt = f"""You are an expert IT assistant. The user is asking a follow up question about Windows Event ID {summary.overview}.
+        sysdesc = summary.overview or ""
+        prompt = f"""You are an expert IT assistant. The user is asking a follow-up question about an analyzed log entry.
+Context overview: {sysdesc}
 Known causes: {summary.causes}
 Known steps: {summary.steps}
 
 User Question: {text}
 Language: {'Thai' if language == 'th' else 'English'}
-Answer the question directly and professionally."""
+Answer the question directly and professionally. Never invent facts not present in the context."""
         ai_ans = _call_gemini(prompt, api_key)
         if ai_ans:
             return ai_ans
@@ -803,6 +879,8 @@ async def build_summary(
     source_family: str | None = None,
     diagnostic_code: str | None = None,
     product: str = "",
+    evidence_text: str = "",
+    **kwargs,
 ) -> SolutionSummary:
     lang = language if language in ("th", "en") else "th"
     family = source_family or "windows_event"

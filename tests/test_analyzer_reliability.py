@@ -311,12 +311,13 @@ def test_classify_source_only_vendor_domains_are_official():
         "community",
         summary_mod.FAMILY_OFFICIAL_DOMAINS["veeam_vbr"],
     ) == "community"
-    # Vendor-owned community (forums.veeam.com contains veeam.com) stays official.
+    # Vendor-owned community (forums.veeam.com) is community by hostname equality.
     assert summary_mod._classify_source(
         "https://forums.veeam.com/topic/1",
         "community",
         summary_mod.FAMILY_OFFICIAL_DOMAINS["veeam_vbr"],
-    ) == "official"
+        community_domains=summary_mod.FAMILY_COMMUNITY_DOMAINS.get("veeam_vbr", ()),
+    ) == "community"
 
 
 def test_veeam_fallback_refs_contain_no_microsoft():

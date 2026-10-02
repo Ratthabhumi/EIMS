@@ -27,6 +27,24 @@ class SearchResult(BaseModel):
     sourceType: Literal["official", "community"] = "community"
 
 
+class IncidentAssessment(BaseModel):
+    """Structural incident sketch persisted with the analysis.
+
+    Reports the OBSERVED failure sequence (first -> terminal) and what is
+    still missing.  It never asserts one failure caused another unless the
+    evidence proves it.
+    """
+
+    firstMeaningfulFailure: str = ""
+    terminalFailure: str = ""
+    timeline: List[str] = Field(default_factory=list)
+    operationStage: str = ""
+    diagnosticSignatures: List[str] = Field(default_factory=list)
+    observedPaths: List[str] = Field(default_factory=list)
+    unknowns: List[str] = Field(default_factory=list)
+    nextEvidence: List[str] = Field(default_factory=list)
+
+
 class SolutionSummary(BaseModel):
     overview: str = ""
     causes: List[str] = []
@@ -36,6 +54,8 @@ class SolutionSummary(BaseModel):
     confidence: str = ""
     limitations: List[str] = Field(default_factory=list)
     nextEvidence: List[str] = Field(default_factory=list)
+    # Structured incident sketch (optional: older records/rows ignore it).
+    incident: Optional[IncidentAssessment] = None
 
 
 class AnalyzeResponse(BaseModel):
@@ -51,9 +71,12 @@ class AnalyzeResponse(BaseModel):
 
 class FollowUpRequest(BaseModel):
     question: str
-    eventId: str
+    eventId: str = "Unknown"
     provider: str = "Unknown"
     language: str = "th"
+    # When present, the analysis service reloads the stored context (source
+    # family, diagnostic code, product, evidence) from the history row.
+    historyId: Optional[int] = None
 
 
 class FollowUpResponse(BaseModel):

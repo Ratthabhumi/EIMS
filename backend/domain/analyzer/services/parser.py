@@ -3,6 +3,7 @@ import re
 from backend.domain.analyzer.schemas.analyze import EventMetadata
 from backend.domain.analyzer.services.source_classify import classify_source
 from backend.domain.analyzer.services.vendor_parsers import (
+    parse_syslog_hinted,
     parse_unknown_text,
     parse_veeam,
     parse_vmware,
@@ -333,21 +334,22 @@ def parse_event_metadata(text: str, filename_hint: str = "") -> EventMetadata:
     # 1. Structured JSON logs keep their dedicated parser.
     json_data = _is_json_log(text)
     if json_data:
-        return _stamp(_parse_json_log(json_data), "json", "JSON structured log", max(confidence, 0.85))
+        meta = _stamp(_parse_json_log(json_data), "json", "JSON structured log", max(confidence, 0.85))
+        return _merge_syslog(meta, text, family)
 
     # 2. Veeam / VMware vendor adapters (deterministic, stdlib only).
     if family == "veeam_vbr":
-        return parse_veeam(text, filename_hint)
+        return _merge_syslog(parse_veeam(text, filename_hint), text, family)
     if family == "vmware":
-        return parse_vmware(text, filename_hint)
+        return _merge_syslog(parse_vmware(text, filename_hint), text, family)
 
     # 3. Fortinet / Cisco / Linux keep their dedicated parsers.
     if family == "fortinet":
-        return _stamp(_parse_fortinet(text), "fortinet", "Fortinet FortiGate", max(confidence, 0.85))
+        return _merge_syslog(_stamp(_parse_fortinet(text), "fortinet", "Fortinet FortiGate", max(confidence, 0.85)), text, family)
     if family == "cisco_asa":
-        return _stamp(_parse_cisco_asa(text), "cisco_asa", "Cisco ASA/FTD", max(confidence, 0.85))
+        return _merge_syslog(_stamp(_parse_cisco_asa(text), "cisco_asa", "Cisco ASA/FTD", max(confidence, 0.85)), text, family)
     if family == "linux_syslog":
-        return _stamp(_parse_linux_syslog(text), "linux_syslog", "Linux syslog", max(confidence, 0.85))
+        return _merge_syslog(_stamp(_parse_linux_syslog(text), "linux_syslog", "Linux syslog", max(confidence, 0.85)), text, family)
 
     # 4. Windows parsing requires positive Windows evidence.  Anything else
     #    is unknown_text and MUST NOT fall through to Windows regex.
@@ -355,6 +357,24 @@ def parse_event_metadata(text: str, filename_hint: str = "") -> EventMetadata:
         return parse_unknown_text(text, filename_hint)
 
     return _stamp(_parse_windows(text), "windows_event", "Microsoft Windows", max(confidence, 0.8))
+
+
+def _merge_syslog(meta: EventMetadata, text: str, family: str) -> EventMetadata:
+    """Attach RFC 5424 structured data (Veeam_MP) to vendor metadata.
+
+    Raw session/instance IDs remain in the persisted attributes only; they
+    are never embedded (vector_db redacts session ids) and never become the
+    Windows Event ID.
+    """
+    try:
+        syslog = parse_syslog_hinted(text, family)
+    except Exception:
+        syslog = None
+    if syslog:
+        attrs = dict(meta.attributes or {})
+        attrs["syslog"] = {k: v for k, v in syslog.items() if k != "sourceFamily"}
+        meta.attributes = attrs
+    return meta
 
 
 def _parse_windows(text: str) -> EventMetadata:
