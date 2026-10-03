@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Star, CheckCircle, Loader2 } from "lucide-react";
+import { apiUrl } from "@/lib/api";
 
 interface SessionDetails {
   session_id: string;
@@ -32,7 +33,7 @@ export default function MobileEvaluationForm() {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/evaluations/sessions/${sessionId}`);
+        const res = await fetch(apiUrl(`/api/v1/evaluations/sessions/${sessionId}`));
         if (!res.ok) {
           if (res.status === 404) throw new Error("This service session does not exist or has been removed.");
           throw new Error("Failed to load session details.");
@@ -64,7 +65,7 @@ export default function MobileEvaluationForm() {
     }));
 
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/evaluations/sessions/${sessionId}/evaluate`, {
+      const res = await fetch(apiUrl(`/api/v1/evaluations/sessions/${sessionId}/evaluate`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

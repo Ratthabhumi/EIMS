@@ -4,6 +4,7 @@ import { Usb, ScanText, Terminal, Download, ArrowLeft, Play } from "lucide-react
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { apiUrl } from "@/lib/api";
 
 export default function AgentsDashboard() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function AgentsDashboard() {
     setLoading(agentName);
     setMessage(null);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/agents/launch", {
+      const res = await fetch(apiUrl("/api/v1/agents/launch"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agent_name: agentName })

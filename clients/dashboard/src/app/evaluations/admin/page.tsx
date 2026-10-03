@@ -5,6 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Plus, X, Share2, Star, Search, ArrowLeft, Trash2, Edit2 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { apiUrl } from "@/lib/api";
 
 interface ServiceSession {
   session_id: string;
@@ -55,7 +56,7 @@ export default function EvaluationAdmin() {
 
   const fetchSessions = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/evaluations/sessions?limit=100");
+      const res = await fetch(apiUrl("/api/v1/evaluations/sessions?limit=100"));
       if (res.ok) {
         const data = await res.json();
         setSessions(data);
@@ -99,7 +100,7 @@ export default function EvaluationAdmin() {
     e.preventDefault();
     try {
       const isEdit = editSessionId !== null;
-      const url = isEdit ? `http://localhost:8000/api/v1/evaluations/sessions/${editSessionId}` : "http://localhost:8000/api/v1/evaluations/sessions";
+      const url = isEdit ? apiUrl(`/api/v1/evaluations/sessions/${editSessionId}`) : apiUrl("/api/v1/evaluations/sessions");
       const method = isEdit ? "PUT" : "POST";
       const toastId = toast.loading(isEdit ? "Updating session..." : "Creating session...");
       
@@ -131,7 +132,7 @@ export default function EvaluationAdmin() {
     if (!confirm("Are you sure you want to delete this session? This will also delete all of its evaluation responses.")) return;
     const toastId = toast.loading("Deleting session...");
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/evaluations/sessions/${sessionId}`, {
+      const res = await fetch(apiUrl(`/api/v1/evaluations/sessions/${sessionId}`), {
         method: "DELETE",
         headers: getAuthHeaders()
       });

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Upload, Cpu, Shield, Network, Server, HardDrive, Monitor, Clock, CheckCircle2, XCircle, Search, Download, ArrowLeft, Play } from "lucide-react";
 import Link from "next/link";
+import { apiUrl } from "@/lib/api";
 
 interface Asset {
   asset_id: string;
@@ -42,7 +43,7 @@ function EndpointsDashboardContent() {
 
   const fetchAssets = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/assets?limit=100");
+      const res = await fetch(apiUrl("/api/v1/assets?limit=100"));
       if (res.ok) {
         const json = await res.json();
         const validAssets = (json.data || []).filter((a: Asset) => a.canonical_ip !== "0.0.0.0");
@@ -63,7 +64,7 @@ function EndpointsDashboardContent() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/assets/import-report", {
+      const res = await fetch(apiUrl("/api/v1/assets/import-report"), {
         method: "POST",
         body: formData,
       });
@@ -165,7 +166,7 @@ function EndpointsDashboardContent() {
 
   useEffect(() => {
     if (!selectedAsset) { setAssetHistory([]); return; }
-    fetch(`http://localhost:8000/api/v1/history?asset_id=${selectedAsset.asset_id}`)
+    fetch(apiUrl(`/api/v1/history?asset_id=${selectedAsset.asset_id}`))
       .then(res => res.ok ? res.json() : [])
       .then(data => setAssetHistory(Array.isArray(data) ? data : []))
       .catch(() => setAssetHistory([]));
@@ -174,7 +175,7 @@ function EndpointsDashboardContent() {
   const handleLaunchAgent = async () => {
     setLaunchingAgent(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/agents/launch", {
+      const res = await fetch(apiUrl("/api/v1/agents/launch"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agent_name: "usb_auditor" })

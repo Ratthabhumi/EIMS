@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Shield, Activity, Search, Server, Database, HardDrive, Cpu, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { apiUrl, wsUrl } from "@/lib/api";
 
 interface HealthData {
   system: string;
@@ -51,7 +52,7 @@ export default function ObservabilityDashboard() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/health", { signal: controller.signal });
+      const res = await fetch(apiUrl("/api/v1/health"), { signal: controller.signal });
       clearTimeout(timeoutId);
       const json = await res.json();
       setHealth(json);
@@ -93,7 +94,7 @@ export default function ObservabilityDashboard() {
     
     // Connect to WebSocket
     const connectWs = () => {
-      const ws = new WebSocket("ws://localhost:8000/api/v1/ws/dashboard");
+      const ws = new WebSocket(wsUrl("/api/v1/ws/dashboard"));
       
       ws.onopen = () => console.log("Connected to Real-Time Alert Stream");
       

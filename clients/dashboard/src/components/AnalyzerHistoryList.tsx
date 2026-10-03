@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Search, Trash2, Code, FileImage, FileText, X, Download, ShieldAlert } from "lucide-react";
 import { toast } from "react-hot-toast";
 import AnalysisResultDetail from "./AnalysisResultDetail";
+import { apiUrl } from "@/lib/api";
 
 interface AnalyzerHistoryListProps {
   refreshTrigger?: number;
@@ -228,7 +229,7 @@ export default function AnalyzerHistoryList({
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/history/");
+      const res = await fetch(apiUrl("/api/v1/history/"));
       if (res.ok) {
         const data = await res.json();
         setHistoryList(data);
@@ -244,7 +245,7 @@ export default function AnalyzerHistoryList({
 
   const fetchCatalog = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/history/catalog");
+      const res = await fetch(apiUrl("/api/v1/history/catalog"));
       if (res.ok) {
         const data = await res.json();
         setCatalog(Array.isArray(data.entries) ? data.entries : []);
@@ -266,7 +267,7 @@ export default function AnalyzerHistoryList({
     
     const loadingToast = toast.loading("Deleting...");
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/history/${id}`, {
+      const res = await fetch(apiUrl(`/api/v1/history/${id}`), {
         method: "DELETE"
       });
       if (!res.ok) throw new Error("Failed to delete");

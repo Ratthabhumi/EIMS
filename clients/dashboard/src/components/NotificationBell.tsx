@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, ShieldAlert, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { apiUrl } from "@/lib/api";
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +16,7 @@ export function NotificationBell() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       try {
-        const res = await fetch("http://localhost:8000/api/v1/health", { signal: controller.signal });
+        const res = await fetch(apiUrl("/api/v1/health"), { signal: controller.signal });
         clearTimeout(timeoutId);
         const json = await res.json();
         

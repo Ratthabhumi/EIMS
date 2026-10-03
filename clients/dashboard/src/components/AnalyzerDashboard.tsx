@@ -4,6 +4,7 @@ import {
   BarChart, Bar, Cell
 } from "recharts";
 import { FileText, AlertTriangle, Clock } from "lucide-react";
+import { apiUrl } from "@/lib/api";
 
 const COLORS = ["#7B8F9F", "#6B9B7B", "#C2856E", "#8A997B", "#BF6B6A", "#9C9993", "#6E6B65"];
 
@@ -27,7 +28,7 @@ export default function AnalyzerDashboard({ refreshTrigger = 0, avgSearchTimeMs 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/v1/history/stats");
+        const res = await fetch(apiUrl("/api/v1/history/stats"));
         if (res.ok) {
           const data = await res.json();
           setStats(data);

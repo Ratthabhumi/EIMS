@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, Star, Search, Filter, Trash2 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { apiUrl } from "@/lib/api";
 
 interface SessionDetails {
   session_id: string;
@@ -43,8 +44,8 @@ export default function EvaluationDetails() {
     const fetchData = async () => {
       try {
         const [sessionRes, responsesRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/v1/evaluations/sessions/${sessionId}`),
-          fetch(`http://localhost:8000/api/v1/evaluations/sessions/${sessionId}/responses`)
+          fetch(apiUrl(`/api/v1/evaluations/sessions/${sessionId}`)),
+          fetch(apiUrl(`/api/v1/evaluations/sessions/${sessionId}/responses`))
         ]);
 
         if (sessionRes.ok) setSession(await sessionRes.json());
@@ -64,7 +65,7 @@ export default function EvaluationDetails() {
     if (!confirm("Are you sure you want to delete this response?")) return;
     const toastId = toast.loading("Deleting response...");
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/evaluations/responses/${evaluationId}`, {
+      const res = await fetch(apiUrl(`/api/v1/evaluations/responses/${evaluationId}`), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" }
       });

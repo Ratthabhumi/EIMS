@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api";
 import {
   Search,
   Server,
@@ -53,7 +54,7 @@ interface SearchResponse {
   };
 }
 
-const SEARCH_ENDPOINT = "http://localhost:8000/api/v1/search";
+const SEARCH_ENDPOINT = apiUrl("/api/v1/search");
 const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 300;
 

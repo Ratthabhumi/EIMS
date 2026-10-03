@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, History, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { TimelineEvent, type TimelineEventData } from "@/components/TimelineEvent";
+import { apiUrl } from "@/lib/api";
 
 interface Pagination {
   total_records: number;
@@ -19,7 +20,7 @@ interface TimelineResponse {
   pagination: Pagination;
 }
 
-const TIMELINE_ENDPOINT = "http://localhost:8000/api/v1/timeline";
+const TIMELINE_ENDPOINT = apiUrl("/api/v1/timeline");
 const PAGE_SIZE = 50;
 
 const EVENT_TYPES = [

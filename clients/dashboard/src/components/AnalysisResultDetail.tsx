@@ -333,9 +333,9 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
           <div className="flex items-center gap-2">
             <button
               onClick={async () => {
-                if (result.id && typeof result.id === "number") {
+                if (historyId !== null) {
                   try {
-                    await fetch(apiUrl(`/api/v1/history/${result.id}/feedback?score=1`), { method: "POST" });
+                    await fetch(apiUrl(`/api/v1/history/${historyId}/feedback?score=1`), { method: "POST" });
                   } catch (e) {}
                 }
                 setFeedback(1);
@@ -350,9 +350,9 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
             </button>
             <button
               onClick={async () => {
-                if (result.id && typeof result.id === "number") {
+                if (historyId !== null) {
                   try {
-                    await fetch(apiUrl(`/api/v1/history/${result.id}/feedback?score=-1`), { method: "POST" });
+                    await fetch(apiUrl(`/api/v1/history/${historyId}/feedback?score=-1`), { method: "POST" });
                   } catch (e) {}
                 }
                 setFeedback(-1);

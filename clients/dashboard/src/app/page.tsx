@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { apiUrl } from "@/lib/api";
 import { 
   Star, 
   Shield, 
@@ -165,7 +166,7 @@ export default function HomeDashboard() {
             </div>
           </a>
 
-          <a href="http://localhost:8000/api/docs" target="_blank" rel="noopener noreferrer" className="surface-card p-4 flex flex-col items-start gap-2 hover:border-eims-accent transition-all group cursor-pointer hover:shadow-md">
+          <a href={apiUrl("/api/docs")} target="_blank" rel="noopener noreferrer" className="surface-card p-4 flex flex-col items-start gap-2 hover:border-eims-accent transition-all group cursor-pointer hover:shadow-md">
             <div className="flex justify-between items-center w-full">
               <Activity className="w-5 h-5 text-eims-text-secondary group-hover:text-eims-accent" />
               <ArrowRight className="w-3.5 h-3.5 text-eims-text-muted group-hover:text-eims-accent transition-colors" />

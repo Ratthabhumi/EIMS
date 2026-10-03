@@ -19,3 +19,9 @@ export async function fetchWithTimeout(
     clearTimeout(timer);
   }
 }
+
+export function wsUrl(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const wsBase = API_BASE.replace(/^http:\/\//, "ws://").replace(/^https:\/\//, "wss://");
+  return `${wsBase}${normalized}`;
+}

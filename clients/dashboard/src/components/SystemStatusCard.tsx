@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { apiUrl } from "@/lib/api";
 
 type Status = "ok" | "error" | "loading";
 
@@ -19,7 +20,7 @@ export default function SystemStatusCard() {
   useEffect(() => {
     const check = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/v1/health");
+        const res = await fetch(apiUrl("/api/v1/health"));
         if (res.ok || res.status === 503) {
           const data = await res.json();
           const c = data.components || {};

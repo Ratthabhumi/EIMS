@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { apiUrl } from "@/lib/api";
 import { 
   Home, 
   Terminal, 
@@ -120,7 +121,7 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
           <Database className="w-4 h-4 text-eims-text-secondary" /> Prometheus DB
         </a>
         <a 
-          href="http://localhost:8000/api/docs" 
+          href={apiUrl("/api/docs")}
           target="_blank" 
           rel="noopener noreferrer" 
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-eims-text-secondary hover:text-eims-text hover:bg-eims-surface-subtle transition-colors"

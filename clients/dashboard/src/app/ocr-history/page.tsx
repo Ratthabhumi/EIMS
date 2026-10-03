@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ScanText, Link as LinkIcon, Database, CheckCircle2, Clock, XCircle, Search, Download, ArrowLeft, ArrowDownAZ, ArrowUpZA, Play } from "lucide-react";
 import Link from "next/link";
+import { apiUrl } from "@/lib/api";
 
 interface OCRRecord {
   record_id: string;
@@ -21,7 +22,7 @@ export default function OCRHistoryDashboard() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/assets/ocr-history");
+      const res = await fetch(apiUrl("/api/v1/assets/ocr-history"));
       if (res.ok) {
         const json = await res.json();
         setRecords(json.data);
@@ -78,7 +79,7 @@ export default function OCRHistoryDashboard() {
   });
 
   const getImageUrl = (uri: string) => {
-    return `http://localhost:8000/api/v1/assets/ocr-history/image?uri=${encodeURIComponent(uri)}`;
+    return apiUrl(`/api/v1/assets/ocr-history/image?uri=${encodeURIComponent(uri)}`);
   };
 
   const getDisplayFilename = (uri: string) => {
@@ -122,7 +123,7 @@ export default function OCRHistoryDashboard() {
   const handleLaunchAgent = async () => {
     setLaunchingAgent(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/agents/launch", {
+      const res = await fetch(apiUrl("/api/v1/agents/launch"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agent_name: "ocr_pipeline" })
