@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 import json
 import requests
