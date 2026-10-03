@@ -10,6 +10,8 @@ existing string ``event_id`` field (no migration):
 - ``VMWARE-CBT-DELETE-FAILED`` — "Could not delete change tracking file".
 - ``VMWARE-SNAPSHOT-FILE-MISSING`` — InvalidSnapshotFormat + a required
   file was not found.
+- ``VEEAM-SESSION-FAILED`` — generic session/job completed with Failed
+  status; no more specific signature matched.
 
 Causality discipline: the extractor reports an *observed sequence*
 (first failure -> later terminal failure).  It never asserts the first
@@ -29,11 +31,13 @@ from backend.domain.analyzer.schemas.analyze import EventMetadata
 DIAG_VEEAM_REPLICA_SNAPSHOT_CHAIN = "VEEAM-REPLICA-SNAPSHOT-CHAIN"
 DIAG_VMWARE_CBT_DELETE_FAILED = "VMWARE-CBT-DELETE-FAILED"
 DIAG_VMWARE_SNAPSHOT_FILE_MISSING = "VMWARE-SNAPSHOT-FILE-MISSING"
+DIAG_VEEAM_SESSION_FAILED = "VEEAM-SESSION-FAILED"
 
 VENDOR_DIAGNOSTIC_CODES = (
     DIAG_VEEAM_REPLICA_SNAPSHOT_CHAIN,
     DIAG_VMWARE_CBT_DELETE_FAILED,
     DIAG_VMWARE_SNAPSHOT_FILE_MISSING,
+    DIAG_VEEAM_SESSION_FAILED,
 )
 
 
@@ -54,6 +58,12 @@ _SIG_REVERT = "revertsnapshot"
 _SIG_REPLICA = ("replica", "replication")
 _RESULT_2620 = "2620"
 
+# Generic session/job failure outcome (Veeam log format).
+_SESSION_FAILED_RE = re.compile(
+    r"(?:task|job)\s+session\s+['\"]?[^'\"]*['\"]?\s+has\s+been\s+completed[,\s]+status\s*:\s*['\"]?failed['\"]?",
+    re.IGNORECASE,
+)
+
 _VEEAM_PRODUCT = "Veeam Backup & Replication"
 _VMWARE_PRODUCT = "VMware vSphere/ESXi"
 
@@ -70,6 +80,7 @@ def resolve_vendor_diagnostic(text: str, source_family: str) -> str:
     has_replica = any(k in lowered for k in _SIG_REPLICA)
 
     if source_family == "veeam_vbr":
+        # Specific codes take priority over the generic session-failed code.
         if (has_revert or has_helper or has_bad_config) and (
             has_invalid or has_missing or has_bad_config
         ):
@@ -78,6 +89,9 @@ def resolve_vendor_diagnostic(text: str, source_family: str) -> str:
             return DIAG_VMWARE_CBT_DELETE_FAILED
         if has_invalid and has_missing:
             return DIAG_VMWARE_SNAPSHOT_FILE_MISSING
+        # Generic session failure: only when an explicit outcome line exists.
+        if _SESSION_FAILED_RE.search(text):
+            return DIAG_VEEAM_SESSION_FAILED
         return ""
     if source_family == "vmware":
         if has_cbt:
@@ -157,6 +171,14 @@ _VEEAM_SEVERITY_RES = (
     (re.compile(r"\b(warning|warn)\b", re.IGNORECASE), "Warning"),
 )
 
+# Veeam config lines that should never trigger severity escalation.
+_SEVERITY_SUPPRESS_RES = (
+    re.compile(r"retry\s+times?\s+on\s+fail", re.IGNORECASE),
+    re.compile(r"use\s+fast\s+fail\s+on\s+socket\s+exception", re.IGNORECASE),
+    re.compile(r"retry\s+timeout", re.IGNORECASE),
+    re.compile(r"scheduleoptions", re.IGNORECASE),
+)
+
 
 def _first_match(patterns, text: str, default: str = "") -> str:
     for rx in patterns:
@@ -167,9 +189,22 @@ def _first_match(patterns, text: str, default: str = "") -> str:
 
 
 def _severity(text: str, default: str = "Information") -> str:
-    for rx, label in _VEEAM_SEVERITY_RES:
-        if rx.search(text):
-            return label
+    """Determine log severity from explicit signal lines, ignoring config text.
+
+    Only lines that are NOT suppressed as Veeam configuration settings are
+    considered when escalating severity to Error or Warning.
+    """
+    # Scan line by line so config lines don't poison the severity.
+    for line in (text or "").splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # Skip lines that are Veeam config/scheduler settings.
+        if any(rx.search(stripped) for rx in _SEVERITY_SUPPRESS_RES):
+            continue
+        for rx, label in _VEEAM_SEVERITY_RES:
+            if rx.search(stripped):
+                return label
     return default
 
 
@@ -189,19 +224,41 @@ def _job_name(text: str) -> str:
 
 
 def parse_veeam(text: str, filename_hint: str = "") -> EventMetadata:
-    """Parse Veeam Backup & Replication raw log / HTML report / syslog text."""
+    """Parse Veeam Backup & Replication raw log / HTML report / syslog text.
+
+    logName is built from the job name only (or filename / product default).
+    Raw log head text is never appended to logName.
+    """
     code = resolve_vendor_diagnostic(text, "veeam_vbr")
     job = _job_name(text)
     timestamp = _first_match(_VEEAM_TS_RES, text)
     level = _severity(text)
-    head = " ".join((text or "").split()[:40])
+
+    # Build a clean, concise logName — no raw log head appended.
+    if job:
+        log_name = f"Job: {job}"
+    elif filename_hint:
+        log_name = filename_hint
+    else:
+        log_name = "Veeam Backup & Replication Log"
+
+    # computer/host: leave blank if not present — never fabricate "Localhost".
+    computer = ""
+    host_m = re.search(
+        r"(?:computer|host(?:name)?)\s*[:=]\s*([A-Za-z0-9_.-]{2,64})",
+        text,
+        re.IGNORECASE,
+    )
+    if host_m:
+        computer = host_m.group(1).strip()
+
     return EventMetadata(
         eventId=code or "VEEAM-UNKNOWN",
         provider=_VEEAM_PRODUCT,
         level=level,
-        logName=(f"Job: {job} | " if job else "") + head[:150],
+        logName=log_name,
         timestamp=timestamp,
-        computer="",
+        computer=computer,
         isCritical=(level in ("Error", "Critical")),
         faultingApp="",
         sourceFamily="veeam_vbr",

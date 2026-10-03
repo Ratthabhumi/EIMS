@@ -60,6 +60,9 @@ FAMILY_OFFICIAL_DOMAINS = {
     "veeam_vbr": (
         "helpcenter.veeam.com",
         "veeam.com",
+        "www.veeam.com",
+        "knowledge.broadcom.com",
+        "support.broadcom.com",
     ),
     "vmware": (
         "knowledge.broadcom.com",
@@ -152,14 +155,24 @@ FAMILY_COMMUNITY_DOMAINS = {
 
 
 def _classify_source(link: str, tier: str, official_domains=None, community_domains=None) -> str:
+    """Classify a search result URL by its hostname.
+
+    STRICT ALLOWLIST: if the domain is not in the official or community
+    allowlist for this family, the result is DROPPED by the caller.  This
+    function signals a "drop" by returning the sentinel value "REJECT".
+    Results labeled "REJECT" must be discarded before being added to
+    SearchResult lists.
+    """
     domain = urlparse(link).netloc.lower()
     community = tuple(community_domains) if community_domains else tuple()
+    allowed = tuple(official_domains) if official_domains else OFFICIAL_DOMAINS
+
     if community and any(_host_matches(domain, c) for c in community):
         return "community"
-    allowed = tuple(official_domains) if official_domains else OFFICIAL_DOMAINS
     if any(_host_matches(domain, off) for off in allowed):
         return "official"
-    return tier
+    # Domain is not in the allowlist for this family — reject it.
+    return "REJECT"
 
 
 def _family_query(event_id: str, provider: str, source_family: str) -> str:
@@ -243,6 +256,9 @@ def search_solutions(
                         if not link or not can_link or can_link in seen_links:
                             continue
                         source_type = _classify_source(link, tier, official_domains, community_domains)
+                        # STRICT: reject any result from an unlisted domain.
+                        if source_type == "REJECT":
+                            continue
                         seen_links.add(can_link)
                         web_results.append(
                             SearchResult(
@@ -531,14 +547,15 @@ def _fallback_steps(language: str) -> List[str]:
 
 
 def _fallback_vendor_causes(family: str, who: str, language: str) -> List[str]:
+    """Honest fallback causes: do not invent storage/file/snapshot conditions."""
     if language == "th":
         return [
-            f"ขั้นตอนของ {who or family} ล้มเหลวตามข้อความ error ที่พบใน log",
-            "สถานะของไฟล์/ทรัพยากรที่ operation นี้อ้างถึงไม่สอดคล้องกัน",
+            f"จากหลักฐานที่มี ยืนยันได้เพียงว่า session/job ของ {who or family} ล้มเหลว "
+            "แต่ยังไม่พบข้อความ root-cause ที่เฉพาะเจาะจงเพียงพอ",
         ]
     return [
-        f"The {who or family} operation failed as recorded in the log lines",
-        "The files/resources referenced by this operation are in an inconsistent state",
+        f"The supplied evidence confirms that the {who or family} session/job failed, "
+        "but does not yet contain a sufficiently specific root-cause signature.",
     ]
 
 
@@ -620,6 +637,25 @@ def _build_from_web(
     if family in ("veeam_vbr", "vmware", "cisco_asa", "fortinet"):
         label = diagnostic_code or event_id
         who = product or provider
+        # Phase 2: for generic/unknown codes, do NOT prepend web snippet text
+        # as the primary overview.  Use an honest evidence-based statement.
+        _generic_codes = {"VEEAM-UNKNOWN", "VMWARE-UNKNOWN", "VEEAM-SESSION-FAILED", ""}
+        if label in _generic_codes or not label:
+            if target == "th":
+                overview = (
+                    f"{who}: session/job ล้มเหลว "
+                    "หลักฐานที่มีอยู่ยืนยันได้เพียงนี้ ยังไม่พบ root-cause signature ที่เฉพาะเจาะจง"
+                )
+            else:
+                overview = (
+                    f"{who}: The task/session completed with a Failed status. "
+                    "The supplied evidence does not yet contain a recognized root-cause signature."
+                )
+            causes = _fallback_vendor_causes(family, who, language)
+            steps = _fallback_vendor_steps(family, language)
+            return SolutionSummary(overview=overview, causes=causes, steps=steps)
+
+        # Specific diagnostic code: use search snippets for enrichment.
         overview_base = f"{who}: diagnostic {label}."
         if sentences:
             overview_base += f" {sentences[0]}"

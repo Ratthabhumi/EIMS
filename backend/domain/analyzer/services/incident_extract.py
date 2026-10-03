@@ -9,18 +9,60 @@ Runs BEFORE any AI/RAG/web step.  It reports what the evidence shows:
 
 It never asserts that the first failure *caused* the later one unless the
 input text contains explicit causal evidence.  Ordering is chronological.
+
+Veeam-aware severity:
+  A line is only promoted to a failure if it carries an explicit failure
+  outcome token (e.g. status: 'Failed') OR a known high-confidence
+  diagnostic keyword.  Configuration lines that merely *mention* words like
+  "failure", "retry", or "exception" as part of a setting name are
+  suppressed by _VEEAM_CONFIG_SUPPRESS patterns.
 """
 
 import re
 from typing import Dict, List, Optional
+
+# ---------------------------------------------------------------------------
+# Veeam configuration/informational lines that MUST NOT become failures.
+# These patterns match lines that describe scheduler/proxy settings, not
+# actual job outcomes.
+# ---------------------------------------------------------------------------
+_VEEAM_CONFIG_SUPPRESS = (
+    re.compile(r"retry\s+times?\s+on\s+fail", re.IGNORECASE),
+    re.compile(r"use\s+fast\s+fail\s+on\s+socket\s+exception", re.IGNORECASE),
+    re.compile(r"retry\s+timeout", re.IGNORECASE),
+    re.compile(r"scheduleoptions", re.IGNORECASE),
+    re.compile(r"backupoptions", re.IGNORECASE),
+    re.compile(r"joboptions", re.IGNORECASE),
+    re.compile(r"proxysettings", re.IGNORECASE),
+    # Generic key=value / colon patterns for config values
+    re.compile(r"^\s*\w[\w\s]*:\s*\[?\d+\]?\s*$", re.IGNORECASE),
+    re.compile(r"^\s*\w[\w\s]*:\s*(true|false)\s*$", re.IGNORECASE),
+)
 
 # Lines matching any of these are operational noise, not causal evidence.
 _NOISE_RES = (
     re.compile(r"successfully connected", re.IGNORECASE),
     re.compile(r"retry is not required", re.IGNORECASE),
     re.compile(r"processing finished successfully", re.IGNORECASE),
-    re.compile(r"^\s*(info|debug|trace)[\s:|-]", re.IGNORECASE),
+    # Explicit Info/Debug/Trace prefix (Veeam log format: [ts] <thread> [ctx] Info (N) ...)
+    re.compile(r"^\s*\[?[\d/:.T\-\s]+\]?\s*<[^>]*>\s*\[[^\]]*\]\s*(Info|Debug|Trace)\b", re.IGNORECASE),
+    re.compile(r"^\s*(info|debug|trace)\s*[\s:|-]", re.IGNORECASE),
     re.compile(r"heartbeat", re.IGNORECASE),
+)
+
+# High-confidence diagnostic keywords (rank 3) — specific failure signatures.
+_HIGH_CONFIDENCE_KEYWORDS = (
+    "could not delete change tracking file",
+    "invalidsnapshotformat",
+    "a required file was not found",
+    "invalid snapshot configuration",
+    "processing finished with errors",
+)
+
+# Explicit session/job failure outcome patterns (rank 2 — confirmed failures).
+_SESSION_FAILED_RE = re.compile(
+    r"(?:task|job)\s+session\s+['\"]?[^'\"]*['\"]?\s+has\s+been\s+completed[,\s]+status\s*:\s*['\"]?failed['\"]?",
+    re.IGNORECASE,
 )
 
 _SIGNAL_RES = (
@@ -35,18 +77,57 @@ _SIGNAL_RES = (
     re.compile(r"processing finished with errors", re.IGNORECASE),
 )
 
+# Stage patterns now require context from *signal lines*, not the whole file.
+# A stage label is only emitted when the SAME line that triggers it is itself
+# a signal line (score >= 1) — or when we find an explicit session outcome.
 _STAGE_RES = (
     (re.compile(r"prepare\s*target|preparing target", re.IGNORECASE), "PrepareTarget"),
     (re.compile(r"deleting helper snapshot", re.IGNORECASE), "DeletingHelperSnapshot"),
     (re.compile(r"revertsnapshot|revert.*snapshot|snapshot.*revert", re.IGNORECASE), "RevertSnapshot"),
     (re.compile(r"creating?\s+(helper\s+)?snapshot", re.IGNORECASE), "CreateSnapshot"),
-    (re.compile(r"\bretry\b|\bretrying\b", re.IGNORECASE), "Retry"),
+    # "Retry" stage only from actual retry outcome lines, NOT config lines.
+    (re.compile(r"^\s*retrying\b|retrying\s+in\s+\d+", re.IGNORECASE), "Retry"),
+    # Session completion → SessionResult
+    (re.compile(
+        r"(?:task|job)\s+session\s+['\"]?[^'\"]*['\"]?\s+has\s+been\s+completed",
+        re.IGNORECASE,
+    ), "SessionResult"),
     (re.compile(r"processing finished", re.IGNORECASE), "SessionResult"),
 )
 
-# A path-like token: drive-letter, UNC, datastore bracket, or /.../... path.
+# ---------------------------------------------------------------------------
+# Path extraction — only accept real filesystem paths.
+# Generic Unix /.../... is intentionally excluded to prevent HTML fragment
+# false-positives.  Accepted forms:
+#   C:\...  \\server\share\...  [datastore] VM/VM.vmdk
+#   /vmfs/volumes/...  /var/log/...  fileName='...'
+# ---------------------------------------------------------------------------
+_HTML_TAG_FRAG_RE = re.compile(r"/[a-z]+>", re.IGNORECASE)
+
 _PATH_RE = re.compile(
-    r"(?:[A-Za-z]:\\[^\s\"']+|\\\\[^\s\"']+|\[[^\]]+\]\s*[^\s\"']+|/(?:[^\s\"':;]+/)+[^\s\"':;]+)"
+    r"""(?x)
+    (?:
+        # Windows drive path
+        [A-Za-z]:\\[^\s"'<>]+
+        |
+        # UNC path
+        \\\\[^\s"'<>]+
+        |
+        # VMware datastore bracket notation
+        \[[^\]]{1,80}\]\s*[^\s"'<>]{1,120}
+        |
+        # VMware/Linux specific roots
+        /vmfs/[^\s"'<>;]+
+        |
+        /var/log/[^\s"'<>;]+
+        |
+        /etc/[^\s"'<>;]+
+        |
+        # fileName= quoted path (any OS)
+        filename\s*=\s*['"]([^'"]{4,})['"]\s*
+    )
+    """,
+    re.IGNORECASE,
 )
 
 _GENERIC_NEXT_EVIDENCE = [
@@ -56,10 +137,10 @@ _GENERIC_NEXT_EVIDENCE = [
 
 _FAMILY_NEXT_EVIDENCE: Dict[str, List[str]] = {
     "veeam_vbr": [
-        "Replica VM vmware.log",
-        "ESXi hostd.log",
-        "Datastore file listing",
-        "Veeam Task/Job session logs (Export Logs from %ProgramData%\\Veeam\\Backup)",
+        "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+        "Veeam Job session log",
+        "Agent/component log from the relevant Veeam component",
+        "vmware.log / hostd.log when a VMware operation is implicated",
     ],
     "vmware": [
         "VM vmware.log",
@@ -77,25 +158,65 @@ _FAMILY_NEXT_EVIDENCE: Dict[str, List[str]] = {
 }
 
 
+def _is_veeam_config_line(line: str) -> bool:
+    """Return True if the line is a Veeam configuration/scheduler setting."""
+    return any(rx.search(line) for rx in _VEEAM_CONFIG_SUPPRESS)
+
+
 def _is_noise(line: str) -> bool:
     stripped = line.strip()
     if len(stripped) < 8:
+        return True
+    if _is_veeam_config_line(stripped):
         return True
     return any(rx.search(stripped) for rx in _NOISE_RES)
 
 
 def _signal_strength(line: str) -> int:
+    """
+    Return signal strength.
+
+    3 = high-confidence specific diagnostic keyword
+    2 = explicit session/job failure outcome OR strong error word on a
+        non-config, non-Info line
+    1 = warning / soft signal
+    0 = no signal
+
+    Config lines and explicit Info lines always return 0.
+    """
+    # Config suppression takes priority.
+    if _is_veeam_config_line(line):
+        return 0
+
     lowered = line.lower()
-    if any(
-        k in lowered
-        for k in (
-            "could not delete change tracking file",
-            "invalidsnapshotformat",
-            "a required file was not found",
-            "invalid snapshot configuration",
-        )
-    ):
+
+    # High-confidence diagnostic keywords.
+    if any(k in lowered for k in _HIGH_CONFIDENCE_KEYWORDS):
         return 3
+
+    # Explicit session/job failure outcome.
+    if _SESSION_FAILED_RE.search(line):
+        return 2
+
+    # Explicit Veeam log-level prefix: [ts] <thread> [ctx] Warning/Error/...
+    # A line with explicit "Error" or "Warning" prefix in Veeam format qualifies.
+    veeam_level_m = re.search(
+        r"\]\s*(Error|Warning|Critical|Fatal)\b",
+        line,
+        re.IGNORECASE,
+    )
+    if veeam_level_m:
+        level = veeam_level_m.group(1).lower()
+        if level in ("error", "critical", "fatal"):
+            return 2
+        if level == "warning":
+            return 1
+
+    # Generic failure words — but only when NOT on an Info/config line.
+    # We already filtered Info prefix in _is_noise; here handle residual cases.
+    if re.search(r"^\s*\[?[\d/:.T\-\s]+\]?\s*<[^>]*>\s*\[[^\]]*\]\s*Info\b", line, re.IGNORECASE):
+        return 0
+
     if re.search(r"\b(failed|failure|fatal|critical|exception)\b", lowered):
         return 2
     if any(rx.search(line) for rx in _SIGNAL_RES):
@@ -115,8 +236,8 @@ def extract_incident(text: str, source_family: str = "") -> Dict[str, object]:
     first: Optional[str] = failures[0][1] if failures else (warnings[0][1] if warnings else None)
     terminal: Optional[str] = None
     if failures:
-        # Last strong failure; prefer an explicit session outcome line.
-        outcome = [ln for _, ln in failures if "processing finished" in ln.lower()]
+        # Prefer an explicit session outcome line as terminal.
+        outcome = [ln for _, ln in failures if _SESSION_FAILED_RE.search(ln) or "processing finished" in ln.lower()]
         terminal = outcome[-1] if outcome else failures[-1][1]
     elif warnings:
         terminal = warnings[-1][1]
@@ -131,9 +252,12 @@ def extract_incident(text: str, source_family: str = "") -> Dict[str, object]:
             if len(timeline) >= 12:
                 break
 
+    # Stage: infer only from signal lines (score >= 1), not whole-file scan.
+    # This prevents ScheduleOptions config text from driving operationStage.
+    signal_text = "\n".join(ln for _, ln, s in scored if s >= 1)
     stages: List[str] = []
     for rx, label in _STAGE_RES:
-        if rx.search(text or "") and label not in stages:
+        if rx.search(signal_text) and label not in stages:
             stages.append(label)
     stage = " / ".join(stages) if stages else ""
 
@@ -163,17 +287,31 @@ def extract_incident(text: str, source_family: str = "") -> Dict[str, object]:
         "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
         "Whether the file was locked, corrupt, moved, renamed, or absent",
     ]
-    # If a concrete path IS present in a failure/warning line — or in a nearby
-    # context line that literally names a file (/vmfs/, fileName=, drive
-    # path) — it is observed, not unknown.  Never inferred, only matched.
-    _PATH_HINT_RE = re.compile(r"filename\s*[:=]|/vmfs/|[A-Za-z]:\\")
+
+    # Path extraction — only accepted filesystem paths; reject HTML fragments.
     path_lines = list(failures) + [w for w in warnings if w not in failures]
+    _PATH_HINT_RE = re.compile(r"filename\s*[:=]|/vmfs/|[A-Za-z]:\\")
     path_lines += [
         (i, ln)
         for i, ln, s in scored
         if s == 0 and _PATH_HINT_RE.search(ln) and (i, ln) not in path_lines
     ]
-    observed_paths = sorted({m.group(0) for _, ln in path_lines for m in _PATH_RE.finditer(ln)})[:3]
+
+    raw_paths: List[str] = []
+    for _, ln in path_lines:
+        # Skip lines that look like they contain HTML fragments.
+        if _HTML_TAG_FRAG_RE.search(ln):
+            continue
+        for m in _PATH_RE.finditer(ln):
+            candidate = m.group(0).strip()
+            # Reject anything that still has HTML tag-like content.
+            if _HTML_TAG_FRAG_RE.search(candidate):
+                continue
+            # Must be at least 4 characters of meaningful path.
+            if len(candidate) >= 4:
+                raw_paths.append(candidate)
+
+    observed_paths = sorted(set(raw_paths))[:3]
 
     next_evidence = list(_FAMILY_NEXT_EVIDENCE.get(source_family or "", _GENERIC_NEXT_EVIDENCE))
 

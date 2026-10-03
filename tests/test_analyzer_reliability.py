@@ -310,9 +310,10 @@ def test_classify_source_only_vendor_domains_are_official():
     assert summary_mod._classify_source(
         "https://learn.microsoft.com/x", "community"
     ) == "official"
+    # reddit.com is not in any allowlist without community_domains arg — REJECT.
     assert summary_mod._classify_source(
         "https://www.reddit.com/r/x", "community"
-    ) == "community"
+    ) == "REJECT"
     assert summary_mod._classify_source(
         "https://helpcenter.veeam.com/y",
         "community",
@@ -323,7 +324,7 @@ def test_classify_source_only_vendor_domains_are_official():
         "https://learn.microsoft.com/x",
         "community",
         summary_mod.FAMILY_OFFICIAL_DOMAINS["veeam_vbr"],
-    ) == "community"
+    ) == "REJECT"
     # Vendor-owned community (forums.veeam.com) is community by hostname equality.
     assert summary_mod._classify_source(
         "https://forums.veeam.com/topic/1",
@@ -530,7 +531,8 @@ def test_incident_first_vs_terminal_without_causal_claim():
     assert incident["firstMeaningfulFailure"] is not None
     assert "change tracking" in incident["firstMeaningfulFailure"].lower()
     assert incident["terminalFailure"] is not None
-    assert "required file was not found" in incident["terminalFailure"].lower()
+    # terminal is 'processing finished with errors' (the explicit session outcome line).
+    assert "processing finished" in incident["terminalFailure"].lower()
     assert incident["firstMeaningfulFailure"] != incident["terminalFailure"]
     import json as _json
 
@@ -798,18 +800,19 @@ def test_forums_veeam_is_community():
 
 
 def test_lookalike_domain_is_not_official():
+    # Unlisted domains are now REJECT, not 'community' — strict allowlist.
     assert summary_mod._classify_source(
         "https://notveeam.com/docs/x",
         "community",
         _official("veeam_vbr"),
         community_domains=_community("veeam_vbr"),
-    ) == "community"
+    ) == "REJECT"
     assert summary_mod._classify_source(
         "https://veeam.com.evil.example/docs",
         "community",
         _official("veeam_vbr"),
         community_domains=_community("veeam_vbr"),
-    ) == "community"
+    ) == "REJECT"
 
 
 def test_vendor_community_domains_are_community():
@@ -1249,6 +1252,116 @@ def test_generic_veeam_rfc5424_parsing():
     assert fields.get("VbrVersion") == "12.1.0"
     assert fields.get("SourceType") == "VM"
     assert fields.get("Flags") == "0x04"
+
+# ---------------------------------------------------------------------------
+# Phase 11 — Sanitized field case: generic session failure
+# ---------------------------------------------------------------------------
+
+from tests._field_fixture_veeam import VEEAM_FIELD_FIXTURE as _VEEAM_FIELD_FIXTURE
+
+
+def test_field_generic_session_failed_code():
+    meta = parse_veeam(_VEEAM_FIELD_FIXTURE)
+    assert meta.sourceFamily == "veeam_vbr"
+    assert meta.diagnosticCode == "VEEAM-SESSION-FAILED"
+    assert meta.eventId == "VEEAM-SESSION-FAILED"
+
+
+def test_field_first_failure_is_session_line():
+    inc = extract_incident(_VEEAM_FIELD_FIXTURE, source_family="veeam_vbr")
+    first = inc["firstMeaningfulFailure"] or ""
+    assert "Task session" in first and "Failed" in first, f"Expected session Failed line, got: {first!r}"
+    assert "Retry times on failure" not in first
+    assert "Use fast fail on socket exception" not in first
+
+
+def test_field_terminal_failure_not_config_line():
+    inc = extract_incident(_VEEAM_FIELD_FIXTURE, source_family="veeam_vbr")
+    terminal = inc["terminalFailure"] or ""
+    assert "Use fast fail on socket exception" not in terminal
+    assert "Retry times on failure" not in terminal
+
+
+def test_field_operation_stage_not_retry_from_config():
+    inc = extract_incident(_VEEAM_FIELD_FIXTURE, source_family="veeam_vbr")
+    stage = inc["operationStage"]
+    assert stage != "Retry", f"Stage should not be Retry from config text; got: {stage!r}"
+    assert stage in ("", "SessionResult"), f"Unexpected stage: {stage!r}"
+
+
+def test_field_no_html_fragment_paths():
+    inc = extract_incident(_VEEAM_FIELD_FIXTURE, source_family="veeam_vbr")
+    paths = inc["observedPaths"]
+    for p in paths:
+        assert "/b>" not in p, f"HTML fragment in path: {p!r}"
+        assert "/td>" not in p, f"HTML fragment in path: {p!r}"
+        assert "/tr>" not in p, f"HTML fragment in path: {p!r}"
+        assert "/span>" not in p, f"HTML fragment in path: {p!r}"
+    assert paths == [], f"Expected no paths for this fixture, got: {paths}"
+
+
+def test_field_severity_not_error_from_config_only():
+    from backend.domain.analyzer.services.vendor_parsers import _severity
+    config_only = "Job ScheduleOptions:\nRetry times on failure: [3]\nRetry timeout: [10 min]\nUse fast fail on socket exception: True\n"
+    level = _severity(config_only)
+    assert level != "Error", f"Expected non-Error severity for config-only text, got: {level!r}"
+
+
+def test_field_logname_no_raw_head():
+    meta = parse_veeam(_VEEAM_FIELD_FIXTURE)
+    assert "Retry times on failure" not in meta.logName
+    assert "ProxyDetector" not in meta.logName
+    assert meta.logName == "Veeam Backup & Replication Log"
+
+
+# ---------------------------------------------------------------------------
+# Phase 12 — Search domain rejection regression
+# ---------------------------------------------------------------------------
+
+
+def test_search_domain_reject_thaiticketmajor():
+    from backend.domain.analyzer.services.summary import _classify_source, FAMILY_OFFICIAL_DOMAINS, FAMILY_COMMUNITY_DOMAINS
+    official = FAMILY_OFFICIAL_DOMAINS.get("veeam_vbr", ())
+    community = FAMILY_COMMUNITY_DOMAINS.get("veeam_vbr", ())
+    result = _classify_source("https://www.thaiticketmajor.com/some-veeam-page", "official", official, community)
+    assert result == "REJECT", f"thaiticketmajor.com must be REJECT for veeam_vbr, got: {result!r}"
+
+
+def test_search_domain_accept_helpcenter_veeam():
+    from backend.domain.analyzer.services.summary import _classify_source, FAMILY_OFFICIAL_DOMAINS, FAMILY_COMMUNITY_DOMAINS
+    official = FAMILY_OFFICIAL_DOMAINS.get("veeam_vbr", ())
+    community = FAMILY_COMMUNITY_DOMAINS.get("veeam_vbr", ())
+    result = _classify_source("https://helpcenter.veeam.com/docs/backup/vsphere/replica_job.html", "official", official, community)
+    assert result == "official"
+
+
+def test_search_domain_accept_forums_veeam():
+    from backend.domain.analyzer.services.summary import _classify_source, FAMILY_OFFICIAL_DOMAINS, FAMILY_COMMUNITY_DOMAINS
+    official = FAMILY_OFFICIAL_DOMAINS.get("veeam_vbr", ())
+    community = FAMILY_COMMUNITY_DOMAINS.get("veeam_vbr", ())
+    result = _classify_source("https://forums.veeam.com/veeam-backup-replication-f2/topic-12345.html", "community", official, community)
+    assert result == "community"
+
+
+def test_search_domain_accept_knowledge_broadcom():
+    from backend.domain.analyzer.services.summary import _classify_source, FAMILY_OFFICIAL_DOMAINS, FAMILY_COMMUNITY_DOMAINS
+    official = FAMILY_OFFICIAL_DOMAINS.get("veeam_vbr", ())
+    community = FAMILY_COMMUNITY_DOMAINS.get("veeam_vbr", ())
+    result = _classify_source("https://knowledge.broadcom.com/external/article?articleNumber=424591", "official", official, community)
+    assert result == "official"
+
+
+def test_vendor_diagnostic_code_includes_session_failed():
+    assert is_vendor_diagnostic_code("VEEAM-SESSION-FAILED")
+    assert is_vendor_diagnostic_code("VEEAM-REPLICA-SNAPSHOT-CHAIN")
+    assert is_vendor_diagnostic_code("VMWARE-CBT-DELETE-FAILED")
+    assert not is_vendor_diagnostic_code("VEEAM-UNKNOWN")
+    assert not is_vendor_diagnostic_code("")
+
+
+# ---------------------------------------------------------------------------
+# Duplicate guard (must remain last)
+# ---------------------------------------------------------------------------
 
 
 def test_no_duplicate_test_function_names():
