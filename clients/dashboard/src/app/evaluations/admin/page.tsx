@@ -5,7 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Plus, X, Share2, Star, Search, ArrowLeft, Trash2, Edit2 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, authHeaders } from "@/lib/api";
 
 interface ServiceSession {
   session_id: string;
@@ -70,9 +70,7 @@ export default function EvaluationAdmin() {
   };
 
   const getAuthHeaders = () => {
-    // In demo mode, no auth required for read operations
-    // Admin write operations will use the backend's admin token verification
-    return { "Content-Type": "application/json" };
+    return authHeaders({ "Content-Type": "application/json" });
   };
 
   useEffect(() => {
