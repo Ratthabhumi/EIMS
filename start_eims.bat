@@ -20,9 +20,9 @@ echo.
 echo ===================================================
 echo   [2/6] Starting EIMS Infrastructure (Docker)...
 echo ===================================================
-docker compose up -d --wait --wait-timeout 120
+docker compose up -d
 if errorlevel 1 (
-    echo [ERROR] 'docker compose up --wait' reported a failure. Current state:
+    echo [ERROR] 'docker compose up -d' failed. Current state:
     docker compose ps
     pause
     exit /b 1
@@ -30,20 +30,61 @@ if errorlevel 1 (
 
 echo.
 echo ===================================================
-echo   [3/6] Verifying core services are healthy...
+echo   [3/6] Verifying core services and setup...
 echo ===================================================
-set "UNHEALTHY=0"
-for %%C in (eims-postgres eims-redis eims-minio) do (
-    for /f "tokens=*" %%S in ('docker inspect -f "{{.State.Health.Status}}" %%C 2^>nul') do set "HSTATUS=%%S"
-    if "!HSTATUS!"=="" (
-        for /f "tokens=*" %%S in ('docker inspect -f "{{.State.Status}}" %%C 2^>nul') do set "HSTATUS=running:%%S"
+echo Polling core infrastructure (Postgres, Redis, MinIO)...
+set "CORE_OK=0"
+for /L %%I in (1,1,30) do (
+    set "UNHEALTHY=0"
+    for %%C in (eims-postgres eims-redis eims-minio) do (
+        set "HSTATUS="
+        for /f "tokens=*" %%S in ('docker inspect -f "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" %%C 2^>nul') do set "HSTATUS=%%S"
+        if not "!HSTATUS!"=="healthy" if not "!HSTATUS!"=="running" set "UNHEALTHY=1"
     )
-    echo   - %%C : !HSTATUS!
-    if not "!HSTATUS!"=="healthy" if not "!HSTATUS!"=="running:running" set "UNHEALTHY=1"
+    if "!UNHEALTHY!"=="0" (
+        set "CORE_OK=1"
+        goto :core_ready
+    )
+    timeout /t 2 /nobreak >nul
 )
-if "!UNHEALTHY!"=="1" (
-    echo [ERROR] One or more core services are not healthy. Current state:
+:core_ready
+if "!CORE_OK!"=="0" (
+    echo [ERROR] Core services did not become healthy in time. Current state:
     docker compose ps
+    pause
+    exit /b 1
+)
+for %%C in (eims-postgres eims-redis eims-minio) do (
+    set "HSTATUS="
+    for /f "tokens=*" %%S in ('docker inspect -f "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" %%C 2^>nul') do set "HSTATUS=%%S"
+    echo   - %%C : !HSTATUS!
+)
+
+echo Checking one-shot container eims-minio-setup...
+set "SETUP_OK=0"
+for /L %%I in (1,1,20) do (
+    set "HSTATUS="
+    set "SETUP_EXIT="
+    for /f "tokens=*" %%S in ('docker inspect -f "{{.State.Status}}" eims-minio-setup 2^>nul') do set "HSTATUS=%%S"
+    for /f "tokens=*" %%S in ('docker inspect -f "{{.State.ExitCode}}" eims-minio-setup 2^>nul') do set "SETUP_EXIT=%%S"
+    if "!HSTATUS!"=="exited" (
+        if "!SETUP_EXIT!"=="0" (
+            set "SETUP_OK=1"
+            echo   - eims-minio-setup : exited (exit code 0)
+            goto :setup_done
+        ) else (
+            echo [ERROR] eims-minio-setup failed with exit code !SETUP_EXIT!.
+            docker logs eims-minio-setup
+            pause
+            exit /b 1
+        )
+    )
+    timeout /t 2 /nobreak >nul
+)
+:setup_done
+if "!SETUP_OK!"=="0" (
+    echo [ERROR] eims-minio-setup did not exit cleanly in time. Status: !HSTATUS!
+    docker logs eims-minio-setup
     pause
     exit /b 1
 )
