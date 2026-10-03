@@ -120,7 +120,9 @@ async def add_solution(
     description: str, 
     solution_summary: dict, 
     feedback_score: int = 0, 
-    api_key: Optional[str] = None
+    api_key: Optional[str] = None,
+    source_family: Optional[str] = None,
+    diagnostic_identity: Optional[str] = None,
 ):
     """Adds a log and its verified solution to the Vector Knowledge Base.
 
@@ -129,6 +131,13 @@ async def add_solution(
     exclude it.  When no exact row exists there is nothing to quarantine
     and nothing is inserted.
     """
+    sol_dict = dict(solution_summary) if isinstance(solution_summary, dict) else {}
+    if source_family or diagnostic_identity:
+        sol_dict["_knowledge"] = {
+            "sourceFamily": str(source_family or ""),
+            "diagnosticIdentity": str(diagnostic_identity or event_id or ""),
+        }
+
     try:
         # Check if we already have this exact solution
         existing = (await db.execute(select(VectorKnowledge).filter(VectorKnowledge.event_id == str(event_id), VectorKnowledge.description == description))).scalars().first()
@@ -142,8 +151,8 @@ async def add_solution(
         # Quarantine path: a thumbs-down lands here and the row becomes
         # non-retrievable via the feedback_score guardrail below.
         existing.feedback_score = feedback_score
-        if solution_summary:
-            existing.solution_json = solution_summary
+        if sol_dict:
+            existing.solution_json = sol_dict
         if feedback_score >= 0:
             refresh_text = redact_for_embedding(f"Event ID: {event_id}. Description: {description}")
             try:
@@ -179,7 +188,7 @@ async def add_solution(
             event_id=str(event_id),
             description=description,
             embedding=embedding,
-            solution_json=solution_summary,
+            solution_json=sol_dict,
             feedback_score=feedback_score
         )
         db.add(new_knowledge)
@@ -195,16 +204,23 @@ def _is_usable_knowledge_row(
     request_family: str,
     distance: float,
     max_distance: float = CROSS_IDENTITY_MAX_DISTANCE,
+    row_solution_json: Optional[dict] = None,
 ) -> bool:
     """Pure retrieval-guardrail predicate (unit-testable, no DB).
 
     Rules:
     - negative feedback rows are never retrievable;
+    - unidentified sources (unknown_text) perform NO retrieval;
     - vendor diagnostic requests reuse ONLY the exact same code
       (Windows solutions can never answer Veeam/VMware and vice versa);
-    - unverified score-0 rows are reusable ONLY under the exact same
-      diagnostic identity;
-    - cross-identity reuse additionally requires a close vector distance.
+    - Cisco ASA -> cisco_asa only;
+    - Fortinet -> fortinet only;
+    - Linux -> linux_syslog only;
+    - JSON -> json only;
+    - Windows numeric -> windows_event only;
+    - Legacy unmarked rows: conservative compatibility only (legacy numeric -> Windows only);
+    - unverified score-0 rows are reusable ONLY under the exact same diagnostic identity;
+    - cross-identity reuse within allowed family requires positive feedback AND close distance.
     """
     try:
         score = int(row_score) if row_score is not None else 0
@@ -213,30 +229,66 @@ def _is_usable_knowledge_row(
     if score < 0:
         return False
 
-    if (request_family or "") == "unknown_text":
-        # Unidentified sources never reuse cross-domain knowledge.
+    req_family = str(request_family or "").strip()
+    if req_family == "unknown_text":
         return False
 
-    row_id = str(row_event_id or "")
-    req = str(request_identity or "")
-    req_is_vendor = is_vendor_diagnostic_code(req)
-    row_is_vendor = is_vendor_diagnostic_code(row_id)
+    row_id = str(row_event_id or "").strip()
+    req_id = str(request_identity or "").strip()
 
+    knowledge = (row_solution_json or {}).get("_knowledge") if isinstance(row_solution_json, dict) else None
+    if knowledge and isinstance(knowledge, dict):
+        row_family = str(knowledge.get("sourceFamily") or "").strip()
+        row_diag = str(knowledge.get("diagnosticIdentity") or row_id).strip()
+    else:
+        row_family = ""
+        row_diag = row_id
+
+    req_is_vendor = req_family in ("veeam_vbr", "vmware") or is_vendor_diagnostic_code(req_id)
+    row_is_vendor = row_family in ("veeam_vbr", "vmware") or is_vendor_diagnostic_code(row_diag)
+
+    # Vendor isolation: vendor can only answer exact same vendor diagnostic code
     if req_is_vendor:
-        return row_id == req
+        if not row_is_vendor:
+            return False
+        if row_family and req_family and row_family != req_family:
+            return False
+        return row_diag == req_id
+
     if row_is_vendor:
-        # A vendor solution must never answer a non-vendor request.
+        # A vendor row must never answer a non-vendor request
         return False
 
-    if not req or req == "Unknown":
-        # No diagnostic identity: only positively verified rows, gated.
-        if score <= 0:
+    # Family-specific matching for known non-vendor families
+    if req_family in ("cisco_asa", "fortinet", "linux_syslog", "json"):
+        if row_family != req_family:
             return False
-        return distance <= max_distance
 
-    if row_id == req:
+    # Legacy unmarked rows
+    if not row_family:
+        if row_id.isdigit():
+            # Legacy numeric row is Windows only
+            if req_family != "windows_event":
+                return False
+            if row_id == req_id:
+                return True
+            if score <= 0:
+                return False
+            return distance <= max_distance
+        else:
+            # Conservative compatibility for other legacy rows
+            if req_family in ("cisco_asa", "fortinet", "linux_syslog", "json", "veeam_vbr", "vmware"):
+                return False
+
+    if req_family == "windows_event":
+        if row_family and row_family != "windows_event":
+            return False
+
+    # Same identity check
+    if req_id and req_id != "Unknown" and row_diag == req_id:
         return True
-    # Cross-identity: verified rows only, and only when genuinely close.
+
+    # Cross-identity within the same family: must be verified (score > 0) and close
     if score <= 0:
         return False
     return distance <= max_distance
@@ -302,6 +354,7 @@ async def search_similar_logs(
                 identity,
                 family,
                 distance,
+                row_solution_json=getattr(entity, "solution_json", None),
             ):
                 continue
             if getattr(entity, "solution_json", None):

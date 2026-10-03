@@ -40,13 +40,24 @@ async def submit_feedback(
     # Add to RAG vector DB if positive
     if req.score > 0 and history_item.solution_summary:
         try:
-            add_solution(
+            from backend.domain.analyzer.services.bundle import derive_bundle_semantic_document_from_metadata
+            desc_to_sync = history_item.description
+            em = history_item.event_metadata if isinstance(history_item.event_metadata, dict) else {}
+            attrs = em.get("attributes") if isinstance(em.get("attributes"), dict) else {}
+            if "bundle" in attrs or (history_item.parse_method and "bundle" in str(history_item.parse_method).lower()):
+                desc_to_sync = derive_bundle_semantic_document_from_metadata(em, history_item.solution_summary or {})
+
+            source_fam = em.get("sourceFamily")
+            diag_id = em.get("diagnosticCode") or history_item.event_id
+            await add_solution(
                 db=db,
                 event_id=history_item.event_id,
-                description=history_item.description,
+                description=desc_to_sync,
                 solution_summary=history_item.solution_summary,
                 feedback_score=req.score,
-                api_key=x_gemini_api_key
+                api_key=x_gemini_api_key,
+                source_family=source_fam,
+                diagnostic_identity=diag_id,
             )
         except Exception as e:
             print(f"Failed to add to vector DB: {e}")

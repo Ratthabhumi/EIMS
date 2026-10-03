@@ -127,12 +127,23 @@ async def submit_feedback(
     # Sync with Vector DB if available
     try:
         from backend.domain.analyzer.services.vector_db import add_solution
+        from backend.domain.analyzer.services.bundle import derive_bundle_semantic_document_from_metadata
+        desc_to_sync = record.description
+        em = record.event_metadata if isinstance(record.event_metadata, dict) else {}
+        attrs = em.get("attributes") if isinstance(em.get("attributes"), dict) else {}
+        if "bundle" in attrs or (record.parse_method and "bundle" in str(record.parse_method).lower()):
+            desc_to_sync = derive_bundle_semantic_document_from_metadata(em, record.solution_summary or {})
+
+        source_fam = em.get("sourceFamily")
+        diag_id = em.get("diagnosticCode") or record.event_id
         await add_solution(
             db=db,
             event_id=record.event_id,
-            description=record.description,
+            description=desc_to_sync,
             solution_summary=record.solution_summary,
             feedback_score=score,
+            source_family=source_fam,
+            diagnostic_identity=diag_id,
         )
     except Exception as e:
         print(f"Failed to update Vector DB feedback: {e}")
