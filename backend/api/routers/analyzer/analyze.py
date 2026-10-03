@@ -29,7 +29,11 @@ from backend.domain.analyzer.services.bundle import (
     BUNDLE_MAX_FILES,
     BUNDLE_MAX_TOTAL_BYTES,
     UploadTooLarge,
+    build_evidence_items,
+    correlate_bundle,
     read_upload_bounded,
+    summarize_file_evidence,
+    validate_bundle,
     derive_bundle_semantic_document_from_metadata,
 )
 from backend.domain.analyzer.services.summary import (

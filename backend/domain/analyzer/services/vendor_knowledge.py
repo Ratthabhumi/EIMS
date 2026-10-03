@@ -171,6 +171,19 @@ def _article_applies(article: VendorArticle, diagnostic_code: str, text: str) ->
     return True
 
 
+def _article_allowed(article_id: str, diagnostic_code: str, evidence_text: str) -> bool:
+    """Reuse the retrieval context gates for deterministic summary text.
+
+    Environment-specific articles (vSAN ESA, vVOLs, ...) must never be
+    named in canned guidance unless the evidence satisfies their gates.
+    Fails closed on empty evidence.
+    """
+    for article in VENDOR_ARTICLES:
+        if article.article_id == article_id:
+            return _article_applies(article, diagnostic_code, evidence_text or "")
+    return False
+
+
 def vendor_reference_results(diagnostic_code: str, evidence_text: str, language: str) -> List[SearchResult]:
     """Deterministic official KB references for a diagnostic code + evidence.
 
@@ -202,10 +215,29 @@ def vendor_reference_results(diagnostic_code: str, evidence_text: str, language:
     return results
 
 
-def _vendor_entry(code: str, language: str) -> Optional[SolutionSummary]:
+def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional[SolutionSummary]:
     lang = language if language in ("th", "en") else "th"
 
     if code == "VMWARE-CBT-DELETE-FAILED":
+        # Name only the Broadcom articles whose environment gates the
+        # evidence satisfies.  418256 (CTK) is definitional for this code;
+        # 442155 needs vSAN + ESA, 411756 needs vVOLs — never cite them
+        # without that environment evidence.
+        _articles = ["Article 418256 (CTK)"]
+        if _article_allowed("442155", code, evidence_text):
+            _articles.append("Article 442155 (vSAN ESA)")
+        if _article_allowed("411756", code, evidence_text):
+            _articles.append("Article 411756 (vVOLs)")
+        _articles_en = (
+            "Refer to official Broadcom material: "
+            + ", ".join(_articles)
+            + " — verify each article’s scope before applying"
+        )
+        _articles_th = (
+            "อ้างอิงเอกสารทางการของ Broadcom: "
+            + ", ".join(_articles)
+            + " — ตรวจสอบเงื่อนไขของแต่ละบทความก่อนนำไปใช้"
+        )
         return _summary(
             overview=_th_en(
                 "VMware ไม่สามารถลบ change-tracking (.ctk) file ได้ "
@@ -238,8 +270,8 @@ def _vendor_entry(code: str, language: str) -> Optional[SolutionSummary]:
                     lang,
                 ),
                 _th_en(
-                    "อ้างอิงเอกสารทางการของ Broadcom: Article 442155 (vSAN ESA), Article 418256 (CTK), Article 411756 (vVOLs) — ตรวจสอบเงื่อนไขของแต่ละบทความก่อนนำไปใช้",
-                    "Refer to official Broadcom material: Article 442155 (vSAN ESA), Article 418256 (CTK), Article 411756 (vVOLs) — verify each article’s scope before applying",
+                    _articles_th,
+                    _articles_en,
                     lang,
                 ),
             ],
@@ -382,11 +414,17 @@ def _vendor_entry(code: str, language: str) -> Optional[SolutionSummary]:
     return None
 
 
-def get_vendor_summary(diagnostic_code: str, language: str) -> Optional[SolutionSummary]:
-    """Return the deterministic curated summary for a diagnostic code."""
+def get_vendor_summary(
+    diagnostic_code: str, language: str, evidence_text: str = ""
+) -> Optional[SolutionSummary]:
+    """Return the deterministic curated summary for a diagnostic code.
+
+    evidence_text gates environment-specific article mentions (vSAN ESA,
+    vVOLs); empty evidence fails those gates closed.
+    """
     if not diagnostic_code:
         return None
-    return _vendor_entry(diagnostic_code.strip(), language)
+    return _vendor_entry(diagnostic_code.strip(), language, evidence_text or "")
 
 
 def vendor_reference_titles() -> Dict[str, List[str]]:

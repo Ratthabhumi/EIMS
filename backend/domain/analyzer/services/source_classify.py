@@ -40,6 +40,11 @@ _VEEAM_MARKERS = (
     r"job session",
     r"deleting helper snapshot",
     r"backup & replication console",
+    r"scheduleoptions",
+    r"retry times on failure",
+    r"proxydetector",
+    r"use fast fail on socket exception",
+    r"vcp deployer",
 )
 
 _VMWARE_MARKERS = (

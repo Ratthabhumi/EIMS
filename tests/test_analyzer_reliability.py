@@ -944,6 +944,20 @@ def test_vsan_esa_gate():
     )
 
 
+def test_cbt_entry_names_no_esa_article_without_environment():
+    summary = get_vendor_summary("VMWARE-CBT-DELETE-FAILED", "en", VMWARE_CTK_TEXT)
+    blob = " ".join(summary.steps)
+    assert "442155" not in blob, f"CBT steps must not cite vSAN ESA article without vSAN+ESA evidence: {blob!r}"
+    assert "411756" not in blob, f"CBT steps must not cite vVOLs article without vVOL evidence: {blob!r}"
+    assert "418256" in blob
+    gated = get_vendor_summary(
+        "VMWARE-CBT-DELETE-FAILED",
+        "en",
+        "vSAN ESA cluster Could not delete change tracking file result:2620",
+    )
+    assert "442155" in " ".join(gated.steps)
+
+
 def test_vvol_gate():
     text = "Snapshot consolidation failed for VM on vVOLs storage vvol://datastore/1"
     assert "411756" in _kb_ids("VMWARE-CBT-DELETE-FAILED", text)
@@ -1265,6 +1279,29 @@ def test_field_generic_session_failed_code():
     assert meta.sourceFamily == "veeam_vbr"
     assert meta.diagnosticCode == "VEEAM-SESSION-FAILED"
     assert meta.eventId == "VEEAM-SESSION-FAILED"
+
+
+def test_field_classifier_routes_fixture_to_veeam():
+    result = classify_source(_VEEAM_FIELD_FIXTURE, "veeam_job.log")
+    assert result["sourceFamily"] == "veeam_vbr", (
+        f"Field fixture must classify as veeam_vbr end-to-end, got: {result!r}"
+    )
+
+
+def test_bundle_endpoint_names_resolve():
+    import backend.api.routers.analyzer.analyze as analyze_mod
+
+    for name in (
+        "validate_bundle",
+        "correlate_bundle",
+        "summarize_file_evidence",
+        "build_evidence_items",
+        "read_upload_bounded",
+        "derive_bundle_semantic_document_from_metadata",
+    ):
+        assert name in vars(analyze_mod), (
+            f"submit_bundle references {name} but it is not imported"
+        )
 
 
 def test_field_first_failure_is_session_line():

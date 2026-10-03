@@ -1014,7 +1014,7 @@ async def build_summary(
     # Deterministic vendor knowledge wins for recognized diagnostics:
     # offline, no hallucinated filenames, honest confidence.
     if diagnostic_code and is_vendor_diagnostic_code(diagnostic_code):
-        vendor = get_vendor_summary(diagnostic_code, lang)
+        vendor = get_vendor_summary(diagnostic_code, lang, evidence_text or description or "")
         if vendor:
             return vendor
 
