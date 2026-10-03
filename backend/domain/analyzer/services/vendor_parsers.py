@@ -18,7 +18,7 @@ failure caused the second unless the evidence proves it.
 
 import re
 from html.parser import HTMLParser
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from backend.domain.analyzer.schemas.analyze import EventMetadata
 
@@ -260,47 +260,83 @@ def parse_unknown_text(text: str, filename_hint: str = "") -> EventMetadata:
     )
 
 
-def parse_syslog_hinted(text: str, source_family: str) -> Optional[Dict[str, str]]:
-    """Extract Veeam RFC 5424 structured-data fields when present.
+_SECRET_FIELD_NAME_RE = re.compile(r"password|passwd|pwd|token|secret|api[_-]?key|authorization|auth|cred", re.IGNORECASE)
+_KV_PAIR_RE = re.compile(
+    r'([A-Za-z0-9_.-]+)\s*=\s*(?:"((?:[^"\\]|\\.)*)"|\'((?:[^\'\\]|\\.)*)\'|([^\s,;\]]+))'
+)
+
+
+def _unescape_rfc5424(s: str) -> str:
+    """Unescape backslash escapes in RFC5424 quoted values (\", \\, \], \n, \t)."""
+    return (
+        s.replace(r'\"', '"')
+        .replace(r"\'", "'")
+        .replace(r"\]", "]")
+        .replace(r"\\", "\\")
+        .strip()
+    )
+
+
+def parse_syslog_hinted(text: str, source_family: str) -> Optional[Dict[str, Any]]:
+    """Extract generic Veeam RFC 5424 structured-data fields and compatibility keys.
 
     Only runs when a Veeam signature is visible (APP-NAME ``Veeam_MP`` or a
-    ``Veeam`` marker).  Numeric vendor instance/session IDs are prefixed so
-    they can never collide with Windows Event IDs.  Values are stripped of
-    surrounding quotes.
+    ``Veeam`` marker). Numeric vendor instance/session IDs are prefixed so
+    they can never collide with Windows Event IDs.
     """
     lowered = (text or "").lower()
     if "veeam_mp" not in lowered and "veeam" not in lowered:
         return None
-    out: Dict[str, str] = {}
 
-    def _value(raw: str) -> str:
-        raw = raw.strip()
-        if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in ("\"", "'"):
-            raw = raw[1:-1]
-        return raw.strip()
+    out: Dict[str, Any] = {}
+    fields: Dict[str, str] = {}
 
-    for key in ("instanceid", "jobsessionid", "jobid", "jobtype", "platform"):
+    # Extract structured-data block if present: [Veeam_MP@... key="val" ...]
+    sd_block_match = re.search(r"\[([A-Za-z0-9_@.-]+)\s+([^\]]+)\]", text)
+    target_text = sd_block_match.group(2) if sd_block_match else text
+
+    matches = _KV_PAIR_RE.findall(target_text)
+    if not matches and sd_block_match:
+        matches = _KV_PAIR_RE.findall(text)
+
+    for k, v_dquote, v_squote, v_bare in matches:
+        if v_dquote:
+            val = _unescape_rfc5424(v_dquote)
+        elif v_squote:
+            val = _unescape_rfc5424(v_squote)
+        else:
+            val = v_bare.strip()
+
+        if not val:
+            continue
+
+        k_norm = k.strip().lower()
+
+        # Compatibility normalized keys:
+        if k_norm in ("instanceid", "jobsessionid", "jobid"):
+            out[k_norm] = f"VEEAM-{val}" if val.isdigit() else val
+        elif k_norm in ("jobtype", "platform", "description"):
+            out[k_norm] = val
+
+        # Retain non-secret fields:
+        if not _SECRET_FIELD_NAME_RE.search(k):
+            fields[k.strip()] = val
+
+    # Direct description search if not in key=value pairs
+    if "description" not in out:
         m = re.search(
-            rf"\b{key}\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s,;]+)",
+            r'\bdescription\s*=\s*(?:"((?:[^"\\]|\\.)*)"|\'((?:[^\'\\]|\\.)*)\'|([^\s;]+))',
             text,
             re.IGNORECASE,
         )
         if m:
-            raw = _value(m.group(1))
-            if not raw:
-                continue
-            if key in ("instanceid", "jobsessionid", "jobid"):
-                out[key] = f"VEEAM-{raw}" if raw.isdigit() else raw
-            else:
-                out[key] = raw
-    m = re.search(
-        r"\bdescription\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s;]+)",
-        text,
-        re.IGNORECASE,
-    )
-    if m:
-        raw = _value(m.group(1))
-        if raw:
-            out["description"] = raw
+            raw_desc = m.group(1) or m.group(2) or m.group(3) or ""
+            desc = _unescape_rfc5424(raw_desc)
+            if desc:
+                out["description"] = desc
+                fields["description"] = desc
+
+    if fields:
+        out["fields"] = fields
     out["sourceFamily"] = source_family
     return out or None

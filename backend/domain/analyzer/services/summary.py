@@ -197,21 +197,40 @@ def search_solutions(
 
     results: List[SearchResult] = []
     combined_snippets = ""
+    seen_links = set()
+
+    def _canonical_url(url: str) -> str:
+        u = (url or "").strip().lower()
+        if u.endswith("/"):
+            u = u[:-1]
+        return u
+
+    # 1. Deterministic gated KB official references (highest priority)
+    kb_refs: List[SearchResult] = []
+    if diagnostic_code:
+        try:
+            raw_kb = vendor_reference_results(diagnostic_code, evidence_text or "", language) or []
+            for r in raw_kb:
+                can_link = _canonical_url(r.link)
+                if can_link and can_link not in seen_links:
+                    seen_links.add(can_link)
+                    kb_refs.append(r)
+                    if r.snippet:
+                        combined_snippets += f"{r.snippet}\n"
+        except Exception:
+            pass
 
     tiers = FAMILY_SEARCH_TIERS.get(family, ())
     official_domains = FAMILY_OFFICIAL_DOMAINS.get(family, OFFICIAL_DOMAINS)
     community_domains = FAMILY_COMMUNITY_DOMAINS.get(family, ())
     base_query = _family_query(event_id, provider, family)
-    if diagnostic_code:
-        base_query = f"{base_query} {diagnostic_code}"
-    if product:
-        base_query = f"{base_query} {product}"
 
-    # Search web for relevant solutions (only when tiers exist)
-    try:
-        if tiers:
+    # 2. Live web search results
+    web_results: List[SearchResult] = []
+    if tiers:
+        try:
             for tier, site in tiers:
-                if len(results) >= 3:
+                if len(web_results) >= 6:
                     break
                 query = f"{base_query} {site}"
                 with DDGS(timeout=3) as ddgs:
@@ -220,10 +239,12 @@ def search_solutions(
                         title = (item.get("title") or "").strip()
                         link = (item.get("href") or item.get("url") or "").strip()
                         snippet = (item.get("body") or item.get("snippet") or "").strip()
-                        if not link or any(r.link == link for r in results):
+                        can_link = _canonical_url(link)
+                        if not link or not can_link or can_link in seen_links:
                             continue
                         source_type = _classify_source(link, tier, official_domains, community_domains)
-                        results.append(
+                        seen_links.add(can_link)
+                        web_results.append(
                             SearchResult(
                                 title=title,
                                 link=link,
@@ -233,29 +254,13 @@ def search_solutions(
                         )
                         if snippet:
                             combined_snippets += f"{snippet}\n"
-                        if len(results) >= 3:
+                        if len(web_results) >= 6:
                             break
-    except Exception:
-        pass
+        except Exception:
+            pass
 
-    # Inject deterministic KB official references when available.
-    try:
-        if diagnostic_code:
-            kb_refs = vendor_reference_results(diagnostic_code, evidence_text or "", language)
-            if kb_refs:
-                for r in kb_refs:
-                    if len(results) >= max(3, len(kb_refs) + 3):
-                        break
-                    if not any(x.link == r.link for x in results):
-                        results.append(r)
-                        if r.snippet:
-                            combined_snippets += f"{r.snippet}\n"
-    except Exception:
-        pass
-
-    # Insert default fallbacks (if any) avoiding duplicates.  Provenance goes
-    # through the same hostname classifier: vendor community hosts stay
-    # community even when listed as fallback references.
+    # 3. Fallback references (if needed)
+    fallback_results: List[SearchResult] = []
     default_fallbacks_list = []
     family_fallbacks = FAMILY_FALLBACK_REFS.get(family, None)
     if family_fallbacks:
@@ -290,14 +295,25 @@ def search_solutions(
             ),
         ]
 
-    for fallback in default_fallbacks_list:
-        if len(results) >= 3:
-            break
-        if not any(r.link == fallback.link for r in results):
-            results.append(fallback)
+    for fb in default_fallbacks_list:
+        can_link = _canonical_url(fb.link)
+        if can_link and can_link not in seen_links:
+            seen_links.add(can_link)
+            fallback_results.append(fb)
 
-    results.sort(key=lambda r: 0 if r.sourceType == "official" else 1)
-    results = results[:3]
+    # Sort web results (official first, then community)
+    web_results.sort(key=lambda r: 0 if r.sourceType == "official" else 1)
+
+    # 4. Pipeline assembly: deterministic KB refs remain highest priority!
+    for r in kb_refs:
+        if len(results) < 3:
+            results.append(r)
+    for r in web_results:
+        if len(results) < 3:
+            results.append(r)
+    for r in fallback_results:
+        if len(results) < 3:
+            results.append(r)
 
     return results, combined_snippets
 
@@ -698,14 +714,36 @@ def _build_from_gemini(
     language: str,
     faulting_app: str,
     api_key: str,
-    rag_context: str = ""
+    rag_context: str = "",
+    source_family: Optional[str] = None,
+    diagnostic_code: Optional[str] = None,
+    product: str = "",
 ) -> SolutionSummary | None:
-    is_fortinet = "FortiGate" in provider or "fortinet" in provider.lower()
-    is_cisco = "Cisco" in provider or "ASA" in provider or "FTD" in provider
-    is_veeam = "Veeam" in provider
-    is_vmware = "VMware" in provider or "ESXi" in provider
+    fam = (source_family or "").strip()
+    if not fam:
+        p_low = (provider or "").lower()
+        if "veeam" in p_low:
+            fam = "veeam_vbr"
+        elif "vmware" in p_low or "esxi" in p_low:
+            fam = "vmware"
+        elif "fortigate" in p_low or "fortinet" in p_low:
+            fam = "fortinet"
+        elif "cisco" in p_low or "asa" in p_low or "ftd" in p_low:
+            fam = "cisco_asa"
+        elif "syslog" in p_low or "linux" in p_low:
+            fam = "linux_syslog"
+        elif "json" in p_low:
+            fam = "json"
+        elif event_id.isdigit():
+            fam = "windows_event"
+        else:
+            fam = "unknown_text"
 
-    if is_veeam:
+    if fam == "windows_event":
+        system_context = "You are an expert Windows Server Administrator and SOC Analyst."
+        log_type_hint = ""
+        log_desc = f"Windows Event ID {event_id} from {provider or 'Windows'}"
+    elif fam == "veeam_vbr":
         system_context = "You are an expert Veeam Backup & Replication engineer and VMware infrastructure specialist."
         log_type_hint = (
             "\nThis is a Veeam Backup & Replication log (replication/backup job). Focus on: "
@@ -713,37 +751,59 @@ def _build_from_gemini(
             "and VMware snapshot chain health. Describe observed evidence only; do not invent filenames, "
             "do not claim a causal link between failure phases unless the log proves it."
         )
-        log_desc = f"Veeam diagnostic {event_id}"
-    elif is_vmware:
+        code_part = f" ({diagnostic_code})" if diagnostic_code else ""
+        prod_part = f" ({product})" if product else ""
+        log_desc = f"Veeam diagnostic {event_id}{code_part}{prod_part}"
+    elif fam == "vmware":
         system_context = "You are an expert VMware vSphere/ESXi engineer."
         log_type_hint = (
             "\nThis is a VMware ESXi/host log. Focus on: DISKLIB/CBT errors, snapshot operations, "
             "missing-file conditions, and datastore file state. Describe observed evidence only; "
             "do not invent filenames or lock owners."
         )
-        log_desc = f"VMware diagnostic {event_id}"
-    elif is_fortinet:
+        code_part = f" ({diagnostic_code})" if diagnostic_code else ""
+        prod_part = f" ({product})" if product else ""
+        log_desc = f"VMware diagnostic {event_id}{code_part}{prod_part}"
+    elif fam == "fortinet":
         system_context = "You are an expert Fortinet/FortiGate Firewall Administrator and Network Security Engineer."
         log_type_hint = (
             "\nThis is a Fortinet FortiGate firewall log. Focus on: traffic policy decisions, "
             "IPS/UTM events, blocked connections, threat signatures, and network security recommendations."
         )
         log_desc = f"Fortinet FortiGate log (Log ID: {event_id})"
-    elif is_cisco:
+    elif fam == "cisco_asa":
         system_context = "You are an expert Cisco ASA/FTD Firewall Administrator and Network Security Engineer."
         log_type_hint = (
             "\nThis is a Cisco ASA/FTD syslog message. Focus on: access control policies, "
             "NAT translations, VPN events, connection tracking, threat detection, and Cisco firewall recommendations."
         )
         log_desc = f"Cisco ASA log (Message ID: {event_id})"
-    else:
-        system_context = "You are an expert Windows Server Administrator and SOC Analyst."
-        log_type_hint = ""
-        log_desc = f"Windows Event ID {event_id} from {provider}"
+    elif fam == "linux_syslog":
+        system_context = "You are an expert Linux Systems Administrator and SRE."
+        log_type_hint = (
+            "\nThis is a Linux syslog entry. Focus on: Linux/system context, systemd service units, "
+            "kernel messages, auth/daemon logging, and host state. Describe observed errors and system state only."
+        )
+        log_desc = f"Linux syslog event from {provider or 'system'} (Identifier: {event_id})"
+    elif fam == "json":
+        system_context = "You are an expert Application Reliability and Cloud Systems Engineer."
+        log_type_hint = (
+            "\nThis is a structured JSON application or service log. Focus on: structured application/service context, "
+            "payload attributes, HTTP/RPC status codes, stack traces, and microservice error conditions."
+        )
+        log_desc = f"Structured JSON log event from {provider or 'application'} (ID: {event_id})"
+    else:  # unknown_text
+        system_context = "You are an expert Technical Incident Triage Specialist."
+        log_type_hint = (
+            "\nThis is an unstructured log entry. Perform conservative generic incident triage: "
+            "focus strictly on explicit error messages and facts present in the text, avoiding domain-specific assumptions."
+        )
+        log_desc = f"Unidentified log entry (ID: {event_id})"
 
+    fault_line = f"Faulting App: {faulting_app}\n" if (faulting_app and fam == "windows_event") else ""
     prompt = f"""{system_context}
 Analyze {log_desc}.
-{'Faulting App: ' + faulting_app if not is_fortinet and not is_cisco else ''}{log_type_hint}
+{fault_line}{log_type_hint}
 
 Internal Knowledge Base (Past Solved Issues):
 {rag_context}
@@ -944,7 +1004,19 @@ async def build_summary(
             print(f"RAG search error: {e}")
 
     if api_key:
-        gemini_summary = _build_from_gemini(event_id, provider, snippets, results, lang, faulting_app, api_key, rag_context)
+        gemini_summary = _build_from_gemini(
+            event_id,
+            provider,
+            snippets,
+            results,
+            lang,
+            faulting_app,
+            api_key,
+            rag_context,
+            source_family=family,
+            diagnostic_code=diagnostic_code,
+            product=product,
+        )
         if gemini_summary:
             return gemini_summary
 

@@ -21,7 +21,9 @@ when literally observed.  Related names (.ctk.vmdk, -delta.vmdk, .vmsd,
 .vmx) are NEVER inferred.
 """
 
+import asyncio
 import hashlib
+import inspect
 import ntpath
 import re
 from dataclasses import dataclass, field
@@ -44,24 +46,110 @@ MAX_EVIDENCE_ITEMS_TOTAL = 120
 BUNDLE_TIME_EPSILON_SECONDS = 300
 
 
-def read_upload_bounded(upload, max_bytes: int) -> bytes:
-    """Read an UploadFile in bounded chunks; stop immediately after max_bytes.
+class UploadTooLarge(ValueError):
+    """Raised when an upload exceeds its maximum byte budget."""
+    pass
 
-    Returns exactly the bytes read (may be less than max_bytes if the upload
-    ends early).  Does NOT read past max_bytes.
+
+async def read_upload_bounded(upload, max_bytes: int, chunk_size: int = 64 * 1024) -> bytes:
+    """Read an UploadFile or stream asynchronously up to max_bytes + 1.
+
+    Reads in bounded chunks. If total bytes exceed max_bytes, raises UploadTooLarge.
+    Never silently truncates.
     """
     data = bytearray()
-    chunk_size = max(1, max_bytes // 8)  # 8 small chunks max
-    remaining = max_bytes
-    while remaining > 0:
-        # read up to min(chunk_size, remaining) bytes
-        n = min(chunk_size, remaining)
-        raw = upload.read(n)
-        if not raw:
+    limit_plus_one = max_bytes + 1
+    reader = getattr(upload, "read", None)
+    if reader is None:
+        return b""
+
+    while len(data) < limit_plus_one:
+        to_read = min(chunk_size, limit_plus_one - len(data))
+        if to_read <= 0:
             break
-        data.extend(raw)
-        remaining -= len(raw)
+        chunk = reader(to_read)
+        if inspect.isawaitable(chunk):
+            chunk = await chunk
+        if not chunk:
+            break
+        data.extend(chunk)
+        if len(data) > max_bytes:
+            raise UploadTooLarge(f"File exceeds maximum allowed size of {max_bytes} bytes.")
+
     return bytes(data)
+
+
+def build_bundle_semantic_document(
+    source_family: Optional[str] = None,
+    product: Optional[str] = None,
+    diagnostic_code: Optional[str] = None,
+    operation_stage: Optional[str] = None,
+    diagnostic_signatures: Optional[List[str]] = None,
+    high_level_errors: Optional[List[str]] = None,
+    correlation_confidence: Optional[str] = None,
+) -> str:
+    """Build deterministic semantic vector document for multi-file bundles.
+
+    Excludes raw log contents, GUIDs, datastore paths, JobSessionIDs, IPs,
+    and hostnames, preserving only high-level semantic failure properties.
+    """
+    parts = []
+    if source_family:
+        parts.append(f"SourceFamily: {str(source_family).strip()}")
+    if product:
+        parts.append(f"Product: {str(product).strip()}")
+    if diagnostic_code:
+        parts.append(f"DiagnosticCode: {str(diagnostic_code).strip()}")
+    if operation_stage:
+        parts.append(f"OperationStage: {str(operation_stage).strip()}")
+    if correlation_confidence:
+        parts.append(f"CorrelationConfidence: {str(correlation_confidence).strip()}")
+    if diagnostic_signatures:
+        clean_sigs = [str(s).strip() for s in diagnostic_signatures if str(s).strip()]
+        if clean_sigs:
+            parts.append(f"Signatures: {', '.join(clean_sigs[:6])}")
+    if high_level_errors:
+        clean_errs = [str(e).strip() for e in high_level_errors if str(e).strip()]
+        if clean_errs:
+            parts.append(f"Errors: {', '.join(clean_errs[:6])}")
+
+    doc = " | ".join(parts) if parts else "Evidence Bundle Analysis"
+    from backend.domain.analyzer.services.vector_db import redact_for_embedding
+    return redact_for_embedding(doc)
+
+
+def derive_bundle_semantic_document_from_metadata(meta_dict: dict, sol_dict: dict) -> str:
+    """Derive the deterministic bundle semantic document from stored AnalysisHistory JSON."""
+    meta = meta_dict if isinstance(meta_dict, dict) else {}
+    sol = sol_dict if isinstance(sol_dict, dict) else {}
+    incident = sol.get("incident") or {}
+    if not isinstance(incident, dict):
+        incident = getattr(incident, "model_dump", lambda: {})() or {}
+
+    attrs = meta.get("attributes") or {}
+    bundle_attr = attrs.get("bundle") or {} if isinstance(attrs, dict) else {}
+
+    source_family = meta.get("sourceFamily")
+    product = meta.get("product")
+    diagnostic_code = meta.get("diagnosticCode")
+    correlation_confidence = bundle_attr.get("correlationConfidence") or sol.get("confidence")
+
+    operation_stage = incident.get("operationStage")
+    diagnostic_signatures = incident.get("diagnosticSignatures") or []
+    first_failure = incident.get("firstMeaningfulFailure")
+    terminal_failure = incident.get("terminalFailure")
+    high_level_errors = [e for e in (first_failure, terminal_failure) if e]
+
+    return build_bundle_semantic_document(
+        source_family=source_family,
+        product=product,
+        diagnostic_code=diagnostic_code,
+        operation_stage=operation_stage,
+        diagnostic_signatures=diagnostic_signatures,
+        high_level_errors=high_level_errors,
+        correlation_confidence=correlation_confidence,
+    )
+
 
 FAILURE_LINE = re.compile(
     r"\b(error|failed|failure|exception|critical|"

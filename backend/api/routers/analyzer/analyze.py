@@ -25,11 +25,12 @@ from backend.domain.analyzer.services.evtx_parser import parse_evtx
 from backend.domain.analyzer.services.compaction import compact_log_evidence
 from backend.domain.analyzer.services.incident_extract import extract_incident
 from backend.domain.analyzer.services.bundle import (
+    BUNDLE_MAX_FILE_BYTES,
     BUNDLE_MAX_FILES,
-    build_evidence_items,
-    correlate_bundle,
-    summarize_file_evidence,
-    validate_bundle,
+    BUNDLE_MAX_TOTAL_BYTES,
+    UploadTooLarge,
+    read_upload_bounded,
+    derive_bundle_semantic_document_from_metadata,
 )
 from backend.domain.analyzer.services.summary import (
     search_solutions,
@@ -148,15 +149,26 @@ async def submit_analysis(
 
     if file:
         # Prevent Memory Exhaustion / DoS (max 5MB)
-        MAX_FILE_SIZE = 5 * 1024 * 1024
-        content = await file.read()
-        if len(content) > MAX_FILE_SIZE:
+        try:
+            content = await read_upload_bounded(file, BUNDLE_MAX_FILE_BYTES)
+        except UploadTooLarge:
             return AnalyzeResponse(
                 eventId="Unknown",
                 provider="Unknown",
-                description="File is too large (max 5MB allowed).",
+                faultingApp=None,
+                summary=f"File exceeds maximum size of {BUNDLE_MAX_FILE_BYTES // (1024*1024)}MB.",
+                solutions=[],
+                limitations=[f"Uploaded file exceeds {BUNDLE_MAX_FILE_BYTES // (1024*1024)}MB limit"],
             )
-            
+        except Exception:
+            return AnalyzeResponse(
+                eventId="Unknown",
+                provider="Unknown",
+                faultingApp=None,
+                summary="Failed to read uploaded file.",
+                solutions=[],
+            )
+
         try:
             extracted, description = _process_upload(
                 content, file.filename or "", file.content_type
@@ -185,6 +197,7 @@ async def submit_analysis(
         search_solutions,
         metadata.eventId,
         metadata.provider,
+        language=lang,
         source_family=metadata.sourceFamily or None,
         diagnostic_code=metadata.diagnosticCode or None,
         evidence_text=evidence_text_ctx,
@@ -250,7 +263,9 @@ async def submit_analysis(
             description=combined_text or "No raw text",
             solution_summary=solution.model_dump(),
             feedback_score=0,
-            api_key=x_gemini_api_key
+            api_key=x_gemini_api_key,
+            source_family=metadata.sourceFamily or None,
+            diagnostic_identity=metadata.diagnosticCode or metadata.eventId,
         )
     except Exception as e:
         print(f"Failed to auto-export to Vector DB (safe ignore): {e}")
@@ -275,13 +290,35 @@ async def submit_bundle(
     _user: str = Depends(get_current_user),
     x_gemini_api_key: Optional[str] = Header(None),
 ):
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided in bundle.")
+    if len(files) > BUNDLE_MAX_FILES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many files: {len(files)} exceeds maximum of {BUNDLE_MAX_FILES}.",
+        )
+
     raw: List[tuple] = []
-    for upload in files or []:
+    cumulative_total = 0
+    for upload in files:
+        filename = upload.filename or "unnamed"
         try:
-            content = await upload.read()
+            content = await read_upload_bounded(upload, BUNDLE_MAX_FILE_BYTES)
+        except UploadTooLarge:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File '{filename}' exceeds maximum size of {BUNDLE_MAX_FILE_BYTES // (1024*1024)} MiB.",
+            )
         except Exception:
-            raise HTTPException(status_code=400, detail="Failed to read an uploaded file.")
-        raw.append((upload.filename or "unnamed", content))
+            raise HTTPException(status_code=400, detail=f"Failed to read file '{filename}'.")
+
+        cumulative_total += len(content)
+        if cumulative_total > BUNDLE_MAX_TOTAL_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Bundle total exceeds maximum size of {BUNDLE_MAX_TOTAL_BYTES // (1024*1024)} MiB.",
+            )
+        raw.append((filename, content))
     try:
         cleaned = validate_bundle(raw)
     except ValueError as e:
@@ -332,6 +369,7 @@ async def submit_bundle(
         search_solutions,
         primary_meta.eventId,
         primary_meta.provider,
+        language=lang,
         source_family=primary_meta.sourceFamily or None,
         diagnostic_code=primary_meta.diagnosticCode or None,
         evidence_text=combined_text,
@@ -421,13 +459,19 @@ async def submit_bundle(
 
     try:
         from backend.domain.analyzer.services.vector_db import add_solution
+        bundle_semantic_doc = derive_bundle_semantic_document_from_metadata(
+            primary_meta.model_dump(),
+            solution.model_dump(),
+        )
         await add_solution(
             db=db,
             event_id=primary_meta.eventId,
-            description=combined_text or "No raw text",
+            description=bundle_semantic_doc,
             solution_summary=solution.model_dump(),
             feedback_score=0,
-            api_key=x_gemini_api_key
+            api_key=x_gemini_api_key,
+            source_family=primary_meta.sourceFamily or None,
+            diagnostic_identity=primary_meta.diagnosticCode or primary_meta.eventId,
         )
     except Exception as e:
         print(f"Failed to auto-export to Vector DB (safe ignore): {e}")
