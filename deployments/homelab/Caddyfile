@@ -1,0 +1,58 @@
+# ==============================================================================
+# EIMS Homelab Reverse Proxy Configuration (Caddy)
+# Governed by EIMS Documentation System (EDS v1.0.0)
+#
+# Topology:
+#   LAN Client (HTTPS / HTTP)
+#        │
+#        ▼
+#   Caddy (Port 443 / 80)
+#        ├── /api/*   ──────► FastAPI Backend (127.0.0.1:8000)
+#        ├── /ws/*    ──────► WebSocket Stream (127.0.0.1:8000)
+#        ├── /docs    ──────► OpenAPI Docs     (127.0.0.1:8000)
+#        └── /*       ──────► Next.js Dashboard(127.0.0.1:3001)
+# ==============================================================================
+
+# Option A: Automatic local TLS using internal CA or domain
+# Replace eims.lab.local with your homelab DNS or IP:
+eims.lab.local {
+    tls internal
+
+    # API and OpenAPI documentation routes -> FastAPI backend
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8000
+    }
+    handle /ws/* {
+        reverse_proxy 127.0.0.1:8000
+    }
+    handle /docs* {
+        reverse_proxy 127.0.0.1:8000
+    }
+    handle /openapi.json {
+        reverse_proxy 127.0.0.1:8000
+    }
+
+    # All other routes -> Next.js Dashboard
+    handle {
+        reverse_proxy 127.0.0.1:3001
+    }
+}
+
+# Option B: Plain HTTP Pilot on LAN IP (e.g. :8080) for testing without TLS setup
+# :8080 {
+#     handle /api/* {
+#         reverse_proxy 127.0.0.1:8000
+#     }
+#     handle /ws/* {
+#         reverse_proxy 127.0.0.1:8000
+#     }
+#     handle /docs* {
+#         reverse_proxy 127.0.0.1:8000
+#     }
+#     handle /openapi.json {
+#         reverse_proxy 127.0.0.1:8000
+#     }
+#     handle {
+#         reverse_proxy 127.0.0.1:3001
+#     }
+# }
