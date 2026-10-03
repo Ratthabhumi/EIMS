@@ -1071,7 +1071,7 @@ async def build_summary(
 
 def format_summary_text(summary: SolutionSummary, language: str = "th") -> str:
     if language == "th":
-        lines = ["สรุปวิธีการแก้ไขเบื้องต้น (จากผลการค้นหา):", "", "📋 สรุปปัญหา", summary.overview]
+        lines = ["สรุปการวิเคราะห์:", "", "📋 สรุปปัญหา", summary.overview]
         if summary.causes:
             lines.extend(["", "🔍 สาเหตุที่เป็นไปได้"])
             lines.extend(f"{i}. {cause}" for i, cause in enumerate(summary.causes, 1))
@@ -1079,7 +1079,7 @@ def format_summary_text(summary: SolutionSummary, language: str = "th") -> str:
             lines.extend(["", "✅ วิธีแก้ไข (ทำตามลำดับ)"])
             lines.extend(f"{i}. {step}" for i, step in enumerate(summary.steps, 1))
     else:
-        lines = ["Solution summary (from web search):", "", "Overview", summary.overview]
+        lines = ["Analysis summary:", "", "Overview", summary.overview]
         if summary.causes:
             lines.extend(["", "Possible causes"])
             lines.extend(f"{i}. {cause}" for i, cause in enumerate(summary.causes, 1))

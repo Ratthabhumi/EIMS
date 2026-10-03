@@ -12,7 +12,7 @@ matches the required tokens (e.g. vSAN ESA, vVOLs), never universally.
 
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from backend.domain.analyzer.schemas.analyze import SearchResult, SolutionSummary
 
@@ -219,31 +219,57 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
     lang = language if language in ("th", "en") else "th"
 
     if code == "VMWARE-CBT-DELETE-FAILED":
+        # Evidence-conditioned wording: the code triggers on the CBT deletion
+        # line alone, so result codes / unlink ops / lock / environment facts
+        # are stated ONLY when the evidence contains them.
+        _ev = (evidence_text or "").lower()
+        _sig2620 = re.search(r"result\s*:?\s*2620", _ev) is not None
+        _sigunlink = "ctk_ctkunlink" in _ev
+        _overview_extra_en = ""
+        _overview_extra_th = ""
+        if _sig2620:
+            _overview_extra_en += " Result 2620 was recorded in the evidence."
+            _overview_extra_th += " พบผลลัพธ์ 2620 ในหลักฐานที่ให้มา"
+        if _sigunlink:
+            _overview_extra_en += " A CTK_CTKUNLINK operation result was recorded in the evidence."
+            _overview_extra_th += " พบผลการทำงาน CTK_CTKUNLINK ในหลักฐานที่ให้มา"
         # Name only the Broadcom articles whose environment gates the
-        # evidence satisfies.  418256 (CTK) is definitional for this code;
-        # 442155 needs vSAN + ESA, 411756 needs vVOLs — never cite them
-        # without that environment evidence.
-        _articles = ["Article 418256 (CTK)"]
+        # evidence satisfies.  418256 (CTK) passes whenever this code's
+        # own trigger text is present; 442155 needs vSAN + ESA, 411756
+        # needs vVOLs — never cite them without that environment evidence.
+        _articles = []
+        if _article_allowed("418256", code, evidence_text):
+            _articles.append("Article 418256 (CTK)")
         if _article_allowed("442155", code, evidence_text):
             _articles.append("Article 442155 (vSAN ESA)")
         if _article_allowed("411756", code, evidence_text):
             _articles.append("Article 411756 (vVOLs)")
-        _articles_en = (
-            "Refer to official Broadcom material: "
-            + ", ".join(_articles)
-            + " — verify each article’s scope before applying"
-        )
-        _articles_th = (
-            "อ้างอิงเอกสารทางการของ Broadcom: "
-            + ", ".join(_articles)
-            + " — ตรวจสอบเงื่อนไขของแต่ละบทความก่อนนำไปใช้"
-        )
+        if _articles:
+            _articles_en = (
+                "Refer to official Broadcom material: "
+                + ", ".join(_articles)
+                + " — verify each article’s scope before applying"
+            )
+            _articles_th = (
+                "อ้างอิงเอกสารทางการของ Broadcom: "
+                + ", ".join(_articles)
+                + " — ตรวจสอบเงื่อนไขของแต่ละบทความก่อนนำไปใช้"
+            )
+        else:
+            _articles_en = (
+                "Refer to official Broadcom VMware CBT troubleshooting "
+                "documentation — verify scope before applying"
+            )
+            _articles_th = (
+                "อ้างอิงเอกสาร troubleshooting CBT ของ Broadcom "
+                "— ตรวจสอบเงื่อนไขก่อนนำไปใช้"
+            )
         return _summary(
             overview=_th_en(
-                "VMware ไม่สามารถลบ change-tracking (.ctk) file ได้ "
-                "ผลลัพธ์ 2620 / CTK_CTKUNLINK บ่งชี้การ cleanup ของ CBT ล้มเหลว",
-                "VMware could not delete a change-tracking (.ctk) file. "
-                "Result 2620 / CTK_CTKUNLINK indicates a CBT cleanup failure.",
+                "VMware ไม่สามารถลบ change-tracking (.ctk) file ได้"
+                + _overview_extra_th,
+                "VMware could not delete a change-tracking (.ctk) file."
+                + _overview_extra_en,
                 lang,
             ),
             causes=[
@@ -292,6 +318,82 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
         )
 
     if code == "VMWARE-SNAPSHOT-FILE-MISSING":
+        # Causes and article mentions follow the SAME context gates as
+        # retrieval: deletion/move/rename/vVOLs/create-path are possibilities
+        # ONLY when the evidence supports that context.  Never state them
+        # as established facts.
+        _sm_causes = [
+            _th_en(
+                "descriptor ชี้ chain ไม่ตรงกับไฟล์จริงบน datastore",
+                "Snapshot descriptor chain does not match files actually on the datastore",
+                lang,
+            ),
+        ]
+        if _article_allowed("452165", code, evidence_text):
+            _sm_causes.append(
+                _th_en(
+                    "ไฟล์อาจถูกเปลี่ยนชื่อหรือย้าย (ดูเอกสารอ้างอิงที่ตรงบริบท)",
+                    "The file may have been renamed or moved (see the context-matching reference)",
+                    lang,
+                )
+            )
+        if _article_allowed("450780", code, evidence_text):
+            _sm_causes.append(
+                _th_en(
+                    "ไฟล์อาจถูกลบระหว่าง snapshot consolidation (ดูเอกสารอ้างอิงที่ตรงบริบท)",
+                    "The file may have been deleted during snapshot consolidation (see the context-matching reference)",
+                    lang,
+                )
+            )
+        if _article_allowed("411756", code, evidence_text):
+            _sm_causes.append(
+                _th_en(
+                    "datastore อาจเป็นแบบ vVOLs (ดูเอกสารอ้างอิงที่ตรงบริบท)",
+                    "The datastore may be vVOLs-based (see the context-matching reference)",
+                    lang,
+                )
+            )
+        if len(_sm_causes) == 1:
+            _sm_causes.append(
+                _th_en(
+                    "ยืนยันสถานะไฟล์จริงด้วย datastore listing ก่อนดำเนินการ",
+                    "Confirm the exact file state with a datastore listing before acting",
+                    lang,
+                )
+            )
+
+        _sm_articles = []
+        if _article_allowed("424591", code, evidence_text):
+            _sm_articles.append("Article 424591")
+        if _article_allowed("318905", code, evidence_text):
+            _sm_articles.append("Article 318905")
+        if _article_allowed("450780", code, evidence_text):
+            _sm_articles.append("Article 450780")
+        if _article_allowed("452165", code, evidence_text):
+            _sm_articles.append("Article 452165")
+        if _article_allowed("411756", code, evidence_text):
+            _sm_articles.append("Article 411756 (vVOLs)")
+        if _sm_articles:
+            _sm_ref_en = (
+                "Refer to official Broadcom material: "
+                + ", ".join(_sm_articles)
+                + " — verify each article’s scope before applying"
+            )
+            _sm_ref_th = (
+                "อ้างอิงเอกสารทางการของ Broadcom: "
+                + ", ".join(_sm_articles)
+                + " — ตรวจสอบเงื่อนไขของแต่ละบทความก่อนนำไปใช้"
+            )
+        else:
+            _sm_ref_en = (
+                "Refer to official Broadcom VMware snapshot troubleshooting "
+                "documentation — verify scope before applying"
+            )
+            _sm_ref_th = (
+                "อ้างอิงเอกสาร troubleshooting snapshot ของ Broadcom "
+                "— ตรวจสอบเงื่อนไขก่อนนำไปใช้"
+            )
+
         return _summary(
             overview=_th_en(
                 "การอ้างอิง snapshot disk ของ VM ชี้ไปยังไฟล์ที่ VMware หาไม่พบ "
@@ -300,18 +402,7 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
                 "disk that VMware cannot find (InvalidSnapshotFormat + required file not found).",
                 lang,
             ),
-            causes=[
-                _th_en(
-                    "ไฟล์ snapshot disk ถูกลบ ย้าย หรือเปลี่ยนชื่อภายนอกกระบวนการ",
-                    "A snapshot disk file was deleted, moved, or renamed outside the workflow",
-                    lang,
-                ),
-                _th_en(
-                    "descriptor ชี้ chain ไม่ตรงกับไฟล์จริงบน datastore",
-                    "Snapshot descriptor chain does not match files actually on the datastore",
-                    lang,
-                ),
-            ],
+            causes=_sm_causes,
             steps=[
                 _th_en(
                     "ทำ datastore file listing เปรียบเทียบกับ descriptor chain",
@@ -324,8 +415,8 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
                     lang,
                 ),
                 _th_en(
-                    "อ้างอิงเอกสารทางการของ Broadcom: Article 424591, Article 318905, Article 450780, Article 452165 (ถ้าเกี่ยวข้องกับสถานการณ์การลบ/rename/move/vVOLs/vSAN ESA)",
-                    "Refer to official Broadcom material: Article 424591, Article 318905, Article 450780, Article 452165 (where relevant: deletion/rename/move/vVOLs/vSAN ESA)",
+                    _sm_ref_th,
+                    _sm_ref_en,
                     lang,
                 ),
             ],
@@ -346,6 +437,111 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
         )
 
     if code == "VEEAM-REPLICA-SNAPSHOT-CHAIN":
+        # Evidence-conditioned wording: this code can resolve WITHOUT any
+        # CBT deletion error, so CBT / helper-snapshot / missing-file facts
+        # are stated ONLY when the evidence contains them.
+        _ev = (evidence_text or "").lower()
+        _has_cbt = "could not delete change tracking file" in _ev
+        _has_helper = "deleting helper snapshot" in _ev
+        _has_bad_config = "invalid snapshot configuration" in _ev
+        _has_missing = "a required file" in _ev and "not found" in _ev
+        _has_revert_invalid = "revertsnapshot" in _ev and (
+            "invalidsnapshotformat" in _ev or "invalid snapshot" in _ev
+        )
+
+        _rc_causes = []
+        if _has_cbt:
+            _rc_causes.append(
+                _th_en(
+                    "ขั้นตอนแรกที่สังเกตได้: ลบ change-tracking file ไม่สำเร็จ",
+                    "First observed failure: change-tracking file deletion failed",
+                    lang,
+                )
+            )
+        if _has_missing:
+            _rc_causes.append(
+                _th_en(
+                    "ขั้นตอนหลังที่สังเกตได้: configuration ของ replica snapshot "
+                    "อ้างถึงไฟล์ที่ VMware หาไม่พบ" if _has_cbt else
+                    "configuration ของ replica snapshot อ้างถึงไฟล์ที่ VMware หาไม่พบ",
+                    "Later observed failure: the replica snapshot configuration references "
+                    "a required file VMware cannot locate" if _has_cbt else
+                    "Observed failure: the replica snapshot configuration references "
+                    "a required file VMware cannot locate",
+                    lang,
+                )
+            )
+        elif _has_bad_config:
+            _rc_causes.append(
+                _th_en(
+                    "configuration ของ replica snapshot ไม่ถูกต้องตามที่สังเกตได้",
+                    "Observed failure: the replica snapshot configuration is invalid",
+                    lang,
+                )
+            )
+        if not _rc_causes:
+            _rc_causes.append(
+                _th_en(
+                    "replica snapshot chain ผิดปกติ (ดู signatures ที่สังเกตได้ด้านล่าง)",
+                    "Replica snapshot chain is unhealthy (see observed signatures below)",
+                    lang,
+                )
+            )
+
+        _rc_evidence = []
+        if _has_cbt:
+            _rc_evidence.append("Could not delete change tracking file")
+        if _has_helper:
+            _rc_evidence.append("Deleting helper snapshot")
+        if _has_bad_config:
+            _rc_evidence.append("Detected an invalid snapshot configuration")
+        if _has_missing:
+            _rc_evidence.append("A required file was not found")
+        if _has_revert_invalid:
+            _rc_evidence.append("RevertSnapshot / InvalidSnapshotFormat")
+
+        _rc_steps = [
+            _th_en(
+                "เก็บ replica vmware.log, hostd.log และ datastore listing ก่อนแตะต้อง replica",
+                "Collect the replica vmware.log, hostd.log, and a datastore listing before touching the replica",
+                lang,
+            ),
+            _th_en(
+                "ใช้ Veeam Export Logs (%ProgramData%\\Veeam\\Backup) เก็บ Task/Job session logs ฉบับเต็ม",
+                "Use Veeam Export Logs (%ProgramData%\\Veeam\\Backup) to keep full Task/Job session logs",
+                lang,
+            ),
+        ]
+        if _has_cbt:
+            _rc_steps.append(
+                _th_en(
+                    "อย่าสรุปว่าการลบ CBT ทำให้ไฟล์ snapshot หาย จนกว่าหลักฐานจะพิสูจน์ causal link",
+                    "Do NOT conclude the CBT deletion caused the missing snapshot file unless "
+                    "evidence proves the causal link",
+                    lang,
+                )
+            )
+
+        _rc_limitations = []
+        if _has_cbt and _has_missing:
+            _rc_limitations.append(
+                _th_en(
+                    "ความสัมพันธ์ระหว่าง CBT deletion failure กับ missing snapshot dependency "
+                    "ยังไม่พิสูจน์ว่าเป็นสาเหตุเดียวกัน",
+                    "The relationship between the earlier CBT deletion failure and the later "
+                    "missing snapshot dependency is NOT proven causal",
+                    lang,
+                )
+            )
+        else:
+            _rc_limitations.append(
+                _th_en(
+                    "ห้ามระบุชื่อไฟล์ที่หาย ถ้า log ไม่ได้ระบุชื่อไว้",
+                    "Do NOT name the missing file unless the log names it",
+                    lang,
+                )
+            )
+
         return _summary(
             overview=_th_en(
                 "Replication เข้าสู่ขั้นตอน snapshot cleanup/revert ของ replica แล้ว "
@@ -355,54 +551,11 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
                 "VMware snapshots with native snapshot revert).",
                 lang,
             ),
-            causes=[
-                _th_en(
-                    "ขั้นตอนแรกที่สังเกตได้: ลบ change-tracking file ไม่สำเร็จ",
-                    "First observed failure: change-tracking file deletion failed",
-                    lang,
-                ),
-                _th_en(
-                    "ขั้นตอนหลัง: configuration ของ replica snapshot อ้างถึงไฟล์ที่ VMware หาไม่พบ",
-                    "Later observed failure: the replica snapshot configuration references "
-                    "a required file VMware cannot locate",
-                    lang,
-                ),
-            ],
-            steps=[
-                _th_en(
-                    "เก็บ replica vmware.log, hostd.log และ datastore listing ก่อนแตะต้อง replica",
-                    "Collect the replica vmware.log, hostd.log, and a datastore listing before touching the replica",
-                    lang,
-                ),
-                _th_en(
-                    "ใช้ Veeam Export Logs (%ProgramData%\\Veeam\\Backup) เก็บ Task/Job session logs ฉบับเต็ม",
-                    "Use Veeam Export Logs (%ProgramData%\\Veeam\\Backup) to keep full Task/Job session logs",
-                    lang,
-                ),
-                _th_en(
-                    "อย่าสรุปว่าการลบ CBT ทำให้ไฟล์ snapshot หาย จนกว่าหลักฐานจะพิสูจน์ causal link",
-                    "Do NOT conclude the CBT deletion caused the missing snapshot file unless "
-                    "evidence proves the causal link",
-                    lang,
-                ),
-            ],
-            evidence=[
-                "Could not delete change tracking file",
-                "Deleting helper snapshot",
-                "Detected an invalid snapshot configuration",
-                "A required file was not found",
-                "RevertSnapshot / InvalidSnapshotFormat",
-            ],
+            causes=_rc_causes,
+            steps=_rc_steps,
+            evidence=_rc_evidence,
             confidence="medium",
-            limitations=[
-                _th_en(
-                    "ความสัมพันธ์ระหว่าง CBT deletion failure กับ missing snapshot dependency "
-                    "ยังไม่พิสูจน์ว่าเป็นสาเหตุเดียวกัน",
-                    "The relationship between the earlier CBT deletion failure and the later "
-                    "missing snapshot dependency is NOT proven causal",
-                    lang,
-                )
-            ],
+            limitations=_rc_limitations,
             next_evidence=[
                 "Replica VM vmware.log",
                 "ESXi hostd.log",
@@ -425,22 +578,3 @@ def get_vendor_summary(
     if not diagnostic_code:
         return None
     return _vendor_entry(diagnostic_code.strip(), language, evidence_text or "")
-
-
-def vendor_reference_titles() -> Dict[str, List[str]]:
-    """Official reference titles (text only, no fabricated URLs)."""
-    return {
-        "VMWARE-CBT-DELETE-FAILED": [
-            "Broadcom Support — Article 442155",
-            "Broadcom Support — Article 418256",
-            "Broadcom Support — Article 411756",
-        ],
-        "VMWARE-SNAPSHOT-FILE-MISSING": [
-            "Broadcom Support — Article 424591",
-            "Broadcom Support — Article 318905",
-        ],
-        "VEEAM-REPLICA-SNAPSHOT-CHAIN": [
-            "Veeam Help Center — Backup & Replication replica restore points (native VMware snapshots)",
-            "Veeam Help Center — Export Logs (%ProgramData%\\Veeam\\Backup)",
-        ],
-    }

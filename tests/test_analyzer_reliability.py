@@ -547,16 +547,20 @@ def test_incident_first_vs_terminal_without_causal_claim():
 
 
 def test_vendor_knowledge_entries_are_honest():
-    for code in (
-        "VMWARE-CBT-DELETE-FAILED",
-        "VMWARE-SNAPSHOT-FILE-MISSING",
-        "VEEAM-REPLICA-SNAPSHOT-CHAIN",
+    for code, text in (
+        ("VMWARE-CBT-DELETE-FAILED", _CBT_MINIMAL_TEXT),
+        ("VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT),
+        ("VEEAM-REPLICA-SNAPSHOT-CHAIN", VEEAM_RAW_TEXT),
     ):
-        summary = get_vendor_summary(code, "en")
+        summary = get_vendor_summary(code, "en", text)
         assert summary is not None
         assert summary.confidence in ("high", "medium", "low")
         assert summary.evidence and summary.nextEvidence
     assert get_vendor_summary("NOPE", "en") is None
+    # Fail-closed: no evidence means no claimed evidence strings.
+    empty = get_vendor_summary("VEEAM-REPLICA-SNAPSHOT-CHAIN", "en", "")
+    assert empty is not None
+    assert empty.evidence == []
 
 
 def test_golden_veeam_acceptance_semantics():
@@ -956,6 +960,130 @@ def test_cbt_entry_names_no_esa_article_without_environment():
         "vSAN ESA cluster Could not delete change tracking file result:2620",
     )
     assert "442155" in " ".join(gated.steps)
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 (final polish): evidence-exact vendor summaries
+# ---------------------------------------------------------------------------
+
+_CBT_MINIMAL_TEXT = (
+    "2026-09-12T02:12:41.123Z In(05) vmx - DISKLIB-CTK: "
+    "Could not delete change tracking file\n"
+)
+
+
+def test_cbt_minimal_names_no_unobserved_signatures():
+    summary = get_vendor_summary("VMWARE-CBT-DELETE-FAILED", "en", _CBT_MINIMAL_TEXT)
+    blob = " ".join([summary.overview] + summary.causes + summary.steps + summary.evidence)
+    assert "2620" not in blob
+    assert "CTK_CTKUNLINK" not in blob
+    assert "442155" not in blob
+    assert "411756" not in blob
+    assert "Failed to lock the file" not in blob
+    assert summary.evidence == ["Could not delete change tracking file"]
+
+
+def test_cbt_rich_surfaces_observed_signatures_only():
+    summary = get_vendor_summary("VMWARE-CBT-DELETE-FAILED", "en", VMWARE_CTK_TEXT)
+    assert "2620" in summary.overview
+    assert "CTK_CTKUNLINK" in summary.overview
+    blob = " ".join(summary.steps)
+    assert "442155" not in blob
+    assert "411756" not in blob
+    assert "Failed to lock the file" not in blob
+
+
+def test_snapshot_missing_steps_match_retrieval_gates():
+    summary = get_vendor_summary("VMWARE-SNAPSHOT-FILE-MISSING", "en", VMWARE_MISSING_TEXT)
+    blob = " ".join(summary.steps)
+    assert "424591" in blob
+    assert "318905" not in blob
+    assert "450780" not in blob
+    assert "452165" not in blob
+    assert "411756" not in blob
+
+
+def test_snapshot_missing_causes_not_stated_as_facts():
+    summary = get_vendor_summary("VMWARE-SNAPSHOT-FILE-MISSING", "en", VMWARE_MISSING_TEXT)
+    blob = " ".join(summary.causes)
+    assert "was deleted, moved, or renamed" not in blob
+
+
+def test_snapshot_create_names_318905_only_in_context():
+    text = (
+        "Detected an invalid snapshot configuration error creating a snapshot "
+        "CreateSnapshot failed A required file was not found invalidsnapshotformat"
+    )
+    summary = get_vendor_summary("VMWARE-SNAPSHOT-FILE-MISSING", "en", text)
+    assert "318905" in " ".join(summary.steps)
+
+
+def test_snapshot_delete_names_450780_only_in_context():
+    text = (
+        "Deleting snapshot: A required file was not found "
+        "snapshot consolidation failed invalidsnapshotformat"
+    )
+    summary = get_vendor_summary("VMWARE-SNAPSHOT-FILE-MISSING", "en", text)
+    assert "450780" in " ".join(summary.steps)
+
+
+def test_snapshot_rename_names_452165_only_in_context():
+    text = (
+        "A required file was not found after manually renaming "
+        "virtual machine folder invalidsnapshotformat"
+    )
+    summary = get_vendor_summary("VMWARE-SNAPSHOT-FILE-MISSING", "en", text)
+    assert "452165" in " ".join(summary.steps)
+
+
+def test_replica_chain_without_cbt_names_no_cbt_deletion():
+    text = (
+        "RevertSnapshot failed: InvalidSnapshotFormat\n"
+        "Detected an invalid snapshot configuration\n"
+        "A required file was not found\n"
+    )
+    summary = get_vendor_summary("VEEAM-REPLICA-SNAPSHOT-CHAIN", "en", text)
+    blob = " ".join(summary.causes + summary.steps + summary.evidence)
+    assert "change-tracking file deletion failed" not in blob
+    assert "Could not delete change tracking file" not in summary.evidence
+    assert "CBT deletion" not in blob
+
+
+def test_replica_chain_with_cbt_keeps_noncausal_limitation():
+    summary = get_vendor_summary("VEEAM-REPLICA-SNAPSHOT-CHAIN", "en", VEEAM_RAW_TEXT)
+    blob = " ".join(summary.causes + summary.evidence)
+    assert "change-tracking file deletion failed" in blob
+    assert "Could not delete change tracking file" in summary.evidence
+    assert any("NOT proven causal" in lim for lim in summary.limitations)
+
+
+def test_component_tags_are_not_paths():
+    incident = extract_incident(
+        "[CViSnapReplica] RevertSnapshot failed: InvalidSnapshotFormat\n"
+        "[VimApi] A required file was not found\n",
+        "vmware",
+    )
+    assert incident["observedPaths"] == []
+
+
+def test_bracket_datastore_path_surfaced_verbatim():
+    incident = extract_incident(
+        "RevertSnapshot failed [datastore1] VM01/VM01-000003.vmdk not found\n",
+        "vmware",
+    )
+    assert any("VM01-000003.vmdk" in p for p in incident["observedPaths"])
+
+
+def test_format_summary_uses_neutral_provenance_label():
+    from backend.domain.analyzer.schemas.analyze import SolutionSummary
+
+    probed = SolutionSummary(overview="o", causes=["c"], steps=["s"])
+    en = summary_mod.format_summary_text(probed, "en")
+    th = summary_mod.format_summary_text(probed, "th")
+    assert en.splitlines()[0] == "Analysis summary:"
+    assert th.splitlines()[0] == "สรุปการวิเคราะห์:"
+    assert "web search" not in en
+    assert "จากผลการค้นหา" not in th
 
 
 def test_vvol_gate():

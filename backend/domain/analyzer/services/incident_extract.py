@@ -113,8 +113,11 @@ _PATH_RE = re.compile(
         # UNC path
         \\\\[^\s"'<>]+
         |
-        # VMware datastore bracket notation
-        \[[^\]]{1,80}\]\s*[^\s"'<>]{1,120}
+        # VMware datastore bracket notation — the part after ] must be
+        # path-like (a separator, a storage filename extension, or a
+        # directory/file shape).  Bare component tags such as
+        # [CViSnapReplica] RevertSnapshot are NOT paths and must not match.
+        \[[^\]]{1,80}\]\s*(?:[^\s"'<>]*/[^\s"'<>]{1,120}|[^\s"'<>]*\.(?:vmdk|vmx|vmsd|nvram|log|txt))
         |
         # VMware/Linux specific roots
         /vmfs/[^\s"'<>;]+
