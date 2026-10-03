@@ -604,20 +604,41 @@ def test_golden_veeam_acceptance_semantics():
 
 
 def test_bounded_upload_reads_exact():
+    import asyncio
     import io
-    from backend.domain.analyzer.services.bundle import read_upload_bounded
+    from backend.domain.analyzer.services.bundle import read_upload_bounded, UploadTooLarge
 
-    up = io.BytesIO(b"hello world")
-    result = read_upload_bounded(up, 3)
-    assert result == b"hel"
+    class AsyncStream:
+        def __init__(self, data: bytes, chunk_yield: int = 1):
+            self._bio = io.BytesIO(data)
+            self._chunk_yield = chunk_yield
 
-    up = io.BytesIO(b"hello world")
-    result = read_upload_bounded(up, 100)
-    assert result == b"hello world"
+        async def read(self, n: int = -1) -> bytes:
+            to_read = min(n, self._chunk_yield) if n > 0 else self._chunk_yield
+            return self._bio.read(to_read)
 
-    up = io.BytesIO(b"hello world")
-    result = read_upload_bounded(up, 0)
-    assert result == b""
+    # 1. Exact limit
+    up = AsyncStream(b"exact", chunk_yield=2)
+    res = asyncio.run(read_upload_bounded(up, 5))
+    assert res == b"exact"
+
+    # 2. Limit + 1 raises controlled UploadTooLarge
+    up_overflow = AsyncStream(b"exact!", chunk_yield=2)
+    try:
+        asyncio.run(read_upload_bounded(up_overflow, 5))
+        assert False, "expected UploadTooLarge"
+    except UploadTooLarge as e:
+        assert "exceeds maximum" in str(e).lower()
+
+    # 3. Empty upload
+    up_empty = AsyncStream(b"")
+    res_empty = asyncio.run(read_upload_bounded(up_empty, 10))
+    assert res_empty == b""
+
+    # 4. Short-chunk stream (1 byte at a time)
+    up_short = AsyncStream(b"hello", chunk_yield=1)
+    res_short = asyncio.run(read_upload_bounded(up_short, 5))
+    assert res_short == b"hello"
 
 
 def test_bundle_sha256_known_vector():
@@ -957,71 +978,6 @@ def test_rename_move_gate_for_452165():
     assert "452165" not in _kb_ids("VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT)
 
 
-def test_kb_results_are_official_with_real_links():
-    results = vendor_reference_results(
-        "VMWARE-SNAPSHOT-FILE-MISSING", VMWARE_MISSING_TEXT, "en"
-    )
-    assert results, "expected at least the 424591 reference"
-    for r in results:
-        assert r.sourceType == "official"
-        assert r.link.startswith("https://knowledge.broadcom.com/external/article/")
-
-
-# ---------------------------------------------------------------------------
-# Phase 2: bundle safety limits + correlation tiers
-# ---------------------------------------------------------------------------
-
-
-def test_bundle_sha256_known_vector():
-    assert sha256_hex(b"abc") == (
-        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-    )
-
-
-def test_bundle_rejects_unsupported_extension():
-    try:
-        validate_bundle([("archive.zip", b"data")])
-    except ValueError as e:
-        assert "ZIP" in str(e) or "Unsupported" in str(e)
-    else:
-        raise AssertionError("expected ValueError for .zip")
-
-
-def test_bundle_path_traversal_neutralized():
-    cleaned = validate_bundle([("../../etc/passwd.log", b"line")])
-    assert cleaned[0][0] == "passwd.log"
-
-
-def test_bundle_per_file_limit():
-    try:
-        validate_bundle([("big.log", b"x" * (BUNDLE_MAX_FILE_BYTES + 1))])
-    except ValueError as e:
-        assert "too large" in str(e).lower()
-    else:
-        raise AssertionError("expected ValueError for oversized file")
-
-
-def test_bundle_total_limit():
-    files = [(f"f{i}.log", b"x" * BUNDLE_MAX_FILE_BYTES) for i in range(7)]
-    try:
-        validate_bundle(files)
-    except ValueError as e:
-        assert "total" in str(e).lower() or "large" in str(e).lower()
-    else:
-        raise AssertionError("expected ValueError for oversized bundle")
-    assert BUNDLE_MAX_TOTAL_BYTES == 30 * 1024 * 1024
-
-
-def test_bundle_file_count_limit():
-    files = [(f"f{i}.log", b"x") for i in range(BUNDLE_MAX_FILES + 1)]
-    try:
-        validate_bundle(files)
-    except ValueError as e:
-        assert "many" in str(e).lower() or "maximum" in str(e).lower()
-    else:
-        raise AssertionError("expected ValueError for too many files")
-
-
 def _bundle_entry(filename, text):
     return summarize_file_evidence(
         filename=filename, content=text.encode("utf-8"), text=text
@@ -1077,3 +1033,234 @@ def test_solution_summary_backward_compatible():
     assert s.incident is None
     assert s.evidenceItems == []
     assert s.evidence == []
+
+
+def test_kb_precedence_guaranteed_even_with_three_official_web_results(monkeypatch):
+    from backend.domain.analyzer.services.summary import search_solutions
+
+    class MockDDGS:
+        def __init__(self, *args, **kwargs):
+            pass
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def text(self, query, max_results=4):
+            return [
+                {
+                    "title": f"Generic Official Result {i}",
+                    "href": f"https://knowledge.broadcom.com/external/article/generic-{i}",
+                    "body": f"Generic solution {i}",
+                }
+                for i in range(1, 4)
+            ]
+
+    monkeypatch.setattr("backend.domain.analyzer.services.summary.DDGS", MockDDGS)
+    results, snippets = search_solutions(
+        event_id="Unknown",
+        provider="VMware",
+        source_family="vmware",
+        diagnostic_code="VMWARE-SNAPSHOT-FILE-MISSING",
+        evidence_text="SNAPSHOT: RevertSnapshot failed. InvalidSnapshotFormat: A required file was not found",
+        language="en",
+    )
+    assert len(results) == 3
+    # Broadcom 424591 must be retained and at index 0 (top priority)
+    assert any("424591" in r.link for r in results)
+    assert "424591" in results[0].link
+    assert results[0].sourceType == "official"
+
+
+def test_source_aware_gemini_prompt_matrix(monkeypatch):
+    from backend.domain.analyzer.services import summary as summary_mod
+
+    recorded_prompts = []
+    def mock_call_gemini(prompt, api_key):
+        recorded_prompts.append(prompt)
+        return '{"overview": "test", "causes": ["c1"], "steps": ["s1"]}'
+
+    monkeypatch.setattr(summary_mod, "_call_gemini", mock_call_gemini)
+
+    families = [
+        "windows_event",
+        "veeam_vbr",
+        "vmware",
+        "fortinet",
+        "cisco_asa",
+        "linux_syslog",
+        "json",
+        "unknown_text",
+    ]
+
+    for fam in families:
+        recorded_prompts.clear()
+        res = summary_mod._build_from_gemini(
+            event_id="1001" if fam == "windows_event" else "ERR_TEST",
+            provider="TestProvider",
+            snippets="test web context",
+            results=[],
+            language="en",
+            faulting_app="test.exe",
+            api_key="mock-key",
+            source_family=fam,
+            diagnostic_code="DIAG-01",
+            product="TestProd",
+        )
+        assert res is not None
+        assert len(recorded_prompts) == 1
+        prompt = recorded_prompts[0]
+
+        if fam == "windows_event":
+            assert "Windows Server Administrator" in prompt
+            assert "Windows Event ID" in prompt
+        else:
+            assert "Windows Server Administrator" not in prompt
+            assert "Windows Event ID" not in prompt
+
+        if fam == "linux_syslog":
+            assert "Linux/system context" in prompt or "Linux Systems Administrator" in prompt
+        elif fam == "json":
+            assert "structured application/service context" in prompt
+        elif fam == "unknown_text":
+            assert "conservative generic incident triage" in prompt
+
+
+def test_rag_domain_identity_matrix():
+    f = vector_db_mod._is_usable_knowledge_row
+
+    # 1. Negative feedback is always excluded
+    assert not f("1001", -1, "1001", "windows_event", 0.01)
+    assert not f("1001", -1, "1001", "windows_event", 0.01, row_solution_json={"_knowledge": {"sourceFamily": "windows_event"}})
+
+    # 2. Unknown text does no retrieval
+    assert not f("1001", 5, "1001", "unknown_text", 0.01)
+
+    # 3. Vendor isolation: veeam/vmware only answer exact same vendor code
+    veeam_knowledge = {"_knowledge": {"sourceFamily": "veeam_vbr", "diagnosticIdentity": "VEEAM-REPLICA-SNAPSHOT-CHAIN"}}
+    assert f("VEEAM-REPLICA-SNAPSHOT-CHAIN", 0, "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", 0.1, row_solution_json=veeam_knowledge)
+    assert not f("VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, "VMWARE-SNAPSHOT-FILE-MISSING", "vmware", 0.05, row_solution_json=veeam_knowledge)
+    assert not f("VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, "1129", "windows_event", 0.05, row_solution_json=veeam_knowledge)
+
+    # 4. Cisco ASA isolation
+    cisco_knowledge = {"_knowledge": {"sourceFamily": "cisco_asa", "diagnosticIdentity": "ASA-106015"}}
+    assert f("ASA-106015", 0, "ASA-106015", "cisco_asa", 0.1, row_solution_json=cisco_knowledge)
+    assert not f("ASA-106015", 5, "ASA-106015", "fortinet", 0.05, row_solution_json=cisco_knowledge)
+    assert not f("ASA-106015", 5, "1129", "windows_event", 0.05, row_solution_json=cisco_knowledge)
+
+    # 5. Fortinet isolation
+    forti_knowledge = {"_knowledge": {"sourceFamily": "fortinet", "diagnosticIdentity": "0000000013"}}
+    assert f("0000000013", 0, "0000000013", "fortinet", 0.1, row_solution_json=forti_knowledge)
+    assert not f("0000000013", 5, "0000000013", "cisco_asa", 0.05, row_solution_json=forti_knowledge)
+
+    # 6. Linux syslog isolation
+    linux_knowledge = {"_knowledge": {"sourceFamily": "linux_syslog", "diagnosticIdentity": "sshd_failed"}}
+    assert f("sshd_failed", 0, "sshd_failed", "linux_syslog", 0.1, row_solution_json=linux_knowledge)
+    assert not f("sshd_failed", 5, "sshd_failed", "windows_event", 0.05, row_solution_json=linux_knowledge)
+
+    # 7. JSON isolation
+    json_knowledge = {"_knowledge": {"sourceFamily": "json", "diagnosticIdentity": "http_500"}}
+    assert f("http_500", 0, "http_500", "json", 0.1, row_solution_json=json_knowledge)
+    assert not f("http_500", 5, "http_500", "linux_syslog", 0.05, row_solution_json=json_knowledge)
+
+    # 8. Legacy unmarked numeric row: Windows requests only
+    assert f("1129", 0, "1129", "windows_event", 0.1, row_solution_json=None)
+    assert not f("1129", 5, "1129", "linux_syslog", 0.05, row_solution_json=None)
+    assert not f("1129", 5, "1129", "cisco_asa", 0.05, row_solution_json=None)
+    assert not f("1129", 5, "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", 0.05, row_solution_json=None)
+
+
+def test_semantic_bundle_vector_document():
+    from backend.domain.analyzer.services.bundle import (
+        build_bundle_semantic_document,
+        derive_bundle_semantic_document_from_metadata,
+    )
+
+    doc = build_bundle_semantic_document(
+        source_family="veeam_vbr",
+        product="Veeam Backup & Replication",
+        diagnostic_code="VEEAM-REPLICA-SNAPSHOT-CHAIN",
+        operation_stage="Snapshot revert",
+        diagnostic_signatures=["RevertSnapshot", "InvalidSnapshotFormat"],
+        high_level_errors=["First failure at step 2", "Terminal revert failure"],
+        correlation_confidence="strong",
+    )
+    assert "SourceFamily: veeam_vbr" in doc
+    assert "VEEAM-REPLICA-SNAPSHOT-CHAIN" in doc
+    assert "CorrelationConfidence: strong" in doc
+    assert "RevertSnapshot" in doc
+
+    # Redaction checks: secrets, raw IPs, datastore paths, session IDs must not leak
+    doc_with_raw = build_bundle_semantic_document(
+        source_family="vmware",
+        product="ESXi",
+        diagnostic_code="VMWARE-SNAPSHOT-FILE-MISSING",
+        operation_stage="Reverting snapshot",
+        diagnostic_signatures=["JobSessionID=48291 on host 10.0.0.5"],
+        high_level_errors=["password=SecretKey fileName:'/vmfs/volumes/ds/vm.vmdk'"],
+        correlation_confidence="medium",
+    )
+    assert "10.0.0.5" not in doc_with_raw
+    assert "SecretKey" not in doc_with_raw
+    assert "JobSessionID=<ID>" in doc_with_raw
+
+    # Derivation from metadata dict
+    meta = {
+        "sourceFamily": "veeam_vbr",
+        "product": "VBR",
+        "diagnosticCode": "VEEAM-REPLICA-SNAPSHOT-CHAIN",
+        "attributes": {
+            "bundle": {
+                "correlationConfidence": "strong"
+            }
+        }
+    }
+    sol = {
+        "incident": {
+            "operationStage": "cleanup",
+            "diagnosticSignatures": ["RevertSnapshot"],
+            "firstMeaningfulFailure": "First fail",
+            "terminalFailure": "Term fail"
+        }
+    }
+    derived = derive_bundle_semantic_document_from_metadata(meta, sol)
+    assert "SourceFamily: veeam_vbr" in derived
+    assert "DiagnosticCode: VEEAM-REPLICA-SNAPSHOT-CHAIN" in derived
+
+
+def test_generic_veeam_rfc5424_parsing():
+    from backend.domain.analyzer.services.vendor_parsers import parse_syslog_hinted
+
+    raw_syslog = (
+        '<14>1 2026-09-12T02:11:03Z backup01 Veeam_MP 1234 - [Veeam_MP@31023 '
+        'instanceId="190" JobName="Daily Replication" JobResult="Failed" '
+        'WillBeRetried="False" VbrVersion="12.1.0" SourceType="VM" '
+        'Flags="0x04" description="Task failed: snapshot revert error"]'
+    )
+    res = parse_syslog_hinted(raw_syslog, "veeam_vbr")
+    assert res is not None
+    assert res["instanceid"] == "VEEAM-190"
+    assert res["description"] == "Task failed: snapshot revert error"
+    assert res["sourceFamily"] == "veeam_vbr"
+
+    fields = res.get("fields", {})
+    assert fields.get("JobName") == "Daily Replication"
+    assert fields.get("JobResult") == "Failed"
+    assert fields.get("WillBeRetried") == "False"
+    assert fields.get("VbrVersion") == "12.1.0"
+    assert fields.get("SourceType") == "VM"
+    assert fields.get("Flags") == "0x04"
+
+
+def test_no_duplicate_test_function_names():
+    import ast
+    with open(__file__, "r", encoding="utf-8") as f:
+        tree = ast.parse(f.read(), filename=__file__)
+    top_level_tests = [
+        node.name
+        for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name.startswith("test_")
+    ]
+    unique_names = set(top_level_tests)
+    duplicates = [name for name in unique_names if top_level_tests.count(name) > 1]
+    assert not duplicates, f"Duplicate top-level test functions found: {duplicates}"
+    assert len(top_level_tests) == len(unique_names)
