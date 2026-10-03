@@ -35,7 +35,6 @@ env/
 .env
 .env.*
 !.env.example
-!.env.homelab.example
 
 # --- Next.js, Node & Frontend ---
 node_modules/

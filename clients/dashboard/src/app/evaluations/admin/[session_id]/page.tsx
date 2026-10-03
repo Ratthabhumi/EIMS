@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, Star, Search, Filter, Trash2 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { apiUrl, authHeaders } from "@/lib/api";
+import { apiUrl } from "@/lib/api";
 
 interface SessionDetails {
   session_id: string;
@@ -67,7 +67,7 @@ export default function EvaluationDetails() {
     try {
       const res = await fetch(apiUrl(`/api/v1/evaluations/responses/${evaluationId}`), {
         method: "DELETE",
-        headers: authHeaders({ "Content-Type": "application/json" })
+        headers: { "Content-Type": "application/json" }
       });
       if (res.ok) {
         toast.success("Response deleted successfully", { id: toastId });

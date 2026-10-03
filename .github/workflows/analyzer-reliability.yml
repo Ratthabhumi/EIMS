@@ -21,10 +21,8 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
-      - name: Hermetic analyzer reliability & deployment tests (no DB, no network)
-        run: |
-          python -m pytest tests/test_analyzer_reliability.py -q
-          python -m pytest tests/test_homelab_deployment.py -q
+      - name: Hermetic analyzer reliability tests (no DB, no network)
+        run: python -m pytest tests/test_analyzer_reliability.py -q
 
   dashboard-typecheck-build:
     runs-on: ubuntu-latest
