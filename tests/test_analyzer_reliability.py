@@ -17,10 +17,14 @@ from backend.domain.analyzer.services.bundle import (
     BUNDLE_MAX_FILES,
     BUNDLE_MAX_TOTAL_BYTES,
     correlate_bundle,
+    is_log_source_path,
+    resource_paths_for_line,
     sha256_hex,
     summarize_file_evidence,
     validate_bundle,
 )
+from backend.domain.analyzer.services import evidence as evidence_mod
+from backend.domain.analyzer.services.incident_extract import incident_from_records
 from backend.domain.analyzer.services.compaction import MAX_CHARS, compact_log_evidence
 from backend.domain.analyzer.services.incident_extract import extract_incident
 from backend.domain.analyzer.services.parser import parse_event_metadata
@@ -1522,6 +1526,249 @@ def test_vendor_diagnostic_code_includes_session_failed():
     assert is_vendor_diagnostic_code("VMWARE-CBT-DELETE-FAILED")
     assert not is_vendor_diagnostic_code("VEEAM-UNKNOWN")
     assert not is_vendor_diagnostic_code("")
+
+
+# ---------------------------------------------------------------------------
+# Engineer-grade field correlation: structured evidence fixtures
+# (sanitized synthetic shapes only — fake names/IDs, no real hosts)
+# ---------------------------------------------------------------------------
+
+FIELD_A_OCT1 = """10/1/2026 1:53:30 AM [VeeamMP] Deleting helper snapshot
+10/1/2026 1:54:02 AM [VeeamMP] Could not delete change tracking file
+10/1/2026 1:55:10 AM [VeeamMP] Processing finished with errors
+"""
+
+FIELD_B_OCT2_KEEPER = """[02.10.2026 00:11:06.410] <09> Info [VeeamAgent] Creating job lease keeper
+[02.10.2026 00:12:44.020] <09> Error [VeeamAgent] Task session 'SYNTH-TASK-02' has been completed, status: 'Failed'
+"""
+
+FIELD_C_OCT2_REVERT = """[02.10.2026 00:14:02.100] <09> Error [CViSnapReplica] Failed to revert VM name 'synth_replica', ref '19'
+[02.10.2026 00:14:02.120] <09> Error [CViSnapReplica] RevertSnapshot failed: InvalidSnapshotFormat
+[02.10.2026 00:14:02.140] <09> Error [CViSnapReplica] Detected an invalid snapshot configuration
+[02.10.2026 00:14:02.160] <09> Error [VimApi] A required file was not found
+"""
+
+FIELD_D_QUOTED_VEEAM_PATH = (
+    'log file="C:\\ProgramData\\Veeam\\Backup\\SYNTH-JOB\\Agent.synthetic.log" opened\n'
+)
+
+FIELD_E_PROGRAM_FILES = (
+    "log dir C:\\Program Files\\Veeam\\Backup\\SYNTH-JOB\\Agent.synthetic.log opened\n"
+)
+
+
+def test_evidence_timestamp_formats():
+    iso_raw, iso_key, iso_kind = evidence_mod.parse_evidence_timestamp(
+        "2026-10-02T00:11:06Z Task session failed"
+    )
+    assert iso_kind == "iso8601"
+    assert (iso_key.year, iso_key.month, iso_key.day) == (2026, 10, 2)
+    assert iso_key.tzinfo is None
+    raw_raw, raw_key, raw_kind = evidence_mod.parse_evidence_timestamp(
+        "[02.10.2026 00:11:06.410] Task session failed"
+    )
+    assert raw_kind == "veeam_raw"
+    assert (raw_key.year, raw_key.month, raw_key.day, raw_key.hour) == (2026, 10, 2, 0)
+    rep_raw, rep_key, rep_kind = evidence_mod.parse_evidence_timestamp(
+        "10/1/2026 1:53:30 AM Deleting helper snapshot"
+    )
+    assert rep_kind == "veeam_report"
+    assert (rep_key.year, rep_key.month, rep_key.day, rep_key.hour) == (2026, 10, 1, 1)
+    assert evidence_mod.parse_evidence_timestamp("no timestamp here")[1] is None
+
+
+def test_oct1_sorts_before_oct2():
+    recs = evidence_mod.build_evidence_records(
+        [("b.log", FIELD_B_OCT2_KEEPER), ("a.log", FIELD_A_OCT1)]
+    )
+    ordered = evidence_mod.order_records(recs)
+    assert ordered[0].source_file == "a.log"
+    assert ordered[0].timestamp_kind == "veeam_report"
+    assert ordered[-1].source_file == "b.log"
+
+
+def test_chronology_unchanged_by_file_upload_permutation():
+    files_fwd = [("a.log", FIELD_A_OCT1), ("c.log", FIELD_C_OCT2_REVERT)]
+    files_rev = [("c.log", FIELD_C_OCT2_REVERT), ("a.log", FIELD_A_OCT1)]
+    inc_fwd = incident_from_records(
+        evidence_mod.build_evidence_records(files_fwd), "veeam_vbr"
+    )
+    inc_rev = incident_from_records(
+        evidence_mod.build_evidence_records(files_rev), "veeam_vbr"
+    )
+    for key in (
+        "firstMeaningfulFailure",
+        "terminalFailure",
+        "timeline",
+        "operationStage",
+        "diagnosticSignatures",
+    ):
+        assert inc_fwd[key] == inc_rev[key], f"upload order changed {key}"
+
+
+def test_first_failure_never_follows_terminal_failure():
+    # Oct-2 file supplied FIRST in upload order; Oct-1 second.
+    inc = incident_from_records(
+        evidence_mod.build_evidence_records(
+            [("b.log", FIELD_B_OCT2_KEEPER), ("a.log", FIELD_A_OCT1)]
+        ),
+        "veeam_vbr",
+    )
+    assert "10/1/2026" in (inc["firstMeaningfulFailure"] or "")
+    assert "02.10.2026" in (inc["terminalFailure"] or "")
+
+
+def test_c_program_never_emitted_as_exact_path():
+    paths = resource_paths_for_line(
+        "log dir C:\\Program Files\\Veeam\\Backup\\SYNTH-JOB\\Agent.synthetic.log opened"
+    )
+    assert all(p != "C:\\Program" for p in paths)
+    from backend.domain.analyzer.services.bundle import extract_observed_paths
+
+    display = extract_observed_paths(
+        "log dir C:\\Program Files\\Veeam\\Backup\\SYNTH-JOB\\Agent.synthetic.log opened"
+    )
+    assert all(p != "C:\\Program" for p in display)
+
+
+def test_quoted_windows_path_captured_intact():
+    paths = resource_paths_for_line(
+        'log file="C:\\Program Files\\BackupVendor\\SYNTH-JOB\\Agent.synthetic.log" opened'
+    )
+    assert r"C:\Program Files\BackupVendor\SYNTH-JOB\Agent.synthetic.log" in paths
+    # A Veeam evidence-source path stays displayable even though it never
+    # counts as correlation identity.
+    from backend.domain.analyzer.services.bundle import extract_observed_paths
+
+    display = extract_observed_paths(
+        'log file="C:\\ProgramData\\Veeam\\Backup\\SYNTH-JOB\\Agent.synthetic.log" opened'
+    )
+    assert r"C:\ProgramData\Veeam\Backup\SYNTH-JOB\Agent.synthetic.log" in display
+    assert (
+        r"C:\ProgramData\Veeam\Backup\SYNTH-JOB\Agent.synthetic.log"
+        not in resource_paths_for_line(
+            'log file="C:\\ProgramData\\Veeam\\Backup\\SYNTH-JOB\\Agent.synthetic.log" opened'
+        )
+    )
+
+
+def test_veeam_log_source_path_excluded_from_correlation():
+    assert is_log_source_path(
+        r"C:\ProgramData\Veeam\Backup\SYNTH-JOB\Agent.synthetic.log"
+    )
+    assert is_log_source_path(r"%ProgramData%\Veeam\Backup\SYNTH-JOB\Agent.synthetic.log")
+    assert not is_log_source_path(
+        r"/vmfs/volumes/TEST-DS-01/TEST-VM-01/TEST-VM-01-000003.vmdk"
+    )
+    a = _bundle_entry(
+        "job.log",
+        "2026-10-01T01:53:30Z log dir C:\\ProgramData\\Veeam\\Backup\\SYNTH-JOB task started",
+    )
+    b = _bundle_entry(
+        "task.log",
+        "2026-10-01T01:54:30Z log dir C:\\ProgramData\\Veeam\\Backup\\SYNTH-JOB task running",
+    )
+    out = correlate_bundle([a, b])
+    assert out["correlationConfidence"] == "none"
+
+
+def test_shared_log_directory_alone_creates_no_correlation():
+    a = _bundle_entry("a.log", "Error: backup stale C:\\ProgramData\\Veeam\\Backup")
+    b = _bundle_entry("b.log", "Error: proxy busy C:\\ProgramData\\Veeam\\Backup")
+    out = correlate_bundle([a, b])
+    assert out["correlationConfidence"] == "none"
+
+
+def test_vmfs_vmdk_is_correlation_grade():
+    paths = resource_paths_for_line(
+        "fileName:'/vmfs/volumes/TEST-DS-01/TEST-VM-01/TEST-VM-01-000003.vmdk'"
+    )
+    assert any("TEST-VM-01-000003.vmdk" in p for p in paths)
+
+
+def test_bracket_datastore_vmdk_is_correlation_grade():
+    paths = resource_paths_for_line("[datastore1] VM01/VM01-000003.vmdk missing")
+    assert any("VM01-000003.vmdk" in p for p in paths)
+    assert resource_paths_for_line("[CViSnapReplica] RevertSnapshot") == []
+
+
+def test_shared_vm_identity_with_window_is_medium():
+    a = _bundle_entry(
+        "job.log",
+        "2026-10-02T00:11:06Z vm name 'svrtv004_replica', ref '19' task started",
+    )
+    b = _bundle_entry(
+        "task.log",
+        "2026-10-02T00:12:44Z vm name 'svrtv004_replica', ref '19' task failed",
+    )
+    out = correlate_bundle([a, b])
+    assert out["correlationConfidence"] == "medium"
+    assert "job.log" in out["correlatedSources"]
+    assert "task.log" in out["correlatedSources"]
+
+
+def test_shared_snapshot_id_with_window_is_medium():
+    a = _bundle_entry(
+        "a.log",
+        "2026-10-02T00:14:02Z snapshot 19-snapshot-5 revert started",
+    )
+    b = _bundle_entry(
+        "b.log",
+        "2026-10-02T00:14:20Z snapshot 19-snapshot-5 revert failed",
+    )
+    out = correlate_bundle([a, b])
+    assert out["correlationConfidence"] == "medium"
+
+
+def test_task_session_id_never_counts_as_strong():
+    a = _bundle_entry(
+        "a.log",
+        "2026-10-02T00:12:44Z Task session 'SYNTH-TASK-02' has been completed, status: 'Failed'",
+    )
+    b = _bundle_entry(
+        "b.log",
+        "2026-10-02T00:13:44Z Task session 'SYNTH-TASK-02' referenced again",
+    )
+    out = correlate_bundle([a, b])
+    assert out["correlationConfidence"] != "strong"
+
+
+def test_lease_keeper_text_never_triggers_318905():
+    ids = _kb_ids(
+        "VMWARE-SNAPSHOT-FILE-MISSING",
+        "Creating job lease keeper\n"
+        "RevertSnapshot failed: InvalidSnapshotFormat\n"
+        "A required file was not found",
+    )
+    assert "318905" not in ids
+    assert "424591" in ids
+
+
+def test_bundle_union_gates_operations_locally():
+    bundle_text = (
+        "===== FILE: a.log =====\n" + FIELD_A_OCT1 + "\n"
+        "===== FILE: b.log =====\n" + FIELD_B_OCT2_KEEPER + "\n"
+        "===== FILE: c.log =====\n" + FIELD_C_OCT2_REVERT
+    )
+    ids = _kb_ids("VEEAM-REPLICA-SNAPSHOT-CHAIN", bundle_text)
+    assert "424591" in ids
+    assert "318905" not in ids
+    assert "450780" not in ids
+    assert "452165" not in ids
+    assert "442155" not in ids
+    assert "411756" not in ids
+
+
+def test_bundle_reference_set_stable_under_permutation():
+    seg_a = "===== FILE: a.log =====\n" + FIELD_A_OCT1
+    seg_b = "===== FILE: b.log =====\n" + FIELD_B_OCT2_KEEPER
+    seg_c = "===== FILE: c.log =====\n" + FIELD_C_OCT2_REVERT
+    order_one = "\n".join([seg_a, seg_b, seg_c])
+    order_two = "\n".join([seg_c, seg_a, seg_b])
+    ids_one = sorted(_kb_ids("VEEAM-REPLICA-SNAPSHOT-CHAIN", order_one))
+    ids_two = sorted(_kb_ids("VEEAM-REPLICA-SNAPSHOT-CHAIN", order_two))
+    assert ids_one == ids_two
+    assert "424591" in ids_one
 
 
 # ---------------------------------------------------------------------------

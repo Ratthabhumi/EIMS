@@ -197,6 +197,18 @@ async def submit_analysis(
 
     start_time = time.time()
     evidence_text_ctx = combined_text or description or ""
+    # Diagnostic-local KB context derived from normalized records; falls
+    # back to the full evidence only when no diagnostic anchors exist.
+    from backend.domain.analyzer.services.evidence import (
+        build_evidence_records as _build_records,
+        diagnostic_local_context as _local_context,
+    )
+
+    _single_local = _local_context(
+        _build_records([((file.filename or "") if file else "", evidence_text_ctx)]),
+        metadata.diagnosticCode or "",
+    )
+    kb_evidence_ctx = _single_local or evidence_text_ctx
     results, combined_snippets = await asyncio.to_thread(
         search_solutions,
         metadata.eventId,
@@ -204,7 +216,7 @@ async def submit_analysis(
         language=lang,
         source_family=metadata.sourceFamily or None,
         diagnostic_code=metadata.diagnosticCode or None,
-        evidence_text=evidence_text_ctx,
+        evidence_text=kb_evidence_ctx,
         product=metadata.product or "",
     )
     solution = await build_summary(
@@ -213,7 +225,7 @@ async def submit_analysis(
         source_family=metadata.sourceFamily or None,
         diagnostic_code=metadata.diagnosticCode or None,
         product=metadata.product or "",
-        evidence_text=evidence_text_ctx,
+        evidence_text=kb_evidence_ctx,
     )
     # Evidence-first attachment: deterministic incident sketch fills fields
     # the synthesis path did not provide (curated vendor paths already do).
@@ -331,6 +343,7 @@ async def submit_bundle(
     lang = language if language in ("th", "en") else "th"
     per_file = []
     combined_parts: List[str] = []
+    record_sources: List[tuple] = []
     for filename, content in cleaned:
         try:
             extracted, _desc = _process_upload(content, filename, None)
@@ -350,6 +363,7 @@ async def submit_bundle(
             )
         )
         combined_parts.append(f"===== FILE: {filename} =====\n{compacted}")
+        record_sources.append((filename, compacted))
 
     correlation = correlate_bundle(per_file)
     combined_text = compact_log_evidence("\n\n".join(combined_parts))
@@ -368,6 +382,26 @@ async def submit_bundle(
                 break
     primary_meta = parse_event_metadata(primary.text, primary.filename)
 
+    # Structured evidence records: one normalized representation for
+    # chronology, correlation, and KB operation context — independent of
+    # upload order.  combined_text stays the general summary / RAG context,
+    # but vendor article applicability receives diagnostic-local context.
+    from backend.domain.analyzer.services.evidence import (
+        build_evidence_records,
+        diagnostic_local_context,
+    )
+    from backend.domain.analyzer.services.incident_extract import (
+        incident_from_records,
+    )
+
+    bundle_records = build_evidence_records(record_sources)
+    kb_local_context = diagnostic_local_context(
+        bundle_records, primary_meta.diagnosticCode or ""
+    )
+    # Fall back to the full evidence only when no diagnostic anchors exist
+    # (generic codes have no operation-gated articles to select).
+    kb_evidence_text = kb_local_context or combined_text
+
     start_time = time.time()
     results, combined_snippets = await asyncio.to_thread(
         search_solutions,
@@ -376,7 +410,7 @@ async def submit_bundle(
         language=lang,
         source_family=primary_meta.sourceFamily or None,
         diagnostic_code=primary_meta.diagnosticCode or None,
-        evidence_text=combined_text,
+        evidence_text=kb_evidence_text,
         product=primary_meta.product or "",
     )
     solution = await build_summary(
@@ -392,9 +426,9 @@ async def submit_bundle(
         source_family=primary_meta.sourceFamily or None,
         diagnostic_code=primary_meta.diagnosticCode or None,
         product=primary_meta.product or "",
-        evidence_text=combined_text,
+        evidence_text=kb_evidence_text,
     )
-    incident = extract_incident(combined_text, primary_meta.sourceFamily or "")
+    incident = incident_from_records(bundle_records, primary_meta.sourceFamily or "")
     if not solution.evidence and incident.get("evidence"):
         solution.evidence = [str(x) for x in incident["evidence"][:8]]
     if not solution.nextEvidence and incident.get("nextEvidence"):

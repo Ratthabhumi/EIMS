@@ -139,20 +139,33 @@ def _article_applies(article: VendorArticle, diagnostic_code: str, text: str) ->
             return False
         return True
     if article.article_id == "318905":
-        # Create-snapshot path only.
+        # Create-snapshot path only.  Generic words alone ("creating",
+        # "creation" — e.g. "Creating job lease keeper") never qualify;
+        # only explicit snapshot-creation semantics do.
         if "invalidsnapshotformat" not in lowered and "invalid snapshot" not in lowered:
             return False
         if not any(
             token in lowered
-            for token in ("createsnapshot", "create snapshot", "creating", "creation")
+            for token in (
+                "createsnapshot",
+                "create snapshot",
+                "creating a snapshot",
+                "creating snapshot",
+                "vim.virtualmachine.createsnapshot",
+            )
         ):
             return False
         return True
     if article.article_id == "450780":
-        # Snapshot deletion/consolidation only.
+        # Snapshot deletion/consolidation only, AND the required-file
+        # condition must belong to that same operation context.  A prior
+        # "Deleting helper snapshot" line must never justify this article
+        # for a later unrelated RevertSnapshot failure.
         if "snapshot" not in lowered:
             return False
         if not any(token in lowered for token in ("delet", "consolidat", "remov")):
+            return False
+        if "a required file" not in lowered or "not found" not in lowered:
             return False
         return True
     if article.article_id == "452165":
@@ -176,11 +189,90 @@ def _article_allowed(article_id: str, diagnostic_code: str, evidence_text: str) 
 
     Environment-specific articles (vSAN ESA, vVOLs, ...) must never be
     named in canned guidance unless the evidence satisfies their gates.
-    Fails closed on empty evidence.
+    Fails closed on empty evidence.  Evaluation is operation-local
+    (same policy as retrieval), never whole-bundle keyword coincidence.
     """
     for article in VENDOR_ARTICLES:
         if article.article_id == article_id:
-            return _article_applies(article, diagnostic_code, evidence_text or "")
+            return _article_applies_local(article, diagnostic_code, evidence_text or "")
+    return False
+
+
+#: Articles evaluated per file segment (environment scope: the host/cluster
+#: context lives with that file's logs).  Operation articles below use
+#: bounded line windows around anchor lines instead.
+_SEGMENT_SCOPE_ARTICLE_IDS = frozenset({"442155", "411756", "418256"})
+
+#: Anchor signals per operation-gated article.  Anchors are intentionally
+#: broad — _article_applies stays the precise gate, evaluated on the
+#: bounded window so an operation in one file/attempt can never satisfy a
+#: gate with keywords from an unrelated file or attempt.
+_ARTICLE_ANCHOR_RES = {
+    "424591": (
+        r"required file",
+        r"not found",
+        r"invalidsnapshotformat",
+        r"invalid snapshot",
+        r"revert",
+    ),
+    "318905": (
+        r"invalidsnapshotformat",
+        r"invalid snapshot",
+        r"createsnapshot",
+        r"create snapshot",
+        r"creating a snapshot",
+        r"creating snapshot",
+    ),
+    "450780": (
+        r"required file",
+        r"not found",
+        r"delet",
+        r"consolidat",
+        r"remov",
+        r"snapshot",
+    ),
+    "452165": (
+        r"required file",
+        r"not found",
+        r"renam",
+        r"folder",
+        r"path mismatch",
+        r"move",
+        r"moved",
+        r"moving",
+    ),
+}
+
+_KB_WINDOW_RADIUS_LINES = 15
+
+
+def _article_applies_local(
+    article: VendorArticle, diagnostic_code: str, evidence_text: str
+) -> bool:
+    """Operation-local article applicability.
+
+    Bundle combined_text carries "===== FILE:" segment markers; segments
+    isolate files so cross-file keyword coincidence can never satisfy a
+    gate.  Within a segment, operation-gated articles must satisfy their
+    gate inside ONE bounded line window around anchor lines (same
+    operation/attempt), while environment articles use the whole segment.
+    Text without markers behaves exactly as before.
+    """
+    from backend.domain.analyzer.services import evidence as _evidence
+
+    segments = _evidence.split_file_segments(evidence_text or "")
+    for _filename, segment in segments:
+        if article.article_id in _SEGMENT_SCOPE_ARTICLE_IDS:
+            if _article_applies(article, diagnostic_code, segment):
+                return True
+            continue
+        lines = segment.splitlines()
+        anchors = _evidence.anchor_line_indexes(
+            lines, _ARTICLE_ANCHOR_RES.get(article.article_id, ())
+        )
+        for window in _evidence.window_texts(lines, anchors, _KB_WINDOW_RADIUS_LINES):
+            if _article_applies(article, diagnostic_code, window):
+                return True
     return False
 
 
@@ -188,14 +280,16 @@ def vendor_reference_results(diagnostic_code: str, evidence_text: str, language:
     """Deterministic official KB references for a diagnostic code + evidence.
 
     Environment-gated articles (vSAN ESA, vVOLs, deletion, rename/move) are
-    only returned when the supplied text satisfies their token gates.
+    only returned when the evidence satisfies their token gates in local
+    operation context — never by combining unrelated keywords from
+    different files or attempts across a bundle.
     """
     if not diagnostic_code:
         return []
     language = language if language in ("th", "en") else "th"
     results: List[SearchResult] = []
     for article in VENDOR_ARTICLES:
-        if not _article_applies(article, diagnostic_code, evidence_text):
+        if not _article_applies_local(article, diagnostic_code, evidence_text):
             continue
         snippet = _th_en(
             f"Broadcom Support knowledge article {article.article_id} — "

@@ -160,17 +160,51 @@ FAILURE_LINE = re.compile(
 
 # Exact observed paths only.  Quoted values after file-ish keys, /vmfs/
 # tokens, Windows drive paths, or quoted names with known extensions.
+# Quoted key=value pairs come first so values containing spaces are
+# captured intact (e.g. file="C:\Program Files\...").
+# Unquoted Windows drive-letter token (stops at whitespace; truncation is
+# filtered by _is_truncated_drive_prefix in display extraction).
+_DRIVE_PATH_RE = re.compile(r"([A-Za-z]:\\[^\s'\";,]+)")
+
 PATH_PATTERNS = (
+    re.compile(
+        r"""(?:fileName|filename|file|path|log|directory|dir)\s*[:=]\s*["']([^"']+)["']""",
+        re.IGNORECASE,
+    ),
     re.compile(r"(?:fileName|filename|file|path)\s*[:=]\s*['\"]([^'\"]+)['\"]"),
     re.compile(r"(/vmfs/[^\s'\";,]+)"),
-    re.compile(r"([A-Za-z]:\\[^\s'\";,]+)"),
+    _DRIVE_PATH_RE,
     re.compile(r"['\"]([^'\"]+\.(?:vmdk|vmx|vmsd|log|txt))['\"]"),
 )
 
-# Leading timestamps: ISO-8601, Veeam [dd.mm.yyyy HH:MM:SS], syslog.
+# A drive-letter candidate with no further separator that is visibly cut
+# off by a space (e.g. "C:\Program" from "C:\Program Files\...") is a
+# truncated prefix, never an exact path.  It must not be emitted as one
+# and must never drive correlation identity.
+_TRUNCATED_WINDOWS_PREFIX_RE = re.compile(r"^[A-Za-z]:\\[^\\/]+$")
+
+
+def is_log_source_path(path: str) -> bool:
+    """True when a path is a Veeam evidence-source location, not an
+    infrastructure-resource identity.
+
+    Job/component/service log paths under %ProgramData%\\Veeam\\Backup
+    (any drive or env-var spelling) identify WHERE evidence was collected,
+    not WHICH vm/disk/snapshot failed.  They stay displayable but must
+    never increase bundle correlation confidence.
+    """
+    lowered = (path or "").lower().replace("/", "\\")
+    return "veeam\\backup" in lowered or "program files\\veeam" in lowered
+
+# Leading timestamps: ISO-8601, Veeam [dd.mm.yyyy HH:MM:SS[.mmm]],
+# Veeam report M/D/YYYY h:mm:ss AM/PM, syslog.
 TS_PATTERNS = (
     re.compile(r"^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)"),
-    re.compile(r"^\[(\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2})\]"),
+    re.compile(r"^\[(\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2})(?:\.\d+)?\]"),
+    re.compile(
+        r"^(\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s*[AP]M)",
+        re.IGNORECASE,
+    ),
     re.compile(r"^([A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})"),
     re.compile(r"^(\d{2}:\d{2}:\d{2})"),
 )
@@ -247,13 +281,30 @@ def validate_bundle(files: List[Tuple[str, bytes]]) -> List[Tuple[str, bytes]]:
     return cleaned
 
 
+def _is_truncated_drive_prefix(value: str, line: str, match_end: int) -> bool:
+    """Detect a drive-letter candidate cut off by whitespace.
+
+    "C:\\Program" from "C:\\Program Files\\..." is a prefix, not an exact
+    path: the match visibly continues after a space.  Such candidates are
+    dropped instead of being emitted (and can never drive correlation).
+    """
+    if not _TRUNCATED_WINDOWS_PREFIX_RE.match(value):
+        return False
+    return re.match(r"^\s+\S", line[match_end:]) is not None
+
+
 def extract_observed_paths(line: str) -> List[str]:
     found: List[str] = []
+    text = line or ""
     for pattern in PATH_PATTERNS:
-        for match in pattern.findall(line):
-            value = match.strip().strip(".,;")
-            if value and value not in found:
-                found.append(value)
+        for match in pattern.finditer(text):
+            value = match.group(1) if match.lastindex else match.group(0)
+            value = value.strip().strip(".,;")
+            if not value or value in found:
+                continue
+            if _is_truncated_drive_prefix(value, text, match.end()):
+                continue
+            found.append(value)
     return found
 
 
@@ -266,29 +317,42 @@ def extract_leading_timestamp(line: str) -> str:
 
 
 def _parse_timestamp_key(raw: str) -> Optional[datetime]:
-    """Best-effort sort key; only for explicit formats.  None otherwise."""
-    text = (raw or "").strip()
-    if not text:
-        return None
-    try:
-        candidate = text.replace("Z", "+00:00")
-        parsed = datetime.fromisoformat(candidate)
-        if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
-        return parsed
-    except ValueError:
-        pass
-    for fmt in ("%d.%m.%Y %H:%M:%S", "%b %d %H:%M:%S"):
-        try:
-            parsed = datetime.strptime(text, fmt)
-            return parsed.replace(tzinfo=timezone.utc)
-        except ValueError:
-            continue
-    return None
+    """Best-effort sort key; only for explicit formats.  None otherwise.
+
+    All keys are naive datetimes (offset-aware input is normalized to UTC
+    first), so per-file min/max never mixes aware and naive values and
+    cross-file window comparison cannot raise.
+    """
+    from backend.domain.analyzer.services.evidence import parse_evidence_timestamp
+
+    _, key, _ = parse_evidence_timestamp(raw or "")
+    return key
+
+
+# VM identity as observed in hypervisor lines: name 'X', ref '19'.
+# The name AND ref travel together as one pair identity.
+VM_NAME_REF_RE = re.compile(
+    r"""name\s*['"]([^'"]{1,80})['"]\s*,\s*ref\s*['"]?(\d+)['"]?""",
+    re.IGNORECASE,
+)
+# Snapshot object identity: 19-snapshot-5.
+SNAPSHOT_ID_RE = re.compile(r"\b(\d+-snapshot-\d+)\b")
+# Task session outcome identity: Task session 'GUID' ...  Quoted form only,
+# so "Task session retry 1/3" never matches.  This is a DIFFERENT identity
+# from job-session and job IDs and must never be equated with them.
+TASK_SESSION_ID_RE = re.compile(
+    r"""task\s+session\s+['"]([A-Za-z0-9][A-Za-z0-9\-_]{2,})['"]""",
+    re.IGNORECASE,
+)
 
 
 def correlation_ids(text: str) -> Dict[str, str]:
-    """Normalized Veeam correlation identifiers observed in text."""
+    """Normalized Veeam correlation identifiers observed in text.
+
+    Identity types stay separate: task-session, job-session, and job IDs
+    are different identities and are never equated.  Random GUIDs without
+    an identity label are never captured.
+    """
     out: Dict[str, str] = {}
     lowered = text or ""
     for key, pattern in (
@@ -296,6 +360,7 @@ def correlation_ids(text: str) -> Dict[str, str]:
         ("jobsessionid", JOBSESSION_BARE_RE),
         ("jobid", JOBID_RE),
         ("jobid", JOBID_BARE_RE),
+        ("task_session_id", TASK_SESSION_ID_RE),
     ):
         match = pattern.search(lowered)
         if match:
@@ -304,6 +369,14 @@ def correlation_ids(text: str) -> Dict[str, str]:
                 raw = raw[6:]
             if raw and key not in out:
                 out[key] = raw
+    vm_match = VM_NAME_REF_RE.search(text or "")
+    if vm_match:
+        out.setdefault(
+            "vm", f"{vm_match.group(1).strip()}\x00{vm_match.group(2).strip()}"
+        )
+    snap_match = SNAPSHOT_ID_RE.search(text or "")
+    if snap_match:
+        out.setdefault("snapshot_id", snap_match.group(1))
     return out
 
 
@@ -325,9 +398,58 @@ class BundleFileEvidence:
     ids: Dict[str, str] = field(default_factory=dict)
     signatures: List[str] = field(default_factory=list)
     paths: List[str] = field(default_factory=list)
+    # Correlation-grade resource paths: infrastructure identities (VMFS
+    # paths, datastore bracket paths, quoted fileName paths, complete
+    # drive paths).  Display-only locations (Veeam log-source roots,
+    # truncated prefixes) are in `paths` but never here.
+    resource_paths: List[str] = field(default_factory=list)
     timeMin: Optional[datetime] = None
     timeMax: Optional[datetime] = None
     hasTimestamps: bool = False
+
+
+# Bracket datastore form for correlation identity: the part after ] must be
+# path-like (separator or storage extension).  Bare component tags such as
+# [CViSnapReplica] RevertSnapshot never qualify (see incident_extract).
+_BRACKET_RESOURCE_RE = re.compile(
+    r"\[[^\]]{1,80}\]\s*(?:[^\s'\";,/]*[\\/][^\s'\";,]{1,120}|[^\s'\";,]*\.(?:vmdk|vmx|vmsd|nvram|log|txt))"
+)
+
+
+def resource_paths_for_line(line: str) -> List[str]:
+    """Correlation-grade resource paths observed in one line.
+
+    Display-only evidence-source locations (Veeam log roots) and truncated
+    prefixes are excluded here even though they stay displayable.
+    """
+    found: List[str] = []
+    text = line or ""
+    for match in _BRACKET_RESOURCE_RE.finditer(text):
+        value = match.group(0).strip().strip(".,;")
+        if (
+            value
+            and value not in found
+            and not is_log_source_path(value)
+        ):
+            found.append(value)
+    for pattern in PATH_PATTERNS:
+        is_drive_match = pattern is _DRIVE_PATH_RE
+        for match in pattern.finditer(text):
+            value = match.group(1) if match.lastindex else match.group(0)
+            value = value.strip().strip(".,;")
+            if not value or value in found:
+                continue
+            if _is_truncated_drive_prefix(value, text, match.end()):
+                continue
+            if is_log_source_path(value):
+                continue
+            # Unquoted bare drive roots without a separator beyond X:\ are
+            # not infrastructure identities (quoted key=value forms stay
+            # explicit and are kept).
+            if is_drive_match and re.match(r"^[A-Za-z]:\\[^\\/]+$", value):
+                continue
+            found.append(value)
+    return found
 
 
 def summarize_file_evidence(
@@ -342,6 +464,7 @@ def summarize_file_evidence(
     ids = correlation_ids(text)
     signatures = error_signatures(text)
     paths: List[str] = []
+    resource_paths: List[str] = []
     keys: List[datetime] = []
     has_ts = False
     for line in text.splitlines():
@@ -350,6 +473,9 @@ def summarize_file_evidence(
         for path in extract_observed_paths(line):
             if path not in paths:
                 paths.append(path)
+        for resource in resource_paths_for_line(line):
+            if resource not in resource_paths:
+                resource_paths.append(resource)
         key = _parse_timestamp_key(extract_leading_timestamp(line))
         if key is not None:
             keys.append(key)
@@ -365,6 +491,7 @@ def summarize_file_evidence(
         ids=ids,
         signatures=signatures,
         paths=paths,
+        resource_paths=resource_paths,
         timeMin=min(keys) if keys else None,
         timeMax=max(keys) if keys else None,
         hasTimestamps=has_ts,
@@ -409,84 +536,165 @@ def build_evidence_items(
     return items
 
 
+def _windows_overlap(
+    a_min, a_max, b_min, b_max, epsilon_seconds: int = BUNDLE_TIME_EPSILON_SECONDS
+) -> Optional[bool]:
+    """True when two file time windows overlap (epsilon tolerance).
+
+    Returns None when overlap cannot be verified (missing bounds).
+    All bounds are naive datetimes by construction, so no aware/naive
+    mixing is possible here.
+    """
+    if not (a_min and a_max and b_min and b_max):
+        return None
+    from datetime import timedelta as _td
+
+    eps = _td(seconds=epsilon_seconds)
+    try:
+        return max(a_min, b_min) - eps <= min(a_max, b_max) + eps
+    except TypeError:
+        return None
+
+
 def correlate_bundle(files: List[BundleFileEvidence]) -> Dict[str, object]:
-    """Conservative cross-file correlation.  Never invents causality."""
+    """Conservative cross-file correlation.  Never invents causality.
+
+    Confidence ladder (deterministic under any file order):
+    - STRONG: same semantic JobSessionID / JobID in >= 2 files.  Task
+      session IDs are a different identity and never count here, and
+      unlabeled GUIDs are never captured at all.
+    - MEDIUM: the same correlation-grade resource (exact datastore path,
+      VM name/ref pair, snapshot object id) in >= 2 files within a
+      compatible time window.
+    - WEAK: the same meaningful diagnostic signature when nothing
+      stronger holds.  Generic words ("Error", "Failed") are not
+      signatures and never correlate.
+    - none: nothing valid relates the files.  Veeam log-source locations
+      (%ProgramData%\\Veeam\\Backup and siblings), truncated prefixes
+      such as C:\\Program, and generic status words NEVER raise
+      confidence — shared log directories prove shared collection, not a
+      shared incident.
+    """
     reasons: List[str] = []
     correlated: List[str] = []
     confidence = "none"
 
-    if len(files) < 2:
+    entries = list(files or [])
+    if len(entries) < 2:
         return {
             "correlationConfidence": "none",
             "correlationReasons": ["Only one file supplied; nothing to correlate."],
-            "correlatedSources": [f.filename for f in files],
+            "correlatedSources": [f.filename for f in entries],
         }
 
-    # STRONG: exact shared JobSessionID / JobID.
+    def _names(entity_files) -> List[str]:
+        return sorted({e.filename for e in entity_files})
+
+    # STRONG: exact shared JobSessionID / JobID.  Task session IDs are a
+    # different identity and are deliberately not consulted here.
     for id_key in ("jobsessionid", "jobid"):
         groups: Dict[str, List[str]] = {}
-        for entry in files:
+        for entry in entries:
             value = entry.ids.get(id_key)
             if value:
                 groups.setdefault(value, []).append(entry.filename)
-        for value, names in groups.items():
+        for value in sorted(groups):
+            names = sorted(set(groups[value]))
             if len(names) >= 2:
                 confidence = "strong"
                 correlated = sorted(set(correlated) | set(names))
                 reasons.append(
                     f"Strong: exact {id_key} '{value}' observed in "
-                    + ", ".join(sorted(set(names)))
+                    + ", ".join(names)
                     + "."
                 )
 
-    # MEDIUM: exact shared path + overlapping timestamp window.
+    def _medium_or_weak(
+        label: str, names: List[str], file_entries: List
+    ) -> None:
+        """Record a resource/entity relationship with window honesty."""
+        nonlocal confidence, correlated, reasons
+        timed = [e for e in file_entries if e.timeMin and e.timeMax]
+        overlap: Optional[bool] = None
+        if len(timed) >= 2:
+            overlap = True
+            for left in timed:
+                for right in timed:
+                    if left is right:
+                        continue
+                    result = _windows_overlap(
+                        left.timeMin, left.timeMax, right.timeMin, right.timeMax
+                    )
+                    if result is False:
+                        overlap = False
+        if overlap:
+            confidence = "medium"
+            correlated = sorted(set(correlated) | set(names))
+            reasons.append(
+                f"Medium: {label} observed in "
+                + ", ".join(names)
+                + " with overlapping timestamp windows "
+                + f"(±{BUNDLE_TIME_EPSILON_SECONDS // 60} min tolerance; "
+                + "original timestamps preserved)."
+            )
+        else:
+            if confidence == "none":
+                confidence = "weak"
+            correlated = sorted(set(correlated) | set(names))
+            reasons.append(
+                f"Weak: {label} observed in "
+                + ", ".join(names)
+                + " but timestamp overlap cannot be verified; "
+                + "shared evidence only, causality NOT proven."
+            )
+
+    # MEDIUM: exact shared correlation-grade resource path.
     if confidence != "strong":
-        path_groups: Dict[str, List[BundleFileEvidence]] = {}
-        for entry in files:
-            for path in entry.paths:
+        path_groups: Dict[str, List] = {}
+        for entry in entries:
+            for path in entry.resource_paths:
                 path_groups.setdefault(path, []).append(entry)
-        for path, entries in path_groups.items():
-            unique = sorted({e.filename for e in entries})
+        for path in sorted(path_groups):
+            file_entries = path_groups[path]
+            unique = _names(file_entries)
             if len(unique) < 2:
                 continue
-            timed = [e for e in entries if e.timeMin and e.timeMax]
-            overlap = False
-            if len(timed) >= 2:
-                from datetime import timedelta as _td
+            _medium_or_weak(f"exact path '{path}'", unique, file_entries)
 
-                eps = _td(seconds=BUNDLE_TIME_EPSILON_SECONDS)
-                latest_start = max(e.timeMin for e in timed)  # type: ignore[operator]
-                earliest_end = min(e.timeMax for e in timed)  # type: ignore[operator]
-                overlap = (latest_start - eps) <= (earliest_end + eps)
-            if overlap:
-                confidence = "medium"
-                correlated = sorted(set(correlated) | set(unique))
-                reasons.append(
-                    f"Medium: exact path '{path}' observed in "
-                    + ", ".join(unique)
-                    + " with overlapping timestamp windows "
-                    + f"(±{BUNDLE_TIME_EPSILON_SECONDS // 60} min tolerance; "
-                    + "original timestamps preserved)."
+    # MEDIUM: same VM name/ref pair or snapshot object identity.
+    if confidence != "strong":
+        for entity_key, entity_label in (
+            ("vm", "VM identity"),
+            ("snapshot_id", "snapshot object"),
+        ):
+            groups: Dict[str, List] = {}
+            for entry in entries:
+                value = entry.ids.get(entity_key)
+                if value:
+                    groups.setdefault(value, []).append(entry)
+            for value in sorted(groups):
+                file_entries = groups[value]
+                unique = _names(file_entries)
+                if len(unique) < 2:
+                    continue
+                display = (
+                    value.replace("\x00", " ref ")
+                    if entity_key == "vm"
+                    else value
                 )
-            else:
-                if confidence == "none":
-                    confidence = "weak"
-                correlated = sorted(set(correlated) | set(unique))
-                reasons.append(
-                    f"Weak: exact path '{path}' observed in "
-                    + ", ".join(unique)
-                    + " but timestamp overlap cannot be verified; "
-                    + "shared path only, causality NOT proven."
+                _medium_or_weak(
+                    f"same {entity_label} '{display}'", unique, file_entries
                 )
 
-    # WEAK: shared error signature only.
+    # WEAK: shared error signature only (signatures are specific
+    # diagnostic phrases; generic words never qualify).
     if confidence == "none":
         sig_groups: Dict[str, List[str]] = {}
-        for entry in files:
+        for entry in entries:
             for sig in entry.signatures:
                 sig_groups.setdefault(sig, []).append(entry.filename)
-        for sig, names in sig_groups.items():
-            unique = sorted(set(names))
+        for sig in sorted(sig_groups):
+            unique = sorted(set(sig_groups[sig]))
             if len(unique) >= 2:
                 confidence = "weak"
                 correlated = sorted(set(correlated) | set(unique))
@@ -498,7 +706,7 @@ def correlate_bundle(files: List[BundleFileEvidence]) -> Dict[str, object]:
 
     if confidence == "none":
         reasons.append("No shared identifiers, paths, or signatures found across files.")
-        correlated = [f.filename for f in files]
+        correlated = [f.filename for f in entries]
 
     if confidence == "weak":
         reasons.append(

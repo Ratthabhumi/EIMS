@@ -228,36 +228,66 @@ def _signal_strength(line: str) -> int:
 
 
 def extract_incident(text: str, source_family: str = "") -> Dict[str, object]:
-    """Extract a deterministic incident sketch from raw log text."""
-    lines = [(i, ln.strip()) for i, ln in enumerate((text or "").splitlines())]
-    meaningful = [(i, ln) for i, ln in lines if ln and not _is_noise(ln)]
+    """Extract a deterministic incident sketch from raw log text.
 
-    scored = [(i, ln, _signal_strength(ln)) for i, ln in meaningful]
-    failures = [(i, ln) for i, ln, s in scored if s >= 2]
-    warnings = [(i, ln) for i, ln, s in scored if s == 1]
+    Chronology is timestamp-derived (see evidence.order_records), never
+    upload/concatenation order.  For chronologically ordered input the
+    output is identical to line order.
+    """
+    from backend.domain.analyzer.services.evidence import build_evidence_records
 
-    first: Optional[str] = failures[0][1] if failures else (warnings[0][1] if warnings else None)
+    records = build_evidence_records([("", text or "")])
+    return incident_from_records(records, source_family)
+
+
+def incident_from_records(records, source_family: str = "") -> Dict[str, object]:
+    """Incident sketch from normalized evidence records.
+
+    Signal records order by parsed timestamp (source_file, line_number
+    tiebreak); untimestamped signals keep source/line order without faking
+    chronology.  The ordering key is a total order over record content, so
+    the same files in any upload order yield the same incident.
+    """
+    from backend.domain.analyzer.services.evidence import order_records
+
+    scored = []
+    for rec in records or []:
+        ln = rec.raw_text
+        if not ln or _is_noise(ln):
+            continue
+        scored.append((rec, _signal_strength(ln)))
+    failures = order_records([rec for rec, s in scored if s >= 2])
+    warnings = order_records([rec for rec, s in scored if s == 1])
+
+    first: Optional[str] = (
+        failures[0].raw_text if failures
+        else (warnings[0].raw_text if warnings else None)
+    )
     terminal: Optional[str] = None
     if failures:
         # Prefer an explicit session outcome line as terminal.
-        outcome = [ln for _, ln in failures if _SESSION_FAILED_RE.search(ln) or "processing finished" in ln.lower()]
-        terminal = outcome[-1] if outcome else failures[-1][1]
+        outcome = [
+            rec.raw_text for rec in failures
+            if _SESSION_FAILED_RE.search(rec.raw_text)
+            or "processing finished" in rec.raw_text.lower()
+        ]
+        terminal = outcome[-1] if outcome else failures[-1].raw_text
     elif warnings:
-        terminal = warnings[-1][1]
+        terminal = warnings[-1].raw_text
 
     timeline: List[str] = []
-    for _, ln in failures:
-        timeline.append(ln[:300])
+    for rec in failures:
+        timeline.append(rec.raw_text[:300])
     if len(timeline) < 8:
-        for _, ln in warnings:
-            if ln[:300] not in timeline:
-                timeline.append(ln[:300])
+        for rec in warnings:
+            if rec.raw_text[:300] not in timeline:
+                timeline.append(rec.raw_text[:300])
             if len(timeline) >= 12:
                 break
 
     # Stage: infer only from signal lines (score >= 1), not whole-file scan.
     # This prevents ScheduleOptions config text from driving operationStage.
-    signal_text = "\n".join(ln for _, ln, s in scored if s >= 1)
+    signal_text = "\n".join(rec.raw_text for rec, s in scored if s >= 1)
     stages: List[str] = []
     for rx, label in _STAGE_RES:
         if rx.search(signal_text) and label not in stages:
@@ -266,10 +296,10 @@ def extract_incident(text: str, source_family: str = "") -> Dict[str, object]:
 
     signatures = sorted(
         {
-            ln[:200]
-            for _, ln in failures
+            rec.raw_text[:200]
+            for rec in failures
             if any(
-                k in ln.lower()
+                k in rec.raw_text.lower()
                 for k in (
                     "could not delete change tracking file",
                     "invalidsnapshotformat",
@@ -283,7 +313,7 @@ def extract_incident(text: str, source_family: str = "") -> Dict[str, object]:
         }
     )
 
-    evidence = [ln[:300] for _, ln in failures[:10]]
+    evidence = [rec.raw_text[:300] for rec in failures[:10]]
 
     unknowns: List[str] = [
         "Exact missing filename (unless a file path appears verbatim in the evidence above)",
@@ -294,14 +324,18 @@ def extract_incident(text: str, source_family: str = "") -> Dict[str, object]:
     # Path extraction — only accepted filesystem paths; reject HTML fragments.
     path_lines = list(failures) + [w for w in warnings if w not in failures]
     _PATH_HINT_RE = re.compile(r"filename\s*[:=]|/vmfs/|[A-Za-z]:\\")
+    seen_keys = {(rec.source_file, rec.line_number) for rec in path_lines}
     path_lines += [
-        (i, ln)
-        for i, ln, s in scored
-        if s == 0 and _PATH_HINT_RE.search(ln) and (i, ln) not in path_lines
+        rec
+        for rec, s in scored
+        if s == 0
+        and _PATH_HINT_RE.search(rec.raw_text)
+        and (rec.source_file, rec.line_number) not in seen_keys
     ]
 
     raw_paths: List[str] = []
-    for _, ln in path_lines:
+    for rec in path_lines:
+        ln = rec.raw_text
         # Skip lines that look like they contain HTML fragments.
         if _HTML_TAG_FRAG_RE.search(ln):
             continue
