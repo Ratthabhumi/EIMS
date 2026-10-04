@@ -1772,10 +1772,202 @@ def test_bundle_reference_set_stable_under_permutation():
 
 
 # ---------------------------------------------------------------------------
-# Duplicate guard (must remain last)
+# Final audited blockers — original failure shapes and HTTP provenance
 # ---------------------------------------------------------------------------
 
 
+def test_trailing_report_timestamp_and_latest_terminal():
+    records = evidence_mod.build_evidence_records([
+        ("a.log", "[02.10.2026 00:11:06.410] Task session 'SYNTH' has been completed, status: 'Failed'"),
+        ("b.log", "Processing finished with errors at 10/1/2026 1:53:30 AM"),
+        ("c.log", "[02.10.2026 00:12:00.100] RevertSnapshot failed: InvalidSnapshotFormat"),
+    ])
+    incident = incident_from_records(records, "veeam_vbr")
+    assert "10/1/2026" in incident["firstMeaningfulFailure"]
+    assert "00:12:00.100" in incident["terminalFailure"]
+    assert incident == incident_from_records(list(reversed(records)), "veeam_vbr")
+
+
+def test_fractional_time_and_warning_timeline_order():
+    records = evidence_mod.build_evidence_records([
+        ("a.log", "[02.10.2026 01:00:00.900] snapshot failed"),
+        ("z.log", "[02.10.2026 01:00:00.100] Warning snapshot unavailable"),
+    ])
+    assert records[0].timestamp_key.microsecond == 900000
+    assert "00.100" in incident_from_records(records)["timeline"][0]
+
+
+def test_mixed_clock_domains_fall_back_and_never_medium():
+    files = [("a.log", "2026-10-02T01:00:00 snapshot 19-snapshot-5 failed"),
+             ("b.log", "2026-10-01T01:00:00Z snapshot 19-snapshot-5 failed")]
+    records = evidence_mod.build_evidence_records(files)
+    assert [r.source_file for r in evidence_mod.order_records(records)] == ["a.log", "b.log"]
+    assert any("clock" in u.lower() for u in incident_from_records(records)["unknowns"])
+    files[1] = ("b.log", "2026-10-02T01:00:00Z snapshot 19-snapshot-5 failed")
+    assert correlate_bundle([_bundle_entry(*f) for f in files])["correlationConfidence"] == "weak"
+
+
+def test_raw_veeam_correlation_uses_precise_timestamp():
+    entries = [_bundle_entry(name, f"[02.10.2026 01:00:0{second}.100] snapshot 19-snapshot-5 failed")
+               for name, second in [("a.log", 0), ("b.log", 1)]]
+    assert entries[0].timeMin.microsecond == 100000
+    assert correlate_bundle(entries)["correlationConfidence"] == "medium"
+
+
+@pytest.mark.parametrize("path", [r"C:\Program Files\Veeam\Backup\Agent.log",
+                                  r"C:\Logs\Backup Job\Agent.log"])
+def test_spaced_unquoted_paths_never_emit_prefixes(path):
+    from backend.domain.analyzer.services.bundle import extract_observed_paths
+    line = "Failed to open " + path
+    assert extract_observed_paths(line) == []
+    assert resource_paths_for_line(line) == []
+    assert extract_incident(line)["observedPaths"] == []
+    entries = [_bundle_entry(n, "2026-10-02T01:00:00Z " + line) for n in ["a.log", "b.log"]]
+    assert correlate_bundle(entries)["correlationConfidence"] == "none"
+
+
+def test_custom_quoted_log_path_is_display_only():
+    from backend.domain.analyzer.services.bundle import extract_observed_paths
+    line = '2026-10-02T01:00:00Z Failed to open file="C:\\Logs\\Backup Job\\Agent.log"'
+    assert extract_observed_paths(line) == [r"C:\Logs\Backup Job\Agent.log"]
+    assert extract_incident(line)["observedPaths"] == [r"C:\Logs\Backup Job\Agent.log"]
+    assert correlate_bundle([_bundle_entry(n, line) for n in ["a.log", "b.log"]])["correlationConfidence"] == "none"
+
+
+@pytest.mark.parametrize("separator", ["\n", "\n" + "neutral\n" * 100])
+def test_same_file_different_dates_stay_operation_local(separator):
+    text = ("[01.10.2026 01:00:00.100] Deleting helper snapshot" + separator +
+            "[02.10.2026 01:00:00.100] RevertSnapshot failed: InvalidSnapshotFormat\n"
+            "[02.10.2026 01:00:01.100] A required file was not found")
+    code = "VEEAM-REPLICA-SNAPSHOT-CHAIN"
+    local = evidence_mod.diagnostic_local_context(evidence_mod.build_evidence_records([("a.log", text)]), code)
+    for context in [text, local]:
+        assert "424591" in _kb_ids(code, context)
+        assert "450780" not in _kb_ids(code, context)
+        assert "452165" not in _kb_ids(code, context)
+
+
+def test_same_attempt_distinct_operation_and_session_gates():
+    code = "VEEAM-REPLICA-SNAPSHOT-CHAIN"
+    for boundary in ["[02.10.2026 01:00:01.100] RevertSnapshot failed: InvalidSnapshotFormat",
+                     "[02.10.2026 01:00:01.100] JobSessionID=SECOND InvalidSnapshotFormat"]:
+        text = "[02.10.2026 01:00:00.100] JobSessionID=FIRST Deleting helper snapshot\n" + boundary + "\nA required file was not found"
+        assert "450780" not in _kb_ids(code, text)
+
+
+def test_folder_listing_alone_never_enables_manual_move_article():
+    text = "RevertSnapshot failed: InvalidSnapshotFormat\nA required file was not found\nCollect folder listing"
+    assert "452165" not in _kb_ids("VEEAM-REPLICA-SNAPSHOT-CHAIN", text)
+    assert "452165" not in _kb_ids("VEEAM-REPLICA-SNAPSHOT-CHAIN", "manually renaming virtual machine folder")
+
+
+def test_bounded_windows_never_merge_through_anchor_chains():
+    lines = ["neutral"] * 100
+    windows = evidence_mod.window_texts(lines, list(range(0, 100, 10)), radius=15)
+    assert all(len(w.splitlines()) <= 31 for w in windows)
+
+
+def test_records_preserve_original_raw_text():
+    line = "  failed " + "x" * 600 + "  "
+    record = evidence_mod.build_evidence_records([("a.log", "\n" + line)])[0]
+    assert record.line_number == 2
+    assert record.raw_text == line
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("language", ["en", "th"])
+def test_bundle_http_original_line_provenance_and_history(monkeypatch, reverse, language):
+    """Exercise real multipart routing, summary gates, history and follow-up.
+
+    Only external services are faked. Source exceeds the compaction bound;
+    original terminal line and raw content hash must survive both orders.
+    """
+    from datetime import datetime
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from backend.api.routers.analyzer import analyze, history
+    from backend.domain.analyzer.auth import get_current_user
+    from backend.infrastructure.database import get_db_session
+
+    class HistoryDB:
+        def __init__(self):
+            self.rows = []
+
+        def add(self, row):
+            row.id = len(self.rows) + 1
+            row.created_at = datetime(2026, 10, 4)
+            row.feedback_score = 0
+            self.rows.append(row)
+
+        async def commit(self):
+            pass
+
+        async def refresh(self, row):
+            pass
+
+        async def execute(self, _statement):
+            return _FakeResult(rows=self.rows)
+
+        async def get(self, _model, identifier):
+            return next((r for r in self.rows if r.id == identifier), None)
+
+    def offline(*args, **kwargs):
+        raise RuntimeError("offline synthetic validation")
+
+    async def no_export(*args, **kwargs):
+        pass
+
+    db = HistoryDB()
+    app = FastAPI()
+    app.include_router(analyze.router, prefix="/api/v1/analyze")
+    app.include_router(history.router, prefix="/api/v1/history")
+    app.dependency_overrides[get_db_session] = lambda: db
+    app.dependency_overrides[get_current_user] = lambda: "synthetic-validation"
+    monkeypatch.setattr(summary_mod, "DDGS", offline)
+    monkeypatch.setattr(vector_db_mod, "add_solution", no_export)
+    first = "Veeam Backup & Replication\nProcessing finished with errors at 10/1/2026 1:53:30 AM"
+    failure = "[02.10.2026 00:11:06.410] RevertSnapshot failed: InvalidSnapshotFormat A required file was not found"
+    lines = ["Veeam Backup & Replication"] + ["neutral " + "x" * 90] * 999 + [failure]
+    long_text = "\n".join(lines)
+    assert len(long_text) > MAX_CHARS
+    uploads = [("files", ("report.txt", first.encode(), "text/plain")),
+               ("files", ("Task.long.log", long_text.encode(), "text/plain"))]
+    with TestClient(app) as client:
+        response = client.post("/api/v1/analyze/bundle", data={"language": language},
+                               files=list(reversed(uploads)) if reverse else uploads)
+        assert response.status_code == 200, response.text
+        result = response.json()
+        incident = result["solutionSummary"]["incident"]
+        assert "10/1/2026" in incident["firstMeaningfulFailure"]
+        assert incident["terminalFailure"] == failure
+        matching = [e for e in result["solutionSummary"]["evidenceItems"] if e["message"] == failure]
+        assert len(matching) == 1
+        assert matching[0]["lineNumber"] == 1001
+        assert matching[0]["sourceFile"] == "Task.long.log"
+        assert matching[0]["timestamp"] == "02.10.2026 00:11:06.410"
+        assert next(f for f in result["files"] if f["filename"] == "Task.long.log")["sha256"] == sha256_hex(long_text.encode())
+        assert any("424591" in r["link"] for r in result["searchResults"])
+        assert not any("450780" in r["link"] for r in result["searchResults"])
+        saved = client.get("/api/v1/history/")
+        assert saved.status_code == 200, saved.text
+        assert saved.json()[0]["solutionSummary"]["evidenceItems"] == result["solutionSummary"]["evidenceItems"]
+        followup = client.post("/api/v1/analyze/followup", json={"historyId": result["historyId"],
+                               "eventId": "1129", "provider": "Windows", "question": "why did this fail?", "language": language})
+        assert followup.status_code == 200, followup.text
+        assert "GroupPolicy" not in followup.json()["answer"]
+
+
+def test_source_record_compaction_preserves_indices_and_budget():
+    failure = "[02.10.2026 01:00:00.123] RevertSnapshot failed: InvalidSnapshotFormat"
+    text = "\n".join(["neutral " + "x" * 90] * 1000 + [failure])
+    records = evidence_mod.build_evidence_records([("a.log", text)], max_chars=MAX_CHARS)
+    assert len(records) < 200
+    assert sum(len(r.raw_text) + 1 for r in records) <= MAX_CHARS
+    matching = [r for r in records if r.raw_text == failure]
+    assert len(matching) == 1 and matching[0].line_number == 1001
+
+
+# Duplicate guard (must remain last)
 def test_no_duplicate_test_function_names():
     import ast
     with open(__file__, "r", encoding="utf-8") as f:

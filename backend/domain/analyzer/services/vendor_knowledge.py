@@ -169,11 +169,14 @@ def _article_applies(article: VendorArticle, diagnostic_code: str, text: str) ->
             return False
         return True
     if article.article_id == "452165":
-        # Rename/move/folder/path-mismatch evidence only.
-        if "renam" not in lowered and "folder" not in lowered and "path mismatch" not in lowered:
-            if not any(_has_word(lowered, w) for w in ("move", "moved", "moving")):
-                return False
-        return True
+        # Required-file failure AND actual manual move/rename or mismatch.
+        missing = "required file" in lowered and "not found" in lowered
+        manual_change = re.search(
+            r"\bmanual(?:ly)?\b.{0,100}(?:\brenam\w*|\bmov(?:e|ed|ing)\b)|"
+            r"(?:\brenam\w*|\bmov(?:e|ed|ing)\b).{0,100}\bmanual(?:ly)?\b",
+            lowered,
+        )
+        return bool(missing and (manual_change or "path mismatch" in lowered))
 
     if article.requires_all:
         if not all(needle in lowered for needle in article.requires_all):
@@ -266,13 +269,15 @@ def _article_applies_local(
             if _article_applies(article, diagnostic_code, segment):
                 return True
             continue
-        lines = segment.splitlines()
-        anchors = _evidence.anchor_line_indexes(
-            lines, _ARTICLE_ANCHOR_RES.get(article.article_id, ())
-        )
-        for window in _evidence.window_texts(lines, anchors, _KB_WINDOW_RADIUS_LINES):
-            if _article_applies(article, diagnostic_code, window):
-                return True
+        records = _evidence.build_evidence_records([(_filename or "", segment)])
+        for operation in _evidence.operation_segments(records):
+            lines = [rec.raw_text for rec in operation]
+            anchors = _evidence.anchor_line_indexes(
+                lines, _ARTICLE_ANCHOR_RES.get(article.article_id, ())
+            )
+            for window in _evidence.window_texts(lines, anchors, _KB_WINDOW_RADIUS_LINES):
+                if _article_applies(article, diagnostic_code, window):
+                    return True
     return False
 
 

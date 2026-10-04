@@ -248,7 +248,7 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
     chronology.  The ordering key is a total order over record content, so
     the same files in any upload order yield the same incident.
     """
-    from backend.domain.analyzer.services.evidence import order_records
+    from backend.domain.analyzer.services.evidence import order_records, timestamp_domain
 
     scored = []
     for rec in records or []:
@@ -265,25 +265,11 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
     )
     terminal: Optional[str] = None
     if failures:
-        # Prefer an explicit session outcome line as terminal.
-        outcome = [
-            rec.raw_text for rec in failures
-            if _SESSION_FAILED_RE.search(rec.raw_text)
-            or "processing finished" in rec.raw_text.lower()
-        ]
-        terminal = outcome[-1] if outcome else failures[-1].raw_text
+        terminal = failures[-1].raw_text
     elif warnings:
         terminal = warnings[-1].raw_text
 
-    timeline: List[str] = []
-    for rec in failures:
-        timeline.append(rec.raw_text[:300])
-    if len(timeline) < 8:
-        for rec in warnings:
-            if rec.raw_text[:300] not in timeline:
-                timeline.append(rec.raw_text[:300])
-            if len(timeline) >= 12:
-                break
+    timeline: List[str] = [rec.raw_text[:300] for rec in order_records(failures + warnings)[:12]]
 
     # Stage: infer only from signal lines (score >= 1), not whole-file scan.
     # This prevents ScheduleOptions config text from driving operationStage.
@@ -320,6 +306,12 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
         "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
         "Whether the file was locked, corrupt, moved, renamed, or absent",
     ]
+    domains = {timestamp_domain(r.timestamp_raw, r.timestamp_kind)
+               for r in failures + warnings if r.timestamp_key is not None}
+    if len(domains) > 1:
+        unknowns.insert(0, "Incomparable clock domains: source/line order used; first/terminal chronology is unverified")
+    elif any(r.timestamp_key is None for r in failures + warnings):
+        unknowns.insert(0, "Some signals have no parseable timestamp; their chronology is unverified")
 
     # Path extraction — only accepted filesystem paths; reject HTML fragments.
     path_lines = list(failures) + [w for w in warnings if w not in failures]
@@ -334,19 +326,13 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
     ]
 
     raw_paths: List[str] = []
+    from backend.domain.analyzer.services.bundle import extract_observed_paths
     for rec in path_lines:
         ln = rec.raw_text
         # Skip lines that look like they contain HTML fragments.
         if _HTML_TAG_FRAG_RE.search(ln):
             continue
-        for m in _PATH_RE.finditer(ln):
-            candidate = m.group(0).strip()
-            # Reject anything that still has HTML tag-like content.
-            if _HTML_TAG_FRAG_RE.search(candidate):
-                continue
-            # Must be at least 4 characters of meaningful path.
-            if len(candidate) >= 4:
-                raw_paths.append(candidate)
+        raw_paths.extend(extract_observed_paths(ln))
 
     observed_paths = sorted(set(raw_paths))[:3]
 

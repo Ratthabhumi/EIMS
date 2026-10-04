@@ -22,8 +22,7 @@ from backend.domain.analyzer.schemas.analyze import (
 )
 from backend.domain.analyzer.services.parser import parse_event_metadata
 from backend.domain.analyzer.services.evtx_parser import parse_evtx
-from backend.domain.analyzer.services.compaction import compact_log_evidence
-from backend.domain.analyzer.services.incident_extract import extract_incident
+from backend.domain.analyzer.services.compaction import MAX_CHARS, compact_log_evidence
 from backend.domain.analyzer.services.bundle import (
     BUNDLE_MAX_FILE_BYTES,
     BUNDLE_MAX_FILES,
@@ -190,6 +189,12 @@ async def submit_analysis(
 
     # Bounded evidence-aware compaction: header + signal windows + tail.
     # Never silently discards failures located past a fixed head offset.
+    from backend.domain.analyzer.services.evidence import build_evidence_records
+    from backend.domain.analyzer.services.incident_extract import incident_from_records
+
+    source_records = build_evidence_records(
+        [((file.filename or "") if file else "", combined_text)], max_chars=MAX_CHARS
+    )
     combined_text = compact_log_evidence(combined_text)
 
     metadata = parse_event_metadata(combined_text, (file.filename or "") if file else "")
@@ -200,12 +205,11 @@ async def submit_analysis(
     # Diagnostic-local KB context derived from normalized records; falls
     # back to the full evidence only when no diagnostic anchors exist.
     from backend.domain.analyzer.services.evidence import (
-        build_evidence_records as _build_records,
         diagnostic_local_context as _local_context,
     )
 
     _single_local = _local_context(
-        _build_records([((file.filename or "") if file else "", evidence_text_ctx)]),
+        source_records,
         metadata.diagnosticCode or "",
     )
     kb_evidence_ctx = _single_local or evidence_text_ctx
@@ -229,7 +233,7 @@ async def submit_analysis(
     )
     # Evidence-first attachment: deterministic incident sketch fills fields
     # the synthesis path did not provide (curated vendor paths already do).
-    incident = extract_incident(combined_text, metadata.sourceFamily or "")
+    incident = incident_from_records(source_records, metadata.sourceFamily or "")
     if not solution.evidence and incident.get("evidence"):
         solution.evidence = [str(x) for x in incident["evidence"][:8]]
     if not solution.nextEvidence and incident.get("nextEvidence"):
@@ -355,7 +359,7 @@ async def submit_bundle(
             summarize_file_evidence(
                 filename=filename,
                 content=content,
-                text=compacted,
+                text=extracted or "",
                 source_family=meta.sourceFamily or "",
                 product=meta.product or "",
                 diagnostic_code=meta.diagnosticCode or "",
@@ -363,7 +367,7 @@ async def submit_bundle(
             )
         )
         combined_parts.append(f"===== FILE: {filename} =====\n{compacted}")
-        record_sources.append((filename, compacted))
+        record_sources.append((filename, extracted or ""))
 
     correlation = correlate_bundle(per_file)
     combined_text = compact_log_evidence("\n\n".join(combined_parts))
@@ -380,7 +384,7 @@ async def submit_bundle(
             if entry.diagnosticCode == top_code:
                 primary = entry
                 break
-    primary_meta = parse_event_metadata(primary.text, primary.filename)
+    primary_meta = parse_event_metadata(compact_log_evidence(primary.text), primary.filename)
 
     # Structured evidence records: one normalized representation for
     # chronology, correlation, and KB operation context — independent of
@@ -394,7 +398,7 @@ async def submit_bundle(
         incident_from_records,
     )
 
-    bundle_records = build_evidence_records(record_sources)
+    bundle_records = build_evidence_records(record_sources, max_chars=MAX_CHARS)
     kb_local_context = diagnostic_local_context(
         bundle_records, primary_meta.diagnosticCode or ""
     )

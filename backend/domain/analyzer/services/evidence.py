@@ -26,13 +26,17 @@ from typing import Dict, List, Optional, Tuple
 # ---------------------------------------------------------------------------
 
 _ISO_RE = re.compile(
-    r"^\s*(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)"
+    r"^\s*\[?(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)"
 )
 _VEEAM_RAW_RE = re.compile(
     r"^\s*\[(\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2}(?:\.\d+)?)\]"
 )
 _VEEAM_REPORT_RE = re.compile(
     r"^\s*(\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s*[AP]M)",
+    re.IGNORECASE,
+)
+_VEEAM_REPORT_TRAILING_RE = re.compile(
+    r"\bat\s+(\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s*[AP]M)\s*$",
     re.IGNORECASE,
 )
 _SYSLOG_RE = re.compile(r"^\s*([A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})")
@@ -45,7 +49,7 @@ def _to_naive_utc(value: datetime) -> datetime:
 
 
 def parse_evidence_timestamp(line: str) -> Tuple[str, Optional[datetime], str]:
-    """Parse a leading timestamp from one log line.
+    """Parse an explicit leading timestamp or Veeam outcome's trailing time.
 
     Returns (timestamp_raw, timestamp_key, timestamp_kind).  timestamp_key
     is a naive datetime (UTC for offset-aware input) or None when the line
@@ -64,12 +68,12 @@ def parse_evidence_timestamp(line: str) -> Tuple[str, Optional[datetime], str]:
     m = _VEEAM_RAW_RE.match(text)
     if m:
         raw = m.group(1)
-        core = re.sub(r"\.\d+$", "", raw)  # strip fractional seconds only
         try:
-            return raw, datetime.strptime(core, "%d.%m.%Y %H:%M:%S"), "veeam_raw"
+            fmt = "%d.%m.%Y %H:%M:%S.%f" if "." in raw.split()[-1] else "%d.%m.%Y %H:%M:%S"
+            return raw, datetime.strptime(raw, fmt), "veeam_raw"
         except ValueError:
             pass
-    m = _VEEAM_REPORT_RE.match(text)
+    m = _VEEAM_REPORT_RE.match(text) or _VEEAM_REPORT_TRAILING_RE.search(text)
     if m:
         raw = m.group(1)
         try:
@@ -84,6 +88,17 @@ def parse_evidence_timestamp(line: str) -> Tuple[str, Optional[datetime], str]:
         except ValueError:
             pass
     return "", None, ""
+
+
+def timestamp_domain(raw: str, kind: str) -> str:
+    """Clock identity; a missing offset never implies UTC."""
+    if not raw:
+        return ""
+    if kind == "syslog":
+        return "syslog_year_unknown"
+    if kind == "iso8601" and re.search(r"(?:Z|[+-]\d{2}:?\d{2})$", raw):
+        return "utc"
+    return "local"
 
 
 # ---------------------------------------------------------------------------
@@ -109,21 +124,67 @@ class EvidenceRecord:
     operation_tags: List[str] = field(default_factory=list)
 
 
-def build_evidence_records(files: List[Tuple[str, str]]) -> List[EvidenceRecord]:
+def _retained_source_lines(lines: List[str], max_chars: int) -> set:
+    """Retain compaction's header, signal windows and tail by ORIGINAL index.
+
+    Header/tail take priority. Context windows use the remaining character
+    budget. Full source lines are retained (no synthetic lines/duplicates).
+    """
+    from backend.domain.analyzer.services.compaction import (
+        HEADER_CHARS, TAIL_CHARS, MAX_WINDOWS, WINDOW_RADIUS, _is_signal,
+    )
+
+    selected = set()
+    for indexes, budget in ((range(len(lines)), HEADER_CHARS),
+                            (range(len(lines) - 1, -1, -1), TAIL_CHARS)):
+        used = 0
+        for idx in indexes:
+            selected.add(idx)
+            used += len(lines[idx]) + 1
+            if used >= budget:
+                break
+    used = sum(len(lines[i]) + 1 for i in selected)
+    covered = set()
+    windows = 0
+    for idx, line in enumerate(lines):
+        if not _is_signal(line):
+            continue
+        span = set(range(max(0, idx - WINDOW_RADIUS), min(len(lines), idx + WINDOW_RADIUS + 1)))
+        if covered & span:
+            continue
+        covered.update(span)
+        windows += 1
+        additional = span - selected
+        cost = sum(len(lines[i]) + 1 for i in additional)
+        if used + cost <= max_chars:
+            selected.update(additional)
+            used += cost
+        if windows >= MAX_WINDOWS:
+            break
+    return selected
+
+
+def build_evidence_records(files: List[Tuple[str, str]], max_chars: Optional[int] = None) -> List[EvidenceRecord]:
     """Build line records for (filename, text) inputs.  Line numbers are
-    1-based within each file; record order is input order (callers sort)."""
+    1-based within each file; record order is input order (callers sort).
+    Optional compaction budget selects original lines without renumbering.
+    """
     records: List[EvidenceRecord] = []
     for filename, text in files or []:
-        for lineno, line in enumerate((text or "").splitlines(), start=1):
+        lines = (text or "").splitlines()
+        selected = _retained_source_lines(lines, max_chars) if max_chars and len(text or "") > max_chars else None
+        for lineno, line in enumerate(lines, start=1):
+            if selected is not None and lineno - 1 not in selected:
+                continue
             stripped = line.strip()
             if not stripped:
                 continue
-            raw, key, kind = parse_evidence_timestamp(stripped)
+            raw, key, kind = parse_evidence_timestamp(line)
             records.append(
                 EvidenceRecord(
                     source_file=filename or "",
                     line_number=lineno,
-                    raw_text=stripped[:500],
+                    raw_text=line,
                     timestamp_raw=raw,
                     timestamp_key=key,
                     timestamp_kind=kind,
@@ -135,11 +196,17 @@ def build_evidence_records(files: List[Tuple[str, str]]) -> List[EvidenceRecord]
 def order_records(records: List[EvidenceRecord]) -> List[EvidenceRecord]:
     """Deterministic time order across files.
 
-    Timestamped records sort by (timestamp, source_file, line_number);
+    Within one clock domain records sort by (timestamp, source_file, line_number);
     untimestamped records follow in (source_file, line_number) order so no
-    chronology is fabricated for them.  The key is a total order derived
+    chronology is fabricated for them. Mixed domains use source/line order
+    for the entire set. The key is a total order derived
     only from record content — never from input/upload order.
     """
+
+    domains = {timestamp_domain(r.timestamp_raw, r.timestamp_kind)
+               for r in records if r.timestamp_key is not None}
+    if len(domains) > 1:
+        return sorted(records, key=lambda r: (r.source_file or "", r.line_number))
 
     def _key(rec: EvidenceRecord):
         if rec.timestamp_key is not None:
@@ -266,16 +333,76 @@ def anchor_line_indexes(lines: List[str], patterns) -> List[int]:
 
 
 def window_texts(lines: List[str], anchor_idxs: List[int], radius: int = KB_WINDOW_RADIUS_LINES) -> List[str]:
-    """Bounded line windows around anchors with overlaps merged."""
-    spans: List[List[int]] = []
+    """Fixed bounded windows; overlapping anchors never grow a window."""
+    spans = []
+    seen = set()
     for idx in sorted(set(anchor_idxs)):
         start = max(0, idx - radius)
         end = min(len(lines), idx + radius + 1)
-        if spans and start <= spans[-1][1]:
-            spans[-1][1] = max(spans[-1][1], end)
-        else:
-            spans.append([start, end])
+        if (start, end) not in seen:
+            spans.append((start, end))
+            seen.add((start, end))
     return ["\n".join(lines[s:e]) for s, e in spans]
+
+
+_SESSION_RE = re.compile(
+    r"\b(job(?:session)?id|task(?:session)?id)\s*[:=]\s*['\"]?([\w-]+)|"
+    r"\b(task|job)\s+session\s+['\"]([^'\"]+)['\"]", re.IGNORECASE,
+)
+_OPERATION_RES = (
+    ("revert", re.compile(r"revertsnapshot|revert.*snapshot|snapshot.*revert", re.I)),
+    ("create", re.compile(r"createsnapshot|creat(?:e|ing)\s+(?:a\s+|helper\s+)?snapshot", re.I)),
+    ("delete", re.compile(r"delet(?:e|ing|ion).*snapshot|snapshot.*(?:delet|consolidat)|consolidat.*snapshot", re.I)),
+    ("manual_move", re.compile(r"manual(?:ly)?.*(?:renam|\bmov)|path mismatch", re.I)),
+)
+
+
+def operation_segments(records: List[EvidenceRecord]) -> List[List[EvidenceRecord]]:
+    """Partition by source gaps, clock/time, session, and explicit operation.
+
+    Untimed continuation lines stay with their operation. A date change,
+    clock-domain change, >5 minute gap, new typed session, or different
+    operation closes it. Missing evidence never joins disjoint windows.
+    """
+    segments = []
+    current = []
+    last_time = None
+    last_domain = ""
+    sessions = {}
+    operation = ""
+    previous = None
+    for rec in sorted(records, key=lambda r: (r.source_file, r.line_number)):
+        domain = timestamp_domain(rec.timestamp_raw, rec.timestamp_kind)
+        observed_sessions = {}
+        for match in _SESSION_RE.finditer(rec.raw_text):
+            if match.group(1):
+                observed_sessions[match.group(1).lower()] = match.group(2)
+            else:
+                observed_sessions[match.group(3).lower() + "sessionid"] = match.group(4)
+        operations = {name for name, rx in _OPERATION_RES if rx.search(rec.raw_text)}
+        next_operation = next(iter(operations)) if len(operations) == 1 else ""
+        boundary = previous is not None and (
+            rec.source_file != previous.source_file
+            or rec.line_number - previous.line_number > KB_WINDOW_RADIUS_LINES
+            or any(k in sessions and sessions[k] != v for k, v in observed_sessions.items())
+            or bool(operation and next_operation and operation != next_operation)
+        )
+        if rec.timestamp_key is not None and last_time is not None:
+            boundary = boundary or domain != last_domain or rec.timestamp_key.date() != last_time.date()
+            boundary = boundary or abs((rec.timestamp_key - last_time).total_seconds()) > 300
+        if boundary:
+            if current:
+                segments.append(current)
+            current, last_time, last_domain, sessions, operation = [], None, "", {}, ""
+        current.append(rec)
+        sessions.update(observed_sessions)
+        operation = next_operation or operation
+        if rec.timestamp_key is not None:
+            last_time, last_domain = rec.timestamp_key, domain
+        previous = rec
+    if current:
+        segments.append(current)
+    return segments
 
 
 def diagnostic_local_context(
@@ -286,8 +413,8 @@ def diagnostic_local_context(
     """Diagnostic-local evidence context from records.
 
     Windows stay inside one source file around anchor lines, so an
-    operation in one file can never satisfy a gate with keywords from an
-    unrelated file or attempt.  Returns "" when the code has no anchors or
+    operation can never satisfy a gate with keywords from an unrelated
+    partition/window. Returns "" when the code has no anchors or
     no anchor line exists (callers fall back to the full evidence text).
     """
     patterns = _ANCHOR_RES.get((diagnostic_code or "").strip())
@@ -300,14 +427,12 @@ def diagnostic_local_context(
     parts: List[str] = []
     for filename in sorted(by_file):
         file_recs = sorted(by_file[filename], key=lambda r: r.line_number)
-        lines = [r.raw_text for r in file_recs]
-        idxs = [i for i, ln in enumerate(lines) if any(rx.search(ln) for rx in compiled)]
-        windows = window_texts(lines, idxs, radius)
-        if not windows:
-            continue
-        # Preserve the file boundary with the same marker format that
-        # split_file_segments parses, so downstream gates can never build
-        # a window spanning two files.
-        parts.append("===== FILE: %s =====" % (filename or "log"))
-        parts.extend(windows)
+        for segment in operation_segments(file_recs):
+            lines = [r.raw_text for r in segment]
+            idxs = [i for i, ln in enumerate(lines) if any(rx.search(ln) for rx in compiled)]
+            for window in window_texts(lines, idxs, radius):
+                # Every window has its own boundary, including disjoint
+                # windows from the same file. Downstream re-windowing is safe.
+                parts.append("===== FILE: %s =====" % (filename or "log"))
+                parts.append(window)
     return "\n".join(parts)

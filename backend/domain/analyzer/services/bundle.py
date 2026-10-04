@@ -173,6 +173,7 @@ PATH_PATTERNS = (
     ),
     re.compile(r"(?:fileName|filename|file|path)\s*[:=]\s*['\"]([^'\"]+)['\"]"),
     re.compile(r"(/vmfs/[^\s'\";,]+)"),
+    re.compile(r"(\\\\[^\s'\"<>;,]+|/(?:var/log|etc)/[^\s'\"<>;,]+)"),
     _DRIVE_PATH_RE,
     re.compile(r"['\"]([^'\"]+\.(?:vmdk|vmx|vmsd|log|txt))['\"]"),
 )
@@ -288,27 +289,43 @@ def _is_truncated_drive_prefix(value: str, line: str, match_end: int) -> bool:
     path: the match visibly continues after a space.  Such candidates are
     dropped instead of being emitted (and can never drive correlation).
     """
-    if not _TRUNCATED_WINDOWS_PREFIX_RE.match(value):
+    if not re.match(r"^[A-Za-z]:\\", value):
         return False
-    return re.match(r"^\s+\S", line[match_end:]) is not None
+    # A following token with a separator is visible continuation
+    # of an unquoted spaced path, even below its first directory.
+    continuation = re.match(r"^\s+([^\s'\";,]+)", line[match_end:])
+    return bool(continuation and (not ntpath.splitext(value)[1]
+                                 or "\\" in continuation.group(1)
+                                 or "/" in continuation.group(1)))
 
 
 def extract_observed_paths(line: str) -> List[str]:
     found: List[str] = []
     text = line or ""
+    quoted_spans = [m.span() for m in re.finditer(r"['\"][^'\"]+['\"]", text)]
     for pattern in PATH_PATTERNS:
         for match in pattern.finditer(text):
+            if pattern is _DRIVE_PATH_RE and any(s <= match.start() < e for s, e in quoted_spans):
+                continue
             value = match.group(1) if match.lastindex else match.group(0)
             value = value.strip().strip(".,;")
             if not value or value in found:
                 continue
-            if _is_truncated_drive_prefix(value, text, match.end()):
+            if pattern is _DRIVE_PATH_RE and _is_truncated_drive_prefix(value, text, match.end()):
                 continue
+            found.append(value)
+    for match in _BRACKET_RESOURCE_RE.finditer(text):
+        value = match.group(0).strip().strip(".,;")
+        if value not in found:
             found.append(value)
     return found
 
 
 def extract_leading_timestamp(line: str) -> str:
+    from backend.domain.analyzer.services.evidence import parse_evidence_timestamp
+    raw, _key, _kind = parse_evidence_timestamp(line)
+    if raw:
+        return raw
     for pattern in TS_PATTERNS:
         match = pattern.search(line.strip())
         if match:
@@ -406,6 +423,7 @@ class BundleFileEvidence:
     timeMin: Optional[datetime] = None
     timeMax: Optional[datetime] = None
     hasTimestamps: bool = False
+    timeDomain: str = ""
 
 
 # Bracket datastore form for correlation identity: the part after ] must be
@@ -422,34 +440,13 @@ def resource_paths_for_line(line: str) -> List[str]:
     Display-only evidence-source locations (Veeam log roots) and truncated
     prefixes are excluded here even though they stay displayable.
     """
-    found: List[str] = []
-    text = line or ""
-    for match in _BRACKET_RESOURCE_RE.finditer(text):
-        value = match.group(0).strip().strip(".,;")
-        if (
-            value
-            and value not in found
-            and not is_log_source_path(value)
-        ):
-            found.append(value)
-    for pattern in PATH_PATTERNS:
-        is_drive_match = pattern is _DRIVE_PATH_RE
-        for match in pattern.finditer(text):
-            value = match.group(1) if match.lastindex else match.group(0)
-            value = value.strip().strip(".,;")
-            if not value or value in found:
-                continue
-            if _is_truncated_drive_prefix(value, text, match.end()):
-                continue
-            if is_log_source_path(value):
-                continue
-            # Unquoted bare drive roots without a separator beyond X:\ are
-            # not infrastructure identities (quoted key=value forms stay
-            # explicit and are kept).
-            if is_drive_match and re.match(r"^[A-Za-z]:\\[^\\/]+$", value):
-                continue
-            found.append(value)
-    return found
+    return [p for p in extract_observed_paths(line) if not is_log_source_path(p)]
+
+
+def is_evidence_file_path(path: str) -> bool:
+    """Collection artifacts at custom locations are display-only too."""
+    return (is_log_source_path(path) or extension_of(path) in ALLOWED_EXTENSIONS
+            or bool(re.match(r"^[A-Za-z]:\\|^\\\\", path) and not ntpath.splitext(path)[1]))
 
 
 def summarize_file_evidence(
@@ -461,24 +458,27 @@ def summarize_file_evidence(
     diagnostic_code: str = "",
     parser_confidence: float = 0.0,
 ) -> BundleFileEvidence:
+    from backend.domain.analyzer.services.evidence import parse_evidence_timestamp, timestamp_domain
     ids = correlation_ids(text)
     signatures = error_signatures(text)
     paths: List[str] = []
     resource_paths: List[str] = []
     keys: List[datetime] = []
     has_ts = False
+    domains = set()
     for line in text.splitlines():
-        if extract_leading_timestamp(line):
+        raw, key, kind = parse_evidence_timestamp(line)
+        if raw:
             has_ts = True
         for path in extract_observed_paths(line):
             if path not in paths:
                 paths.append(path)
         for resource in resource_paths_for_line(line):
-            if resource not in resource_paths:
+            if resource not in resource_paths and not is_evidence_file_path(resource):
                 resource_paths.append(resource)
-        key = _parse_timestamp_key(extract_leading_timestamp(line))
         if key is not None:
             keys.append(key)
+            domains.add(timestamp_domain(raw, kind))
     return BundleFileEvidence(
         filename=filename,
         sizeBytes=len(content),
@@ -492,9 +492,10 @@ def summarize_file_evidence(
         signatures=signatures,
         paths=paths,
         resource_paths=resource_paths,
-        timeMin=min(keys) if keys else None,
-        timeMax=max(keys) if keys else None,
+        timeMin=min(keys) if keys and len(domains) == 1 else None,
+        timeMax=max(keys) if keys and len(domains) == 1 else None,
         hasTimestamps=has_ts,
+        timeDomain=next(iter(domains)) if len(domains) == 1 else "",
     )
 
 
@@ -614,9 +615,9 @@ def correlate_bundle(files: List[BundleFileEvidence]) -> Dict[str, object]:
     ) -> None:
         """Record a resource/entity relationship with window honesty."""
         nonlocal confidence, correlated, reasons
-        timed = [e for e in file_entries if e.timeMin and e.timeMax]
+        timed = [e for e in file_entries if e.timeMin and e.timeMax and e.timeDomain]
         overlap: Optional[bool] = None
-        if len(timed) >= 2:
+        if len(timed) == len(file_entries) and len(timed) >= 2:
             overlap = True
             for left in timed:
                 for right in timed:
@@ -625,7 +626,7 @@ def correlate_bundle(files: List[BundleFileEvidence]) -> Dict[str, object]:
                     result = _windows_overlap(
                         left.timeMin, left.timeMax, right.timeMin, right.timeMax
                     )
-                    if result is False:
+                    if result is not True or left.timeDomain != right.timeDomain:
                         overlap = False
         if overlap:
             confidence = "medium"
@@ -653,6 +654,8 @@ def correlate_bundle(files: List[BundleFileEvidence]) -> Dict[str, object]:
         path_groups: Dict[str, List] = {}
         for entry in entries:
             for path in entry.resource_paths:
+                if is_evidence_file_path(path):
+                    continue
                 path_groups.setdefault(path, []).append(entry)
         for path in sorted(path_groups):
             file_entries = path_groups[path]
