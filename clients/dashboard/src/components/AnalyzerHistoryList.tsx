@@ -35,6 +35,10 @@ const INCIDENT_FRIENDLY = {
   provider: "Security / Authentication",
 };
 
+function isSyntheticDemo(item: any): boolean {
+  return String(item?.eventId ?? "").toUpperCase() === "AINC-2026-0910-0001";
+}
+
 // Category operational priorities for ordering catalog entries on empty search
 const CATEGORY_PRIORITY: Record<string, number> = {
   "Authentication": 10,
@@ -81,7 +85,7 @@ const TOP_EVENT_ORDER: Record<string, number> = {
 
 function friendlyLabel(item: any, catalogMap?: Record<string, CatalogEntry>): { title: string; provider: string } {
   const eid = item?.eventId ? String(item.eventId).trim() : "";
-  if (eid.toUpperCase().startsWith("AINC-")) return INCIDENT_FRIENDLY;
+  if (isSyntheticDemo(item)) return INCIDENT_FRIENDLY;
   if (catalogMap && catalogMap[eid]) {
     return { title: catalogMap[eid].title, provider: catalogMap[eid].provider };
   }
@@ -125,7 +129,8 @@ function describeCandidate(c: { kind: "history"; record: any } | { kind: "catalo
     const meta = r.eventMetadata || {};
     const inc = meta.incident || {};
     const body = [
-      r.description, r.aiSummary, r.parseMethod, r.username,
+      r.description, r.aiSummary, r.parseMethod, r.username, r.provider,
+      isSyntheticDemo(r) ? "Synthetic Demo" : "",
       inc.name, inc.affectedAsset, inc.classification,
       meta.computer, meta.faultingApp, meta.level, meta.logName,
       Array.isArray(r.solutionSummary?.causes) ? r.solutionSummary.causes.join(" ") : "",
@@ -201,18 +206,7 @@ function rankSearch(qRaw: string, historyList: any[], catalog: CatalogEntry[]) {
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score || a.c.kind.localeCompare(b.c.kind));
 
-  // Dedupe: when a history record and a catalog entry share an event id,
-  // keep only the higher-ranked one (history wins on tie) to avoid dupes.
-  const seen = new Set<string>();
-  const deduped = [];
-  for (const s of scored) {
-    const eid = (s.c.kind === "history" ? s.c.record.eventId : s.c.record.event_id);
-    const key = String(eid ?? "").toUpperCase();
-    if (key && seen.has(key)) continue;
-    if (key) seen.add(key);
-    deduped.push(s);
-  }
-  return deduped.slice(0, MAX_SEARCH_RESULTS);
+  return scored.slice(0, MAX_SEARCH_RESULTS);
 }
 
 export default function AnalyzerHistoryList({
@@ -224,6 +218,8 @@ export default function AnalyzerHistoryList({
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"history" | "catalog">("history");
+  const [historyOrder, setHistoryOrder] = useState<"newest" | "oldest">("newest");
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -290,35 +286,39 @@ export default function AnalyzerHistoryList({
     return sortCatalogByPriority(catalog);
   }, [catalog]);
 
-  const { ranked, searchLatencyMs } = useMemo(() => {
+  const sortedHistory = useMemo(() => {
+    const timestamp = (record: any) => {
+      const value = Date.parse(record.created_at ?? "");
+      return Number.isFinite(value) ? value : 0;
+    };
+    const direction = historyOrder === "newest" ? -1 : 1;
+    return [...historyList].sort((a, b) => direction * (
+      timestamp(a) - timestamp(b) ||
+      String(a.id).localeCompare(String(b.id), "en", { numeric: true })
+    ));
+  }, [historyList, historyOrder]);
+
+  const { visibleHistory, ranked, searchLatencyMs } = useMemo(() => {
     if (!searchTerm || !searchTerm.trim()) {
-      return { ranked: null, searchLatencyMs: null };
+      return { visibleHistory: sortedHistory, ranked: null, searchLatencyMs: null };
     }
     const t0 = performance.now();
-    const res = rankSearch(searchTerm, historyList, catalog);
+    const q = searchTerm.trim().toLowerCase();
+    // History retains chronological order and every matching analysis,
+    // including multiple analyses of the same event ID.
+    const matches = activeTab === "history"
+      ? sortedHistory.filter(record => scoreSearch(q, { kind: "history", record }) > 0)
+      : [];
+    const res = activeTab === "catalog" ? rankSearch(searchTerm, [], catalog) : null;
     const elapsed = Math.max(performance.now() - t0, 0.1);
-    return { ranked: res, searchLatencyMs: elapsed };
-  }, [searchTerm, historyList, catalog]);
+    return { visibleHistory: matches, ranked: res, searchLatencyMs: elapsed };
+  }, [searchTerm, sortedHistory, catalog, activeTab]);
 
   useEffect(() => {
     if (searchLatencyMs !== null && searchLatencyMs !== undefined) {
       onSearchLatency?.(searchLatencyMs);
     }
   }, [searchLatencyMs, onSearchLatency]);
-
-  // Separate AI demo incident from standard history records
-  const { incidentRecord, nonIncidentHistory } = useMemo(() => {
-    let incident: any = null;
-    const rest: any[] = [];
-    for (const h of historyList) {
-      if (String(h.eventId).toUpperCase().startsWith("AINC-") && !incident) {
-        incident = h;
-      } else {
-        rest.push(h);
-      }
-    }
-    return { incidentRecord: incident, nonIncidentHistory: rest };
-  }, [historyList]);
 
   // Open detail modal for static operational catalog entries
   const openCatalogItem = (entry: CatalogEntry) => {
@@ -372,7 +372,7 @@ export default function AnalyzerHistoryList({
 
   const downloadMarkdown = (item: any) => {
     if (!item) return;
-    const isInc = String(item.eventId).toUpperCase().startsWith("AINC-");
+    const isInc = isSyntheticDemo(item);
     const friendly = friendlyLabel(item, catalogMap);
     let content = `# AI Diagnostic Report\n\n`;
     content += `**Event ID:** ${item.eventId}\n`;
@@ -423,7 +423,7 @@ export default function AnalyzerHistoryList({
       const { default: jsPDF } = await import("jspdf");
       const { default: html2canvas } = await import("html2canvas");
 
-      const isInc = String(item.eventId).toUpperCase().startsWith("AINC-");
+      const isInc = isSyntheticDemo(item);
       const friendly = friendlyLabel(item, catalogMap);
       const container = document.createElement("div");
       container.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:794px;padding:40px;background:#fff;font-family:Arial,sans-serif;font-size:13px;color:#242321;line-height:1.6;";
@@ -500,43 +500,6 @@ export default function AnalyzerHistoryList({
 
   // ── Unified Row Renderers ──────────────────────────────────────────────────
 
-  const renderIncidentRow = (record: any) => (
-    <div
-      key={`incident-${record.id || record.eventId}`}
-      className="p-4 hover:bg-eims-surface-subtle transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group cursor-pointer bg-purple-500/[0.02]"
-      onClick={() => setSelectedItem(record)}
-    >
-      <div className="min-w-0 flex-1">
-        <h4 className="font-medium text-base sm:text-lg flex flex-wrap items-center gap-2">
-          <span className="text-[#9D84B7] dark:text-[#A088BC] group-hover:text-purple-300 transition-colors font-semibold">
-            Suspicious Authentication Activity
-          </span>
-          <span className="bg-purple-500/10 border border-purple-500/20 text-purple-600/85 dark:text-[#B399CE] text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide shrink-0">
-            SYNTHETIC / AI DEMO DATA
-          </span>
-        </h4>
-        <div className="flex items-center gap-2 mt-1 text-eims-text-secondary text-xs sm:text-sm flex-wrap">
-          <ShieldAlert size={14} className="shrink-0 text-[#9D84B7] dark:text-[#A088BC]" />
-          <span className="font-medium text-eims-text">Security / Authentication</span>
-          <span className="text-eims-text-muted">· Incident AINC-2026-0910-0001</span>
-          {record.eventMetadata?.incident?.affectedAsset && (
-            <span className="bg-eims-surface-subtle text-eims-text-secondary border border-eims-border text-xs px-2 py-0.5 rounded font-mono">
-              {record.eventMetadata.incident.affectedAsset}
-            </span>
-          )}
-        </div>
-      </div>
-      <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0">
-        <span className="bg-purple-500/10 border border-purple-500/20 text-purple-600/85 dark:text-[#B399CE] text-xs font-medium px-2 py-0.5 rounded">
-          SYNTHETIC AI DEMO
-        </span>
-        <div className="flex items-center gap-3 sm:mt-2">
-          <span className="text-xs text-eims-text-muted">By: {record.username || "AI Investigation"}</span>
-        </div>
-      </div>
-    </div>
-  );
-
   const renderCatalogRow = (entry: CatalogEntry) => (
     <div
       key={`catalog-${entry.event_id}`}
@@ -583,7 +546,7 @@ export default function AnalyzerHistoryList({
               {friendly.title}
             </span>
             <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600/85 dark:text-[#78B096] text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
-              Analyzed Log
+              {isSyntheticDemo(record) ? "Synthetic Demo" : "Analyzed Log"}
             </span>
             {record.eventMetadata?.faultingApp && (
               <span className="bg-eims-surface-subtle text-eims-text-secondary border border-eims-border text-xs px-2 py-0.5 rounded truncate max-w-full font-mono">
@@ -628,72 +591,64 @@ export default function AnalyzerHistoryList({
 
   return (
     <div className={`bg-eims-surface border border-eims-border rounded-xl shadow-sm overflow-hidden flex flex-col ${className}`}>
-      {/* Search Header */}
-      <div className="p-4 border-b border-eims-border flex items-center justify-between bg-eims-bg/50 shrink-0">
-        <div className="relative w-full max-w-md">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-eims-text-muted" />
-          <input
-            type="text"
-            placeholder="Search Event ID, title, provider, keyword..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-eims-bg border border-eims-border rounded-lg text-eims-text placeholder-eims-text-muted focus:outline-none focus:border-eims-accent transition-colors"
-          />
+      <div className="p-4 border-b border-eims-border bg-eims-bg/50 shrink-0 space-y-3">
+        <div role="tablist" aria-label="Analyzer records" className="flex flex-wrap gap-2">
+          <button type="button" role="tab" id="analysis-history-tab" aria-selected={activeTab === "history"} aria-controls="analyzer-records-panel"
+            onClick={() => setActiveTab("history")}
+            className={`px-3 py-2 rounded-lg text-sm font-medium ${activeTab === "history" ? "bg-eims-accent text-white" : "bg-eims-bg text-eims-text-secondary hover:bg-eims-surface-subtle"}`}>
+            Analysis History
+          </button>
+          <button type="button" role="tab" id="event-catalog-tab" aria-selected={activeTab === "catalog"} aria-controls="analyzer-records-panel"
+            onClick={() => setActiveTab("catalog")}
+            className={`px-3 py-2 rounded-lg text-sm font-medium ${activeTab === "catalog" ? "bg-eims-accent text-white" : "bg-eims-bg text-eims-text-secondary hover:bg-eims-surface-subtle"}`}>
+            Event Catalog ({catalog.length})
+          </button>
         </div>
-        <div className="text-xs text-eims-text-muted font-medium ml-4 shrink-0 hidden sm:block">
-          {searchTerm.trim().length > 0 ? (
-            <span>
-              Top {ranked?.length || 0} Results
-              {searchLatencyMs !== null && (
-                <span className="ml-1.5 text-[10px] text-teal-600 dark:text-[#78B096]">
-                  ({searchLatencyMs < 1 ? searchLatencyMs.toFixed(1) : Math.round(searchLatencyMs)}ms)
-                </span>
-              )}
-            </span>
-          ) : (
-            `Operational Catalog: ${catalog.length} events`
+        <p className="text-xs text-eims-text-muted">
+          {activeTab === "history" ? `${historyList.length} analysis records · Sorted by analysis date` : "Static event definitions · Not analyzed logs"}
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-0">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-eims-text-muted" />
+            <input type="text" aria-label={activeTab === "history" ? "Search analysis history" : "Search event catalog"}
+              placeholder="Search Event ID, title, provider, keyword..."
+              value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm bg-eims-bg border border-eims-border rounded-lg text-eims-text placeholder-eims-text-muted focus:outline-none focus:border-eims-accent transition-colors" />
+          </div>
+          {activeTab === "history" && (
+            <select aria-label="History sort order" value={historyOrder}
+              onChange={(e) => setHistoryOrder(e.target.value as "newest" | "oldest")}
+              className="px-2 py-2 text-sm bg-eims-bg border border-eims-border rounded-lg text-eims-text">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
           )}
         </div>
+        {searchTerm.trim() && (
+          <p className="text-xs text-eims-text-muted">
+            {activeTab === "history" ? `${visibleHistory.length} matching records` : `Top ${ranked?.length || 0} catalog results`}
+            {searchLatencyMs !== null && ` (${searchLatencyMs < 1 ? searchLatencyMs.toFixed(1) : Math.round(searchLatencyMs)}ms)`}
+          </p>
+        )}
       </div>
 
-      {/* Unified Scrollable Result List */}
-      <div className="divide-y divide-eims-border flex-1 min-h-0 overflow-y-auto">
+      <div role="tabpanel" id="analyzer-records-panel"
+        aria-labelledby={activeTab === "history" ? "analysis-history-tab" : "event-catalog-tab"}
+        className="divide-y divide-eims-border flex-1 min-h-0 overflow-y-auto">
         {isLoading ? (
           <div className="p-8 text-center text-eims-text-muted">Loading history and catalog...</div>
-        ) : searchTerm.trim().length > 0 ? (
-          /* ACTIVE SEARCH: TOP 15 RANKED RESULTS */
-          ranked && ranked.length === 0 ? (
-            <div className="p-8 text-center text-eims-text-muted">No matching records or catalog entries found.</div>
-          ) : ranked ? (
-            <>
-              <div className="px-4 pt-3 pb-1 text-xs text-eims-text-muted font-medium bg-eims-bg/30">
-                Showing top {ranked.length} ranking results for "{searchTerm.trim()}"
-              </div>
-              {ranked.map(({ c }) => {
-                if (c.kind === "history") {
-                  if (String(c.record.eventId).toUpperCase().startsWith("AINC-")) {
-                    return renderIncidentRow(c.record);
-                  }
-                  return renderHistoryRow(c.record);
-                }
-                return renderCatalogRow(c.record);
-              })}
-            </>
-          ) : (
-            <div className="p-8 text-center text-eims-text-muted">No records found.</div>
+        ) : activeTab === "history" ? (
+          visibleHistory.length > 0 ? visibleHistory.map(renderHistoryRow) : (
+            <div className="p-8 text-center text-eims-text-muted">
+              {searchTerm.trim() ? "No matching analysis records found." : "No analysis history yet."}
+            </div>
           )
-        ) : (
-          /* NO SEARCH: FULL OPERATIONAL EVENT CATALOG (141) + AI INCIDENT + REAL HISTORY */
-          <>
-            {/* 1. Suspicious Authentication Activity [SYNTHETIC AI DEMO] */}
-            {incidentRecord && renderIncidentRow(incidentRecord)}
-
-            {/* 2. Operational Event Catalog (Complete 141 entries sorted by priority) */}
-            {sortedCatalog.map((entry) => renderCatalogRow(entry))}
-
-            {/* 3. Actual analyzed history records */}
-            {nonIncidentHistory.map((item) => renderHistoryRow(item))}
-          </>
+        ) : searchTerm.trim() ? (
+          ranked && ranked.length > 0 ? ranked.map(({ c }) => renderCatalogRow(c.record)) : (
+            <div className="p-8 text-center text-eims-text-muted">No matching catalog entries found.</div>
+          )
+        ) : sortedCatalog.length > 0 ? sortedCatalog.map(renderCatalogRow) : (
+          <div className="p-8 text-center text-eims-text-muted">No catalog entries available.</div>
         )}
       </div>
 
@@ -707,10 +662,10 @@ export default function AnalyzerHistoryList({
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-eims-border bg-eims-surface shrink-0">
               <h2 className="text-lg font-semibold text-eims-text flex items-center gap-2">
-                {String(selectedItem.eventId).toUpperCase().startsWith("AINC-") ? (
+                {isSyntheticDemo(selectedItem) ? (
                   <>
                     <ShieldAlert className="w-5 h-5 text-[#A088BC]" />
-                    <span>AI Incident Investigation — Suspicious Authentication Activity</span>
+                    <span>Suspicious Authentication Activity · Synthetic Demo</span>
                   </>
                 ) : selectedItem.isCatalog ? (
                   <>

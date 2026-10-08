@@ -13,6 +13,62 @@ from backend.domain.analyzer.schemas.analyze import SolutionSummary, EventMetada
 router = APIRouter()
 
 
+def _safe_solution_summary(raw) -> "SolutionSummary | None":
+    """Defensively parse stored solution JSON.
+
+    Historical rows may carry legacy shapes (e.g. confidence stored as a
+    dict).  One malformed row must never 500 the whole history response,
+    so coerce known fields and degrade to overview-only instead of raising.
+    """
+    if not isinstance(raw, dict):
+        return None
+    cleaned = dict(raw)
+    conf = cleaned.get("confidence")
+    if isinstance(conf, dict):
+        level = conf.get("level")
+        cleaned["confidence"] = level if isinstance(level, str) else ""
+    elif conf is not None and not isinstance(conf, str):
+        cleaned["confidence"] = str(conf)
+    for key in ("causes", "steps", "evidence", "limitations", "nextEvidence"):
+        val = cleaned.get(key)
+        if val is not None and not isinstance(val, list):
+            cleaned[key] = [str(val)]
+    try:
+        return SolutionSummary(**cleaned)
+    except Exception:
+        pass
+    try:
+        overview = cleaned.get("overview")
+        return SolutionSummary(overview=overview if isinstance(overview, str) else "")
+    except Exception:
+        return None
+
+
+def _safe_event_metadata(raw) -> "EventMetadata | None":
+    if not isinstance(raw, dict):
+        return None
+    try:
+        return EventMetadata(**raw)
+    except Exception:
+        return None
+
+
+def _safe_search_results(raw) -> list:
+    from backend.domain.analyzer.schemas.analyze import SearchResult
+
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        try:
+            out.append(SearchResult(**item))
+        except Exception:
+            continue
+    return out
+
+
 @router.get("/catalog")
 async def get_operational_catalog(
     _user: str = Depends(get_current_user),
@@ -42,8 +98,8 @@ async def get_all_history(
     history_records = (await db.execute(stmt.order_by(AnalysisHistory.created_at.desc()))).scalars().all()
     results = []
     for record in history_records:
-        solution = SolutionSummary(**record.solution_summary) if record.solution_summary else None
-        metadata = EventMetadata(**record.event_metadata) if record.event_metadata else None
+        solution = _safe_solution_summary(record.solution_summary)
+        metadata = _safe_event_metadata(record.event_metadata)
         provenance = None
         if record.event_metadata:
             meta = record.event_metadata
@@ -78,7 +134,7 @@ async def get_all_history(
             "aiSummary": record.ai_summary,
             "solutionSummary": solution,
             "eventMetadata": metadata,
-            "searchResults": record.search_results or [],
+            "searchResults": _safe_search_results(record.search_results),
             "searchTimeMs": record.search_time_ms if record.search_time_ms is not None else 0.0,
             "created_at": record.created_at,
             "username": record.username,
