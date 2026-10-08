@@ -72,13 +72,16 @@ def _safe_search_results(raw) -> list:
 @router.get("/catalog")
 async def get_operational_catalog(
     _user: str = Depends(get_current_user),
+    source_family: Optional[str] = None,
 ):
     """Return the static Operational Event Catalog (knowledge, not analyzed logs)."""
     from backend.domain.analyzer.services.operational_catalog import get_catalog
+    entries = get_catalog(source_family)
     return {
         "classification": "OPERATIONAL_EVENT_CATALOG",
-        "count": len(get_catalog()),
-        "entries": get_catalog(),
+        "schema_version": 1,
+        "count": len(entries),
+        "entries": entries,
     }
 
 
@@ -259,14 +262,20 @@ async def get_history_stats(
         # Category Classification (derive from real records and event semantics)
         eid = str(record.event_id or "").strip()
         prov = str(record.provider or "").strip()
+        meta = _safe_event_metadata(record.event_metadata)
+        family = meta.sourceFamily if meta else ""
+        if not family:
+            family = "windows_event" if prov.lower() == "security" or any(w in prov.lower() for w in
+                ("windows", "grouppolicy", "kernel-power", "eventlog", "distributedcom", "service control manager")) else "unknown_text"
         if eid.upper().startswith("AINC-") or "incident" in prov.lower():
             cat = "Incident Investigation"
         elif record.event_metadata and record.event_metadata.get("category"):
             cat = record.event_metadata["category"]
-        elif eid in EVENT_CATEGORIES:
+        elif family == "windows_event" and eid in EVENT_CATEGORIES:
             cat = EVENT_CATEGORIES[eid]
         else:
-            cat_entry = get_catalog_entry(eid)
+            from backend.domain.analyzer.services.operational_catalog import entry_for_metadata
+            cat_entry = entry_for_metadata(meta) if meta and meta.sourceFamily else get_catalog_entry(eid, family)
             if cat_entry and cat_entry.get("category"):
                 cat_raw = cat_entry["category"]
                 if "Audit" in cat_raw:
@@ -276,7 +285,7 @@ async def get_history_stats(
                 else:
                     cat = cat_raw
             else:
-                cat = "System"
+                cat = "System" if family == "windows_event" else "Unclassified"
         category_counts[cat] = category_counts.get(cat, 0) + 1
 
         # Daily Trends

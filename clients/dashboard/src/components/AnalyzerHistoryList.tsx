@@ -86,10 +86,16 @@ const TOP_EVENT_ORDER: Record<string, number> = {
 function friendlyLabel(item: any, catalogMap?: Record<string, CatalogEntry>): { title: string; provider: string } {
   const eid = item?.eventId ? String(item.eventId).trim() : "";
   if (isSyntheticDemo(item)) return INCIDENT_FRIENDLY;
-  if (catalogMap && catalogMap[eid]) {
-    return { title: catalogMap[eid].title, provider: catalogMap[eid].provider };
+  const meta = item?.eventMetadata ?? {};
+  const family = meta.sourceFamily || (/windows|^security$|grouppolicy|kernel-power|eventlog|distributedcom|service control manager/i.test(item?.provider ?? "") ? "windows_event" : "unknown_text");
+  const code = meta.diagnosticCode || eid;
+  const defaultKinds: Record<string, string> = {windows_event:"official_event_id", veeam_vbr:"eims_diagnostic", vmware:"eims_diagnostic", fortinet:"log_category", cisco_asa:"official_message_id", palo_alto:"log_category", linux_syslog:"general_signature"};
+  const kind = meta.attributes?.codeType || defaultKinds[family];
+  const entry = catalogMap?.[`${family}:${kind}:${code}`];
+  if (entry && (family !== "cisco_asa" || meta.attributes?.deviceType === "ASA")) {
+    return { title: entry.title, provider: item?.provider || entry.provider };
   }
-  return EVENT_FRIENDLY[eid] ?? { title: `Event ${eid || item?.provider || "Unknown"}`, provider: item?.provider || "Unknown" };
+  return (family === "windows_event" ? EVENT_FRIENDLY[eid] : undefined) ?? { title: `Record ${eid || item?.provider || "Unknown"}`, provider: item?.provider || "Unknown" };
 }
 
 // ── Operational Event Catalog (static knowledge, not analyzed logs) ─────────
@@ -105,12 +111,35 @@ interface CatalogEntry {
   related_events: string[];
   operator_context: string;
   source?: string;
+  catalog_id: string;
+  source_family: string;
+  vendor: string;
+  product: string;
+  code_type: string;
+  diagnostic_code: string;
+  support_level: string;
+  verification_status: string;
+  investigation_steps?: string[];
+  official_references?: { title: string; url: string; scope: string }[];
+  compatibility_scope?: string;
 }
+
+const SOURCE_LABELS: Record<string, string> = {
+  windows_event: "Microsoft Windows", veeam_vbr: "Veeam", vmware: "VMware",
+  fortinet: "Fortinet", cisco_asa: "Cisco ASA / FTD", palo_alto: "Palo Alto PAN-OS",
+  linux_syslog: "Linux / OpenSSH", json: "Structured JSON (parser only)",
+};
+const CODE_LABELS: Record<string, string> = {
+  official_event_id: "Official Event ID", official_message_id: "Official Message ID",
+  eims_diagnostic: "EIMS diagnostic", log_category: "Log category", general_signature: "Diagnostic signature",
+};
 
 const MAX_SEARCH_RESULTS = 15;
 
 function sortCatalogByPriority(entries: CatalogEntry[]): CatalogEntry[] {
   return [...entries].sort((a, b) => {
+    const productOrder = a.product.localeCompare(b.product);
+    if (productOrder) return productOrder;
     const topA = TOP_EVENT_ORDER[a.event_id] ?? 999;
     const topB = TOP_EVENT_ORDER[b.event_id] ?? 999;
     if (topA !== 999 || topB !== 999) return topA - topB;
@@ -147,10 +176,10 @@ function describeCandidate(c: { kind: "history"; record: any } | { kind: "catalo
   return {
     eid: String(e.event_id ?? "").toLowerCase(),
     title: String(e.title ?? "").toLowerCase(),
-    provider: String(e.provider ?? "").toLowerCase(),
+    provider: `${e.provider ?? ""} ${e.vendor} ${e.product} ${e.source_family}`.toLowerCase(),
     category: String(e.category ?? "").toLowerCase(),
     keywords: (e.keywords ?? []).join(" ").toLowerCase(),
-    body: `${e.description ?? ""} ${e.operator_context ?? ""} ${(e.related_events ?? []).join(" ")}`.toLowerCase(),
+    body: `${e.description ?? ""} ${e.operator_context ?? ""} ${e.code_type} ${(e.investigation_steps ?? []).join(" ")} ${(e.related_events ?? []).join(" ")}`.toLowerCase(),
     incident: "", asset: "",
   };
 }
@@ -216,6 +245,7 @@ export default function AnalyzerHistoryList({
 }: AnalyzerHistoryListProps) {
   const [historyList, setHistoryList] = useState<any[]>([]);
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"history" | "catalog">("history");
@@ -277,14 +307,13 @@ export default function AnalyzerHistoryList({
   const catalogMap = useMemo(() => {
     const map: Record<string, CatalogEntry> = {};
     for (const entry of catalog) {
-      map[entry.event_id] = entry;
+      map[entry.catalog_id] = entry;
     }
     return map;
   }, [catalog]);
 
-  const sortedCatalog = useMemo(() => {
-    return sortCatalogByPriority(catalog);
-  }, [catalog]);
+  const filteredCatalog = useMemo(() => catalog.filter(entry => sourceFilter === "all" || entry.source_family === sourceFilter), [catalog, sourceFilter]);
+  const sortedCatalog = useMemo(() => sortCatalogByPriority(filteredCatalog), [filteredCatalog]);
 
   const sortedHistory = useMemo(() => {
     const timestamp = (record: any) => {
@@ -309,10 +338,10 @@ export default function AnalyzerHistoryList({
     const matches = activeTab === "history"
       ? sortedHistory.filter(record => scoreSearch(q, { kind: "history", record }) > 0)
       : [];
-    const res = activeTab === "catalog" ? rankSearch(searchTerm, [], catalog) : null;
+    const res = activeTab === "catalog" ? rankSearch(searchTerm, [], filteredCatalog) : null;
     const elapsed = Math.max(performance.now() - t0, 0.1);
     return { visibleHistory: matches, ranked: res, searchLatencyMs: elapsed };
-  }, [searchTerm, sortedHistory, catalog, activeTab]);
+  }, [searchTerm, sortedHistory, filteredCatalog, activeTab]);
 
   useEffect(() => {
     if (searchLatencyMs !== null && searchLatencyMs !== undefined) {
@@ -323,7 +352,7 @@ export default function AnalyzerHistoryList({
   // Open detail modal for static operational catalog entries
   const openCatalogItem = (entry: CatalogEntry) => {
     setSelectedItem({
-      id: `catalog-${entry.event_id}`,
+      id: `catalog-${entry.catalog_id}`,
       eventId: entry.event_id,
       provider: entry.provider,
       parseMethod: "Operational Event Catalog",
@@ -334,6 +363,11 @@ export default function AnalyzerHistoryList({
         overview: entry.description,
         causes: entry.operator_context ? [entry.operator_context] : [],
         steps: [
+          `Product: ${entry.product}`,
+          `${CODE_LABELS[entry.code_type] || entry.code_type}: ${entry.diagnostic_code}`,
+          `Verification: ${entry.verification_status}`,
+          `Scope: ${entry.compatibility_scope || "Preserved legacy Windows reference"}`,
+          ...(entry.investigation_steps || []),
           `Category: ${entry.category}`,
           `Severity: ${entry.severity}`,
           ...(entry.related_events && entry.related_events.length > 0
@@ -350,7 +384,7 @@ export default function AnalyzerHistoryList({
         timestamp: "Documented Operational Knowledge",
         computer: "Operational Reference Index",
       },
-      searchResults: [],
+      searchResults: (entry.official_references || []).map(ref => ({ title: ref.title, link: ref.url, snippet: ref.scope, sourceType: "official" })),
       created_at: new Date().toISOString(),
       username: "Knowledge Base",
       isCatalog: true,
@@ -502,7 +536,7 @@ export default function AnalyzerHistoryList({
 
   const renderCatalogRow = (entry: CatalogEntry) => (
     <div
-      key={`catalog-${entry.event_id}`}
+      key={`catalog-${entry.catalog_id}`}
       className="p-4 hover:bg-eims-surface-subtle transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group cursor-pointer"
       onClick={() => openCatalogItem(entry)}
     >
@@ -518,14 +552,14 @@ export default function AnalyzerHistoryList({
         <div className="flex items-center gap-2 mt-1 text-eims-text-secondary text-xs sm:text-sm flex-wrap">
           <FileText size={14} className="shrink-0 text-sky-500/70" />
           <span className="text-eims-text">{entry.provider}</span>
-          <span className="text-eims-text-muted">· Event {entry.event_id}</span>
+          <span className="text-eims-text-muted">· {CODE_LABELS[entry.code_type] || entry.code_type}: {entry.diagnostic_code}</span>
           <span className="text-eims-text-muted text-xs hidden md:inline">({entry.category} · {entry.severity})</span>
         </div>
         <p className="mt-1 text-xs text-eims-text-muted line-clamp-1">{entry.description}</p>
       </div>
       <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0">
         <span className="bg-sky-500/10 border border-sky-500/20 text-sky-600/85 dark:text-sky-400/80 text-xs font-medium px-2 py-0.5 rounded">
-          Knowledge Base
+          {entry.verification_status === "official_documentation_verified" ? "Documented reference" : entry.verification_status === "preserved_legacy" ? "Legacy reference" : "Tested EIMS signature"}
         </span>
         <span className="text-xs text-eims-text-muted sm:mt-2 hidden sm:block">Reference Index</span>
       </div>
@@ -601,11 +635,11 @@ export default function AnalyzerHistoryList({
           <button type="button" role="tab" id="event-catalog-tab" aria-selected={activeTab === "catalog"} aria-controls="analyzer-records-panel"
             onClick={() => setActiveTab("catalog")}
             className={`px-3 py-2 rounded-lg text-sm font-medium ${activeTab === "catalog" ? "bg-eims-accent text-white" : "bg-eims-bg text-eims-text-secondary hover:bg-eims-surface-subtle"}`}>
-            Event Catalog ({catalog.length})
+            Diagnostic Knowledge Catalog ({catalog.length})
           </button>
         </div>
         <p className="text-xs text-eims-text-muted">
-          {activeTab === "history" ? `${historyList.length} analysis records · Sorted by analysis date` : "Static event definitions · Not analyzed logs"}
+          {activeTab === "history" ? `${historyList.length} analysis records · Sorted by analysis date` : "Static knowledge · Coverage varies by product · Reference context does not confirm root cause"}
         </p>
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-0">
@@ -621,6 +655,15 @@ export default function AnalyzerHistoryList({
               className="px-2 py-2 text-sm bg-eims-bg border border-eims-border rounded-lg text-eims-text">
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
+            </select>
+          )}
+          {activeTab === "catalog" && (
+            <select aria-label="Catalog source family" value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}
+              className="max-w-full px-2 py-2 text-sm bg-eims-bg border border-eims-border rounded-lg text-eims-text">
+              <option value="all">All products</option>
+              {Object.entries(SOURCE_LABELS).map(([family, label]) => (
+                <option key={family} value={family}>{label} ({catalog.filter(e => e.source_family === family).length})</option>
+              ))}
             </select>
           )}
         </div>
@@ -648,7 +691,7 @@ export default function AnalyzerHistoryList({
             <div className="p-8 text-center text-eims-text-muted">No matching catalog entries found.</div>
           )
         ) : sortedCatalog.length > 0 ? sortedCatalog.map(renderCatalogRow) : (
-          <div className="p-8 text-center text-eims-text-muted">No catalog entries available.</div>
+          <div className="p-8 text-center text-eims-text-muted">No diagnostic knowledge available for this source. Parser support does not imply diagnostic coverage.</div>
         )}
       </div>
 
@@ -670,7 +713,7 @@ export default function AnalyzerHistoryList({
                 ) : selectedItem.isCatalog ? (
                   <>
                     <FileText className="w-5 h-5 text-sky-500/80 dark:text-[#7EA8BE]" />
-                    <span>Operational Knowledge Base — Event {selectedItem.eventId}</span>
+                    <span>Diagnostic Knowledge — {selectedItem.eventId}</span>
                   </>
                 ) : (
                   <>
@@ -695,6 +738,7 @@ export default function AnalyzerHistoryList({
                   Export PDF
                 </button>
                 <button 
+                  aria-label="Close details"
                   onClick={() => setSelectedItem(null)}
                   className="p-2 hover:bg-eims-surface-subtle rounded-full text-eims-text-muted hover:text-eims-text transition-colors"
                 >

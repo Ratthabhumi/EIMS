@@ -20,9 +20,6 @@ KNOWN_PROVIDERS = {
 
 CRITICAL_LEVELS = {"critical", "error", "1", "2", "emergency", "alert"}
 
-# Fortinet log action types that are security-relevant
-FORTINET_CRITICAL_ACTIONS = {"block", "deny", "drop", "reset", "blocked"}
-
 # Cisco ASA severity levels (0=emergency, 1=alert, 2=critical, 3=error, 4=warning)
 CISCO_CRITICAL_SEVERITIES = {0, 1, 2, 3}
 
@@ -48,17 +45,9 @@ def _fortinet_field(text: str, key: str) -> str:
 
 def _is_fortinet_log(text: str) -> bool:
     """Detect if text looks like a Fortinet/FortiGate log."""
-    fortinet_markers = [
-        r'devname=',
-        r'logid=',
-        r'type="(traffic|event|utm|anomaly|virus|webfilter|ips|dns)"',
-        r'fortigate',
-        r'fortios',
-        r'fgt_',
-        r'subtype="(forward|local|ips|webfilter|antivirus)"',
-    ]
-    text_lower = text.lower()
-    return any(re.search(p, text_lower) for p in fortinet_markers)
+    has_type = _fortinet_field(text, "type") in ("traffic", "event", "utm", "anomaly", "virus", "webfilter", "ips", "dns")
+    return has_type and bool(_fortinet_field(text, "logid") or
+        re.search(r"\b(?:fortigate|fortios)\b", text, re.IGNORECASE))
 
 
 def _parse_fortinet(text: str) -> EventMetadata:
@@ -96,12 +85,10 @@ def _parse_fortinet(text: str) -> EventMetadata:
     if msg:     parts.append(f"Message: {msg}")
     log_name = " | ".join(parts) if parts else log_type
 
-    # Critical if action is block/deny/drop or level is emergency/alert/error
+    # A deny action is a policy outcome, not proof of a critical incident.
     level_lower = level.lower() if level else ""
-    action_lower = action.lower() if action else ""
     is_critical = (
         level_lower in CRITICAL_LEVELS
-        or action_lower in FORTINET_CRITICAL_ACTIONS
     )
 
     return EventMetadata(
@@ -113,6 +100,11 @@ def _parse_fortinet(text: str) -> EventMetadata:
         computer=devname,
         isCritical=is_critical,
         faultingApp="",
+        diagnosticCode=f"{log_type}/{subtype}" if log_type and subtype else "",
+        attributes={"codeType": "log_category", **{
+            key: _fortinet_field(text, key) for key in
+            ("logid", "type", "subtype", "level", "action", "srcip", "dstip", "service", "policyid", "devname", "msg", "status", "reason")
+        }},
     )
 
 def _is_cisco_asa(text: str) -> bool:
@@ -220,6 +212,9 @@ def _parse_cisco_asa(text: str) -> EventMetadata:
         computer=computer,
         isCritical=is_critical,
         faultingApp="",
+        diagnosticCode=msg_id if header else "",
+        attributes={"codeType": "official_message_id", "deviceType": header.group(1).upper() if header else "",
+                    "messageId": msg_id, "severity": severity_num, "message": msg_body},
     )
 
 
@@ -290,7 +285,7 @@ def _parse_linux_syslog(text: str) -> EventMetadata:
         
         # Identify common Linux daemon events
         event_id = "SYSLOG"
-        if "failed password" in msg_lower:
+        if daemon == "sshd" and "failed password" in msg_lower:
             event_id = "AUTH-FAIL"
             level = "Error"
         elif "segfault" in msg_lower:
@@ -311,6 +306,8 @@ def _parse_linux_syslog(text: str) -> EventMetadata:
             computer=computer,
             isCritical=is_critical_level(level),
             faultingApp=daemon,
+            diagnosticCode=event_id if event_id == "AUTH-FAIL" else "",
+            attributes={"codeType": "general_signature", "daemon": daemon, "message": msg},
         )
     return EventMetadata(eventId="Linux-Syslog", provider="Linux/System", level="Info")
 
@@ -342,6 +339,9 @@ def parse_event_metadata(text: str, filename_hint: str = "") -> EventMetadata:
         return _merge_syslog(parse_veeam(text, filename_hint), text, family)
     if family == "vmware":
         return _merge_syslog(parse_vmware(text, filename_hint), text, family)
+    if family == "palo_alto":
+        from backend.domain.analyzer.services.panos_parser import parse_panos
+        return parse_panos(text) or parse_unknown_text(text, filename_hint)
 
     # 3. Fortinet / Cisco / Linux keep their dedicated parsers.
     if family == "fortinet":

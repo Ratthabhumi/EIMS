@@ -260,7 +260,7 @@ def _is_usable_knowledge_row(
         return False
 
     # Family-specific matching for known non-vendor families
-    if req_family in ("cisco_asa", "fortinet", "linux_syslog", "json"):
+    if req_family in ("cisco_asa", "fortinet", "palo_alto", "linux_syslog", "json"):
         if row_family != req_family:
             return False
 
@@ -277,7 +277,7 @@ def _is_usable_knowledge_row(
             return distance <= max_distance
         else:
             # Conservative compatibility for other legacy rows
-            if req_family in ("cisco_asa", "fortinet", "linux_syslog", "json", "veeam_vbr", "vmware"):
+            if req_family in ("cisco_asa", "fortinet", "palo_alto", "linux_syslog", "json", "veeam_vbr", "vmware"):
                 return False
 
     if req_family == "windows_event":

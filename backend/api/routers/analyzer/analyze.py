@@ -119,6 +119,9 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
         try:
             import csv, io as _io
             text_raw = content.decode("utf-8", errors="ignore")
+            from backend.domain.analyzer.services.panos_parser import panos_records
+            if panos_records(text_raw):
+                return text_raw, f"Parsed PAN-OS default CSV syslog: {filename}"
             reader = csv.DictReader(_io.StringIO(text_raw))
             rows = list(reader)
             if rows:

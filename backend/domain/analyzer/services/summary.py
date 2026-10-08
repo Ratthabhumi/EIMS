@@ -76,6 +76,7 @@ FAMILY_OFFICIAL_DOMAINS = {
         "docs.fortinet.com",
         "fortinet.com",
     ),
+    "palo_alto": ("docs.paloaltonetworks.com", "knowledgebase.paloaltonetworks.com"),
 }
 
 # Vendor documentation roots used as fallback references (roots only so no
@@ -99,6 +100,7 @@ FAMILY_FALLBACK_REFS = {
     ],
     "linux_syslog": [],
     "json": [],
+    "palo_alto": [],
 }
 
 # DDGS site-restricted tiers per source family (query, tier).
@@ -128,6 +130,7 @@ FAMILY_SEARCH_TIERS = {
     ),
     "linux_syslog": (),
     "json": (),
+    "palo_alto": (("official", "site:docs.paloaltonetworks.com"),),
 }
 
 SEARCH_TIERS = FAMILY_SEARCH_TIERS["windows_event"]
@@ -187,6 +190,8 @@ def _family_query(event_id: str, provider: str, source_family: str) -> str:
         return f"Cisco ASA {event_id} {provider}"
     if source_family == "fortinet":
         return f"FortiGate {event_id} {provider}"
+    if source_family == "palo_alto":
+        return f"PAN-OS {event_id} {provider}"
     if source_family in ("linux_syslog", "json"):
         return f"{provider} {event_id} syslog"
     provider_part = provider if provider not in ("Unknown", "DistributedCOM") else "DCOM"
@@ -220,7 +225,11 @@ def search_solutions(
 
     # 1. Deterministic gated KB official references (highest priority)
     kb_refs: List[SearchResult] = []
-    if diagnostic_code:
+    from backend.domain.analyzer.services.catalog_diagnostics import catalog_references
+    for ref in catalog_references(family, evidence_text or ""):
+        seen_links.add(_canonical_url(ref.link))
+        kb_refs.append(ref)
+    if diagnostic_code and family in ("veeam_vbr", "vmware"):
         try:
             raw_kb = vendor_reference_results(diagnostic_code, evidence_text or "", language) or []
             for r in raw_kb:
@@ -1013,12 +1022,17 @@ async def build_summary(
 
     # Deterministic vendor knowledge wins for recognized diagnostics:
     # offline, no hallucinated filenames, honest confidence.
-    if diagnostic_code and is_vendor_diagnostic_code(diagnostic_code):
+    if family in ("veeam_vbr", "vmware") and diagnostic_code and is_vendor_diagnostic_code(diagnostic_code):
         vendor = get_vendor_summary(diagnostic_code, lang, evidence_text or description or "")
         if vendor:
             return vendor
 
-    curated = get_curated_summary(event_id, lang)
+    from backend.domain.analyzer.services.catalog_diagnostics import catalog_summary
+    context = catalog_summary(family, evidence_text or description or "", lang)
+    if context:
+        return context
+
+    curated = get_curated_summary(event_id, lang) if family == "windows_event" else None
     if curated:
         return curated
 
