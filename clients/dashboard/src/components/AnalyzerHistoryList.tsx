@@ -3,6 +3,7 @@ import { Search, Trash2, Code, FileImage, FileText, X, Download, ShieldAlert } f
 import { toast } from "react-hot-toast";
 import AnalysisResultDetail from "./AnalysisResultDetail";
 import { apiUrl } from "@/lib/api";
+import { escapeReportData } from "@/lib/reportSafety";
 
 interface AnalyzerHistoryListProps {
   refreshTrigger?: number;
@@ -416,14 +417,14 @@ export default function AnalyzerHistoryList({
     if (item.aiSummary) content += `## AI Summary\n\n${item.aiSummary}\n\n`;
     if (item.solutionSummary) {
       content += `## Executive Summary\n${item.solutionSummary.overview || "N/A"}\n\n`;
-      content += `## Root Causes / Context\n`;
+      content += `## Possible explanations (not confirmed causes)\n`;
       (item.solutionSummary.causes || []).forEach((c: string) => { content += `- ${c}\n`; });
-      content += `\n## Resolution / Notes\n`;
+      content += `\n## Suggested investigation checks\n`;
       (item.solutionSummary.steps || []).forEach((s: string) => { content += `${s}\n`; });
       if (item.solutionSummary.evidence && item.solutionSummary.evidence.length > 0) {
         content += `\n## Observed Evidence\n`;
         item.solutionSummary.evidence.forEach((e: string) => { content += `- ${e}\n`; });
-        if (item.solutionSummary.confidence) content += `\nConfidence: ${item.solutionSummary.confidence}\n`;
+        if (item.solutionSummary.confidence) content += `\nReported diagnostic confidence: ${item.solutionSummary.confidence}. This is not root-cause certainty or cross-file association. Older saved records may use different conventions.\n`;
       }
       if (item.solutionSummary.limitations && item.solutionSummary.limitations.length > 0) {
         content += `\n## What Is Still Unknown\n`;
@@ -452,6 +453,7 @@ export default function AnalyzerHistoryList({
 
   const downloadPDF = async (item: any) => {
     if (!item) return;
+    item = escapeReportData(item);
     const toastId = toast.loading("Generating PDF...");
     try {
       const { default: jsPDF } = await import("jspdf");
@@ -478,20 +480,20 @@ export default function AnalyzerHistoryList({
         <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${isInc ? "Security / Authentication" : (item.provider || "Unknown")}</strong> &nbsp;|&nbsp; Generated: ${new Date(item.created_at || Date.now()).toLocaleString()}</p>
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Event Metadata</h2>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
-          <div><span style="color:#716E66;font-size:11px;">Level</span><br/><strong>${meta.level || "Error"}</strong></div>
-          <div><span style="color:#716E66;font-size:11px;">Log Name</span><br/><strong>${meta.logName || "Application"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Level</span><br/><strong>${meta.level || "Not supplied"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Log Name</span><br/><strong>${meta.logName || "Not supplied"}</strong></div>
           <div><span style="color:#716E66;font-size:11px;">Time</span><br/><strong>${meta.timestamp || "N/A"}</strong></div>
-          <div><span style="color:#716E66;font-size:11px;">Computer</span><br/><strong>${meta.computer || "Localhost"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Computer</span><br/><strong>${meta.computer || "Not supplied"}</strong></div>
           ${meta.faultingApp ? `<div style="grid-column:1/-1"><span style="color:#716E66;font-size:11px;">Faulting App</span><br/><strong style="color:#dc2626;">${meta.faultingApp}</strong></div>` : ""}
         </div>
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Summary</h2>
         <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${item.solutionSummary?.overview || item.aiSummary || "No summary available."}</div>
-        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Root Causes / Context</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
-        <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Resolution Steps</h2>
+        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Possible explanations (not confirmed causes)</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
+        <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Suggested investigation checks</h2>
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
           ${steps.length > 0 ? `<ol style="padding-left:20px;margin:0;">${steps.map((s: string) => `<li style="margin-bottom:6px;">${s}</li>`).join("")}</ol>` : "<p>No specific steps provided.</p>"}
         </div>
-        ${evList.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Observed Evidence${conf ? ` (confidence: ${conf})` : ""}</h2><ul style="padding-left:20px;margin-bottom:12px;">${evList.map((e: string) => `<li style="margin-bottom:4px;">${e}</li>`).join("")}</ul>` : ""}
+        ${evList.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Observed Evidence${conf ? ` (reported diagnostic confidence: ${conf})` : ""}</h2><p>This is not root-cause certainty or cross-file association. Older saved records may use different conventions.</p><ul style="padding-left:20px;margin-bottom:12px;">${evList.map((e: string) => `<li style="margin-bottom:4px;">${e}</li>`).join("")}</ul>` : ""}
         ${unknowns.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">What Is Still Unknown</h2><ul style="padding-left:20px;margin-bottom:12px;">${unknowns.map((u: string) => `<li style="margin-bottom:4px;">${u}</li>`).join("")}</ul>` : ""}
         ${nextEv.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Next Evidence to Collect</h2><ul style="padding-left:20px;margin-bottom:12px;">${nextEv.map((n: string) => `<li style="margin-bottom:4px;">${n}</li>`).join("")}</ul>` : ""}
         ${refs.length > 0 ? `
@@ -573,6 +575,15 @@ export default function AnalyzerHistoryList({
         key={`history-${record.id}`}
         className="p-4 hover:bg-eims-surface-subtle transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group cursor-pointer"
         onClick={() => setSelectedItem(record)}
+          role="button"
+          tabIndex={0}
+          aria-label={`Open analysis ${record.id}`}
+          onKeyDown={event => {
+            if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
+              event.preventDefault();
+              setSelectedItem(record);
+            }
+          }}
       >
         <div className="min-w-0 flex-1">
           <h4 className="font-medium text-base sm:text-lg flex flex-wrap items-center gap-2">

@@ -1,0 +1,2 @@
+# Optional isolated SQLite integration/evaluation harness (no PostgreSQL access)
+aiosqlite==0.22.1
