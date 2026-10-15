@@ -39,6 +39,13 @@ const deadline=setTimeout(()=>{console.error('FAIL: facilitator preflight exceed
    const output=path.join(__dirname,'../test-results/analysis-export.md');
    await(await pending).saveAs(output);
    assert.match(await fs.readFile(output,'utf8'),/6008/);
+
+   const pdfPending=page.waitForEvent('download',{timeout:60000});
+   await page.getByRole('button',{name:'Export PDF',exact:true}).click();
+   const analysisPdf=await pdfPending;
+   const analysisPdfPath=path.join(__dirname,'../test-results/analysis-export.pdf');
+   await analysisPdf.saveAs(analysisPdfPath);
+   assert.equal((await fs.readFile(analysisPdfPath)).subarray(0,5).toString(),'%PDF-');
   }
   await heading.locator('..').getByRole('button').last().click();
   const row=page.getByRole('button',{name:`Open analysis ${result.historyId}`,exact:true});

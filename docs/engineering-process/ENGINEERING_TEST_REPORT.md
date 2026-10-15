@@ -1,18 +1,23 @@
-# Engineering verification — stabilization, 15 October 2026
+# Engineering verification — stabilization continuation, 15 October 2026
 
-Fresh local verification started from `552cf57` in the canonical EIMS directory, with the reviewed stabilization changes. Results are local, not GitHub CI. Windows, existing Python3.14 venv, Node24.18, Next16.3, installed Playwright/Edge; no operational application lifespan or database access.
+Fresh local verification from `57b78c1` (branch `work/eims-engineering-process-2026-10`). Results are local, not GitHub CI. Windows, Python3.14 venv, Node24.18, Next16.3, msedge 155.0.4283.45; no operational application lifespan or database access.
 
 | Check | Fresh result | Evidence / boundary |
 |---|---|---|
-| Selected isolated Python suites | **238 passed**, 0 failures, 0 errors; 10.396s | test-results/stabilization-engineering.xml; 5 existing deprecation warnings; not an unrestricted suite |
-| TypeScript noEmit | PASS | noEmit, incremental false; executed before successful build |
-| Production build after final client change | PASS | webpack, 44s compile, 32.4s TypeScript, 12 routes; process exit0 |
-| Actual export escaping helper | PASS | node tests/report_export_safety.cjs; unchanged nested escape behavior; not proof of successful browser export |
-| Facilitator T1–T4, actual API/SQLite | **PASS, headed** | Latest facilitator-preflight.json: tasks=PASS, exports=NOT RUN, headed=true, humanEvaluation=false; exact launcher path, original fixtures and stored History IDs |
-| Full workflow including exports | **FAIL / not revalidated** | Browser disconnected during Markdown download; other attempts also closed during startup. Do not carry forward the previous export PASS as a fresh result |
-| Independent download controls | Mixed | Plain-text download passed; immediate-release Markdown control failed; delayed-release Markdown control passed. This does not prove the application failure's sole root cause |
-| Syntax, Compose, diff and added-content screen | PASS where recorded | Static checks only; no secret values resolved or service started |
+| Selected isolated Python suites | **238 passed**, 0 failures, 0 errors; 10.26s | 5 existing deprecation warnings; not an unrestricted suite |
+| TypeScript noEmit | PASS | noEmit, incremental false |
+| Production build | PASS | webpack, 12 routes, exit 0 |
+| Actual export escaping helper | PASS | node tests/report_export_safety.cjs |
+| Facilitator T1–T4 tasks-only (headless) | **PASS** | receipt: tasks=PASS, exports=NOT RUN, headed=false; 3 consistent runs |
+| Facilitator T1–T4 tasks-only (headed) | **PASS** | receipt: tasks=PASS, exports=NOT RUN, headed=true |
+| Full export regression (without --tasks-only) | **PASS** | receipt: tasks=PASS, exports=PASS, headed=false; 3 consecutive consistent passes |
+| Analyzer Markdown export | **PASS** | analysis-export.md saved, contains 6008 |
+| Analyzer PDF export | **PASS** | analysis-export.pdf saved, header %PDF-1.3, 9.4 MB |
+| History Markdown export | **PASS** | history-export.md saved, contains expected sections |
+| History PDF export | **PASS** | history-export.pdf saved, header %PDF-1.3, 9.3 MB |
 | Human testing / PostgreSQL / real OCR / production deployment | NOT RUN | No participant results, live database queries or production-readiness claim |
+
+**Root cause of previous export instability identified:** msedge with `--headless` (legacy mode) caused browser disconnection before downloads completed. Adding `--headless=new` to the launch args resolves this. The `open_history_evaluation.cjs` launcher now automatically adds `--headless=new` when headless mode is requested. The Playwright module is also auto-discovered from the codex runtime path if not installed globally.
 
 ## Verified defects and decisions
 

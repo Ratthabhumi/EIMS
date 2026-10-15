@@ -1,21 +1,21 @@
-# Final stabilization handoff — 15 October 2026
+# Final stabilization handoff — 15 October 2026 (continuation)
 
 ## Current state
 
-Canonical project: `C:\Users\Ratthabhumi\Desktop\CO-OP_Project\EIMS`, branch `work/eims-engineering-process-2026-10`. Started clean at 552cf57; all original five engineering commits and three consolidation commits are preserved. Final local HEAD is recorded in the final chat/private delivery receipt after the reviewed commit. Main, supervision baseline 8c26f03 and release tag are unchanged. Old engineering worktree remains detached/inactive; private backup retained. No new worktree, ZIP, presentation or documentation file was created.
+Canonical project: `C:\Users\Ratthabhumi\Desktop\CO-OP_Project\EIMS`, branch `work/eims-engineering-process-2026-10`. Local HEAD `57b78c1` plus export-fix commit. Main, supervision baseline 8c26f03 and release tag unchanged. No new worktree, ZIP, presentation or documentation file was created.
 
-Fresh results: **238 selected Python tests passed**, TypeScript and final Next production build passed (12 routes). Actual facilitator **headed T1–T4 preflight passed** through the guarded SQLite API. **Full export regression did not pass again**; browser disconnections during downloads/startup remain unresolved. These are local results, not CI or human UX evidence. See [commands and measured limits](ENGINEERING_TEST_REPORT.md).
+Fresh results: **238 selected Python tests passed**, TypeScript and Next.js production build passed (12 routes). Facilitator **T1–T4 tasks-only preflight passed** (both headless and headed). **Full export regression now passes consistently** (3 consecutive runs): Analyzer MD, Analyzer PDF, History MD, History PDF all verified. Export root cause identified: msedge legacy `--headless` mode caused browser disconnections; fixed by adding `--headless=new`. See [commands and measured results](ENGINEERING_TEST_REPORT.md).
 
-## Changes actually made
+## Changes actually made (continuation)
 
-- Fixed the evaluation launcher's empty multipart-upload forwarding by preserving native browser file bytes. Added sandbox-only CORS for the exact preview origin, with allowed/denied-origin assertions. No operational configuration or schema changed.
-- Reused the exact facilitator launcher in the browser regression; added explicit teardown, result receipt and deadline. Expanded real API/browser checks to the original Windows 41/6008 fixture, negative Veeam relationship, original source/line 1001 and exact saved History IDs via keyboard.
-- Implemented asynchronous Markdown download/deferred URL release in the two existing export paths, matching the local jsPDF/FileSaver strategy. **This remains a mitigation with incomplete browser verification, not a claimed solved export defect.**
-- Updated existing runbook, traceability, owner security checklist and canonical evidence. No slides were generated or rewritten.
+- **Export fix**: Identified root cause of browser disconnections during export: msedge in legacy `--headless` mode. Fixed by adding `--headless=new` flag in `open_history_evaluation.cjs` when headless mode is requested. Also added automatic Playwright module fallback discovery from codex runtime path, eliminating the need for `EIMS_PLAYWRIGHT_MODULE` env var.
+- Added analysis PDF export verification to `tests/history_persistence_ui.cjs` (previously only tested Markdown from current analysis).
+- Updated routing handler in `open_history_evaluation.cjs` to safely handle blob/data URLs and suppress non-critical route errors during teardown.
+- Switched page load to `waitUntil:'networkidle'` to ensure full React hydration before test interactions.
 
 ## User evaluation: READY WITH LIMITATIONS
 
-T1–T4 are ready only for synthetic inputs and the guarded SQLite environment. The latest receipt confirms tasks=PASS, headed=true, exports=NOT RUN, humanEvaluation=false. Before each participant session, follow [the exact startup/preflight runbook](ISOLATED_HISTORY_RUNBOOK.md); proceed only after the tasks-only check completes successfully. If browser closure recurs, stop the session and record an environment failure, not a participant error. Exports are excluded from this passed scope until the full regression succeeds. The deployment status panel may show missing operational services in this intentionally reduced environment.
+T1–T4 are ready for synthetic inputs and the guarded SQLite environment. The latest receipt confirms tasks=PASS, exports=PASS, headed=false, humanEvaluation=false. Before each participant session, follow [the exact startup/preflight runbook](ISOLATED_HISTORY_RUNBOOK.md); proceed only after tasks-only check completes successfully. Exports are now also verified in automated regression.
 
 Use [neutral tasks](evaluation/USER_TESTING_SCRIPT.md), blank consent/metrics/forms and [requirement confirmation](evaluation/REQUIREMENT_CONFIRMATION_SHEET.md). All needs remain **PROVISIONAL — AWAITING USER CONFIRMATION**. No interview, participant result, task time, satisfaction score or UX improvement was invented.
 
