@@ -18,3 +18,7 @@ No rows were automatically deleted or restored. Exact record identifiers/timesta
 Review the private incident report and the three exact synthetic rows. Any selective removal requires separate authorization and a checked dependency/backup plan; no blanket cleanup or database reset is proposed. Review startup/worker logs privately if needed. Do not count this incident or its synthetic service-session records as real user evaluation or as verification of Analyzer persistence.
 
 The agent disclosed the mistake during the task. Final engineering evidence must distinguish corrected isolated results from the earlier unsafe run.
+
+## Follow-up, without operational access
+
+The consolidation continuation did not query or modify the three affected records. Exact IDs/time window and the existing read-only checker remain in the private backup. Owner procedure: review AUTH_TEST_SIDE_EFFECTS_PRIVATE.json, then use parameterized SELECT scoped to those exact session IDs and the recorded time window. Compare synthetic labels and dependent references privately; do not publish rows or use a broad name-only deletion. A cleanup proposal is limited to those three confirmed rows after a backup/dependency review and separate owner authorization. No DELETE/UPDATE/reset was executed. New real persistence checks use a guarded SQLite-only harness with no operational app lifespan; this does not retroactively erase the incident or rule out earlier unknown startup effects.

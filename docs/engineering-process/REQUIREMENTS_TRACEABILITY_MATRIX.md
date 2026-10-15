@@ -24,3 +24,7 @@ All needs below originate in student-reported observations/design hypotheses and
 | NFR-M01 Maintainability | Narrow changes, existing modules, editable diagrams | Diff review; named tests linked to FRs; no module deletions |
 
 Status vocabulary: observed student report / design hypothesis / awaiting engineer confirmation / implemented in source / verified by named automated check / NOT RUN. These are independent dimensions, not a fabricated maturity score.
+
+## Follow-up acceptance evidence
+
+All user needs remain **PROVISIONAL — AWAITING ENGINEER CONFIRMATION**; use evaluation/REQUIREMENT_CONFIRMATION_SHEET.md. FR-03/05: test_windows_shutdown_context.py requires matching provider, no invented bugcheck/cause, and preserved input timestamp/zone strings; it does not normalize absent zones or infer incident relatedness. FR-01 / NFR-P01/S01: test_upload_security.py includes extreme-aspect-ratio OCR allocation and timeout enforcement. FR-04/06: test_history_sandbox.py persists/retrieves the original negative Veeam bundle, including source line 1001, through actual routes and a guarded on-disk SQLite DB. history_persistence_ui.cjs verifies real frontend submission, exact saved ID, keyboard retrieval and History MD/PDF export. NFR-A01: keyboard History activation is covered. PostgreSQL compatibility and actual participant acceptance remain NOT RUN. Test evidence is centralized in ENGINEERING_TEST_REPORT.md.

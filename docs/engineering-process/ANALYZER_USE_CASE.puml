@@ -1,0 +1,26 @@
+@startuml
+title EIMS Log Investigation & Evidence Review — reconstructed as-built use cases
+left to right direction
+actor "Infrastructure engineer" as Engineer
+rectangle "Integrated EIMS Analyzer" {
+  usecase "Submit text, file or\nevidence bundle" as Submit
+  usecase "Review source, observed\nevidence and uncertainty" as Review
+  usecase "Inspect original file\nand line references" as Evidence
+  usecase "Find diagnostic\nknowledge references" as Catalog
+  usecase "Retrieve saved\ninvestigation history" as History
+  usecase "Export displayed\ninvestigation result" as Export
+  usecase "Ask contextual\nfollow-up question" as Followup
+}
+Engineer --> Submit
+Engineer --> Review
+Engineer --> Evidence
+Engineer --> Catalog
+Engineer --> History
+Engineer --> Export
+Engineer --> Followup
+note bottom of Submit
+  Existing source behavior; operational authorization
+  depends on configured auth mode. USB collection
+  is a separate supporting workflow.
+end note
+@enduml

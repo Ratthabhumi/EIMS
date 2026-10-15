@@ -1,0 +1,17 @@
+# Synthetic History evaluation environment
+
+Run only from the canonical `EIMS` directory. This optional harness uses a real on-disk **SQLite** database and the actual Analyzer/History routes and ORM History table. It does not start `backend.main`, workers, migrations, PostgreSQL, MinIO or seeders. It overrides identity with `synthetic-evaluation`; auth enforcement is tested separately. It disables external search, AI, translation, embedding retrieval and vector export. It is not PostgreSQL compatibility or production validation.
+
+## Isolation proof and startup
+
+Install the optional `tests/requirements-integration.txt` into the existing Python environment. Start `python -m tools.history_sandbox --port 3116`. It creates one uniquely named local directory under `.local-private/test-environments/eims-test-*` with an ownership marker and `history-test.sqlite3`. The guard checks marker purpose, resolved directory identity, local path and exact database filename before engine construction and before session access. Network database dialects, credentials/hosts, undeclared files, URI query options, memory databases and UNC roots are refused. SQLite has no database password; access relies on local filesystem permissions. A separate PostgreSQL username is not reused or needed. Run on a trusted local account and do not expose the server beyond loopback.
+
+The tests actively check that operational engine initialization and asyncpg connection attempts fail. Only `AnalysisHistory.__table__` is created. Test teardown disposes that engine; it never deletes data outside disposable pytest resources. The evaluation server leaves its synthetic database in the ignored private directory for later review. No operational database was queried to assert absence of new records; isolation is established by the enforced write target and blocked operational entry points.
+
+Build the UI using `npm run build -- --webpack` from `clients/dashboard`, then start a separate preview on `127.0.0.1:3115`. For automated end-to-end checking run `node tests/history_persistence_ui.cjs` with `EIMS_PLAYWRIGHT_MODULE` set if needed and `EIMS_UI_BROWSER=msedge`. Its API proxy forwards requests to the actual test API; it does not invent responses. It checks actual UI submission, matching stored History ID, keyboard retrieval and MD/PDF export. The two earlier UI scripts still use mocked APIs and remain a different verification layer.
+
+## Human sessions
+
+For a manual session, the default production UI API address is operational and **must not be used**. With the sandbox and preview running, use `node tools/open_history_evaluation.cjs` (same Playwright module/browser environment variables). It checks the test API's `/__sandbox` identity before opening a fresh visible browser and forwards API calls only to port 3116. Other external requests are blocked. Keep that process open during T1–T4; close its browser to finish. Do not use an ordinary browser tab or replace operational `.env` values. The forwarding mechanism was exercised by the automated History workflow; the headed facilitator launcher has syntax checks only and needs a facilitator preflight before participants. No participant session was conducted.
+
+Use synthetic fixtures only and the prepared T1–T4 scripts. Record actual build, session, fixture and viewport privately. Do not invite participants or fill metrics/results on their behalf. Do not manipulate the three historical operational service-session rows.

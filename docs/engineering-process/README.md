@@ -11,3 +11,5 @@ Engineering continuation, 15 October 2026. This addendum focuses the evaluation 
 5. [Human evaluation](evaluation/USER_TESTING_SCRIPT.md), [engineering tests](ENGINEERING_TEST_REPORT.md), [test safety incident](TEST_SAFETY_INCIDENT.md), [handoff](FINAL_HANDOFF_REPORT.md).
 
 The original demo remains recoverable at `8c26f035244aeff9eefb87c3ed16b1aaa8e307f8`. New work belongs to `work/eims-engineering-process-2026-10`; no automatic merge, service restart or credential rotation is authorized. Private inventory and backups are outside Git. Do not add local media or operational logs.
+
+Canonical active workspace: original EIMS directory. The previous worktree is inactive pending approval-only removal; see SAFE_CLEANUP_PLAN.md. Formal UML use cases: [PlantUML](ANALYZER_USE_CASE.puml). Real synthetic persistence and participant setup: [isolated History runbook](ISOLATED_HISTORY_RUNBOOK.md). No actual human evaluation or operational credential remediation has occurred.

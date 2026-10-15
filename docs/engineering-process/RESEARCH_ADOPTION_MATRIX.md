@@ -18,3 +18,16 @@ Sources checked 15 October 2026 are linked below. Vendor URLs already exist in t
 | Secure upload | https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html | Bound size/type/name; authorization separate | Existing bundle plus targeted single-file controls | Synthetic security checks, no pen test | PUBLIC_REPOSITORY_SECURITY_REVIEW.md | Deployment review of proxy/OCR/storage limits |
 | Test automation | Existing pytest and UI suites | Independent synthetic storage and reproducible commands | Implemented | New measurements only in report | ENGINEERING_TEST_REPORT.md | Add isolated live integration later |
 | Git release safety | https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository | Rotate exposure; allowlist staging; preserve baseline | Isolation/audit implemented | Local checks; remote gate reported explicitly | FINAL_HANDOFF_REPORT.md | Owner resolves credentials before unsafe publication |
+
+## Decisions adopted in the consolidation continuation
+
+| Research decision | Measurable acceptance | Adoption / evidence | Boundary |
+|---|---|---|---|
+| R1 Windows shutdown | Qualified 41/6008/1074/WER1001; preserve original dates/zones; no guessed provider or cause | Implemented and synthetically verified: test_windows_shutdown_context.py | Text blocks only; no inferred chronology, host/incident relationship or power-loss certainty |
+| R2 File-access feasibility | Required evidence and conclusion limits explicit | Documented only: FILE_ACCESS_FEASIBILITY.md | No exfiltration detector |
+| R3 Confidence | History UI/MD/PDF distinguish reported diagnostic confidence and hypotheses | Implemented; actual History export browser assertions and export helper test | No calibrated root-cause percentage |
+| R4 Human evaluation | Neutral restart/Veeam prompts; negative association accepted; blank confirmation/metrics | Prepared: evaluation/ | No participants or results fabricated |
+| R5 Vendor compatibility | Original two-file Veeam demo stays negative; source/line 1001 retained after real persistence | Existing bounded vendor regressions + actual SQLite round trip | No new vendor/version-wide claim; PAN-OS demonstrated default CSV families only |
+| R6 Upload bounds | Existing size/type/name bounds plus <=8 MP OCR resize and timeout | Implemented: test_upload_security.py | OCR executable installation and deployment/proxy limits still operator concerns |
+
+[Microsoft unexpected reboot guidance](https://learn.microsoft.com/en-us/troubleshoot/windows-server/performance/troubleshoot-unexpected-reboots-system-event-logs) was checked only to resolve the provider/event-specific implementation. Original timestamp strings are displayed, not automatically sorted across machines. No repeated broad research was undertaken.

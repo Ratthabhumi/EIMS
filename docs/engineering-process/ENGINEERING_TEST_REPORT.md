@@ -1,61 +1,51 @@
-# Engineering test report — 15 October 2026
+# Engineering test report — consolidated EIMS, 15 October 2026
 
-## Environment and claim boundary
+## Current environment and results
 
-Windows; Python 3.14 via the existing repository virtual environment; Node 24.18.0; Next.js 16.3.0; Edge/Playwright for browser checks. Development worktree starts at 8c26f03. Dependencies are reused from the original checkout; no workplace service restart or database reset was performed. Results are local, not CI on the eventual commit SHA. Historical 176-test and field metrics are not presented as new results.
+All fresh checks below ran from the canonical `C:\Users\Ratthabhumi\Desktop\CO-OP_Project\EIMS` checkout. Windows; existing Python 3.14 venv; Node 24.18.0; Next.js 16.3.0; Edge/Playwright. Optional aiosqlite 0.22.1 was installed into the existing venv; no new environment/worktree was created. No operational app lifespan, database query, service restart or credential change was performed in this continuation. The prior auth incident remains documented separately.
 
-## Measured checks
-
-| Check | Result | Evidence |
+| Check | Fresh result | Evidence / boundary |
 |---|---|---|
-| New evidence-boundary tests before fix | 10 failed, 1 passed | Actual initial pytest run: generic 1129 causes, CTK contamination, Event 41 cause and AI-gate failures |
-| Final combined isolated Analyzer/catalog/investigation/upload/config/auth suite | 213 passed, 0 failures, 0 errors; 10.080 s | Local ignored test-results/engineering-delivery.xml; 3 dependency deprecation warnings |
-| Corrected isolated auth suite | 4 passed, 0 failures, 0 errors; 1.039 s | Local ignored test-results/auth-isolated-final.xml; startup and direct DB calls replaced by memory stubs |
-| Actual TS export helper | PASS | node tests/report_export_safety.cjs; nested HTML payload escaped, original evidence preserved |
-| TypeScript no emit | PASS | node node_modules/typescript/bin/tsc --noEmit --incremental false; exit 0 |
-| Next.js production build | PASS (final metadata revision; webpack and TypeScript; 12 routes) | npm run build -- --webpack; all 12 routes generated in initial successful build; final refreshed status above |
-| Catalog/history browser workflow | PASS (Edge; intercepted synthetic API; successful retry) | tests/analyzer_catalog_ui.cjs; real browser with intercepted synthetic API |
-| Investigation browser workflow | PASS (Edge; intercepted synthetic API; keyboard bundle selection and missing-metadata assertions; successful retry) | tests/investigation_workflow_ui.cjs; keyboard bundle selection, evidence and uncertainty labels |
-| Compose static syntax | PASS | docker compose config --no-interpolate --quiet; no values resolved and no service started; obsolete version warning |
-| Python syntax / added-content screen / diff whitespace | See final review receipt | Private DELIVERY_REVIEW_PRIVATE.json; candidates are reviewed without printing secret values |
-| Human usability tasks | NOT RUN | Student must arrange eligible participants; templates remain empty |
-| Physical USB scan/import on target | NOT RUN | Separate supporting workflow |
-| Live Analyzer API/database integration | NOT RUN | No new Analyzer persistence claim; legacy auth incident is not Analyzer validation |
-| Latency benchmark / production certification / full accessibility audit | NOT RUN | No controlled measurement or certification performed |
+| Selected isolated Python suites | **238 passed**, 0 failures, 0 errors, 17.781 seconds | test-results/consolidated-engineering.xml; 5 deprecation warnings; not the unrestricted repository suite |
+| Windows regressions before implementation | 7 failed, 6 passed | windows-context-before.xml; actual missing provider/multi-event/1074 evidence gaps |
+| Additional negative-provider/OCR regressions before repair | 5 failed, 27 passed | consolidation-additional-before.xml; wrong-provider curated causes and 8-billion-pixel resize request reproduced without allocating that image |
+| Actual isolated DB integration | 7 passing cases included in the combined count | test_history_sandbox.py: 5 refusal/identity cases and 2 actual API/persistence cases; on-disk SQLite, not mocks or PostgreSQL |
+| TypeScript | PASS | noEmit, incremental false, exit 0 before production build |
+| Next.js production build | PASS | webpack; compilation 80 s, TypeScript 10.5 s; all 12 routes generated; exit 0 |
+| Report export helper | PASS | node tests/report_export_safety.cjs; actual recursive escape helper; original values preserved |
+| Catalog/history UI with synthetic responses | PASS | analyzer_catalog_ui.cjs; 163 catalog entries, Windows141, source filtering, duplicates, sorting, references, 1024/1366 layouts |
+| Investigation UI with synthetic responses | PASS | investigation_workflow_ui.cjs; keyboard two-file selection, provenance line1001, uncertainty, missing metadata, 1024 layout |
+| Real UI → isolated API → DB → History | PASS after retry | history_persistence_ui.cjs; real submitted analysis and exact History ID; keyboard retrieval; actual MD/PDF downloads, PDF header and escaped HTML DOM; responses forwarded, not invented |
+| Compose syntax / Git diff / privacy screen | PASS where recorded in local review receipt | config --no-interpolate --quiet; obsolete Compose version warning; no values resolved/services started |
+| Facilitator headed launcher | Syntax PASS only | open_history_evaluation.cjs; preflight required before actual participants |
+| Formal UML Use Case | PlantUML source reviewed | ANALYZER_USE_CASE.puml; rendered visual verification NOT RUN |
+| Human evaluation | NOT RUN | All participant metrics, consent and requirement responses blank |
+| PostgreSQL-specific persistence, vectors, deployment auth and physical USB | NOT RUN | SQLite and overridden test identity do not establish these capabilities |
+| Real Tesseract recognition / full accessibility / latency benchmark | NOT RUN | OCR resize/timeout calls are mocked for safe resource assertions; no certification or measured UX improvement |
 
-Final combined isolated Python evidence is **213 tests in one run**, with 0 failures and 0 errors. The earlier 207-test repaired run and 4-test isolated auth run are preliminary subsets, not extra tests to add to this count. Tests cover synthetic inputs and fake session storage. Browser API interception cannot establish live backend/database integration or human task success. The unrestricted whole-repository suite was not run; other operational integration fixtures still require isolation review.
+The earlier 213-test baseline and intermediate 233-test run are historical/subsets; do not add them to the final 238 count. Five warnings are dependency/TestClient and existing naive-UTC ORM timestamp deprecations. The first live-UI attempt timed out before a submit response; the later retry completed successfully. The intermittent browser automation limitation is retained, not hidden as a product fix.
 
 ## Reproduction
 
-From the isolated repository root, with the project's Python interpreter:
-
 ```powershell
-python -m pytest tests/test_investigation_quality.py tests/test_upload_security.py tests/test_repository_config_policy.py tests/test_analyzer_reliability.py tests/test_diagnostic_catalog.py tests/test_auth_modes.py -q -o addopts= --junitxml=test-results/engineering-delivery.xml
-python -m pytest tests/test_auth_modes.py -q -o addopts= --junitxml=test-results/auth-isolated-final.xml
+python -m pytest tests/test_investigation_quality.py tests/test_upload_security.py tests/test_repository_config_policy.py tests/test_analyzer_reliability.py tests/test_diagnostic_catalog.py tests/test_auth_modes.py tests/test_windows_shutdown_context.py tests/test_history_sandbox.py -q -o addopts= --junitxml=test-results/consolidated-engineering.xml
 node tests/report_export_safety.cjs
 docker compose config --no-interpolate --quiet
 git diff --check
 ```
 
-From clients/dashboard: `node node_modules/typescript/bin/tsc --noEmit --incremental false` and `npm run build -- --webpack`. Use a separate local preview, never an active operator port. Set EIMS_UI_URL to that preview, EIMS_PYTHON to the chosen interpreter, EIMS_PLAYWRIGHT_MODULE if needed, and EIMS_UI_BROWSER=msedge; run both browser scripts from the repository root. They intercept synthetic API data and must not reach operational endpoints. Raw output/screenshots/JUnit files remain local because they can contain machine identifiers; publish only sanitized summaries.
+From clients/dashboard: `node node_modules/typescript/bin/tsc --noEmit --incremental false`, then `npm run build -- --webpack`. Use a separate preview on loopback3115; EIMS_UI_URL selects that preview. EIMS_PYTHON selects the existing venv for the catalog script; EIMS_PLAYWRIGHT_MODULE and EIMS_UI_BROWSER=msedge select installed Playwright/Edge. Run the two original browser scripts. For history_persistence_ui.cjs first start the guarded API with `python -m tools.history_sandbox --port 3116`; see [runbook](ISOLATED_HISTORY_RUNBOOK.md). Its test DB path is generated, owned and checked; operational DB URLs cannot pass the SQLite-only guard. No operational records were read to compare counts: write-target enforcement and blocked operational entry points provide the isolation evidence.
 
-## Traceability
+## Requirement evidence
 
-| Requirement | Evidence | Acceptance / remaining gap |
+| Requirement | Test / observed acceptance | Remaining limit |
 |---|---|---|
-| FR-01 / NFR-E01/S01/P01 | test_upload_security.py; test_repository_config_policy.py; existing bounded-read tests | Type/name/content/size rejection and 4xx pass; no throughput/latency conclusion; text encoding is bounded to UTF-8 |
-| FR-02 | test_diagnostic_catalog.py and source-classification regressions | Source isolation and documented vendor formats pass; no universal format claim |
-| FR-03 | test_investigation_quality.py | 1129/41 evidence gates and non-vendor negative controls pass; not a universal diagnostic accuracy score |
-| FR-04 | existing long-file/bundle route tests | Original source and line 1001 retained under compaction and reordered uploads |
-| FR-05 | confidence route regression; UI scripts; legacy-schema test | No unsupported medium fallback; diagnostic and cross-file meaning distinguished; old stored conventions disclosed |
-| FR-06 / NFR-R01 | history helper/route regressions; catalog/history browser script | Fake storage/legacy reading checks; live persistence NOT RUN |
-| NFR-U01/A01 | Prepared T1–T4 package; keyboard/viewport browser checks where passed | Human evaluation and full accessibility audit pending |
-| NFR-M01 | Syntax, diff review, small modules and linked requirements | No architecture rewrite or source module deletion |
+| FR-01; NFR-E01/P01/S01 | upload size/count/type/name/encoding, 4xx, extreme OCR aspect ratio and 30 s timeout | No real OCR executable/production proxy throughput proof |
+| FR-02 | existing source/vendor/catalog tests; explicit missing Windows provider remains Unknown | Bounded demonstrated formats; no all-version claim |
+| FR-03/05 | shutdown-context tests: 41,6008,1074,WER1001; supplied bugcheck; original order/zones; unrelated providers; no unsupported causes | Not a general incident correlator, calibrated causal probability or normalized cross-host timeline |
+| FR-04 | long-file regressions and real negative-bundle persistence retain original file and line1001 | Binary/XML conversion provenance remains adapter-specific |
+| FR-06; NFR-R01 | real SQLite write/query, same History ID through UI and API; original negative Veeam association stays none | PostgreSQL/vector/storage deployment behavior not exercised |
+| NFR-A01/U01 | keyboard upload and History open; responsive checks; neutral T1–T4/blank confirmation package | Full WCAG and actual participant outcomes pending |
+| NFR-M01 | Narrow changes, existing components, formal UML source, canonical report updates | No architecture rewrite or unrelated-module cleanup |
 
-## Failed checks and repairs
-
-An early upload parametrization embedded the 5 MiB payload into pytest's automatic test ID, exceeding Windows' environment-variable limit during setup/teardown. Explicit short IDs fixed the harness. A configuration policy check incorrectly treated token expiry minutes as a secret; that non-secret setting is now excluded. These are harness repairs, not product accuracy claims.
-
-The first browser attempt timed out on initial navigation; subsequent inspection also detected that the production snapshot preceded the last keyboard-label change. The build was refreshed. One later catalog attempt failed during Edge launch before reaching the page, while the new investigation UI script passed. The investigation file-chooser check also timed out on one attempt; a diagnostic run and unchanged final script retry passed, so intermittent browser automation remains a limitation. Record only final results above, including the catalog retry outcome; do not treat stale-build or browser-launch failures as successful checks.
-
-An overly broad run of the legacy auth suite started the real application lifespan and wrote **three synthetic service-session rows**. It is excluded from isolated results. The corrected auth fixture now removes operational startup and session access; the first isolation attempt also exposed a direct auth-module DB lookup, which was then replaced with a memory session generator. See [test safety incident](TEST_SAFETY_INCIDENT.md). No automatic database rollback/deletion was performed; exact identifiers are private and owner review is required.
+The [historical safety incident](TEST_SAFETY_INCIDENT.md) remains open for owner review: three prior operational synthetic session rows, no automatic deletion and uncertain earlier startup side effects. Corrected auth tests use a no-op lifespan and memory sessions; new DB tests use a separate minimal app and guarded local database.

@@ -9,3 +9,7 @@ Research work is deliberately bounded to preserve development time. Ask ChatGPT 
 5. Vendor scope: supported Veeam, FortiOS, Cisco ASA and PAN-OS versions/formats; expected identifiers/timezones and documented error signatures. Return minimum sanitized fixture requirements.
 
 Inputs for research: focused scope, traceability matrix, existing catalog official references and current test report. Do not upload private inventory, company logs, screenshots, consent or participant-identifiable responses. Research output must identify what is adopted, proposed or unsupported; it must not invent interviews or test results.
+
+## After the consolidation continuation
+
+Provider-qualified shutdown text scenarios and guarded SQLite History persistence are now implemented and tested; do not request duplicate broad research. Remaining useful research: deployed vendor version/format examples approved by the engineer; evidence sufficient for file-copy/transfer conclusions; usable confidence labels/calibration; and formative evaluation interpretation. These remain separate from actual user confirmation and PostgreSQL/deployment verification.

@@ -21,3 +21,7 @@ Windows 1129 falls through a generic synthesis path; non-vendor incident unknown
 ## Documentation corrections
 
 README/enterprise PRD have a wider scope than this study. Chapter 3's formal-requirements wording is historical documentation, not evidence of an engineer interview. Chapter 4 reports earlier runtime/field observations; those are not this branch's validation. USB field statements and 49-record metrics must retain their original context and be revalidated before final submission. Prior 176 local tests and CI at older SHAs are historical only. Do not replace them with fabricated latest CI claims.
+
+## Consolidation and research follow-up
+
+Active code is now in EIMS. New source/tests cover provider-qualified 41/6008/1074/WER1001 text blocks, original timestamp strings/input order, wrong-provider negative controls and missing provider identity. This is bounded observed-event context, not a general incident timeline or universal EVTX support. OCR preprocessing now stays within the 8 MP budget and applies 30-second Tesseract timeouts. History MD/PDF exports use uncertainty wording and escaped untrusted HTML; History rows support keyboard activation. Actual SQLite API persistence and frontend History retrieval are tested separately from mocked UI checks. PostgreSQL/vector/deployment fidelity and human task outcomes remain unverified. See the measured test report for actual results.

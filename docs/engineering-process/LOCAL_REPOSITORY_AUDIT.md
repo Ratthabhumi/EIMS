@@ -31,3 +31,7 @@
 Commands: `git rev-parse --show-toplevel`, `git branch -avv`, `git status --porcelain=v1 -uall`, `git ls-files --deleted`, `git ls-files --others --exclude-standard`, `git ls-files --others --ignored --exclude-standard`, `git diff --name-status`, `git worktree list`, `git fetch origin`, `git ls-remote --heads origin`, `git ls-remote --tags origin v0.3.0`, `git log origin/main..origin/handoff/eims-supervision-2026-10-08`.
 
 Full filenames of private media, credential candidates and local backups are intentionally excluded from this public report. The owner has the detailed private CSV and original binary diff outside the repository. Phase 0 used no cleanup, pull, merge, database operation or history rewrite. A later legacy auth validation crossed the database-isolation boundary; see TEST_SAFETY_INCIDENT.md for impact and correction.
+
+## Consolidation follow-up (same date)
+
+The counts above describe the initial audit. Active development is now back in the original EIMS directory; the engineering checkout is detached and inactive. See [current cleanup/consolidation record](SAFE_CLEANUP_PLAN.md). Original demo-deletion intent is preserved in stash; private assets were moved with verified hashes. This follow-up reused the private inventory rather than re-enumerating 184,000 ignored files.

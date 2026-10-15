@@ -13,3 +13,13 @@
 | DD-09 | Missing evidence must remain missing | Display Not supplied for absent metadata; remove the fixed event count in UI/PDF | Browser regression with omitted metadata; retain original API data |
 
 Alternatives rejected: wholesale architecture rewrite, deleting old modules, guessing exfiltration from access events, treating catalog entries as validated incidents, and publishing all local files. Revisit only with specific evidence and bounded acceptance criteria.
+
+## Follow-up decisions
+
+| Decision | Problem / evidence | Implementation | Verification |
+|---|---|---|---|
+| DD-10 | Three original demo deletions and many private assets prevent clean branch transfer | Preserve deletion state in stash; detach old checkout; Git-switch original EIMS; move only untracked private assets with hashes | Ancestor/status/hash/ignore checks; SAFE_CLEANUP_PLAN.md |
+| DD-11 | Provider was inferred from reused numeric IDs; 1074/6008/1001 could reach generic causes | Explicit provider gate and bounded Event Viewer blocks; unqualified IDs return insufficient evidence | Red regressions then test_windows_shutdown_context.py |
+| DD-12 | Mock history could not prove persistence; full startup previously touched operational DB | Guarded file SQLite, actual History ORM/routes, no production lifespan, blocked network DB entry points | test_history_sandbox.py; history_persistence_ui.cjs |
+| DD-13 | History had a separate unsafe PDF interpolation path and stronger wording | Reuse escapeReportData, uncertainty labels, absent metadata disclosure, keyboard activation | Actual History MD/PDF DOM/download and keyboard browser checks |
+| DD-14 | Narrow image resize could expand 8,000 pixels to 8 billion pixels | Cap preprocessing to 8 MP and Tesseract runtime to 30 seconds per attempt | Failing extreme-aspect-ratio test before fix; bounded mocked resize/OCR regression |

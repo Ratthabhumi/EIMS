@@ -16,6 +16,7 @@ flowchart LR
 ```
 
 ## 2. Use cases (as-built flowchart notation)
+The flowchart below remains a navigation view. The formal UML Use Case view is [PlantUML source](ANALYZER_USE_CASE.puml), with actor, system boundary and use cases. Its source has been reviewed; a rendered diagram has not been visually verified in this continuation.
 ```mermaid
 flowchart LR
  E[Engineer] --> A([Submit text / file / bundle])
