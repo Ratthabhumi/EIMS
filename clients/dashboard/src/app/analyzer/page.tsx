@@ -27,6 +27,17 @@ export default function AnalyzerPage() {
   const leftColRef = useRef<HTMLDivElement>(null);
   const [leftColHeight, setLeftColHeight] = useState<number | null>(null);
   const [sessionSearchLatencies, setSessionSearchLatencies] = useState<number[]>([]);
+  const [capabilities, setCapabilities] = useState<any>(null);
+  const [capabilitiesChecked, setCapabilitiesChecked] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(apiUrl("/api/v1/analyze/capabilities"))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (!cancelled) { setCapabilities(data); setCapabilitiesChecked(true); } })
+      .catch(() => { if (!cancelled) setCapabilitiesChecked(true); });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleSearchLatency = useCallback((latencyMs: number) => {
     setSessionSearchLatencies(prev => [...prev, latencyMs]);
@@ -462,7 +473,15 @@ export default function AnalyzerPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-eims-text-secondary">AI Model</span>
-                <span className="text-xs font-medium text-eims-text bg-eims-bg px-2 py-1 rounded border border-eims-border">Local Offline DB</span>
+                <span className="text-xs font-medium text-eims-text bg-eims-bg px-2 py-1 rounded border border-eims-border">
+                  {!capabilitiesChecked
+                    ? "Checking…"
+                    : !capabilities
+                      ? "Backend unreachable"
+                      : capabilities.externalAI === "disabled"
+                        ? `Local Knowledge${capabilities.catalogEntries ? ` · ${capabilities.catalogEntries}` : ""}`
+                        : "External AI (opt-in)"}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-eims-text-secondary">Language</span>
@@ -473,7 +492,20 @@ export default function AnalyzerPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-eims-text-secondary">Vector RAG</span>
-                <span className="text-xs font-medium text-emerald-600/90 dark:text-[#78B096] bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">Enabled</span>
+                {(() => {
+                  const state = !capabilitiesChecked
+                    ? { label: "Checking…", cls: "text-eims-text-secondary bg-eims-surface-subtle border-eims-border" }
+                    : !capabilities
+                      ? { label: "Unavailable (backend unreachable)", cls: "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20" }
+                      : capabilities.vectorRetrieval === "available"
+                        ? { label: "Available", cls: "text-emerald-600/90 dark:text-[#78B096] bg-emerald-500/10 border-emerald-500/20" }
+                        : capabilities.vectorRetrieval === "not-cached"
+                          ? { label: "Unavailable (model not downloaded)", cls: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" }
+                          : { label: "Unavailable", cls: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" };
+                  return (
+                    <span className={`text-xs font-medium px-2 py-1 rounded border ${state.cls}`}>{state.label}</span>
+                  );
+                })()}
               </div>
             </div>
           </div>
