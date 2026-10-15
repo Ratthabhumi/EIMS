@@ -74,7 +74,6 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
   const eventId = result.eventId || "Unknown";
   const provider = result.provider || "Unknown";
   const parseMethod = result.parseMethod || "Text Parsing";
-  const numEvents = 1;
 
   const summary = result.solutionSummary?.overview || result.summary || result.aiSummary || result.root_cause || "No summary available.";
   const steps = result.solutionSummary?.steps || (result.solution ? [result.solution] : []);
@@ -137,12 +136,10 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
             <>
               <span className="text-eims-info dark:text-sky-400 font-bold">{product || provider}</span>
               <span className="text-eims-text-secondary font-normal text-sm ml-1">· Diagnostic {diagCode}</span>
-              <span className="text-eims-text-secondary font-normal text-sm ml-2">{isEn ? "Number of events:" : "จำนวนเหตุการณ์:"} {numEvents}</span>
             </>
           ) : (
             <>
               Event ID: <span className="text-eims-info dark:text-sky-400 font-bold">{eventId}</span> - {provider}
-              <span className="text-eims-text-secondary font-normal text-sm ml-2">{isEn ? "Number of events:" : "จำนวนเหตุการณ์:"} {numEvents}</span>
             </>
           )}
         </h3>
@@ -178,11 +175,11 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
           <div className="flex flex-col gap-3 text-sm">
           <div>
             <span className="text-eims-text-muted">{isEn ? "Level:" : "ระดับ (Level):"}</span>
-            <span className="ml-2 font-medium text-eims-text">{metadata.level || "Error"}</span>
+            <span className="ml-2 font-medium text-eims-text">{metadata.level || (isEn ? "Not supplied" : "ไม่ได้ระบุ")}</span>
           </div>
           <div>
             <span className="text-eims-text-muted">{isEn ? "Log Name:" : "Log Name:"}</span>
-            <span className="ml-2 font-medium text-eims-text">{metadata.logName || "Application"}</span>
+            <span className="ml-2 font-medium text-eims-text">{metadata.logName || (isEn ? "Not supplied" : "ไม่ได้ระบุ")}</span>
           </div>
           <div>
             <span className="text-eims-text-muted">{isEn ? "Time:" : "เวลา (Time):"}</span>
@@ -192,7 +189,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
             <span className="text-eims-text-muted">{isEn ? "Computer:" : "คอมพิวเตอร์:"}</span>
             <span className="ml-2 font-medium text-eims-text flex items-center gap-1">
               <Monitor size={14} className="text-eims-text-secondary"/>
-              {metadata.computer || "Localhost"}
+              {metadata.computer || (isEn ? "Not supplied" : "ไม่ได้ระบุ")}
             </span>
           </div>
           {metadata.faultingApp && (

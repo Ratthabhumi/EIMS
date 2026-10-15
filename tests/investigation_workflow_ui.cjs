@@ -26,8 +26,7 @@ const base=process.env.EIMS_UI_URL || 'http://127.0.0.1:3115';
   if(await language.count())await language.first().selectOption('en');
   await page.getByRole('button',{name:'Evidence Bundle',exact:true}).click();
   const chooser=page.getByRole('button',{name:'Choose evidence bundle files',exact:true});
-  await chooser.focus();
-  const fileChooser=page.waitForEvent('filechooser');await page.keyboard.press('Enter');
+  const fileChooser=page.waitForEvent('filechooser');await chooser.press('Enter');
   await(await fileChooser).setFiles([
    path.join(__dirname,'../EIMS_supervision_synthetic_demo_files_2026-10-09/01_report.txt'),
    path.join(__dirname,'../EIMS_supervision_synthetic_demo_files_2026-10-09/02_Task_long.log')]);
@@ -40,6 +39,11 @@ const base=process.env.EIMS_UI_URL || 'http://127.0.0.1:3115';
   await page.getByText('Shared identifiers or timing show an association, not causation.',{exact:true}).waitFor();
   assert.match(await page.locator('body').innerText(),/1001/);
   assert.equal(await page.getByText('Root Causes:',{exact:true}).count(),0);
+  const metadataPanel=page.getByText('Event Details',{exact:true}).locator('..');
+  assert.equal(await metadataPanel.getByText('Localhost',{exact:true}).count(),0,'missing computer must not be invented');
+  assert.equal(await metadataPanel.getByText('Application',{exact:true}).count(),0,'missing log channel must not be invented');
+  assert.equal(await metadataPanel.getByText('Not supplied',{exact:true}).count(),3);
+  assert.equal(await page.getByText('Number of events: 1',{exact:false}).count(),0,'event count must not be hardcoded');
   await page.screenshot({path:path.join(__dirname,'../test-results/investigation-result.png'),fullPage:true});
   await page.setViewportSize({width:1024,height:768});
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));

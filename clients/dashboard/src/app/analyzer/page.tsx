@@ -283,10 +283,10 @@ export default function AnalyzerPage() {
 
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Event Metadata</h2>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
-          <div><span style="color:#716E66;font-size:11px;">Level</span><br/><strong>${meta.level || "Error"}</strong></div>
-          <div><span style="color:#716E66;font-size:11px;">Log Name</span><br/><strong>${meta.logName || "Application"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Level</span><br/><strong>${meta.level || "Not supplied"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Log Name</span><br/><strong>${meta.logName || "Not supplied"}</strong></div>
           <div><span style="color:#716E66;font-size:11px;">Time</span><br/><strong>${meta.timestamp || "N/A"}</strong></div>
-          <div><span style="color:#716E66;font-size:11px;">Computer</span><br/><strong>${meta.computer || "Localhost"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Computer</span><br/><strong>${meta.computer || "Not supplied"}</strong></div>
           ${meta.faultingApp ? `<div style="grid-column:1/-1"><span style="color:#716E66;font-size:11px;">Faulting App</span><br/><strong style="color:#dc2626;">${meta.faultingApp}</strong></div>` : ""}
         </div>
 
