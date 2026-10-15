@@ -51,6 +51,62 @@ except ImportError:
 router = APIRouter()
 
 
+def _runtime_capabilities() -> dict:
+    """Describe actual analyzer capabilities without side effects.
+
+    Never downloads models, never touches the network or database:
+    - localKnowledge: static catalogs importable with entries present.
+    - vectorRetrieval: available (embedding lib + cached model found),
+      not-cached (lib present, no cached model yet) or unavailable.
+    - externalAI: always "disabled" server-side; cloud AI runs only when
+      the caller explicitly supplies a per-request key for that analysis.
+    """
+    caps: dict = {
+        "localKnowledge": False,
+        "catalogEntries": 0,
+        "vectorRetrieval": "unavailable",
+        "externalAI": "disabled",
+    }
+    try:
+        from backend.domain.analyzer.services.operational_catalog import get_catalog
+        entries = get_catalog() or []
+        caps["catalogEntries"] = len(entries)
+        caps["localKnowledge"] = bool(entries)
+    except Exception:
+        pass
+
+    try:
+        import importlib.util as _ilu
+
+        lib_present = bool(
+            _ilu.find_spec("fastembed") or _ilu.find_spec("sentence_transformers")
+        )
+    except Exception:
+        lib_present = False
+    if lib_present:
+        try:
+            import os as _os
+
+            home = _os.path.expanduser("~")
+            cache_hits = [
+                _os.path.join(home, ".cache", "fastembed"),
+                _os.path.join(home, ".cache", "huggingface", "hub"),
+                _os.path.join(home, ".cache", "torch", "sentence_transformers"),
+            ]
+            caps["vectorRetrieval"] = (
+                "available" if any(_os.path.isdir(p) for p in cache_hits) else "not-cached"
+            )
+        except Exception:
+            caps["vectorRetrieval"] = "unavailable"
+    return caps
+
+
+@router.get("/capabilities")
+async def analyzer_capabilities() -> dict:
+    """Report verified analyzer runtime capabilities for honest UI labels."""
+    return _runtime_capabilities()
+
+
 def _process_upload(content: bytes, filename: str, content_type: str | None) -> tuple[str, str]:
     from backend.domain.analyzer.services.upload_validation import validate_evidence_upload, IMAGE_EXTENSIONS
     import ntpath
