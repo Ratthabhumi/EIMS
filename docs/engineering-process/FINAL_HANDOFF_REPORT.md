@@ -2,7 +2,7 @@
 
 ## Current state
 
-Canonical project: `C:\Users\Ratthabhumi\Desktop\CO-OP_Project\EIMS`, branch `work/eims-engineering-process-2026-10`. Local HEAD `57b78c1` plus export-fix commit. Main, supervision baseline 8c26f03 and release tag unchanged. No new worktree, ZIP, presentation or documentation file was created.
+Canonical project: `C:\Users\Ratthabhumi\Desktop\CO-OP_Project\EIMS`, branch `work/eims-engineering-process-2026-10`. Local HEAD `800b500b` (pushed; see Safety and GitHub). Main, supervision baseline 8c26f03 and release tag unchanged. No new worktree, ZIP, presentation or documentation file was created.
 
 Fresh results: **238 selected Python tests passed**, TypeScript and Next.js production build passed (12 routes). Facilitator **T1–T4 tasks-only preflight passed** (both headless and headed). **Full export regression now passes consistently** (3 consecutive runs): Analyzer MD, Analyzer PDF, History MD, History PDF all verified. Export root cause identified: msedge legacy `--headless` mode caused browser disconnections; fixed by adding `--headless=new`. See [commands and measured results](ENGINEERING_TEST_REPORT.md).
 
@@ -21,18 +21,18 @@ Use [neutral tasks](evaluation/USER_TESTING_SCRIPT.md), blank consent/metrics/fo
 
 ## Outstanding and research adoption
 
-Implemented and synthetically verified: bounded provider-qualified Windows investigation, existing supported vendor formats, evidence provenance, uncertainty wording, upload bounds, guarded SQLite History and native evaluation uploads. Documented only: file-access/exfiltration feasibility. Pending: actual engineer priorities, permitted deployed log formats/versions, PostgreSQL/vector/deployment verification and human evaluation. Export/browser stability is a concrete open defect; the Blob lifecycle hypothesis is not confirmed as its sole cause. Only the narrow remaining browser question was added to [the existing research handoff](RESEARCH_HANDOFF_FOR_CHATGPT.md); no broad research was repeated.
+Implemented and synthetically verified: bounded provider-qualified Windows investigation, existing supported vendor formats, evidence provenance, uncertainty wording, upload bounds, guarded SQLite History and native evaluation uploads. Documented only: file-access/exfiltration feasibility. Pending: actual engineer priorities, permitted deployed log formats/versions, PostgreSQL/vector/deployment verification and human evaluation. The earlier export/browser instability (msedge legacy `--headless` disconnections) is resolved by `--headless=new` with 3 consecutive passing full-export regressions on local Edge; that result is local evidence, not a universal cross-environment guarantee. Only the narrow remaining browser question was added to [the existing research handoff](RESEARCH_HANDOFF_FOR_CHATGPT.md); no broad research was repeated.
 
 ## Safety and GitHub
 
 No operational credential rotation, service restart, database query or cleanup occurred. The three historical synthetic operational rows were not read or modified; exact IDs/checker remain private. Owner-approved selective cleanup needs read-only identification and dependency/backup review first. Existing credential/MinIO exposure remains unresolved; moving values to environment files does not revoke old values.
 
-**Push/merge NOT PERFORMED**, as explicitly required by the publication gate. Live remote heads still show main=bf634d9 and supervision=8c26f03; no engineering branch was present. A clean reviewed local commit is the delivery state. `.local-private` remains ignored and untracked. Old worktree/ZIP removal still requires explicit approval; the [cleanup plan](SAFE_CLEANUP_PLAN.md) is unchanged and the private backup must be retained.
+**Branch pushed; further push withheld.** `work/eims-engineering-process-2026-10` (HEAD `800b500b`, 12 ahead of main) has been pushed to the public repository. No merge into main was performed. Live remote heads: main=bf634d9, supervision=8c26f03. No FURTHER push until the credential publication gate is cleared by the owner (see PUBLIC_REPOSITORY_SECURITY_REVIEW.md). A clean reviewed local commit is the delivery state. `.local-private` remains ignored and untracked. Old worktree/ZIP removal still requires explicit approval; the [cleanup plan](SAFE_CLEANUP_PLAN.md) is unchanged and the private backup must be retained.
 
 ## Next three human actions
 
 1. Confirm Windows/Veeam/firewall priorities and FR-01–06 with the engineer using the blank confirmation sheet; expected result: actual agreed needs and permitted format/version scope.
-2. Repeat the tasks-only facilitator preflight, then arrange 2–5 synthetic T1–T4 sessions with consent; expected result: real anonymized observations/time/help/errors/clarity feedback. Stop if browser closure recurs; do not include export as verified.
+2. Repeat the tasks-only facilitator preflight, then arrange 2–5 synthetic T1–T4 sessions with consent; expected result: real anonymized observations/time/help/errors/clarity feedback. Exports are verified in automated regression (3 consecutive local passes); stop a human session if browser closure recurs and classify it as environment failure, not participant error.
 3. Coordinate owner-controlled credential maintenance and private review of the three incident rows; expected result: revoked old credentials and an explicitly cleared publication gate, with any selective row removal separately authorized.
 
 The student should write the 8–10 minute presentation narrative personally, using confirmed problems → decisions → implementation → actual evidence. No PowerPoint automation was performed.

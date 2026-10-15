@@ -5,7 +5,7 @@ Evidence basis: source review of baseline 8c26f03 plus newly measured checks in 
 | Capability | Status | Evidence / boundary |
 |---|---|---|
 | Multi-vendor classification/parsing | Implemented; synthetic regression evidence | services/source_classify.py, parser.py, panos_parser.py; bounded documented formats |
-| Catalog | Implemented, static contents counted | operational_event_catalog.json 141 + diagnostic_knowledge_catalog.json 22 = 163; not 163 validated incidents |
+| Catalog | Implemented, static contents counted | operational_event_catalog.json 141 + diagnostic_knowledge_catalog.json 22 = 163; not 163 validated incidents. Quality policy enforced by tests/test_kb_quality.py (composite identity, completeness, 41/1129 honesty, reference-host allowlist, known status vocabulary); 15 Oct audit: Fortinet CDN + openssh-portable source refs allowed with rules, 2 CBT entries carry text-only Broadcom citations (no fabricated URLs) |
 | Evidence provenance/correlation | Implemented; pure helper and synthetic route tests available | evidence.py, bundle.py, analyze.py; original file/line; association is not causality |
 | History persistence/retrieval | Implemented; live verification not rerun | models/history.py, routers/analyzer/history.py; JSON solution/metadata; no new live DB claim |
 | Deterministic vendor knowledge / RAG / optional AI | Implemented with bounded knowledge and optional external calls | vendor_knowledge.py, catalog_diagnostics.py, summary.py, vector_db.py; retrieval is not ground truth |

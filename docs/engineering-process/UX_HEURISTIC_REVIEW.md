@@ -16,3 +16,20 @@ This is a code/heuristic inspection, not a human usability study. Integrated das
 | Responsive/accessibility | Existing responsive classes and form labels | Automated viewport/keyboard checks where supported; full audit not claimed | NFR-A01 |
 
 User needs link through REQUIREMENTS_TRACEABILITY_MATRIX.md. Cosmetic changes unrelated to investigation are out of scope. No new user success/time results are inferred from code inspection.
+
+## Upload-control combining: assessed, DEFERRED (15 Oct 2026)
+
+Proposal (usability hypothesis, not a requirement): merge one-file and
+multi-file upload into a single control. Assessment against the prompt criteria:
+- Fewer decisions: marginal — three labeled modes (text/file/bundle) already
+  map 1:1 to distinct API contracts (`POST /api/v1/analyze/` single vs
+  `/bundle` multi-file with `BundleResponse`); merging hides that distinction.
+- Bundle behavior: at risk — correlation/association semantics differ from
+  single analysis; auto-detection heuristics add failure modes.
+- Accessibility: no evidence of current harm; redesign without user data
+  risks confusing existing flows before T1–T4.
+- API/tests: merging breaks existing contracts and regression coverage
+  (bundle tests, upload-security tests) for no measured gain.
+Decision: DEFER until engineer testing produces observations. Revisit only
+with participant evidence per the academic cycle
+(Observation → Issue → Change → Regression test → Re-evaluation).

@@ -1,6 +1,6 @@
 # Requirements traceability
 
-All needs below originate in student-reported observations/design hypotheses and await engineer confirmation. Implementation evidence is source-based; automated acceptance results are reported separately in ENGINEERING_TEST_REPORT.md. No human task acceptance has been measured. Paths below are service/component basenames under the existing backend or integrated dashboard.
+All needs below originate in student-reported observations/design hypotheses and await engineer confirmation. First-hand project background is recorded as testimony (not formal data) in USER_PERSONA_AND_CONTEXT.md; related student/engineer inputs are logged as DD-15–DD-17 in DESIGN_DECISION_RECORD.md. Implementation evidence is source-based; automated acceptance results are reported separately in ENGINEERING_TEST_REPORT.md. No human task acceptance has been measured. Paths below are service/component basenames under the existing backend or integrated dashboard.
 
 Current user-need status: **PROVISIONAL — AWAITING USER CONFIRMATION**. The facilitator preflight uses the same guarded launcher as participants; `tests/history_persistence_ui.cjs` connects FR-01/03/05 to the supplied 41/6008 fixture, FR-02/04 to the unchanged negative Veeam bundle and original line1001, and FR-06 to exact saved IDs retrieved through real SQLite-backed History. This is automated software acceptance, not user acceptance; fresh results are in [the test report](ENGINEERING_TEST_REPORT.md).
 

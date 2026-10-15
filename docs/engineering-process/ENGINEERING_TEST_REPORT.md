@@ -25,7 +25,7 @@ The old reconstructed-request forwarder sent the two-file Veeam upload as empty 
 
 The launcher is now importable by its own regression, has explicit close handling with routes retained until context teardown, and the test records a result receipt plus a 120-second deadline. An observable React mode transition precedes language selection to avoid selecting server-rendered HTML before hydration. An early probe text was incorrectly placed outside an event block; it was corrected without changing original fixtures.
 
-Markdown download lifecycle now follows the asynchronous click/delayed Blob URL release strategy present in the installed jsPDF/FileSaver code. A shorter delay did not resolve the full application regression. **The mitigation is implemented and builds, but export reliability remains unverified.** Do not describe it as a confirmed root-cause fix. No browser/endpoint security policy was changed.
+Markdown download lifecycle now follows the asynchronous click/delayed Blob URL release strategy present in the installed jsPDF/FileSaver code. A shorter delay did not resolve the full application regression. **Historical note:** an earlier revision of this paragraph described export reliability as unverified because the full export regression was still failing at that time. That state is superseded: with `--headless=new`, the full export regression (Analyzer MD/PDF, History MD/PDF) passed 3 consecutive runs (see table above). The 3-run local Edge result is the measured evidence; it is not a universal cross-environment guarantee. No browser/endpoint security policy was changed.
 
 ## Minimal reproduction
 
@@ -34,7 +34,7 @@ Markdown download lifecycle now follows the asynchronous click/delayed Blob URL 
 node tests/report_export_safety.cjs
 ```
 
-From clients/dashboard: `node node_modules/typescript/bin/tsc --noEmit --incremental false` and `npm run build -- --webpack`. Start only the dedicated preview 3115 and guarded API 3116, using [the existing runbook](ISOLATED_HISTORY_RUNBOOK.md). With installed Playwright/Edge environment variables and EIMS_PREFLIGHT_HEADED=1, run `node tests/history_persistence_ui.cjs --tasks-only`. Omit --tasks-only for the currently failing export regression. A receipt with RUNNING or exports=NOT RUN is not evidence of successful export. Keep failed attempt logs private/synthetic.
+From clients/dashboard: `node node_modules/typescript/bin/tsc --noEmit --incremental false` and `npm run build -- --webpack`. Start only the dedicated preview 3115 and guarded API 3116, using [the existing runbook](ISOLATED_HISTORY_RUNBOOK.md). With installed Playwright/Edge environment variables and EIMS_PREFLIGHT_HEADED=1, run `node tests/history_persistence_ui.cjs --tasks-only`. Omit --tasks-only to include the Markdown/PDF export regression checks (passing since the `--headless=new` fix). A receipt with RUNNING or exports=NOT RUN is not evidence of successful export. Keep failed attempt logs private/synthetic.
 
 ## Traceability and limits
 
@@ -43,7 +43,7 @@ From clients/dashboard: `node node_modules/typescript/bin/tsc --noEmit --increme
 | FR-01; DD-12; NFR-S01 | Native two-file UI upload reaches actual isolated API; CORS allow/deny assertions; existing bounds/OCR tests | No operational deployment/privacy clearance |
 | FR-02/03/05; DD-11 | Provider-qualified41/6008 fixture, no inferred power-loss cause, original timestamp/zone strings; selected Windows regressions | Permitted workplace formats and engineer needs unconfirmed |
 | FR-04; DD-12 | Original negative Veeam fixture and original source/line 1001 shown and retained | No causal association inferred |
-| FR-06; DD-12/13; NFR-A01 | Exact saved Windows/Veeam IDs reopened by keyboard through real SQLite History | PostgreSQL/vector fidelity and export regression remain open |
+| FR-06; DD-12/13; NFR-A01 | Exact saved Windows/Veeam IDs reopened by keyboard through real SQLite History | PostgreSQL/vector fidelity remains unverified |
 | NFR-U01 | Neutral T1–T4, consent/metrics and requirement confirmation remain blank | Software preflight is not human usability evidence |
 
 The earlier213/238-test reports remain historical; do not add preliminary subsets or repeated runs to the current 238 count. Unchanged catalog-only mock UI checks were not rerun in this minimal pass. The historical three-row auth incident remains open for owner review; no affected row was queried or changed here.
