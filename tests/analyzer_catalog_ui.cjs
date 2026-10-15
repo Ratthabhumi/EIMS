@@ -24,6 +24,13 @@ const fixture = { catalog, history };
     const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
+    const previewOrigin = new URL(process.env.EIMS_UI_URL || 'http://127.0.0.1:3108').origin;
+    await page.route('**/*', async route => {
+      const target = new URL(route.request().url());
+      if (target.pathname.startsWith('/api/')) return route.fallback();
+      if (target.origin !== previewOrigin) return route.abort();
+      return route.continue();
+    });
     await page.route('**/api/**', async route => {
       const url = new URL(route.request().url());
       let body = [];
@@ -32,7 +39,7 @@ const fixture = { catalog, history };
       else if (url.pathname.endsWith('/stats')) body = {totalLogs:3, criticalErrors:0, dailyTrends:[], categoryStats:[], providerStats:[]};
       await route.fulfill({ status:200, contentType:'application/json', headers:{'Access-Control-Allow-Origin':'*'}, body:JSON.stringify(body) });
     });
-    await page.goto((process.env.EIMS_UI_URL || 'http://127.0.0.1:3108') + '/analyzer');
+    await page.goto((process.env.EIMS_UI_URL || 'http://127.0.0.1:3108') + '/analyzer', { waitUntil: 'domcontentloaded', timeout: 90000 });
     const panel = page.locator('#analyzer-records-panel');
     await page.getByText('3 analysis records · Sorted by analysis date').waitFor();
     assert.equal(await page.getByRole('tab', {name:'Analysis History',exact:true}).getAttribute('aria-selected'), 'true');

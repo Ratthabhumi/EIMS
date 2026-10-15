@@ -214,7 +214,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
         </div>
         {causes.length > 0 && (
           <div className="mt-3 pl-4 border-l-2 border-red-500/30">
-            <p className="text-sm text-red-500 mb-1 font-medium">{isEn ? (hasVendorDiag ? "Likely Causes / Assessment:" : "Root Causes:") : "สาเหตุที่เป็นไปได้:"}</p>
+            <p className="text-sm text-red-500 mb-1 font-medium">{isEn ? "Possible explanations (not confirmed causes):" : "สมมติฐานที่ต้องตรวจเพิ่ม (ยังไม่ยืนยันสาเหตุ):"}</p>
             <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
               {causes.map((cause: string, idx: number) => (
                 <li key={idx}>{cause}</li>
@@ -228,7 +228,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
       {/* Resolution Steps */}
       <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-lg p-4 shadow-sm">
         <h4 className="text-md font-semibold text-emerald-700 dark:text-emerald-400 mb-4 flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5" /> {isEn ? "Resolution Steps" : "วิธีแก้ไข (ทำตามลำดับ)"}
+          <CheckCircle2 className="w-5 h-5" /> {isEn ? "Suggested Investigation Checks" : "ข้อเสนอแนะสำหรับตรวจสอบเพิ่มเติม"}
         </h4>
         <div className="space-y-3">
           {steps.length > 0 ? steps.map((step: string, idx: number) => (
@@ -255,8 +255,9 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
           </ul>
           {solConfidence && (
             <p className="text-xs text-eims-text-muted mt-2">
-              {isEn ? "Confidence: " : "ความมั่นใจ: "}
+              {isEn ? "Reported diagnostic confidence: " : "ความมั่นใจด้านการวิเคราะห์ที่รายงาน: "}
               <span className="font-semibold text-eims-text capitalize">{solConfidence}</span>
+              <span className="block mt-1">{isEn ? "This is not root-cause certainty or cross-file correlation. Older saved records may use different confidence conventions." : "ไม่ใช่การยืนยันสาเหตุหรือความเชื่อมโยงระหว่างไฟล์ ข้อมูลเก่าอาจใช้นิยามความมั่นใจต่างกัน"}</span>
             </p>
           )}
         </div>
@@ -373,7 +374,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
       {isBundle && (
         <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
           <h4 className="text-md font-semibold text-eims-text mb-3">
-            {isEn ? "Correlated Sources" : "แหล่งหลักฐานที่เชื่อมโยง"}
+            {isEn ? "Cross-file Association" : "ความเชื่อมโยงระหว่างไฟล์"}
             {correlationConfidence && (
               <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded border border-eims-border text-eims-text-secondary capitalize">
                 {correlationConfidence}
@@ -396,6 +397,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
               {isEn ? "Correlated: " : "ไฟล์ที่เชื่อมโยง: "}{correlatedSources.join(", ")}
             </p>
           )}
+          <p className="text-xs text-eims-text-muted mb-2">{isEn ? "Shared identifiers or timing show an association, not causation." : "รหัสร่วมกันหรือเวลาที่ใกล้เคียงแสดงความสัมพันธ์ ไม่ได้ยืนยันเหตุและผล"}</p>
           {correlationReasons.length > 0 && (
             <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
               {correlationReasons.map((r: string, idx: number) => (

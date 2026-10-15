@@ -748,7 +748,8 @@ def _call_gemini(prompt: str, api_key: str) -> str:
         data = resp.json()
         return data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
-        print(f"Gemini API Error: {e}")
+        # Request exceptions can contain the URL and its API-key parameter.
+        print("Gemini request failed; no provider credentials are logged.")
         return ""
 
 def _build_from_gemini(
@@ -1022,6 +1023,15 @@ async def build_summary(
 
     # Deterministic vendor knowledge wins for recognized diagnostics:
     # offline, no hallucinated filenames, honest confidence.
+    if family == "unknown_text":
+        return _build_from_web(event_id, provider, "", [], lang, source_family=family)
+
+    if family == "windows_event":
+        from backend.domain.analyzer.services.investigation import windows_investigation
+        investigation = windows_investigation(event_id, provider, evidence_text or description, lang)
+        if investigation:
+            return investigation
+
     if family in ("veeam_vbr", "vmware") and diagnostic_code and is_vendor_diagnostic_code(diagnostic_code):
         vendor = get_vendor_summary(diagnostic_code, lang, evidence_text or description or "")
         if vendor:
@@ -1051,7 +1061,7 @@ async def build_summary(
             if similar:
                 rag_context = json.dumps(similar, ensure_ascii=False)
         except Exception as e:
-            print(f"RAG search error: {e}")
+            print("History retrieval unavailable; continuing without retrieved context.")
 
     if api_key:
         gemini_summary = _build_from_gemini(

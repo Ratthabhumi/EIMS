@@ -66,7 +66,7 @@ class SolutionSummary(BaseModel):
     steps: List[str] = []
     # Evidence-first RCA (optional: older clients ignore unknown fields).
     evidence: List[str] = Field(default_factory=list)
-    confidence: str = ""
+    confidence: str = Field(default="", description="Diagnostic evidence-match assessment, not root-cause certainty or bundle correlation. Empty means no assessment supplied; legacy saved values are preserved.")
     limitations: List[str] = Field(default_factory=list)
     nextEvidence: List[str] = Field(default_factory=list)
     # Structured incident sketch (optional: older records/rows ignore it).

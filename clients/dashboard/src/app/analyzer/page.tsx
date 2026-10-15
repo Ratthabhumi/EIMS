@@ -9,6 +9,7 @@ import AnalyzerHistoryList from "@/components/AnalyzerHistoryList";
 import AnalysisResultDetail from "@/components/AnalysisResultDetail";
 import SystemStatusCard from "@/components/SystemStatusCard";
 import { apiUrl } from "@/lib/api";
+import { escapeReportData } from "@/lib/reportSafety";
 
 export default function AnalyzerPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -196,7 +197,7 @@ export default function AnalyzerPage() {
   const downloadMarkdown = () => {
     if (!result) return;
     
-    let content = `# AI Diagnostic Report\n\n`;
+    let content = `# EIMS Investigation Report\n\n`;
     const diagCode = result.eventMetadata?.diagnosticCode || "";
     const product = result.eventMetadata?.product || "";
     content += diagCode
@@ -211,14 +212,14 @@ export default function AnalyzerPage() {
     
     if (result.solutionSummary) {
       content += `## Executive Summary\n${result.solutionSummary.overview || "N/A"}\n\n`;
-      content += diagCode ? `## Likely Causes / Assessment\n` : `## Root Causes\n`;
+      content += `## Possible explanations (not confirmed causes)\n`;
       (result.solutionSummary.causes || []).forEach((c: string) => { content += `- ${c}\n`; });
-      content += `\n## Resolution Steps\n`;
+      content += `\n## Suggested Investigation Checks\n`;
       (result.solutionSummary.steps || []).forEach((s: string) => { content += `${s}\n`; });
       if (result.solutionSummary.evidence && result.solutionSummary.evidence.length > 0) {
         content += `\n## Observed Evidence\n`;
         result.solutionSummary.evidence.forEach((e: string) => { content += `- ${e}\n`; });
-        if (result.solutionSummary.confidence) content += `\nConfidence: ${result.solutionSummary.confidence}\n`;
+        if (result.solutionSummary.confidence) content += `\nReported diagnostic confidence: ${result.solutionSummary.confidence} (not root-cause certainty or cross-file correlation)\n`;
       }
       if (result.solutionSummary.limitations && result.solutionSummary.limitations.length > 0) {
         content += `\n## What Is Still Unknown\n`;
@@ -254,29 +255,31 @@ export default function AnalyzerPage() {
       const { default: jsPDF } = await import("jspdf");
       const { default: html2canvas } = await import("html2canvas");
 
+      const safeResult = escapeReportData(result);
+
       // Build a hidden div with the report content
       const container = document.createElement("div");
       container.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:794px;padding:40px;background:#fff;font-family:Arial,sans-serif;font-size:13px;color:#242321;line-height:1.6;";
 
-      const steps = result.solutionSummary?.steps || [];
-      const causes = result.solutionSummary?.causes || [];
-      const refs = result.searchResults || [];
-      const meta = result.eventMetadata || {};
-      const evList: string[] = result.solutionSummary?.evidence || [];
-      const unknowns: string[] = result.solutionSummary?.limitations || [];
-      const nextEv: string[] = result.solutionSummary?.nextEvidence || [];
-      const conf: string = result.solutionSummary?.confidence || "";
+      const steps = safeResult.solutionSummary?.steps || [];
+      const causes = safeResult.solutionSummary?.causes || [];
+      const refs = safeResult.searchResults || [];
+      const meta = safeResult.eventMetadata || {};
+      const evList: string[] = safeResult.solutionSummary?.evidence || [];
+      const unknowns: string[] = safeResult.solutionSummary?.limitations || [];
+      const nextEv: string[] = safeResult.solutionSummary?.nextEvidence || [];
+      const conf: string = safeResult.solutionSummary?.confidence || "";
       const diagCode: string = meta.diagnosticCode || "";
       const product: string = meta.product || "";
       const titleLine = diagCode
-        ? `${product || result.provider || "Diagnostic"} — ${diagCode}`
-        : `Event ID: ${result.eventId || "Unknown"}`;
+        ? `${product || safeResult.provider || "Diagnostic"} — ${diagCode}`
+        : `Event ID: ${safeResult.eventId || "Unknown"}`;
 
       container.innerHTML = `
         <h1 style="font-size:20px;font-weight:700;border-bottom:2px solid #68735C;padding-bottom:8px;margin-bottom:12px;">
           Diagnostic Report — ${titleLine}
         </h1>
-        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${result.provider || "Unknown"}</strong> &nbsp;|&nbsp; Generated: ${new Date().toLocaleString()}</p>
+        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${safeResult.provider || "Unknown"}</strong> &nbsp;|&nbsp; Generated: ${new Date().toLocaleString()}</p>
 
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Event Metadata</h2>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
@@ -287,17 +290,17 @@ export default function AnalyzerPage() {
           ${meta.faultingApp ? `<div style="grid-column:1/-1"><span style="color:#716E66;font-size:11px;">Faulting App</span><br/><strong style="color:#dc2626;">${meta.faultingApp}</strong></div>` : ""}
         </div>
 
-        <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Summary</h2>
-        <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${result.solutionSummary?.overview || result.aiSummary || "No summary available."}</div>
+        <p>Evidence and suggestions support investigation; confidence and cross-file association do not confirm a root cause.</p><h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Summary</h2>
+        <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${safeResult.solutionSummary?.overview || safeResult.aiSummary || "No summary available."}</div>
 
-        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">${diagCode ? "Likely Causes / Assessment" : "Root Causes"}</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
+        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Possible explanations (not confirmed causes)</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
 
-        <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Resolution Steps</h2>
+        <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Suggested Investigation Checks</h2>
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
           ${steps.length > 0 ? `<ol style="padding-left:20px;margin:0;">${steps.map((s: string) => `<li style="margin-bottom:6px;">${s}</li>`).join("")}</ol>` : "<p>No specific steps provided.</p>"}
         </div>
 
-        ${evList.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Observed Evidence${conf ? ` (confidence: ${conf})` : ""}</h2><ul style="padding-left:20px;margin-bottom:12px;">${evList.map((e: string) => `<li style="margin-bottom:4px;">${e}</li>`).join("")}</ul>` : ""}
+        ${evList.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Observed Evidence${conf ? ` (reported diagnostic confidence: ${conf})` : ""}</h2><ul style="padding-left:20px;margin-bottom:12px;">${evList.map((e: string) => `<li style="margin-bottom:4px;">${e}</li>`).join("")}</ul>` : ""}
         ${unknowns.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">What Is Still Unknown</h2><ul style="padding-left:20px;margin-bottom:12px;">${unknowns.map((u: string) => `<li style="margin-bottom:4px;">${u}</li>`).join("")}</ul>` : ""}
         ${nextEv.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Next Evidence to Collect</h2><ul style="padding-left:20px;margin-bottom:12px;">${nextEv.map((n: string) => `<li style="margin-bottom:4px;">${n}</li>`).join("")}</ul>` : ""}
 
@@ -331,7 +334,7 @@ export default function AnalyzerPage() {
         y += pageH;
       }
 
-      pdf.save(`Diagnostic_Report_${result.eventId || "Unknown"}.pdf`);
+      pdf.save(`Diagnostic_Report_${safeResult.eventId || "Unknown"}.pdf`);
       toast.success("PDF downloaded!", { id: toastId });
     } catch (err) {
       console.error(err);
@@ -349,9 +352,9 @@ export default function AnalyzerPage() {
           <div>
             <h1 className="text-[28px] font-semibold tracking-tight text-eims-text flex items-center gap-3">
               <Terminal className="w-7 h-7 text-eims-accent" />
-              AI Log Analyzer (EventIQ)
+              Log Investigation &amp; Evidence Review
             </h1>
-            <p className="text-sm text-eims-text-secondary mt-1">Upload Windows EVTX or raw log files for intelligent RCA.</p>
+            <p className="text-sm text-eims-text-secondary mt-1">Identify the source, review observed evidence, and check what is still unknown.</p>
           </div>
         </div>
         {/* No View Dashboard button needed anymore */}
@@ -387,12 +390,15 @@ export default function AnalyzerPage() {
                 <div
                   className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
                   onClick={() => bundleInputRef.current?.click()}
+                  role="button"
+                  aria-label="Choose evidence bundle files"
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); bundleInputRef.current?.click(); } }}
                   tabIndex={0}
                 >
-                  <input type="file" multiple className="hidden" ref={bundleInputRef} onChange={handleBundleChange} accept=".log,.txt,.html,.htm,.xml,.csv,.evtx" />
+                  <input type="file" aria-label="Select evidence bundle files" multiple className="hidden" ref={bundleInputRef} onChange={handleBundleChange} accept=".log,.txt,.html,.htm,.xml,.csv,.evtx,.json" />
                   <FileText className="w-7 h-7 text-eims-text-muted mx-auto mb-2" />
                   <p className="text-xs font-medium text-eims-text">Click to add files (up to 12)</p>
-                  <p className="text-xs text-eims-text-muted mt-1">LOG, TXT, HTML, XML, CSV, EVTX · 5MB each · 30MB total</p>
+                  <p className="text-xs text-eims-text-muted mt-1">LOG, TXT, HTML, XML, CSV, EVTX, JSON · 5 MiB each · 30 MiB total</p>
                 </div>
                 {bundleFiles.length > 0 && (
                   <ul className="mt-2 space-y-1.5 max-h-40 overflow-y-auto">
@@ -415,17 +421,21 @@ export default function AnalyzerPage() {
             ) : uploadMode === "file" ? (
               <div
                 className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
+                role="button"
+                aria-label="Choose evidence file"
+                onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
                 onClick={() => fileInputRef.current?.click()}
                 onPaste={handlePaste}
                 tabIndex={0}
               >
-                <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*,.evtx,.txt,.log,.xml,.csv,.html,.htm" />
+                <input type="file" aria-label="Select evidence file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".png,.jpg,.jpeg,.evtx,.txt,.log,.xml,.csv,.html,.htm,.json" />
                 <FileText className="w-7 h-7 text-eims-text-muted mx-auto mb-2" />
                 <p className="text-xs font-medium text-eims-text">{file ? file.name : "Click or paste (Ctrl+V) image"}</p>
-                <p className="text-xs text-eims-text-muted mt-1">EVTX, XML, Image, CSV, LOG, HTML</p>
+                <p className="text-xs text-eims-text-muted mt-1">Up to 5 MiB · EVTX, UTF-8 text/log/XML/CSV/HTML/JSON, PNG/JPEG (8 MP)</p>
               </div>
             ) : (
               <textarea
+                aria-label="Log evidence text"
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
                 onPaste={handlePaste}

@@ -52,9 +52,12 @@ router = APIRouter()
 
 
 def _process_upload(content: bytes, filename: str, content_type: str | None) -> tuple[str, str]:
+    from backend.domain.analyzer.services.upload_validation import validate_evidence_upload, IMAGE_EXTENSIONS
+    import ntpath
+    filename = validate_evidence_upload(filename, content, allow_images=True)
     lower_name = (filename or "").lower()
 
-    if content_type and content_type.startswith("image/"):
+    if ntpath.splitext(lower_name)[1] in IMAGE_EXTENSIONS:
         try:
             from PIL import ImageEnhance, ImageFilter, ImageOps
             img = Image.open(io.BytesIO(content))
@@ -82,11 +85,8 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
                 
             description = "(Extracted from Image via Preprocessed OCR)"
             return extracted_text, description
-        except Exception as e:
-            raise ValueError(
-                f"OCR Failed: {e}. Install Tesseract-OCR: "
-                "https://github.com/UB-Mannheim/tesseract/wiki"
-            )
+        except Exception:
+            raise ValueError("OCR failed. Verify the image and the server OCR installation.") from None
 
     if lower_name.endswith(".evtx"):
         extracted, description = parse_evtx(content)
@@ -152,40 +152,27 @@ async def submit_analysis(
 ):
     description = ""
     combined_text = text or ""
+    if len(combined_text.encode("utf-8")) > BUNDLE_MAX_FILE_BYTES:
+        raise HTTPException(status_code=413, detail="Text exceeds the 5 MiB evidence limit.")
 
     if file:
         # Prevent Memory Exhaustion / DoS (max 5MB)
         try:
             content = await read_upload_bounded(file, BUNDLE_MAX_FILE_BYTES)
         except UploadTooLarge:
-            return AnalyzeResponse(
-                eventId="Unknown",
-                provider="Unknown",
-                faultingApp=None,
-                summary=f"File exceeds maximum size of {BUNDLE_MAX_FILE_BYTES // (1024*1024)}MB.",
-                solutions=[],
-                limitations=[f"Uploaded file exceeds {BUNDLE_MAX_FILE_BYTES // (1024*1024)}MB limit"],
-            )
+            raise HTTPException(status_code=413, detail="File exceeds the 5 MiB evidence limit.") from None
         except Exception:
-            return AnalyzeResponse(
-                eventId="Unknown",
-                provider="Unknown",
-                faultingApp=None,
-                summary="Failed to read uploaded file.",
-                solutions=[],
-            )
+            raise HTTPException(status_code=400, detail="Failed to read uploaded file.") from None
 
         try:
             extracted, description = _process_upload(
                 content, file.filename or "", file.content_type
             )
+            from backend.domain.analyzer.services.bundle import safe_basename
+            file.filename = safe_basename(file.filename or "")
             combined_text = (combined_text + "\n" + extracted).strip()
         except ValueError as e:
-            return AnalyzeResponse(
-                eventId="Unknown",
-                provider="Unknown",
-                description=str(e),
-            )
+            raise HTTPException(status_code=400, detail=str(e)) from None
 
     if not description and combined_text:
         description = "Submitted via Text"
@@ -243,8 +230,6 @@ async def submit_analysis(
         solution.nextEvidence = [str(x) for x in incident["nextEvidence"][:6]]
     if not solution.limitations and incident.get("unknowns"):
         solution.limitations = [str(x) for x in incident["unknowns"][:4]]
-    if not solution.confidence and metadata.sourceFamily in ("veeam_vbr", "vmware"):
-        solution.confidence = "medium"
     try:
         solution.incident = IncidentAssessment(
             firstMeaningfulFailure=str(incident.get("firstMeaningfulFailure", "")),
@@ -442,8 +427,6 @@ async def submit_bundle(
         solution.nextEvidence = [str(x) for x in incident["nextEvidence"][:6]]
     if not solution.limitations and incident.get("unknowns"):
         solution.limitations = [str(x) for x in incident["unknowns"][:4]]
-    if not solution.confidence and primary_meta.sourceFamily in ("veeam_vbr", "vmware"):
-        solution.confidence = "medium"
     try:
         items = build_evidence_items(per_file)
         solution.evidenceItems = [EvidenceItem(**item) for item in items]

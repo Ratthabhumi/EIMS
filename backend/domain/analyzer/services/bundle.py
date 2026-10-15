@@ -34,7 +34,7 @@ BUNDLE_MAX_FILES = 12
 BUNDLE_MAX_FILE_BYTES = 5 * 1024 * 1024
 BUNDLE_MAX_TOTAL_BYTES = 30 * 1024 * 1024
 
-ALLOWED_EXTENSIONS = frozenset({".log", ".txt", ".html", ".htm", ".xml", ".csv", ".evtx"})
+ALLOWED_EXTENSIONS = frozenset({".log", ".txt", ".html", ".htm", ".xml", ".csv", ".evtx", ".json"})
 
 MAX_EVIDENCE_ITEMS_PER_FILE = 30
 MAX_EVIDENCE_ITEMS_TOTAL = 120
@@ -272,6 +272,8 @@ def validate_bundle(files: List[Tuple[str, bytes]]) -> List[Tuple[str, bytes]]:
                 f"File '{base}' is too large ({size} bytes). "
                 f"Maximum per file is {BUNDLE_MAX_FILE_BYTES} bytes."
             )
+        from backend.domain.analyzer.services.upload_validation import validate_evidence_upload
+        base = validate_evidence_upload(name, content or b"")
         total += size
         cleaned.append((base, content or b""))
     if total > BUNDLE_MAX_TOTAL_BYTES:

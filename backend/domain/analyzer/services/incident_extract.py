@@ -301,11 +301,15 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
 
     evidence = [rec.raw_text[:300] for rec in failures[:10]]
 
-    unknowns: List[str] = [
-        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
-        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
-        "Whether the file was locked, corrupt, moved, renamed, or absent",
-    ]
+    unknowns: List[str] = ["The supplied evidence does not establish a confirmed root cause"]
+    # Missing information must follow observed signatures, not a global
+    # VMware template that contaminates Windows, firewall and unknown logs.
+    if source_family in ("veeam_vbr", "vmware"):
+        lowered = signal_text.lower()
+        if "could not delete change tracking file" in lowered or "ctk_ctkunlink" in lowered:
+            unknowns.append("Exact CTK/VMDK file that could not be deleted (unless named verbatim above)")
+        if "a required file was not found" in lowered:
+            unknowns.append("Exact missing filename (unless a file path appears verbatim in the evidence above)")
     domains = {timestamp_domain(r.timestamp_raw, r.timestamp_kind)
                for r in failures + warnings if r.timestamp_key is not None}
     if len(domains) > 1:
