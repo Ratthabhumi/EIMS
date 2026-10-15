@@ -168,7 +168,6 @@ def test_reference_hosts_are_vendor_or_pinned_source():
             bad.append((ident, url, "unapproved-host"))
     assert not bad, f"unapproved reference hosts: {bad[:5]}"
 
-
 def test_status_vocabulary_is_known():
     known_verification = {
         "official_documentation_verified",
@@ -179,3 +178,18 @@ def test_status_vocabulary_is_known():
     for e in _vendor_entries(get_catalog()):
         assert e.get("verification_status") in known_verification, e.get("diagnostic_code")
         assert e.get("support_level") in known_support, e.get("diagnostic_code")
+
+
+def test_veeam_chain_limitations_disclaim_causality():
+    """Shared filenames/timestamps must never be presented as proven cause."""
+    for e in _vendor_entries(get_catalog()):
+        if e.get("diagnostic_code") != "VEEAM-REPLICA-SNAPSHOT-CHAIN":
+            continue
+        lim = e.get("limitations")
+        text = " ".join(lim) if isinstance(lim, list) else str(lim)
+        lowered = text.lower()
+        assert any(k in lowered for k in ("not proof", "not proven", "causal")), (
+            "chain limitations must disclaim causal certainty"
+        )
+        return
+    raise AssertionError("VEEAM-REPLICA-SNAPSHOT-CHAIN entry missing from catalog")
