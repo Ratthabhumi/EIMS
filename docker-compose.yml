@@ -16,7 +16,7 @@ services:
     environment:
       POSTGRES_DB: eims_registry
       POSTGRES_USER: eims_user
-      POSTGRES_PASSWORD: eims_secret_password
+      POSTGRES_PASSWORD: ${EIMS_DB_PASSWORD:?Set EIMS_DB_PASSWORD privately}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
@@ -39,13 +39,13 @@ services:
       postgres_db:
         condition: service_healthy
     environment:
-      DATABASE_URL: "postgres://eims_user:eims_secret_password@postgres_db:5432/eims_registry"
+      DATABASE_URL: "${EIMS_PGBOUNCER_DATABASE_URL:?Set an encoded PostgreSQL URL privately}"
       POOL_MODE: "transaction"
       MAX_CLIENT_CONN: "1000"
       DEFAULT_POOL_SIZE: "20"
       AUTH_TYPE: "plain"
       AUTH_USER: "eims_user"
-      AUTH_PASS: "eims_secret_password"
+      AUTH_PASS: "${EIMS_DB_PASSWORD:?Set EIMS_DB_PASSWORD privately}"
     ports:
       - "6432:6432"
 
@@ -76,8 +76,8 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: eims_minio_admin
-      MINIO_ROOT_PASSWORD: eims_minio_secret
+      MINIO_ROOT_USER: ${EIMS_MINIO_ACCESS_KEY:?Set EIMS_MINIO_ACCESS_KEY privately}
+      MINIO_ROOT_PASSWORD: ${EIMS_MINIO_SECRET_KEY:?Set EIMS_MINIO_SECRET_KEY privately}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -95,9 +95,12 @@ services:
     depends_on:
       minio_s3:
         condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${EIMS_MINIO_ACCESS_KEY:?Set EIMS_MINIO_ACCESS_KEY privately}
+      MINIO_ROOT_PASSWORD: ${EIMS_MINIO_SECRET_KEY:?Set EIMS_MINIO_SECRET_KEY privately}
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set eims_local http://minio_s3:9000 eims_minio_admin eims_minio_secret;
+      /usr/bin/mc alias set eims_local http://minio_s3:9000 \"$$MINIO_ROOT_USER\" \"$$MINIO_ROOT_PASSWORD\";
       /usr/bin/mc mb eims_local/eims-ocr-manifests --ignore-existing;
       /usr/bin/mc anonymous set public eims_local/eims-ocr-manifests;
       exit 0;
@@ -123,7 +126,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=eims_admin
+      - GF_SECURITY_ADMIN_PASSWORD=${EIMS_GRAFANA_ADMIN_PASSWORD:?Set EIMS_GRAFANA_ADMIN_PASSWORD privately}
     volumes:
       - grafana_storage:/var/lib/grafana
 

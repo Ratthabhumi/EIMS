@@ -78,3 +78,11 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 test-results/
+
+# Private workplace/presentation material and local generated exports
+/TMR/
+/1NEW/
+/EIMS_SUPERVISION_ACTION_FIRST_PACKAGE_*/
+/EIMS_SUPERVISION_ACTION_FIRST_QA_*/
+/EIMS_SUPERVISION_ENGLISH_COLORED_*/
+*.tsbuildinfo

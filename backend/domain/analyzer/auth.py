@@ -65,7 +65,7 @@ def _resolve_admin_password() -> str:
     if settings.ENVIRONMENT.lower() == "development":
         generated = secrets.token_urlsafe(18)
         logger.warning(
-            f"[DEV-ONLY] No EIMS_ADMIN_PASSWORD configured. Generated one-time admin password: {generated}"
+            "[DEV-ONLY] No EIMS_ADMIN_PASSWORD configured. A random bootstrap password was generated; its value is not logged. Configure a known private bootstrap password before first seeding."
         )
         return generated
     raise RuntimeError("EIMS_ADMIN_PASSWORD must be set outside the development tier.")

@@ -17,9 +17,60 @@ from pydantic import ValidationError
 from fastapi.testclient import TestClient
 
 import jwt
+import uuid
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from backend.core.config import EIMSSettings, settings
 from backend.domain.analyzer.auth import create_access_token, SECRET_KEY, ALGORITHM
+from backend.domain.analyzer import auth as auth_module
 from backend.main import app
+from backend.infrastructure.database import get_db_session
+from backend.infrastructure.database import database_engine
+
+
+@pytest.fixture(autouse=True)
+def isolate_auth_tests_from_operational_services(monkeypatch):
+    """Auth API checks must never seed users, start workers or write live DB."""
+    @asynccontextmanager
+    async def no_operational_lifespan(_app):
+        yield
+
+    async def forbidden_initialization(*args, **kwargs):
+        raise AssertionError('Operational database startup is forbidden in auth tests')
+
+    class MemorySession:
+        def __init__(self):
+            self.rows = []
+
+        def add(self, row):
+            self.rows.append(row)
+
+        async def commit(self):
+            pass
+
+        async def refresh(self, row):
+            row.session_id = uuid.uuid4()
+            row.created_at = datetime.now(timezone.utc)
+
+        async def execute(self, statement):
+            class EmptyUserResult:
+                def scalars(self): return self
+                def first(self): return None
+            return EmptyUserResult()
+
+    db = MemorySession()
+    async def memory_session_generator():
+        yield db
+    previous = dict(app.dependency_overrides)
+    monkeypatch.setattr(app.router, 'lifespan_context', no_operational_lifespan)
+    monkeypatch.setattr(database_engine, 'initialize', forbidden_initialization)
+    monkeypatch.setattr(auth_module, 'get_db_session', memory_session_generator)
+    app.dependency_overrides[get_db_session] = lambda: db
+    try:
+        yield
+    finally:
+        app.dependency_overrides.clear()
+        app.dependency_overrides.update(previous)
 
 
 def test_auth_mode_configuration_strict_validation():
