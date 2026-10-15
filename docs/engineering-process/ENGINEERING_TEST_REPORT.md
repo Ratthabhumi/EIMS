@@ -2,6 +2,8 @@
 
 Fresh local verification from `57b78c1` (branch `work/eims-engineering-process-2026-10`). Results are local, not GitHub CI. Windows, Python3.14 venv, Node24.18, Next16.3, msedge 155.0.4283.45; no operational application lifespan or database access.
 
+Continuation round (second machine, same branch): targeted suites rerun green (259 passed, §Second-machine appendix below); the 238-test selection, TypeScript, webpack build and export-safety check from the pushed report are adopted unchanged, not re-claimed as fresh runs except where re-executed here.
+
 | Check | Fresh result | Evidence / boundary |
 |---|---|---|
 | Selected isolated Python suites | **238 passed**, 0 failures, 0 errors; 10.26s | 5 existing deprecation warnings; not an unrestricted suite |
@@ -47,3 +49,12 @@ From clients/dashboard: `node node_modules/typescript/bin/tsc --noEmit --increme
 | NFR-U01 | Neutral T1–T4, consent/metrics and requirement confirmation remain blank | Software preflight is not human usability evidence |
 
 The earlier213/238-test reports remain historical; do not add preliminary subsets or repeated runs to the current 238 count. Unchanged catalog-only mock UI checks were not rerun in this minimal pass. The historical three-row auth incident remains open for owner review; no affected row was queried or changed here.
+
+## Second-machine appendix (15 Oct 2026 continuation, this checkout)
+
+Hermetic suites rerun here: **259 passed, 0 failed** (238 pushed selection + 7 network-denied offline + 6 sandbox E2E + 8 KB-quality, including a new Veeam causality-disclaimer guard). `GET /api/v1/analyze/capabilities` unit-verified (keys, 163 entries, honest vector/external-AI states). Dashboard `tsc --noEmit` and webpack production build pass with runtime capability labels.
+
+Browser findings on this machine (Edge 155 headless=new, Playwright 1.62.1):
+- T1–T4 tasks-only preflight: **PASS** (second environment; sandbox + preview in one process scope).
+- Narrow controls (launch+load, bundle-tab file attach without submit): **PASS**; page console shows only backend-unreachable fetch errors (no backend running here).
+- Full export regression (4 workflows): **BLOCKED — BROWSER ENVIRONMENT**. Reproducible 2/2 here: the browser context dies at the download step (`download.saveAs` / teardown), while a minimal data-URL download in the same browser passes and the identical HEAD passed 3× on the Codex machine. No product code path is implicated (tasks pass; download primitive works); do not present this box's export result as a product regression. Last known passing evidence (Codex machine, pushed commit) is preserved, not replaced.

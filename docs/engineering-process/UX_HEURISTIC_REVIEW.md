@@ -17,6 +17,16 @@ This is a code/heuristic inspection, not a human usability study. Integrated das
 
 User needs link through REQUIREMENTS_TRACEABILITY_MATRIX.md. Cosmetic changes unrelated to investigation are out of scope. No new user success/time results are inferred from code inspection.
 
+## Re-verification (15 Oct 2026 continuation round)
+
+Checked against live code: observations-before-causes layout, explicit
+unknown/Not-supplied states, filename+line evidence, three input modes with
+matching API contracts, runtime capability labels (no hardcoded claims),
+actionable 4xx upload errors, keyboard-operable history, understandable
+history list. No small, safe, clearly-beneficial change identified beyond
+what is already implemented; upload-combining stays deferred for lack of
+user evidence (see above). No UX code changed in this round.
+
 ## Upload-control combining: assessed, DEFERRED (15 Oct 2026)
 
 Proposal (usability hypothesis, not a requirement): merge one-file and

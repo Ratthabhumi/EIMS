@@ -69,6 +69,17 @@ pending risk: everything listed below must be treated as publicly readable.
 5. Replace example passwords in the homelab example and legacy README with
    non-functional placeholders.
 
+Homelab-specific (verified this round, owner action only — no behavior
+changed here): `deployments/homelab/docker/compose.yaml` still applies a
+weak default Grafana admin password automatically when the environment
+variable is unset. Owner: either always set a private value or change the
+fallback to a required variable, then verify the old default is rejected.
+MinIO-specific (verified in `backend/infrastructure/object_store.py`):
+application code sets no bucket policy — uploads/downloads use server-side
+keys. Any public OCR-bucket access therefore comes from deployment-side
+configuration; owner: check anonymous access read-only and set the bucket
+private unless public demo access is explicitly required.
+
 No rotation, restart, deletion, history rewrite or push was performed in
 this review. Publication remains BLOCKED pending owner closure above.
 
