@@ -1,0 +1,13 @@
+Log Name: System
+Source: Microsoft-Windows-Kernel-Power
+Date: 2026-10-15T09:00:00+07:00
+Event ID: 41
+Computer: synthetic-lab.invalid
+The system restarted after an unclean shutdown. This is synthetic evidence, not proof of power loss.
+
+Log Name: System
+Source: EventLog
+Date: 2026-10-15T02:00:05Z
+Event ID: 6008
+Computer: synthetic-lab.invalid
+The previous system shutdown was unexpected. No bugcheck code or power-system evidence was supplied.

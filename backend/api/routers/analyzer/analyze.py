@@ -65,8 +65,9 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
             # 1. Convert to Grayscale & Resize if too small for better OCR sharpness
             gray_img = ImageOps.grayscale(img)
             if gray_img.width < 1000:
-                scale = 1000 / gray_img.width
-                gray_img = gray_img.resize((int(gray_img.width * scale), int(gray_img.height * scale)), Image.Resampling.LANCZOS)
+                scale = min(1000 / gray_img.width,
+                            (8_000_000 / (gray_img.width * gray_img.height)) ** 0.5)
+                gray_img = gray_img.resize((max(1, int(gray_img.width * scale)), max(1, int(gray_img.height * scale))), Image.Resampling.LANCZOS)
             
             # 2. Increase Contrast & Sharpness
             enhancer = ImageEnhance.Contrast(gray_img)
@@ -78,10 +79,10 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
             bin_img = sharp_img.point(lambda p: 255 if p > threshold else 0)
 
             # Extract via Tesseract with Thai + English support
-            extracted_text = pytesseract.image_to_string(bin_img, config="--psm 6")
+            extracted_text = pytesseract.image_to_string(bin_img, config="--psm 6", timeout=30)
             if not extracted_text.strip():
                 # Fallback to grayscale if binarization was too aggressive
-                extracted_text = pytesseract.image_to_string(gray_img)
+                extracted_text = pytesseract.image_to_string(gray_img, timeout=30)
                 
             description = "(Extracted from Image via Preprocessed OCR)"
             return extracted_text, description

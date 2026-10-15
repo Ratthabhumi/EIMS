@@ -9,15 +9,6 @@ from backend.domain.analyzer.services.vendor_parsers import (
     parse_vmware,
 )
 
-KNOWN_PROVIDERS = {
-    "10016": "DistributedCOM",
-    "41": "Kernel-Power",
-    "6008": "EventLog",
-    "1001": "Windows Error Reporting",
-    "4625": "Security",
-    "7031": "Service Control Manager",
-}
-
 CRITICAL_LEVELS = {"critical", "error", "1", "2", "emergency", "alert"}
 
 # Cisco ASA severity levels (0=emergency, 1=alert, 2=critical, 3=error, 4=warning)
@@ -388,8 +379,7 @@ def _parse_windows(text: str) -> EventMetadata:
         r'"provider"[:\s]+"([^"]+)"',
         r"'provider'[:\s]+'([^']+)'",
     )
-    if not provider and event_id in KNOWN_PROVIDERS:
-        provider = KNOWN_PROVIDERS[event_id]
+    # IDs are reused by unrelated providers; an absent source is unknown.
 
     level = _field(text, r"Level[:\s]+([^\n\r]+)")
     log_name = _field(text, r"Log\s*Name[:\s]+([^\n\r]+)")

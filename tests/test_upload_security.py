@@ -36,3 +36,19 @@ def test_oversize_paste_rejected_without_db():
 
 def test_image_extension_cannot_disguise_text():
     with pytest.raises(ValueError):validate_evidence_upload('fake.png',b'not an image',allow_images=True)
+
+
+def test_ocr_upscale_keeps_pixel_budget_and_sets_timeout(monkeypatch):
+    from PIL import Image
+    from backend.api.routers.analyzer import analyze
+    image=Image.new('RGB',(1,8000));payload=BytesIO();image.save(payload,format='PNG')
+    requested=[];calls=[]
+    def resize_without_allocating(self,size,*a,**kw):
+        requested.append(size)
+        return self
+    monkeypatch.setattr(Image.Image,'resize',resize_without_allocating)
+    monkeypatch.setattr(analyze.pytesseract,'image_to_string',lambda *a,**kw: calls.append(kw) or 'Synthetic OCR evidence')
+    text,_=analyze._process_upload(payload.getvalue(),'synthetic-tall.png','image/png')
+    assert text=='Synthetic OCR evidence'
+    assert requested and all(w*h<=8_000_000 for w,h in requested)
+    assert all(call.get('timeout')==30 for call in calls)

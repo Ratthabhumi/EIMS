@@ -1031,6 +1031,15 @@ async def build_summary(
         investigation = windows_investigation(event_id, provider, evidence_text or description, lang)
         if investigation:
             return investigation
+        if event_id in {'41', '6008', '1074', '1001'}:
+            return SolutionSummary(
+                overview=('ยังไม่ยืนยันแหล่งที่มาของเหตุการณ์ shutdown/restart' if lang == 'th' else
+                          'Shutdown/restart source identity is not established.'),
+                causes=[], confidence='undetermined',
+                limitations=['ต้องมี provider ที่ตรงกับ Event ID ก่อนใช้ความรู้ Windows shutdown' if lang == 'th' else
+                             'A matching provider is required before applying Windows shutdown references.'],
+                nextEvidence=['ตรวจ provider และข้อความเหตุการณ์ต้นฉบับ' if lang == 'th' else
+                              'Check the original provider and event message.'])
 
     if family in ("veeam_vbr", "vmware") and diagnostic_code and is_vendor_diagnostic_code(diagnostic_code):
         vendor = get_vendor_summary(diagnostic_code, lang, evidence_text or description or "")
