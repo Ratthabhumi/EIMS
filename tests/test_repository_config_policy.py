@@ -1,6 +1,7 @@
 """Policy assertions read templates only and never resolve operational values."""
 from pathlib import Path
 import re
+import pytest
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -17,3 +18,11 @@ def test_environment_example_contains_no_operational_credentials():
         key,sep,value=line.partition('=')
         if sep and key.startswith('EIMS_') and not key.endswith('EXPIRES_MINUTES') and any(word in key for word in ('PASSWORD','SECRET','TOKEN','ACCESS_KEY','DATABASE_URL')):
             assert value=='',key
+
+@pytest.mark.parametrize('blank',['','   '],ids=['empty','whitespace'])
+def test_non_development_rejects_blank_private_secret_slots(blank):
+    from backend.core.config import EIMSSettings
+    with pytest.raises(RuntimeError,match='explicit secrets'):
+        EIMSSettings(ENVIRONMENT='production',AUTH_MODE='secure',DB_PASSWORD=blank,
+                     MINIO_SECRET_KEY=blank,JWT_SECRET_KEY=blank,ADMIN_TOKEN=blank,
+                     ADMIN_PASSWORD=blank)

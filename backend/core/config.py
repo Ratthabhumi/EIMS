@@ -100,8 +100,11 @@ class EIMSSettings(BaseSettings):
             "JWT_SECRET_KEY": "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7",
             "ADMIN_TOKEN": "EIMS-ADMIN-TOKEN",
         }
-        overrides_missing = [name for name, default in dev_defaults.items() if getattr(self, name) == default]
-        if self.ADMIN_PASSWORD is None:
+        overrides_missing = [
+            name for name, default in dev_defaults.items()
+            if not getattr(self, name).strip() or getattr(self, name) == default
+        ]
+        if not self.ADMIN_PASSWORD or not self.ADMIN_PASSWORD.strip():
             overrides_missing.append("ADMIN_PASSWORD")
         if self.AUTH_MODE == "demo":
             overrides_missing.append("AUTH_MODE (must be 'secure' in production)")
