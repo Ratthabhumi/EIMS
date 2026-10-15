@@ -76,7 +76,7 @@ cd backend
 docker build -t eventiq-backend .
 docker run --rm -p 8000:8000 \
   -e ADMIN_USERNAME=admin \
-  -e ADMIN_PASSWORD=P@ssw0rd \
+  -e ADMIN_PASSWORD=change-me-privately \
   -e JWT_SECRET=change-this \
   -e CORS_ORIGINS=http://localhost:3000 \
   eventiq-backend

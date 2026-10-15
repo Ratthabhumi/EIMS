@@ -29,6 +29,49 @@ Compose now requires private environment credentials; the example file contains 
 
 Sources checked 15 October 2026: [OWASP File Upload Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html); [GitHub sensitive-data remediation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository). OWASP informs layered upload controls; GitHub recommends revocation/rotation before history work.
 
+## Addendum — 15 October 2026: development branch already public
+
+`work/eims-engineering-process-2026-10` (12 commits ahead of `main`) has
+ALREADY been pushed to the public repository. Publication is a fact, not a
+pending risk: everything listed below must be treated as publicly readable.
+
+### Tracked-file screen (branch HEAD `800b500b`; values withheld)
+- `backend/core/config.py` — literal development-default secrets for the
+  database password, JWT signing key, static admin bearer token and MinIO
+  keys. Non-development boot refuses these defaults, but the values remain
+  readable in code and history. Any deployment that ever ran on defaults
+  (including the daily local dev stack) responds to them.
+- `deployments/homelab/docker/.env.example` and
+  `deployments/homelab/docker/compose.yaml` — a weak, easily guessable
+  Grafana admin default that applies automatically when the environment
+  variable is unset.
+- `clients/log_analyzer/README.md` — literal example admin password in a
+  standalone-prototype docker-run snippet (example context, still public).
+- Root `.env.example` uses empty secret slots and root `docker-compose.yml`
+  uses required-variable expansion: no literals (verified this round).
+- Added-lines screen across the 12 pushed commits: no NEW literal secrets.
+- Remaining keyword hits (~600) are benign: test fixtures, BitLocker prose,
+  catalog signature text, documentation prose.
+
+### Owner remediation (owner-controlled; nothing executed here)
+1. PostgreSQL / PgBouncer / MinIO / Grafana / JWT / admin: confirm whether
+   published values were ever used by any reachable service; assume yes for
+   the local dev stack. Generate unique replacements privately and update
+   dependents consistently. Note: PostgreSQL and Grafana initialization
+   variables do not change passwords already stored in existing volumes.
+2. Verify with new credentials (access works) and former credentials
+   (connection refused / auth rejected), without recording either value in
+   outputs or Git.
+3. Review access logs for the exposure window; follow GitHub sensitive-data
+   guidance before any history rewrite (separate owner approval required).
+4. Decide MinIO OCR bucket privacy: public demo convenience vs private
+   deployment requirement.
+5. Replace example passwords in the homelab example and legacy README with
+   non-functional placeholders.
+
+No rotation, restart, deletion, history rewrite or push was performed in
+this review. Publication remains BLOCKED pending owner closure above.
+
 ## Consolidation review
 
 Private assets are in ignored/untracked EIMS/.local-private; detailed manifests and exact incident identifiers remain outside public Git. Current tests check blank/whitespace rejection in non-development application settings. Compose required-variable expansion rejects empty/unset values but alone does not reject all whitespace-only service values: the owner must validate private deployment inputs before maintenance. This is not a completed rotation or a verified safe deployment.
