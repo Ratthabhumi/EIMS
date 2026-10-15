@@ -241,3 +241,10 @@ As illustrated by this descriptive comparison, EIMS focuses on collecting and li
 ## 2.16 Chapter Summary
 
 This chapter presented the theoretical concepts, foundational standards, and technical architectures underlying EIMS. The discussion explored the principles of infrastructure asset management and cryptographic hardware identity, the trade-offs between connected and portable endpoint collection, the structure of Windows WMI/CIM and binary Event Logs, the mathematics of semantic embeddings and RAG architectures, and the persistent capabilities of PostgreSQL, JSONB, and pgvector. Furthermore, the operational roles of Redis, MinIO, FastAPI, Next.js, and observability stacks were systematically defined. With these foundational engineering concepts established, Chapter 3 details the concrete system design, software architecture, and implementation details of the EIMS platform.
+
+
+## October 15 engineering continuation addendum
+
+The focused study scope is **Log Investigation & Evidence Review**. This addendum does not retroactively validate the historical claims above. Student-reported workplace scenarios still require engineer confirmation; no formal interview or human usability study has been completed in this continuation. Physical USB collection/import on the target and live workplace persistence have not been rerun.
+
+Use the linked [scope and engineering index](../engineering-process/README.md), [requirement traceability](../engineering-process/REQUIREMENTS_TRACEABILITY_MATRIX.md), [research adoption](../engineering-process/RESEARCH_ADOPTION_MATRIX.md), [editable as-built diagrams](../engineering-process/SYSTEM_DESIGN.md), [measured engineering tests](../engineering-process/ENGINEERING_TEST_REPORT.md) and [blank human evaluation package](../engineering-process/evaluation/USER_TESTING_SCRIPT.md) for the next report revision. Source-specific evidence, uncertainty and original file/line provenance are the core evaluation criteria. Catalog size is knowledge scope, automated tests are software checks, and neither is proof of human usability or confirmed root cause.

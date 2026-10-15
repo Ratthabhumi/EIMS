@@ -1,4 +1,8 @@
 # Enterprise Infrastructure Management System (EIMS) — Project Roadmap
+
+## 15 October continuation and feature-freeze alignment
+
+Through the planned 20 October freeze, prioritize evidence-grounded Analyzer fixes, bounded upload security, reproducible regression evidence and preparation of engineer task evaluation. The new scope is Log Investigation & Evidence Review; supporting modules remain intact. Interview and user tests are pending, not completed milestones. Owner credential-rotation review gates publication/deployment; no live secrets or services are changed automatically. See [current engineering handoff](docs/engineering-process/FINAL_HANDOFF_REPORT.md) and [measured checks](docs/engineering-process/ENGINEERING_TEST_REPORT.md). Older roadmap targets and completed markers below are historical context, not a fresh validation.
 *Cooperative Education Engineering Roadmap & Finalization Freeze*
 
 This document tracks the engineering lifecycle, release provenance, historical sprints, and cooperative education finalization roadmap for the EIMS project.

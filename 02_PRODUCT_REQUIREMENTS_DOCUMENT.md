@@ -12,6 +12,12 @@ related_documents:
   - 05_API_SPECIFICATION.md
 ---
 
+## Engineering continuation — 15 October 2026
+
+The focused evaluation scope is now **EIMS Log Investigation & Evidence Review**. See [engineering process](docs/engineering-process/README.md) for the scope addendum, requirement traceability, as-built design, actual test results and pending human evaluation. Historical enterprise scope, field observations, releases and earlier test counts below retain their original context; they are not evidence of newly completed interviews, USB target validation or production readiness. The supervision baseline remains 8c26f03. Publication is gated by review of exposed development credentials; no automatic merge into main is authorized.
+
+
+
 # EIMS Product Requirements Document
 
 | Metadata | Value |
