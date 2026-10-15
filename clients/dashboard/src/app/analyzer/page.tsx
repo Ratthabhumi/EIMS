@@ -242,9 +242,9 @@ export default function AnalyzerPage() {
     a.href = url;
     a.download = `Log_Analysis_${result.eventId || "Report"}.md`;
     document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Match the asynchronous download lifecycle used by jsPDF/FileSaver.
+    window.setTimeout(() => { a.click(); a.remove(); }, 0);
+    window.setTimeout(() => URL.revokeObjectURL(url), 40_000);
     toast.success("Markdown report downloaded!");
   };
 

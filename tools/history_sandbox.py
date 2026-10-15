@@ -103,6 +103,9 @@ def create_app(root: Path):
                 await engine.dispose()
 
     app = FastAPI(title='EIMS synthetic History sandbox', lifespan=lifespan)
+    from fastapi.middleware.cors import CORSMiddleware
+    app.add_middleware(CORSMiddleware, allow_origins=['http://127.0.0.1:3115'],
+                       allow_methods=['GET', 'POST', 'DELETE'], allow_headers=['*'])
     app.dependency_overrides[get_db_session] = session_dependency
     app.dependency_overrides[get_current_user] = lambda: 'synthetic-evaluation'
     app.include_router(analyze.router, prefix='/api/v1/analyze')

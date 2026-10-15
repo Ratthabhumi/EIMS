@@ -8,6 +8,8 @@ Owner confirmation of prior usage and rotation is required before treating this 
 
 ## Owner rotation checklist
 
+Publication remains BLOCKED. Owner closure also requires a reviewed public-file/secret screen, read-only review of the three exact incident rows using the private report, and separate approval before any selective row cleanup. No operational access is authorized by this checklist. Keep old worktree/ZIP removal approval separate from credential maintenance and database cleanup approval.
+
 - [ ] Identify actual deployments and whether published values were ever used (PostgreSQL, PgBouncer, MinIO, Grafana, JWT signing key, admin bearer/bootstrap settings).
 - [ ] Establish a maintenance window and backup/recovery procedure; record owners, not secret values, in Git.
 - [ ] Generate unique credentials privately; update all dependent services consistently. PostgreSQL and Grafana initialization variables do not change passwords already stored in existing volumes.

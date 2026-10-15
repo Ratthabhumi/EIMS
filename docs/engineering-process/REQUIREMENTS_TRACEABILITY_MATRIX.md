@@ -2,6 +2,8 @@
 
 All needs below originate in student-reported observations/design hypotheses and await engineer confirmation. Implementation evidence is source-based; automated acceptance results are reported separately in ENGINEERING_TEST_REPORT.md. No human task acceptance has been measured. Paths below are service/component basenames under the existing backend or integrated dashboard.
 
+Current user-need status: **PROVISIONAL — AWAITING USER CONFIRMATION**. The facilitator preflight uses the same guarded launcher as participants; `tests/history_persistence_ui.cjs` connects FR-01/03/05 to the supplied 41/6008 fixture, FR-02/04 to the unchanged negative Veeam bundle and original line1001, and FR-06 to exact saved IDs retrieved through real SQLite-backed History. This is automated software acceptance, not user acceptance; fresh results are in [the test report](ENGINEERING_TEST_REPORT.md).
+
 | ID | Pain point | User goal | UX decision | Technical component | Test case/file | Acceptance criterion | Result / evidence |
 |---|---|---|---|---|---|---|---|
 | FR-01 | Scattered inputs | Submit supported logs | Clear text/file/bundle modes and bounds | analyze.py; bundle.py | test_investigation_quality.py; test_upload_security.py; test_analyzer_reliability.py | Allowed input accepted; invalid name/type/size rejected without DB write | See engineering test report; user confirmation pending |

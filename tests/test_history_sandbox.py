@@ -29,6 +29,11 @@ def test_actual_api_persists_and_reads_synthetic_history(tmp_path):
     text='Log Name: System\nSource: Microsoft-Windows-Kernel-Power\nEvent ID: 41\nDate: 2026-10-15T01:00:00Z\nUnclean restart. Synthetic evidence.'
     with TestClient(app) as client:
         assert client.get('/__sandbox').json()=={'purpose':'synthetic-history-only','dialect':'sqlite','operational_startup':False}
+        preflight=client.options('/api/v1/analyze/bundle',headers={'Origin':'http://127.0.0.1:3115','Access-Control-Request-Method':'POST'})
+        assert preflight.status_code==200
+        assert preflight.headers['access-control-allow-origin']=='http://127.0.0.1:3115'
+        denied=client.options('/api/v1/analyze/bundle',headers={'Origin':'https://example.invalid','Access-Control-Request-Method':'POST'})
+        assert denied.status_code==400 and 'access-control-allow-origin' not in denied.headers
         from backend.infrastructure.database import database_engine
         import asyncio, asyncpg
         with pytest.raises(RuntimeError):asyncio.run(database_engine.initialize())

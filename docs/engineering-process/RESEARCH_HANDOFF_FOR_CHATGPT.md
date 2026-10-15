@@ -13,3 +13,7 @@ Inputs for research: focused scope, traceability matrix, existing catalog offici
 ## After the consolidation continuation
 
 Provider-qualified shutdown text scenarios and guarded SQLite History persistence are now implemented and tested; do not request duplicate broad research. Remaining useful research: deployed vendor version/format examples approved by the engineer; evidence sufficient for file-copy/transfer conclusions; usable confidence labels/calibration; and formative evaluation interpretation. These remain separate from actual user confirmation and PostgreSQL/deployment verification.
+
+## Stabilization follow-up: one remaining technical question
+
+No additional broad log/UX literature review is needed before engineer confirmation. Investigate only the reproducible Windows browser-automation problem if further research is delegated: Edge/Chrome sessions sometimes disconnect during Markdown downloads and occasionally at startup. An independent immediate-Blob-URL-release Markdown control failed; a delayed-release control passed. Matching the existing jsPDF/FileSaver asynchronous lifecycle is an implemented mitigation, not a confirmed root-cause fix: the full EIMS export regression still failed. Keep this uncertainty explicit. Use sanitized test logs only; do not disable endpoint security or transmit operational configuration. T1–T4 have a separate tasks-only preflight and must not be confused with successful export verification or human usability results.
