@@ -1,3 +1,13 @@
+> **Final Canva source of truth - 18 October 2026:** The current presentation is the existing 16-slide Canva design `DAHYVzz0bjY`. Open it through your Canva account. The older 33-slide design is reference-only and was not modified during this freeze. The source material below is a historical deck, not the current slide-by-slide script.
+>
+> **Freeze changes:** slide 5 heading spacing; slide 13 genuine synthetic evidence and editable labels; conversational speaker cues on slides 10-16; slide 16 closing lesson. All 16 pages retain notes. No placeholder text remains in the final copy.
+>
+> **Evidence:** [Actual EIMS source-line screenshot](EIMS_SYNTHETIC_PROVENANCE_1001.png) shows `RevertSnapshot failed: InvalidSnapshotFormat A required file was not found` and `02_Task_long.log:1001`. It was captured from the existing isolated SQLite evaluation workflow using the original two synthetic fixtures. The sandbox identity reported `synthetic-history-only`, `sqlite`, and `operational_startup=false`; listeners were loopback-only. The actual response was checked for correlation `none` and the original line 1001 before capture. The headless attempt closed during navigation; the headed attempt saved this image, then closed during a separate association-card capture. This was a targeted capture, not a new full-suite or human-study PASS. Dedicated preview/sandbox processes were stopped afterward.
+>
+> **Evidence limits retained:** 259 selected hermetic Python tests are an earlier local report, not newly rerun tests or GitHub CI. Synthetic offline E2E, isolated SQLite History and separate automated T1-T4 evidence remain distinct from human evaluation. Export results differed across environments. Formal participant evaluation, live PostgreSQL compatibility and universal vendor support remain unestablished. The Windows Search root cause was not established.
+>
+> **Delivery:** the final Canva copy was reviewed in Present mode across slides 1-16. A static 16-page PDF is kept locally for presentation; it contains existing personal/workplace presentation material and is not automatically published to this public repository. Canva effects should be presented in Canva, not assumed to survive PPTX/PDF. Student rehearsal and projector readability are manual final checks. Public push remains withheld under `docs/engineering-process/PUBLIC_REPOSITORY_SECURITY_REVIEW.md` until owner closure of the existing credential gate. No app code, operational services or credentials were changed.
+
 # EIMS Final Cooperative Education Presentation — Source Deck & Speaker Notes
 **Academic Year 2026 | International Program, Faculty of Engineering, KMITL & Kanematsu Electronics (Thailand)**
 **Author:** Ratthabhumi Peansukmanee (Student ID: 66011198)
