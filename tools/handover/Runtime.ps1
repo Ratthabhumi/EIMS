@@ -189,8 +189,7 @@ try {
         Test-HostRequirements -OfferInstall
         $drive=Get-PSDrive -Name ([IO.Path]::GetPathRoot($install).Substring(0,1))
         if($drive.Free -lt 8GB){throw 'At least 8 GiB free local disk is required for online setup; models are excluded.'}
-        $answer=Read-Host 'SETUP will install pinned Python/npm dependencies and create an isolated Docker project. Type SETUP to authorize, or Enter to cancel'
-        if($answer -cne 'SETUP'){Write-Host 'Cancelled; no installation changes.';exit 0}
+        Write-Host 'SETUP launched by the operator: checking pinned dependencies and isolated EIMS. Required installer/license/IT approvals still apply.'
         if((Test-Path $install) -and -not (Test-Path (Join-Path $install 'installation.json'))){throw 'Unidentified existing installation/data. Nothing will be overwritten.'}
         if(-not (Test-Path $install)){New-Item -ItemType Directory -Path $install | Out-Null;@{id=$version.id;project=('eims-coop-'+[guid]::NewGuid().ToString('N').Substring(0,12));migrated=$false} | ConvertTo-Json | Set-Content (Join-Path $install 'installation.json')}
         if(-not (Test-Path $private)){New-Item -ItemType Directory -Path $private | Out-Null}
