@@ -25,6 +25,7 @@ from backend.core.exceptions import ResourceNotFoundException
 from backend.core.logger import get_logger
 from backend.domain.asset_registry.models import OCRRegistrationRecord
 from backend.infrastructure.object_store import object_storage
+from backend.domain.analyzer.auth import get_current_user
 
 logger = get_logger("eims.api.asset_registry")
 
@@ -38,6 +39,75 @@ async def get_asset_repository(
 ) -> AssetRepository:
     """Dependency injection factory providing clean Repository instances per request lifecycle."""
     return AssetRepository(db_session=db_session, cache_manager=cache_manager)
+
+
+@asset_router.patch('/{asset_id}/business-context', response_model=AssetResponse)
+async def edit_business_context(asset_id: uuid.UUID, payload: dict,
+                                user: str = Depends(get_current_user),
+                                repo: AssetRepository = Depends(get_asset_repository)):
+    try:
+        asset = await repo.edit_business_metadata(asset_id, payload, user)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return AssetResponse.model_validate(asset)
+
+
+async def event_rows(repo, asset_id):
+    from sqlalchemy import select, cast
+    from sqlalchemy.dialects.postgresql import JSONB
+    from backend.domain.telemetry.models import WindowsEventLog
+    from backend.domain.analyzer.models.history import AnalysisHistory
+    if not await repo.get_asset_by_id(asset_id):
+        raise HTTPException(404, 'Asset not found')
+    events = (await repo.db_session.execute(select(WindowsEventLog).where(
+        WindowsEventLog.asset_id == asset_id).order_by(WindowsEventLog.occurrence_time.desc()).limit(1000))).scalars().all()
+    records = (await repo.db_session.execute(select(AnalysisHistory).where(
+        cast(AnalysisHistory.event_metadata, JSONB)['asset_id'].astext == str(asset_id)))).scalars().all()
+    history = {str((r.event_metadata or {}).get('event_source_id')): r for r in records}
+    return events, history
+
+
+@asset_router.get('/{asset_id}/events')
+async def list_persisted_events(asset_id: uuid.UUID, _user: str = Depends(get_current_user),
+                                repo: AssetRepository = Depends(get_asset_repository)):
+    events, history = await event_rows(repo, asset_id)
+    return {'limit':1000, 'events':[
+        {'log_id':str(e.log_id), 'event_id':e.event_id, 'severity':e.severity_level,
+         'occurrence_time':e.occurrence_time.isoformat(), 'evidence':e.evtx_metadata,
+         'persisted':True, 'analysis_id':history[str(e.log_id)].id if str(e.log_id) in history else None,
+         'analysis_origin':(history[str(e.log_id)].event_metadata or {}).get('analysis_origin','automatic') if str(e.log_id) in history else None}
+        for e in events]}
+
+
+@asset_router.post('/{asset_id}/events/{event_id}/analyze')
+async def analyze_persisted_event(asset_id: uuid.UUID, event_id: uuid.UUID,
+                                   user: str = Depends(get_current_user),
+                                   repo: AssetRepository = Depends(get_asset_repository)):
+    from sqlalchemy import select
+    from backend.domain.telemetry.models import WindowsEventLog
+    from backend.domain.analyzer.services.import_pipeline import _analyze_event
+    if not await repo.get_asset_by_id(asset_id):
+        raise HTTPException(404, 'Asset not found')
+    event = (await repo.db_session.execute(select(WindowsEventLog).where(
+        WindowsEventLog.log_id == event_id, WindowsEventLog.asset_id == asset_id))).scalar_one_or_none()
+    if event is None:
+        raise HTTPException(404, 'Event does not belong to this asset')
+    meta = event.evtx_metadata or {}
+    data = {**meta, 'event_id':event.event_id, 'severity_level':event.severity_level,
+            'occurrence_time':event.occurrence_time}
+    key = meta.get('_reporter_dedup')
+    if not key:
+        raise HTTPException(409, 'Event has no supported source identity')
+    ok = await _analyze_event(repo.db_session, asset_id, data, key, language='en',
+                              trigger='manual', operator=user)
+    if not ok:
+        raise HTTPException(503, 'Analysis unavailable; original event retained')
+    _, history = await event_rows(repo, asset_id)
+    record = history.get(str(event_id))
+    if record is None:
+        raise HTTPException(503, 'Saved analysis could not be resolved')
+    return {'analysis_id':record.id, 'event_source_id':str(event_id), 'asset_id':str(asset_id)}
+
 
 
 @asset_router.post("", response_model=AssetResponse, status_code=status.HTTP_201_CREATED, summary="Enroll New Infrastructure Asset")
@@ -58,7 +128,7 @@ async def register_asset(
     return AssetResponse.model_validate(asset)
 
 
-@asset_router.get("", response_model=AssetListResponse, status_code=status.HTTP_200_OK, summary="Enumerate Asset Registry Collections")
+@asset_router.get("", dependencies=[Depends(get_current_user)], response_model=AssetListResponse, status_code=status.HTTP_200_OK, summary="Enumerate Asset Registry Collections")
 async def list_assets(
     page: int = Query(1, ge=1, description="Requested page index offset"),
     limit: int = Query(50, ge=1, le=200, description="Max entities per pagination slice"),
@@ -205,7 +275,7 @@ async def stream_ocr_image(uri: str = Query(..., description="MinIO S3 Object UR
         logger.error(f"Failed to stream image {uri}: {str(e)}")
         raise HTTPException(status_code=404, detail="Image not found or inaccessible")
 
-@asset_router.post("/import-report", response_model=AssetResponse, status_code=status.HTTP_200_OK, summary="Import Offline USB Auditor Report")
+@asset_router.post("/import-report", dependencies=[Depends(get_current_user)], response_model=AssetResponse, status_code=status.HTTP_200_OK, summary="Import Offline USB Auditor Report")
 async def import_offline_report(
     file: UploadFile = File(..., description="JSON Report from USB Auditor"),
     repo: AssetRepository = Depends(get_asset_repository)
@@ -219,8 +289,14 @@ async def import_offline_report(
     """
     import json
     try:
-        content = await file.read()
+        content = await file.read(16 * 1024 * 1024 + 1)
+        if len(content) > 16 * 1024 * 1024:
+            raise ValueError("Report exceeds 16 MiB")
         report_data = json.loads(content)
+        from clients.usb_auditor.session_model import validate_context, FIELDS
+        if not isinstance(report_data, dict) or not isinstance(report_data.get('system'), dict):
+            raise ValueError('Expected an Auditor report')
+        validate_context({key:report_data[key] for key in (*FIELDS,'manual_annotations','manual_change_log','selected_modules','context_version') if key in report_data})
     except Exception as e:
         logger.error(f"Failed to parse offline report: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid JSON format")
@@ -265,7 +341,7 @@ async def import_offline_report(
     return asset_resp
 
 
-@asset_router.get("/{asset_id}", response_model=AssetResponse, status_code=status.HTTP_200_OK, summary="Retrieve Asset Details")
+@asset_router.get("/{asset_id}", dependencies=[Depends(get_current_user)], response_model=AssetResponse, status_code=status.HTTP_200_OK, summary="Retrieve Asset Details")
 async def get_asset_by_id(
     asset_id: uuid.UUID,
     repo: AssetRepository = Depends(get_asset_repository)

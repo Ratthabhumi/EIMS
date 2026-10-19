@@ -262,6 +262,11 @@ export default function AnalyzerHistoryList({
       if (res.ok) {
         const data = await res.json();
         setHistoryList(data);
+        const requested = new URLSearchParams(window.location.search).get('history_id');
+        if (requested) {
+          const exact = data.find((item: any) => String(item.id) === requested);
+          if (exact) setSelectedItem(exact);
+        }
       } else {
         console.error(`Failed to fetch history: HTTP ${res.status}`);
       }

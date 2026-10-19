@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Upload, Cpu, Shield, Network, Server, HardDrive, Monitor, Clock, CheckCircle2, XCircle, Search, Download, ArrowLeft, Play } from "lucide-react";
 import Link from "next/link";
+import AssetBusinessEditor from "@/components/AssetBusinessEditor";
 import { apiUrl } from "@/lib/api";
 
 interface Asset {
@@ -15,6 +16,7 @@ interface Asset {
   current_compliance_score: number;
   created_at: string;
   updated_at: string;
+  business_metadata?: Record<string, any>;
   offline_report_data?: Record<string, any>;
 }
 
@@ -46,7 +48,7 @@ function EndpointsDashboardContent() {
       const res = await fetch(apiUrl("/api/v1/assets?limit=100"));
       if (res.ok) {
         const json = await res.json();
-        const validAssets = (json.data || []).filter((a: Asset) => a.canonical_ip !== "0.0.0.0");
+        const validAssets = (json.data || []);
         setAssets(validAssets);
       }
     } catch (err) {
@@ -163,14 +165,32 @@ function EndpointsDashboardContent() {
 
   const [launchingAgent, setLaunchingAgent] = useState(false);
   const [assetHistory, setAssetHistory] = useState<any[]>([]);
-
+  const [eventBusy, setEventBusy] = useState<string | null>(null);
+  const [eventError, setEventError] = useState("");
   useEffect(() => {
-    if (!selectedAsset) { setAssetHistory([]); return; }
-    fetch(apiUrl(`/api/v1/history?asset_id=${selectedAsset.asset_id}`))
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setAssetHistory(Array.isArray(data) ? data : []))
-      .catch(() => setAssetHistory([]));
+    const controller = new AbortController();
+    setAssetHistory([]); setEventError("");
+    if (selectedAsset) fetch(apiUrl(`/api/v1/assets/${selectedAsset.asset_id}/events`), { signal: controller.signal })
+      .then(async res => { if (!res.ok) throw new Error(`Events unavailable (${res.status})`); return res.json(); })
+      .then(data => setAssetHistory(data.events || []))
+      .catch(error => { if (!controller.signal.aborted) setEventError(error.message); });
+    return () => controller.abort();
   }, [selectedAsset?.asset_id]);
+  async function openEvent(event: any) {
+    if (!selectedAsset || eventBusy) return;
+    const asset = selectedAsset.asset_id;
+    setEventBusy(event.log_id); setEventError("");
+    try {
+      let id = event.analysis_id;
+      if (!id) {
+        const res = await fetch(apiUrl(`/api/v1/assets/${asset}/events/${event.log_id}/analyze`), { method: "POST" });
+        if (!res.ok) throw new Error(`Analysis unavailable (${res.status}); evidence retained`);
+        id = (await res.json()).analysis_id;
+      }
+      window.location.assign(`/analyzer?asset_id=${asset}&history_id=${id}`);
+    } catch (error) { setEventError(error instanceof Error ? error.message : "Analysis unavailable"); }
+    finally { setEventBusy(null); }
+  }
 
   const handleLaunchAgent = async () => {
     setLaunchingAgent(true);
@@ -528,6 +548,10 @@ function EndpointsDashboardContent() {
             </div>
 
             {/* Sprint 13: Event Evidence & AI Findings Section */}
+            <AssetBusinessEditor asset={selectedAsset} onSaved={updated => {
+              setSelectedAsset(updated); setAssets(previous => previous.map(asset => asset.asset_id === updated.asset_id ? updated : asset));
+            }} />
+            {eventError && <p role="alert" className="text-eims-error text-xs">{eventError}</p>}
             {(selectedAsset.offline_report_data?.event_logs || assetHistory.length > 0) && (
               <div className="mt-6 pt-4 border-t border-eims-border">
                 <h4 className="text-sm font-semibold text-eims-text flex items-center gap-2 border-b border-eims-border pb-2 mb-4">
@@ -581,25 +605,25 @@ function EndpointsDashboardContent() {
                       </thead>
                       <tbody className="divide-y divide-eims-border/50">
                         {assetHistory.map((h: any) => (
-                          <tr key={h.id} className="hover:bg-eims-surface-subtle/30">
-                            <td className="px-3 py-2 font-mono text-eims-text">{h.eventId}</td>
-                            <td className="px-3 py-2 text-eims-text-secondary">{h.provider}</td>
+                          <tr key={h.log_id} className="hover:bg-eims-surface-subtle/30">
+                            <td className="px-3 py-2 font-mono text-eims-text">{h.event_id}</td>
+                            <td className="px-3 py-2 text-eims-text-secondary">{h.evidence?.provider}</td>
                             <td className="px-3 py-2">
-                              <span className={`font-medium ${h.eventMetadata?.isCritical ? "text-eims-error" : "text-eims-text-secondary"}`}>
-                                {h.eventMetadata?.level || "N/A"}
+                              <span className={`font-medium ${h.severity === "Critical" ? "text-eims-error" : "text-eims-text-secondary"}`}>
+                                {h.severity || "N/A"}
                               </span>
                             </td>
-                            <td className="px-3 py-2 text-eims-text-secondary truncate max-w-[250px]" title={h.aiSummary}>
-                              {h.aiSummary ? h.aiSummary.substring(0, 100) + (h.aiSummary.length > 100 ? "..." : "") : "—"}
+                            <td className="px-3 py-2 text-eims-text-secondary truncate max-w-[250px]" title={h.evidence?.message}>
+                              {h.evidence?.message?.slice(0,100) || "—"}
                             </td>
-                            <td className="px-3 py-2 text-eims-text-muted">{h.created_at ? new Date(h.created_at).toLocaleDateString() : "N/A"}</td>
+                            <td className="px-3 py-2 text-eims-text-muted"><span className="block">{h.analysis_id ? `${h.analysis_origin} analysis` : "Persisted · not analyzed"}</span><button type="button" disabled={eventBusy !== null} className="underline text-eims-accent" onClick={() => openEvent(h)}>{eventBusy === h.log_id ? "Analyzing…" : h.analysis_id ? "View Analysis" : "Analyze This Event"}</button></td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 ) : (
-                  <p className="text-eims-text-muted text-xs italic">No AI findings yet. Analysis runs automatically when a report with event evidence is imported.</p>
+                  <p className="text-eims-text-muted text-xs italic">No persisted events available. Collected report evidence remains in the original JSON.</p>
                 )}
               </div>
             )}

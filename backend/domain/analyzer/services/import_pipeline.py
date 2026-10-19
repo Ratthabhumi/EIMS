@@ -54,7 +54,7 @@ DEFAULT_ANALYZE_MAX = 10
 _SEVERITY_PRIORITY = {"critical": 3, "error": 2, "warning": 1}
 
 # Max message length retained as evidence text.
-_MAX_MESSAGE_LEN = 1000
+_MAX_MESSAGE_LEN = 65536
 
 
 @dataclass
@@ -108,15 +108,21 @@ def normalize_report_event(event: dict) -> Optional[dict]:
             parsed_time = None
 
     record_id = event.get("record_id")
-    message = str(event.get("message", ""))[:_MAX_MESSAGE_LEN]
+    full_message = str(event.get("message", ""))
+    message = full_message.encode("utf-8")[:_MAX_MESSAGE_LEN].decode("utf-8", errors="ignore")
 
     return {
+        **{key:event[key] for key in ('message_original_bytes','message_saved_bytes','message_redacted','message_truncated','message_truncation_reason') if key in event},
+        'import_message_original_bytes': len(full_message.encode('utf-8')),
+        'import_message_saved_bytes': len(message.encode('utf-8')),
+        'import_message_truncated': full_message != message,
         "event_id": event_id,
         "severity_level": severity,
         "occurrence_time": parsed_time,
         "channel": channel,
         "provider": provider,
         "record_id": record_id,
+        "computer": str(event.get("computer", ""))[:255],
         "message": message,
     }
 
@@ -146,7 +152,9 @@ def build_evtx_metadata(event: dict, dedup_key: str) -> dict:
         "channel": event.get("channel"),
         "provider": event.get("provider"),
         "record_id": event.get("record_id"),
+        "computer": event.get("computer", ""),
         "message": event.get("message"),
+        **{key:event[key] for key in ('message_original_bytes','message_saved_bytes','message_redacted','message_truncated','message_truncation_reason','import_message_original_bytes','import_message_saved_bytes','import_message_truncated') if key in event},
         "source_type": SOURCE_TYPE,
         "source_subtype": "WINDOWS_EVENT_LOG",
         "collected_at": datetime.now(UTC).isoformat(),
@@ -197,8 +205,8 @@ def build_event_metadata(event: dict) -> EventMetadata:
 
 def format_event_description(event: dict) -> str:
     """Render a human-readable event description for the analyzer."""
-    message = event.get("message", "").strip()
-    if message:
+    message = event.get("message", "")
+    if message.strip():
         return message
     return (
         f"Event ID {event.get('event_id')} from {event.get('provider')} "
@@ -285,6 +293,8 @@ async def _analyze_event(
     dedup_key: str,
     language: str = "th",
     api_key: Optional[str] = None,
+    trigger: str = 'automatic',
+    operator: str = 'system',
 ) -> bool:
     """
     Run the existing analyzer pipeline for one event and persist the finding
@@ -295,6 +305,19 @@ async def _analyze_event(
     description = format_event_description(event)
 
     try:
+        # Lock the persisted source row through commit: concurrent manual/automatic
+        # requests for this source reuse the same saved history on PostgreSQL.
+        locked = (await db.execute(select(WindowsEventLog).where(
+            WindowsEventLog.asset_id == asset_id,
+            WindowsEventLog.evtx_metadata['_reporter_dedup'].astext == dedup_key
+        ).with_for_update())).scalar_one_or_none()
+        if locked is None:
+            return False
+        prior = (await db.execute(select(AnalysisHistory.id).where(
+            cast(AnalysisHistory.event_metadata, JSONB)['_reporter_dedup'].astext == dedup_key).limit(1))).scalar_one_or_none()
+        if prior is not None:
+            await db.commit()
+            return True
         results, combined_snippets = await asyncio.to_thread(
             search_solutions, event_id, provider
         )
@@ -314,6 +337,7 @@ async def _analyze_event(
 
         metadata_dict = build_event_metadata(event).model_dump()
         metadata_dict["_reporter_dedup"] = dedup_key
+        metadata_dict["analysis_origin"] = trigger
         metadata_dict.update(build_analysis_provenance(None, asset_id, event))
 
         event_log_id = await _find_event_log_id(db, asset_id, dedup_key)
@@ -330,7 +354,7 @@ async def _analyze_event(
             event_metadata=metadata_dict,
             search_results=[res.model_dump() for res in results],
             search_time_ms=0.0,
-            username="system",
+            username=operator,
         )
         db.add(row)
         await db.commit()
