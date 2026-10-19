@@ -34,3 +34,10 @@ Private outputs, device identities, raw reports and the local owner permission r
 
 ## Remaining research / field evidence
 Obtain the actual FortiOS version and 2–3 redacted configuration-change records for version matching. APCPBEAgent 3005 still needs a product/version-specific authoritative event definition. Arrange clean Windows Server, alternate-account UAC and fresh Full EIMS/import/browser acceptance on approved machines. No broad new architecture or research work is needed for this patch.
+
+## Final delivery verification
+- Reviewed implementation source was published on development branch `work/eims-engineering-process-2026-10`, commit `450f4ce`. The eight earlier local commits were preserved and delivered by a normal fast-forward push; main was not merged or changed.
+- After explicit owner approval, the previous D: Auditor folder was renamed to `EIMS_USB_Auditor_Backup_2026-10-19_Admin`. No formatting or deletion occurred. Auditor 1.1.0 was copied to `D:\EIMS_USB_Auditor`; the complete 286-file destination inventory and hashes match the reviewed stage.
+- The previous Auditor backup manifest matches the former verified release. The Full EIMS E: manifest is unchanged and every Full package file still passes integrity verification.
+- A reviewed 15-file source-only KB overlay and checksums are retained in private local staging. It was not applied to the frozen E: USB. This is deliberate separation of the approved Auditor replacement from Full delivery.
+- Owner-only receipts, live reports and private backup archives remain excluded from GitHub. The public report contains no raw machine report, hostname, account, IP address, recovery key or private authorization record.
