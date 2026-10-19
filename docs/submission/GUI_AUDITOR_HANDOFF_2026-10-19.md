@@ -138,3 +138,31 @@ the existing USBs as fallback. Complete final GUI review and approved-media/
 share acceptance, then obtain separate authorization before replacing either
 physical release. No additional literature research is required for these
 remaining environment/owner acceptance steps.
+
+## USB delivery update — 2026-10-20
+
+The owner subsequently authorized replacing both physical packages while
+renaming the previous folders as backups. This supersedes the earlier
+"D:/E: unchanged" delivery status, not the outstanding runtime-test limits.
+
+| USB | Active folder | Preserved backup | Verification |
+| --- | --- | --- | --- |
+| D: | `EIMS_USB_Auditor` | `EIMS_USB_Auditor_Backup_2026-10-20` | 1,013 new files and all 286 old files hash-verified |
+| E: | `Final_EIMS_Project` | `Final_EIMS_Project_Backup_2026-10-20` | 34 new files and all 32 old files hash-verified |
+
+The exact volume identities were rechecked. Incoming copies were verified
+before activation; no files were deleted. The Auditor manifest remains
+`49d636b1641dc6268ce51b4cac9b0dcb6b43bce0b1235466d1bfe3cdac31f023`.
+The Full package manifest is now
+`b4e2f92c4e2fd15c5ab65eaebef441fd180ee498ab82823b0d578c0addf3c2b6`
+after adding current delivery notes, source snapshot identity and exact-payload
+internal-transfer review. Its production status remains NOT APPROVED; this
+does not imply completion of final GUI or deployment acceptance.
+
+D: includes `EIMS_AUDITOR_HANDOVER_2026-10-20.txt`: copy the whole Auditor
+folder to approved local storage before running. No encrypted-media attestation
+was invented and direct FAT32 collection remains restricted. Full EIMS includes
+`DELIVERY_NOTES_2026-10-20.txt`: SETUP preserves an existing App directory;
+this delivery is not an automatic source upgrade of an installed copy.
+No setup, service restart, database reset or credential rotation occurred.
+Detailed copy receipts remain private under `Final_CO-OP/verification`.
