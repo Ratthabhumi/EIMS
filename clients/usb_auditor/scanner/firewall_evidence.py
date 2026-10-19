@@ -1,6 +1,7 @@
 """Bounded read-only network evidence. No rule changes or threat verdicts."""
 import json
 import subprocess
+from scanner.processes import run_readonly
 
 QUERIES = {
     'tcp_listeners': ('Get-NetTCPConnection -State Listen',
@@ -21,7 +22,7 @@ def collect_firewall_evidence():
                    f'ConvertTo-Json -InputObject @({query} | Select-Object -First {limit + 1} | Select-Object {fields}) '
                    '-Compress -Depth 5')
         try:
-            run = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', command],
+            run = run_readonly(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', command],
                                  capture_output=True, text=True, encoding='utf-8', timeout=30)
             if run.returncode != 0 or not run.stdout.strip():
                 raise ValueError('unavailable')

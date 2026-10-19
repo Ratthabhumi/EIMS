@@ -25,6 +25,7 @@ Immutability:
 import json
 import logging
 import re
+import os
 from uuid import uuid4
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,7 +44,8 @@ def redact_secrets(value):
     if isinstance(value, list):
         return [redact_secrets(item) for item in value]
     if isinstance(value, str):
-        return re.sub(r"(?<!\d)(?:\d{6}-){7}\d{6}(?!\d)", "[REDACTED]", value)
+        value = re.sub(r"(?<!\d)(?:\d{6}-){7}\d{6}(?!\d)", "[REDACTED]", value)
+        return re.sub(r'''(?i)\b(password|pwd|authorization|access[_ -]?token|api[_ -]?key)\s*[:=]\s*(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s;]+)''', r"\1=[REDACTED]", value)
     return value
 
 
@@ -56,6 +58,7 @@ def save_report(
     setup_verify: dict | None = None,
     event_logs: dict | None = None,
     firewall_evidence: dict | None = None,
+    extra: dict | None = None,
 ) -> Path:
     """
     Assemble all scan results into a single report dict and save as JSON.
@@ -93,8 +96,10 @@ def save_report(
     # ── Assemble report payload ──────────────────────────────────────────────
     report = {
         "metadata": {
-            "auditor_version": "1.1.0",
+            "auditor_version": "1.3.0",
             "report_format":   "1",
+            "launch_mode": os.getenv("EIMS_AUDITOR_MODE", "legacy"),
+            "collection_status": "partial" if compliance.get("verdict") == "Partial" or system.get("collection_privileges") != "administrator" or (event_logs or {}).get("status") != "ok" or (firewall_evidence or {}).get("status") != "ok" else "collected",
             "generated_at":    datetime.now(timezone.utc).isoformat(),
             "event_evidence_status": (event_logs or {}).get("status", "unavailable"),
         },
@@ -112,13 +117,22 @@ def save_report(
     if firewall_evidence is not None:
         report['firewall_evidence'] = firewall_evidence
 
+    if extra:
+        from session_model import validate_context
+        report.update(validate_context(extra))
+
     # ── Write JSON ───────────────────────────────────────────────────────────
     # indent=2   → human-readable (important for audit review)
     # ensure_ascii=False → preserve Thai/Unicode characters in computer names
     # We do NOT use mode="w" with exist_ok — if the file exists, something is wrong.
     try:
-        with open(filepath, "x", encoding="utf-8") as f:
-            json.dump(redact_secrets(report), f, indent=2, ensure_ascii=False, default=str)
+        encoded = json.dumps(redact_secrets(report), indent=2, ensure_ascii=False, default=str).encode('utf-8')
+        if len(encoded) > 16 * 1024 * 1024:
+            raise OSError('Report exceeds the explicit 16 MiB safe size limit; no JSON was written')
+        with open(filepath, "xb") as f:
+            f.write(encoded)
+            f.flush()
+            os.fsync(f.fileno())
 
         logger.info("Report saved: %s", filepath)
         return filepath

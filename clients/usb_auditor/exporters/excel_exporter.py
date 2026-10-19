@@ -159,7 +159,7 @@ def _strip_secret_keys(data: object) -> object:
     return data
 
 
-def _load_reports() -> list[dict]:
+def _load_reports(report_paths=None) -> list[dict]:
     """
     Load all JSON report files from the reports/ directory.
 
@@ -167,7 +167,9 @@ def _load_reports() -> list[dict]:
     Returns a list of report dicts sorted by scan timestamp (oldest first).
     Any secret-sensitive keys present in legacy files are stripped in memory.
     """
-    report_files = sorted(REPORTS_DIR.glob("*.json"))
+    report_files = sorted(REPORTS_DIR.glob("*.json")) if report_paths is None else [Path(p) for p in report_paths]
+    if any(p.is_symlink() or p.resolve().parent != REPORTS_DIR.resolve() or p.suffix.lower() != ".json" for p in report_files):
+        raise ValueError("Only JSON evidence in the approved reports directory can be exported")
 
     if not report_files:
         logger.warning("No JSON reports found in: %s", REPORTS_DIR)
@@ -188,7 +190,7 @@ def _load_reports() -> list[dict]:
 
 # ── Main Export Function ─────────────────────────────────────────────────────
 
-def export_summary() -> Path:
+def export_summary(report_paths=None) -> Path:
     """
     Read all JSON reports and write a formatted Summary.xlsx workbook.
 
@@ -202,7 +204,7 @@ def export_summary() -> Path:
         RuntimeError: If no reports are found to export.
         OSError:      If the file cannot be written.
     """
-    reports = _load_reports()
+    reports = _load_reports(report_paths)
 
     if not reports:
         raise RuntimeError(
@@ -319,12 +321,36 @@ def export_summary() -> Path:
     # Allows filtering by any column directly in Excel
     ws.auto_filter.ref = ws.dimensions
 
+    from session_model import FIELDS
+    business = wb.create_sheet('Business Context')
+    business.append(['Report', 'Group', 'Field', 'Value'])
+    annotations = wb.create_sheet('Manual Review')
+    annotations.append(['Report', 'Finding', 'Review Status', 'Note', 'Remediation', 'Ticket', 'Proposed Correction'])
+    for report in reports:
+        identity = str(report.get('metadata', {}).get('generated_at', ''))
+        for group, fields in FIELDS.items():
+            for field in fields:
+                business.append([identity, group, field, str(report.get(group, {}).get(field, ''))])
+        for item in report.get('manual_annotations', []):
+            annotations.append([identity] + [str(item.get(k, '')) for k in
+                               ('finding_id','review_status','note','remediation','ticket_reference','manual_correction')])
+    # Untrusted formulas are literal strings, not executable spreadsheet content.
+    for sheet in wb:
+        for row in sheet:
+            for cell in row:
+                if isinstance(cell.value, str):cell.data_type = 's'
     # ── Save ─────────────────────────────────────────────────────────────────
-    output_path = REPORTS_DIR / "Summary.xlsx"
-    if output_path.exists():
-        from uuid import uuid4
-        output_path = REPORTS_DIR / ('Summary-' + uuid4().hex + '.xlsx')
-    wb.save(output_path)
+    from uuid import uuid4
+    import os
+    import zipfile
+    output_path = REPORTS_DIR / ('Summary-' + uuid4().hex + '.xlsx')
+    with output_path.open('xb') as handle:
+        wb.save(handle)
+        handle.flush()
+        os.fsync(handle.fileno())
+    with zipfile.ZipFile(output_path) as archive:
+        if archive.testzip() is not None:
+            raise OSError('Excel integrity verification failed; JSON remains saved')
     logger.info("Summary.xlsx saved: %s (%d machine(s))", output_path, len(reports))
 
     return output_path

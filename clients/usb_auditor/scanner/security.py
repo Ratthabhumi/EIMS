@@ -22,6 +22,7 @@ Security note on subprocess usage:
 
 import logging
 import subprocess
+from scanner.processes import run_readonly
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ def _run_powershell(command: str, timeout: int = 10) -> str:
         Using a list (not shell=True) prevents shell injection attacks.
     """
     try:
-        result = subprocess.run(
+        result = run_readonly(
             ["powershell", "-NonInteractive", "-NoProfile", "-Command", "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); " + command],
             capture_output=True,
             text=True, encoding="utf-8", errors="replace",
@@ -518,7 +519,7 @@ def _check_windows_update() -> dict:
 
 # ── Public API ───────────────────────────────────────────────────────────────
 
-def get_security_info() -> dict:
+def get_security_info(enabled_security=True, enabled_firewall=True) -> dict:
     """
     Run all security checks and return a combined result dictionary.
 
@@ -545,6 +546,9 @@ def get_security_info() -> dict:
     }
 
     for check_name, check_fn in checks.items():
+        if not (enabled_firewall if check_name == 'firewall' else enabled_security):
+            security[check_name] = {'status':'SKIPPED_BY_OPERATOR', 'detail':'Not collected by operator selection'}
+            continue
         try:
             security[check_name] = check_fn()
         except Exception as exc:

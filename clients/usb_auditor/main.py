@@ -28,6 +28,7 @@ import json
 import socket
 import sys
 from datetime import datetime, timezone
+from uuid import uuid4
 from pathlib import Path
 
 from config.settings import LOGS_DIR
@@ -65,7 +66,7 @@ def setup_logging(log_file: Path) -> None:
 
     # Root logger at DEBUG -- handlers will filter by their own level
     logging.basicConfig(level=logging.DEBUG, format=log_format, datefmt=date_format,
-                        handlers=[
+                        force=True, handlers=[
                             # Console handler -- INFO and above
                             logging.StreamHandler(sys.stdout),
                             # File handler -- DEBUG and above (full trace)
@@ -144,7 +145,7 @@ def print_banner() -> None:
 
 # ── Scan Pipeline ────────────────────────────────────────────────────────────
 
-def run_scan(logger: logging.Logger, outcome=None) -> int:
+def run_scan(logger: logging.Logger, outcome=None, selected_modules=None, context=None, progress=None) -> int:
     """
     Execute the full audit pipeline on the current machine.
 
@@ -166,9 +167,19 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
         Exit code is driven ONLY by audit/compliance results, never by
         auto-sync upload status.
     """
+    from session_model import MODULES, minimum_identity
+    scope = dict.fromkeys(MODULES, True) if selected_modules is None else selected_modules
+    def collect(module, callback):
+        if scope.get(module, False):
+            return callback()
+        return {'operator_scope': {'status': 'SKIPPED_BY_OPERATOR', 'actual': 'Not collected', 'actual_state': 'Not collected'}}
+    def stage(n, label):
+        if progress:
+            progress(n, label)
+    stage(1, 'Inventory')
     print("\n[1/9] Collecting system information...")
     try:
-        system = get_system_info()
+        system = get_system_info() if scope.get('inventory') else minimum_identity()
         system['collection_privileges'] = 'administrator' if is_admin() else 'standard_user'
         print(f"      [OK]  Computer : {system['computer_name']}")
         print(f"      [OK]  User     : {system['username']}")
@@ -177,10 +188,11 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
         logger.critical("FATAL: Could not collect system info: %s", exc)
         return 2
 
+    stage(2, 'Security and firewall')
     print("\n[2/9] Auditing Windows Security...")
     try:
-        security = get_security_info()
-        network_evidence = collect_firewall_evidence()
+        security = get_security_info() if scope.get('security') and scope.get('firewall') else __import__('scanner.security', fromlist=['get_security_info']).get_security_info(enabled_security=scope.get('security', False), enabled_firewall=scope.get('firewall', False))
+        network_evidence = collect_firewall_evidence() if scope.get('firewall') else {'status':'SKIPPED_BY_OPERATOR', 'records':[]}
         for name, result in security.items():
             if result["status"] == "PASS":
                 icon = "[OK]  "
@@ -193,9 +205,10 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
         logger.critical("FATAL: Security scan failed: %s", exc)
         return 2
 
+    stage(3, 'Services')
     print("\n[3/9] Auditing Windows Services...")
     try:
-        services = get_services_info()
+        services = collect('services_registry', get_services_info)
         for svc_name, result in services.items():
             if result["status"] == "PASS":
                 icon = "[OK]  "
@@ -208,9 +221,10 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
         logger.critical("FATAL: Services scan failed: %s", exc)
         return 2
 
+    stage(4, 'Registry')
     print("\n[4/9] Auditing Registry...")
     try:
-        registry = get_registry_info()
+        registry = collect('services_registry', get_registry_info)
         for key_name, result in registry.items():
             icon = "[" + result["status"] + "]"
             print(f"      {icon} {key_name:<20} -> {result['status']} (actual: {result['actual']})")
@@ -218,9 +232,10 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
         logger.critical("FATAL: Registry scan failed: %s", exc)
         return 2
 
+    stage(5, 'Setup verification')
     print("\n[5/9] Verifying Post-Clone Setup...")
     try:
-        setup_verify = get_setup_verify_info()
+        setup_verify = collect('services_registry', get_setup_verify_info)
         for check_name, result in setup_verify.items():
             if result["status"] == "PASS":
                 icon = "[OK]  "
@@ -233,6 +248,7 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
         logger.critical("FATAL: Setup verification failed: %s", exc)
         return 2
 
+    stage(6, 'Compliance')
     print("\n[6/9] Calculating Compliance Score...")
     try:
         compliance = calculate_compliance(security, services, registry, setup_verify)
@@ -248,9 +264,10 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
         logger.critical("FATAL: Compliance calculation failed: %s", exc)
         return 2
 
+    stage(7, 'Windows events')
     print("\n[7/9] Collecting Event Logs...")
     try:
-        event_logs = collect_event_logs()
+        event_logs = collect_event_logs() if scope.get('windows_events') else {'status':'SKIPPED_BY_OPERATOR', 'events':[], 'collected':0}
         status = event_logs.get("status", "ok")
         if status == "disabled":
             print("      [SKIP] Event log collection disabled")
@@ -264,10 +281,11 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
         logger.warning("Event log collection failed (non-fatal): %s", exc)
         event_logs = None
 
+    stage(8, 'Save evidence')
     print("\n[8/9] Saving JSON Report...")
     try:
         report_path = save_report(system, security, services, registry, compliance, setup_verify, event_logs,
-                                  firewall_evidence=network_evidence)
+                                  firewall_evidence=network_evidence, extra={**(context or {}), 'selected_modules': scope})
         if outcome is not None:
             outcome['report_path'] = report_path
         print(f"      [OK]  Saved: {report_path}")
@@ -278,6 +296,7 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
     # ── One-shot, non-fatal EIMS auto-sync (offline-first) ────────────────
     # Local save already succeeded above, so a sync failure can NEVER lose
     # data. A sync error is logged and warned about — never fatal.
+    stage(9, 'Offline finish')
     print("\n[9/9] Syncing with EIMS...")
     try:
         sync_result = sync_report(report_path)
@@ -300,7 +319,7 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
         print("      [INFO] Manual import can be used later")
 
     # Return exit code based on compliance verdict
-    if (compliance.get('verdict') == 'Partial' or compliance.get('unknown_count', 0) or not is_admin() or event_logs is None or event_logs.get("status") == "error"
+    if (system.get('collection_limitations') or compliance.get('verdict') == 'Partial' or compliance.get('unknown_count', 0) or not is_admin() or event_logs is None or event_logs.get("status") == "error"
             or network_evidence.get('status') == 'partial'):
         return 3  # Report saved; privileged checks or event collection incomplete.
     return 0 if verdict == "Compliant" else 1
@@ -310,14 +329,14 @@ def run_scan(logger: logging.Logger, outcome=None) -> int:
 
 def main() -> int:
     args = parse_args()
-    print('Authorized systems only. Read-only audit; private local evidence destination applies.')
+    print('Authorized systems only. Read-only audit; the announced approved evidence destination applies.')
     # ── Build per-machine log file path BEFORE setup_logging ────────────────
     # Use socket.gethostname() here (not get_system_info) to avoid
     # importing scanner before logging is ready.
     # Format: logs/COMPUTERNAME_YYYYMMDD.log
     computer_name = socket.gethostname()
     safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in computer_name)
-    timestamp_str = datetime.now().strftime("%d-%m-%Y_%H.%M")
+    timestamp_str = datetime.now().strftime("%d-%m-%Y_%H.%M.%S.%f") + "_" + uuid4().hex[:8]
     log_file = LOGS_DIR / f"{safe_name}_{timestamp_str}.log"
 
     setup_logging(log_file)
@@ -388,6 +407,7 @@ def main() -> int:
     print("Audit Result   :", {0:'PASS', 1:'FINDINGS', 3:'PARTIAL', 2:'ERROR'}.get(exit_code, 'ERROR'))
     print("JSON Report    :", path or 'Not saved')
     print("Excel Report   :", excel_path or 'Unavailable')
+    print("Log            :", log_file)
     if not __import__('config.settings', fromlist=['is_auto_sync_enabled']).is_auto_sync_enabled():
         print("No automatic network upload was performed.")
     print("========================================")

@@ -104,16 +104,19 @@ def get_system_info() -> dict:
         logger.warning("Could not read Disk info: %s", exc)
         info["disk_gb"] = 0.0
 
-    # ── IP Address ───────────────────────────────────────────────────────────
-    # socket.gethostbyname(hostname) → resolves hostname to primary IPv4.
-    # This avoids needing Admin rights unlike querying network interfaces directly.
-    # Limitation: returns 127.0.0.1 on machines with no network config.
+    # Enumerate local interfaces rather than sending hostname/DNS queries.
+    info['network_adapters'] = []
+    info['ip_address'] = 'Unknown'
     try:
-        hostname = socket.gethostname()
-        info["ip_address"] = socket.gethostbyname(hostname)
-    except Exception as exc:
-        logger.warning("Could not resolve IP address: %s", exc)
-        info["ip_address"] = "Unknown"
+        for name, addresses in list(psutil.net_if_addrs().items())[:100]:
+            rows = [{'family': str(a.family), 'address': a.address, 'netmask': a.netmask}
+                    for a in addresses[:20]]
+            info['network_adapters'].append({'name': name, 'addresses': rows})
+            for addr in addresses:
+                if addr.family == socket.AF_INET and not addr.address.startswith('127.') and info['ip_address'] == 'Unknown':
+                    info['ip_address'] = addr.address
+    except Exception:
+        logger.warning('Local network inventory unavailable')
 
     # ── MAC Address ──────────────────────────────────────────────────────────
     # uuid.getnode() → returns MAC as a 48-bit integer
@@ -128,6 +131,20 @@ def get_system_info() -> dict:
         logger.warning("Could not read MAC address: %s", exc)
         info["mac_address"] = "Unknown"
 
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'HARDWARE\DESCRIPTION\System\BIOS', 0, winreg.KEY_READ) as key:
+            info['manufacturer'] = winreg.QueryValueEx(key, 'SystemManufacturer')[0]
+            info['model'] = winreg.QueryValueEx(key, 'SystemProductName')[0]
+    except (OSError, ImportError):
+        info['manufacturer'], info['model'] = 'Unknown', 'Unknown'
+    try:
+        import os
+        info['disk_free_gb'] = round(psutil.disk_usage(os.environ.get('SystemDrive', 'C:') + '/').free / (1024 ** 3), 1)
+    except Exception:
+        info['disk_free_gb'] = None
+    info['collection_limitations'] = [name + ' unavailable' for name in ('cpu', 'ram_gb', 'disk_gb', 'manufacturer', 'model')
+                                      if info.get(name) in (None, '', 'Unknown', 0)]
     info["scan_timestamp"] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
     logger.info("System information collected: %s", info["computer_name"])

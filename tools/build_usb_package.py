@@ -55,6 +55,7 @@ RUNNER_SOURCE = TOOLS_DIR / "Run-EIMS-Audit.bat"
 
 SOURCE_ALLOWLIST: tuple[str, ...] = (
     "main.py",
+    "session_model.py",
     "requirements.txt",
     "config/settings.py",
     "exporters/__init__.py",
@@ -63,6 +64,7 @@ SOURCE_ALLOWLIST: tuple[str, ...] = (
     "scanner/__init__.py",
     "scanner/compliance.py",
     "scanner/event_logs.py",
+    "scanner/processes.py",
     "scanner/firewall_evidence.py",
     "scanner/registry.py",
     "scanner/security.py",
@@ -137,7 +139,7 @@ def version_text(repo_root: Path, runtime_sha: str | None = None) -> str:
     commit_short = commit[:12] if commit and commit != "Unknown" else "Unknown"
     lines = [
         "EIMS Portable USB Auditor",
-        "Auditor Release    : 1.1.0 (one-click administrator, private offline evidence)",
+        "Auditor Release    : 1.2.0 (legacy Python launcher; dual EXE available separately)",
         "Build Time UTC     : " + datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "Git Commit         : " + commit,
         "Git Commit Short   : " + commit_short,

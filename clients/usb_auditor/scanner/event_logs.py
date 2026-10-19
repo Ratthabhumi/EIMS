@@ -22,6 +22,7 @@ Env vars:
 import json
 import logging
 import subprocess
+from scanner.processes import run_readonly
 from datetime import datetime, timedelta, timezone
 
 from config.settings import (
@@ -58,7 +59,7 @@ def _run_powershell(command: str, timeout: int = 30) -> str:
     Non-fatal: returns empty string on any failure.
     """
     try:
-        result = subprocess.run(
+        result = run_readonly(
             ["powershell", "-NonInteractive", "-NoProfile", "-Command",
              "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); " + command],
             capture_output=True,
@@ -141,9 +142,16 @@ def _parse_events(raw_json: str) -> list[dict]:
     if not isinstance(data, list):
         raise ValueError("Invalid event response type")
     events = []
+    remaining = 8 * 1024 * 1024
     for item in data:
         if not isinstance(item, dict):
             raise ValueError("Invalid event record")
+        raw_message = str(item.get('Message') or '')
+        original = redact_secrets(raw_message)
+        original_bytes = len(original.encode('utf-8'))
+        message = _truncate_message(original, min(65536, remaining))
+        saved_bytes = len(message.encode('utf-8'))
+        remaining -= saved_bytes
         event = {
             "occurrence_time": _parse_occurrence_time(item.get("TimeCreated")),
             "event_id": item.get("Id"),
@@ -151,20 +159,22 @@ def _parse_events(raw_json: str) -> list[dict]:
             "severity": item.get("LevelDisplayName", "Unknown"),
             "channel": item.get("LogName", "Unknown"),
             "record_id": item.get("RecordId"),
-            "message": _truncate_message(item.get("Message", "")),
+            "message": message,
+            "message_original_bytes": original_bytes,
+            "message_saved_bytes": saved_bytes,
+            "message_redacted": original != raw_message,
+            "message_truncated": saved_bytes < original_bytes,
+            "message_truncation_reason": ('collection_message_limit' if remaining == 0 else 'per_event_limit') if saved_bytes < original_bytes else '',
+
         }
         events.append(event)
 
     return redact_secrets(events)
 
 
-def _truncate_message(message: str, max_length: int = 500) -> str:
-    """Truncate message to prevent excessive payload size."""
-    if not message:
-        return ""
-    if len(message) <= max_length:
-        return message
-    return message[:max_length] + "..."
+def _truncate_message(message: str, max_length: int = 65536) -> str:
+    """UTF-8 byte cap; callers retain explicit truncation metadata."""
+    return str(message or '').encode('utf-8')[:max(0, max_length)].decode('utf-8', errors='ignore')
 
 
 def collect_event_logs() -> dict:
@@ -231,6 +241,7 @@ def collect_event_logs() -> dict:
             "levels": list(_LEVELS),
             "collected": len(events),
             "possibly_truncated": len(events) >= max_records,
+            "message_limits": {"per_event_bytes": 65536, "total_message_bytes": 8 * 1024 * 1024},
             "status": "ok",
             "message": f"Collected {len(events)} events from {len(_CHANNELS)} channels",
             "events": events,
