@@ -92,7 +92,7 @@ def test_exact_windows_preservation_and_counts():
     for old, entry in zip(original, windows):
         assert all(entry[key] == value for key, value in old.items())
     assert Counter(e["source_family"] for e in get_catalog()) == {
-        "windows_event":141,"veeam_vbr":4,"vmware":2,"fortinet":5,"cisco_asa":6,"palo_alto":4,"linux_syslog":1}
+        "windows_event":141,"veeam_vbr":4,"vmware":2,"fortinet":9,"cisco_asa":6,"palo_alto":4,"linux_syslog":1}
     assert get_catalog("json") == []
     assert len({e["catalog_id"] for e in get_catalog()}) == len(get_catalog())
     assert get_catalog_entry("1129")["category"] == "Group Policy"

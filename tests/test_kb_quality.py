@@ -79,7 +79,7 @@ VENDOR_STATUSES = {
 
 
 def _vendor_entries(catalog):
-    return [e for e in catalog if e.get("verification_status") in VENDOR_STATUSES]
+    return [e for e in catalog if e.get("source_family") != 'windows_event']
 
 
 def _operational_entries(catalog):
@@ -88,11 +88,11 @@ def _operational_entries(catalog):
 
 def test_catalog_size_and_identity_uniqueness():
     catalog = get_catalog()
-    assert len(catalog) == 163
+    assert len(catalog) == 167
     op = _operational_entries(catalog)
     vendor = _vendor_entries(catalog)
     assert len(op) == 141
-    assert len(vendor) == 22
+    assert len(vendor) == 26
     op_ids = [str(e.get("event_id")) for e in op]
     assert len(set(op_ids)) == len(op_ids), "duplicate operational event_id"
     # Identity is composite (family, code_type, code): the same VMware

@@ -256,7 +256,9 @@ export default function AnalyzerHistoryList({
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch(apiUrl("/api/v1/history/"));
+      const asset = new URLSearchParams(window.location.search).get('asset_id');
+      const query = asset && /^[0-9a-f-]{36}$/i.test(asset) ? `?asset_id=${encodeURIComponent(asset)}` : '';
+      const res = await fetch(apiUrl(`/api/v1/history/${query}`));
       if (res.ok) {
         const data = await res.json();
         setHistoryList(data);

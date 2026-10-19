@@ -1027,6 +1027,14 @@ async def build_summary(
         return _build_from_web(event_id, provider, "", [], lang, source_family=family)
 
     if family == "windows_event":
+        from backend.domain.analyzer.services.provider_knowledge import qualified_windows_summary
+        channel = kwargs.get('channel', '')
+        if not channel and evidence_text:
+            from backend.domain.analyzer.services.parser import parse_event_metadata
+            channel = parse_event_metadata(evidence_text).logName
+        bounded = qualified_windows_summary(event_id, provider, evidence_text or description or '', channel, lang)
+        if bounded:
+            return bounded
         from backend.domain.analyzer.services.investigation import windows_investigation
         investigation = windows_investigation(event_id, provider, evidence_text or description, lang)
         if investigation:
@@ -1051,6 +1059,16 @@ async def build_summary(
     if context:
         return context
 
+    if family == 'windows_event':
+        from backend.domain.analyzer.services.provider_knowledge import normalized_provider, provider_fallback
+        from backend.domain.analyzer.services.operational_catalog import get_catalog_entry
+        entry = get_catalog_entry(event_id)
+        expected = normalized_provider(entry.get('provider', '')) if entry else ''
+        actual = normalized_provider(provider)
+        # Generic catalog labels such as Windows System do not identify a provider.
+        qualified = bool(expected and expected not in {'windowssystem', 'windowssecurity'} and expected == actual)
+        if not qualified:
+            return provider_fallback(event_id, provider, evidence_text or description, lang)
     curated = get_curated_summary(event_id, lang) if family == "windows_event" else None
     if curated:
         return curated

@@ -76,4 +76,10 @@ def entry_for_metadata(meta) -> dict | None:
         return None
     if family == "cisco_asa" and attrs.get("deviceType") != "ASA":
         return None
-    return get_catalog_entry(meta.diagnosticCode or meta.eventId, family, attrs.get("codeType"))
+    entry = get_catalog_entry(meta.diagnosticCode or meta.eventId, family, attrs.get("codeType"))
+    if family == 'windows_event' and entry:
+        from backend.domain.analyzer.services.provider_knowledge import normalized_provider
+        expected = normalized_provider(entry.get('provider', ''))
+        if expected in {'', 'windowssystem', 'windowssecurity'} or expected != normalized_provider(meta.provider):
+            return None
+    return entry

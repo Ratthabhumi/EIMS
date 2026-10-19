@@ -161,18 +161,22 @@ def test_version_worktree_ignores_untracked_files(tmp_path: Path) -> None:
 
 def test_runner_is_offline_safe() -> None:
     runner = b.RUNNER_SOURCE.read_text(encoding="utf-8", errors="replace")
-    assert "EIMS_AUTO_SYNC=false" in runner
-    assert "%~dp0runtime\\python\\python.exe" in runner
-    assert "-B " in runner
+    private = (b.TOOLS_DIR / 'Run-Private-Audit.ps1').read_text(encoding='utf-8')
+    assert 'Run-Private-Audit.ps1' in runner
+    assert "$env:EIMS_AUTO_SYNC='false'" in private
+    assert 'runtime\\python\\python.exe' in private
+    assert "'-B'" in private
 
 
 def test_builder_never_formats_or_autoselects() -> None:
     ps1 = (b.TOOLS_DIR / "Build-EIMS-USB.ps1").read_text(encoding="utf-8", errors="replace")
     for dangerous in ("Format-Volume", "Initialize-Disk", "Clear-Disk", "format "):
         assert dangerous not in ps1
-    assert "Read-Host 'Select drive index'" in ps1
-    assert "'YES'" in ps1
-    assert "$DriveLetter):\\EIMS_USB_Auditor" in ps1
+    clone = (b.TOOLS_DIR / 'handover/Clone-TwoUsb.ps1').read_text(encoding='utf-8')
+    assert "Read-Host 'Select drive index'" in clone
+    assert 'COPY $Kind' in clone
+    assert 'EIMS_USB_Auditor' in clone
+    assert 'Remove-Item' not in ps1
 
 
 def test_builder_wrappers_exist() -> None:
@@ -181,6 +185,6 @@ def test_builder_wrappers_exist() -> None:
     assert bat.is_file()
     assert ps1.is_file()
     body = ps1.read_text(encoding="utf-8", errors="replace")
-    assert "DriveType = 2" in body
-    assert "Read-Host" in body
-    assert "EIMS_USB_Auditor" in body
+    assert 'Clone-TwoUsb.ps1' in body and 'USB_AUDITOR' in body
+    clone = (b.TOOLS_DIR / 'handover/Clone-TwoUsb.ps1').read_text(encoding='utf-8')
+    assert 'Get-Volume' in clone and 'Read-Host' in clone

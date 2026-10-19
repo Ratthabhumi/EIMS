@@ -18,12 +18,41 @@ if errorlevel 1 (
 
 echo.
 echo ===================================================
+echo   [1.5/6] Validating Private Environment (.env)...
+echo ===================================================
+if not exist ".env" goto :err_no_env
+
+docker compose --env-file .env config --quiet >nul 2>&1
+if errorlevel 1 goto :err_bad_env
+
+echo Private environment verified.
+goto :env_ok
+
+:err_no_env
+echo [ERROR] Private environment file .env not found in repository root.
+echo Please copy .env.example to .env and configure your private credentials.
+echo   copy .env.example .env
+pause
+exit /b 1
+
+:err_bad_env
+echo [ERROR] Docker Compose configuration validation failed.
+echo One or more required environment variables are missing or invalid in .env.
+echo Running validation to show missing variable names without revealing secrets:
+docker compose --env-file .env config --quiet
+pause
+exit /b 1
+
+:env_ok
+
+echo.
+echo ===================================================
 echo   [2/6] Starting EIMS Infrastructure (Docker)...
 echo ===================================================
-docker compose up -d
+docker compose --env-file .env up -d
 if errorlevel 1 (
     echo [ERROR] 'docker compose up -d' failed. Current state:
-    docker compose ps
+    docker compose --env-file .env ps
     pause
     exit /b 1
 )

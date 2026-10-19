@@ -64,9 +64,11 @@ def _get_local_model():
     global _local_model
     if _local_model is None:
         try:
+            import os
             from fastembed import TextEmbedding
             # BAAI/bge-small-en-v1.5 & all-MiniLM-L6-v2 are 384 dimensions, running on ONNX runtime (ultra fast)
-            _local_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+            cache_path = os.path.expanduser(os.path.join("~", ".cache", "fastembed"))
+            _local_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", cache_dir=cache_path)
         except Exception as e:
             try:
                 from sentence_transformers import SentenceTransformer
@@ -343,10 +345,14 @@ async def search_similar_logs(
 
         matches = []
         for row in rows:
-            entity = row[0] if isinstance(row, (tuple, list)) else row
-            try:
-                distance = float(row[1]) if isinstance(row, (tuple, list)) else 0.0
-            except (TypeError, ValueError, IndexError):
+            if hasattr(row, "__getitem__"):
+                entity = row[0]
+                try:
+                    distance = float(row[1])
+                except (TypeError, ValueError, IndexError):
+                    distance = 0.0
+            else:
+                entity = row
                 distance = 0.0
             if not _is_usable_knowledge_row(
                 getattr(entity, "event_id", ""),

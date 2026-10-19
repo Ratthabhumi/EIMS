@@ -825,6 +825,198 @@
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "Existing BSD-style syslog with sshd Failed password signature only.",
       "limitations": "Reference knowledge is not proof of root cause. Existing BSD-style syslog with sshd Failed password signature only."
+    },
+    {
+      "source_family": "fortinet",
+      "vendor": "Fortinet",
+      "product": "FortiGate / FortiOS",
+      "code_type": "official_log_id",
+      "diagnostic_code": "0100044544",
+      "title": "Configuration path evidence",
+      "category": "Configuration Change",
+      "severity": "Information",
+      "description": "Configuration-context event LOGID_EVENT_CONFIG_PATH. This does not establish a material running-config change or an unauthorized actor.",
+      "observed_signatures": [
+        "0100044544"
+      ],
+      "relevant_log_fields": [
+        "logid",
+        "type",
+        "subtype",
+        "devid",
+        "vd",
+        "eventtime",
+        "tz",
+        "user",
+        "ui",
+        "action",
+        "cfgtid",
+        "cfgpath",
+        "cfgobj",
+        "cfgattr",
+        "msg"
+      ],
+      "investigation_steps": [
+        "Compare the exact event, device version and transaction with an approved before/after configuration baseline.",
+        "Confirm actor identity and administrative session evidence; a user field is not attribution proof."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "FortiOS 7.6.6 44544",
+          "url": "https://docs.fortinet.com/document/fortigate/7.6.6/fortios-log-message-reference/44544/44544-logid-event-config-path",
+          "scope": "FortiOS 7.6.6 Event/System profile; owner-supplied official-reference research."
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "FortiOS 7.6.6 reference profile; validate actual device version.",
+      "last_reviewed": "2026-10-19",
+      "limitations": "A configuration log can reflect administrative/cloud session activity; no material change, unauthorized actor or baseline deviation is proven by this event alone."
+    },
+    {
+      "source_family": "fortinet",
+      "vendor": "Fortinet",
+      "product": "FortiGate / FortiOS",
+      "code_type": "official_log_id",
+      "diagnostic_code": "0100044545",
+      "title": "Configuration obj evidence",
+      "category": "Configuration Change",
+      "severity": "Information",
+      "description": "Configuration-context event LOGID_EVENT_CONFIG_OBJ. This does not establish a material running-config change or an unauthorized actor.",
+      "observed_signatures": [
+        "0100044545"
+      ],
+      "relevant_log_fields": [
+        "logid",
+        "type",
+        "subtype",
+        "devid",
+        "vd",
+        "eventtime",
+        "tz",
+        "user",
+        "ui",
+        "action",
+        "cfgtid",
+        "cfgpath",
+        "cfgobj",
+        "cfgattr",
+        "msg"
+      ],
+      "investigation_steps": [
+        "Compare the exact event, device version and transaction with an approved before/after configuration baseline.",
+        "Confirm actor identity and administrative session evidence; a user field is not attribution proof."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "FortiOS 7.6.6 44545",
+          "url": "https://docs.fortinet.com/document/fortigate/7.6.6/fortios-log-message-reference/44545/44545-logid-event-config-obj",
+          "scope": "FortiOS 7.6.6 Event/System profile; owner-supplied official-reference research."
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "FortiOS 7.6.6 reference profile; validate actual device version.",
+      "last_reviewed": "2026-10-19",
+      "limitations": "A configuration log can reflect administrative/cloud session activity; no material change, unauthorized actor or baseline deviation is proven by this event alone."
+    },
+    {
+      "source_family": "fortinet",
+      "vendor": "Fortinet",
+      "product": "FortiGate / FortiOS",
+      "code_type": "official_log_id",
+      "diagnostic_code": "0100044546",
+      "title": "Configuration attr evidence",
+      "category": "Configuration Change",
+      "severity": "Information",
+      "description": "Configuration-context event LOGID_EVENT_CONFIG_ATTR. This does not establish a material running-config change or an unauthorized actor.",
+      "observed_signatures": [
+        "0100044546"
+      ],
+      "relevant_log_fields": [
+        "logid",
+        "type",
+        "subtype",
+        "devid",
+        "vd",
+        "eventtime",
+        "tz",
+        "user",
+        "ui",
+        "action",
+        "cfgtid",
+        "cfgpath",
+        "cfgobj",
+        "cfgattr",
+        "msg"
+      ],
+      "investigation_steps": [
+        "Compare the exact event, device version and transaction with an approved before/after configuration baseline.",
+        "Confirm actor identity and administrative session evidence; a user field is not attribution proof."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "FortiOS 7.6.6 44546",
+          "url": "https://docs.fortinet.com/document/fortigate/7.6.6/fortios-log-message-reference/44546/44546-logid-event-config-attr",
+          "scope": "FortiOS 7.6.6 Event/System profile; owner-supplied official-reference research."
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "FortiOS 7.6.6 reference profile; validate actual device version.",
+      "last_reviewed": "2026-10-19",
+      "limitations": "A configuration log can reflect administrative/cloud session activity; no material change, unauthorized actor or baseline deviation is proven by this event alone."
+    },
+    {
+      "source_family": "fortinet",
+      "vendor": "Fortinet",
+      "product": "FortiGate / FortiOS",
+      "code_type": "official_log_id",
+      "diagnostic_code": "0100044547",
+      "title": "Configuration objattr evidence",
+      "category": "Configuration Change",
+      "severity": "Information",
+      "description": "Configuration-context event LOGID_EVENT_CONFIG_OBJATTR. This does not establish a material running-config change or an unauthorized actor.",
+      "observed_signatures": [
+        "0100044547"
+      ],
+      "relevant_log_fields": [
+        "logid",
+        "type",
+        "subtype",
+        "devid",
+        "vd",
+        "eventtime",
+        "tz",
+        "user",
+        "ui",
+        "action",
+        "cfgtid",
+        "cfgpath",
+        "cfgobj",
+        "cfgattr",
+        "msg"
+      ],
+      "investigation_steps": [
+        "Compare the exact event, device version and transaction with an approved before/after configuration baseline.",
+        "Confirm actor identity and administrative session evidence; a user field is not attribution proof."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "FortiOS 7.6.6 44547",
+          "url": "https://docs.fortinet.com/document/fortigate/7.6.6/fortios-log-message-reference/44547/44547-logid-event-config-objattr",
+          "scope": "FortiOS 7.6.6 Event/System profile; owner-supplied official-reference research."
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "FortiOS 7.6.6 reference profile; validate actual device version.",
+      "last_reviewed": "2026-10-19",
+      "limitations": "A configuration log can reflect administrative/cloud session activity; no material change, unauthorized actor or baseline deviation is proven by this event alone."
     }
   ]
 }

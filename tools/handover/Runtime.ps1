@@ -1,0 +1,274 @@
+#requires -Version 5.1
+param([ValidateSet('Setup','Start','Stop','Preflight')][string]$Action='Preflight',[switch]$NoBrowser)
+$ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'Integrity.ps1')
+
+function Write-Status([string]$Status,[string]$Detail) {
+    @{status=$Status;detail=$Detail;time=(Get-Date).ToUniversalTime().ToString('o')} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $install 'setup-status.json')
+}
+function New-Secret {
+    $bytes=New-Object byte[] 32
+    $rng=[Security.Cryptography.RandomNumberGenerator]::Create()
+    try {$rng.GetBytes($bytes)} finally {$rng.Dispose()}
+    return ([BitConverter]::ToString($bytes)).Replace('-','').ToLowerInvariant()
+}
+function Protect-PrivateDirectory([string]$Path) {
+    $sid=[Security.Principal.WindowsIdentity]::GetCurrent().User
+    $existing=Get-Acl -LiteralPath $Path
+    $allowedSids=@($sid.Value,'S-1-5-18')
+    $rules=@($existing.Access)
+    $valid=@($rules | Where-Object {
+        $_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value -in $allowedSids -and
+        $_.AccessControlType -eq 'Allow' -and -not $_.IsInherited -and
+        ($_.FileSystemRights -band [Security.AccessControl.FileSystemRights]::FullControl) -eq [Security.AccessControl.FileSystemRights]::FullControl
+    })
+    if($existing.AreAccessRulesProtected -and $existing.GetOwner([Security.Principal.SecurityIdentifier]).Value -eq $sid.Value -and $rules.Count -eq 2 -and $valid.Count -eq 2 -and @($valid.IdentityReference | ForEach-Object {$_.Translate([Security.Principal.SecurityIdentifier]).Value} | Select-Object -Unique).Count -eq 2){return}
+    $acl=New-Object Security.AccessControl.DirectorySecurity
+    $acl.SetOwner($sid); $acl.SetAccessRuleProtection($true,$false)
+    foreach($account in @($sid, (New-Object Security.Principal.SecurityIdentifier('S-1-5-18')))) {
+        $rule=New-Object Security.AccessControl.FileSystemAccessRule($account,'FullControl','ContainerInherit,ObjectInherit','None','Allow')
+        $acl.AddAccessRule($rule)
+    }
+    Set-Acl -LiteralPath $Path -AclObject $acl
+}
+function Invoke-Checked([string]$Exe,[string[]]$Arguments,[string]$Label) {
+    $log=Join-Path $private ($Label+'.log')
+    Write-Host "Running $Label. Detailed output stays in the private local log."
+    if($Exe -like '*npm.cmd') {
+        # Invoke Node directly: avoid .cmd quoting/working-directory ambiguity.
+        $Arguments=@((Join-Path (Split-Path $Exe) 'node_modules/npm/bin/npm-cli.js'))+$Arguments
+        $Exe=(Get-Command node.exe).Source
+    }
+    $runnerPython=Join-Path $install 'venv/Scripts/python.exe'
+    if(-not (Test-Path $runnerPython)) {
+        $detected=Get-Variable HandoverPython -Scope Script -ErrorAction SilentlyContinue
+        if(-not $detected -or -not $detected.Value){throw 'Setup Python is unavailable; preserve data and repair the pinned runtime.'}
+        $runnerPython=$detected.Value
+    }
+    & $runnerPython (Join-Path $release 'Tools/command_runner.py') 900 $log $Exe @Arguments
+    if($LASTEXITCODE -ne 0){throw "$Label failed. Review the private local log; do not post it publicly."}
+}
+function Invoke-Compose([string[]]$Arguments,[string]$Label) {
+    Invoke-Checked 'docker.exe' (@('compose','--project-name',$state.project,'--env-file',(Join-Path $private '.env'),'-f',(Join-Path $release 'Tools/compose.yaml'))+$Arguments) $Label
+}
+function Import-PrivateEnvironment {
+    foreach($line in Get-Content -LiteralPath (Join-Path $private '.env')) {
+        if($line -match '^([A-Z0-9_]+)=(.*)$'){[Environment]::SetEnvironmentVariable($Matches[1],$Matches[2],'Process')}
+    }
+}
+function Test-HostRequirements([switch]$OfferInstall) {
+    if([Environment]::OSVersion.Platform -ne 'Win32NT' -or -not [Environment]::Is64BitOperatingSystem){throw 'Windows x64 is required.'}
+    $os=Get-CimInstance Win32_OperatingSystem
+    if([int]$os.BuildNumber -lt 22631){throw 'Supported target: Windows 11 x64 build 22631 or newer; confirm current Docker/IT support.'}
+    if($env:PROCESSOR_ARCHITECTURE -ne 'AMD64'){throw 'Only Windows x64 is tested as a target. ARM64 is not supported by this package.'}
+    $missing=@()
+    $script:HandoverPython=$null
+    # Do not call the Python install-manager launcher: it may offer/download
+    # runtimes. Discover existing executables without starting an installer.
+    if(-not $script:HandoverPython){
+        foreach($candidate in @((Join-Path $env:LOCALAPPDATA 'Python/pythoncore-3.14-64/python.exe'),(Join-Path $env:LOCALAPPDATA 'Programs/Python/Python314/python.exe'))){
+            if(Test-Path -LiteralPath $candidate){$script:HandoverPython=$candidate;break}
+        }
+    }
+    if(-not $script:HandoverPython){
+        $candidate=Get-Command python.exe -ErrorAction SilentlyContinue
+        if($candidate -and $candidate.Source -notlike '*WindowsApps*'){$script:HandoverPython=$candidate.Source}
+    }
+    $node=Get-Command node.exe -ErrorAction SilentlyContinue
+    $docker=Get-Command docker.exe -ErrorAction SilentlyContinue
+    if(-not $script:HandoverPython){$missing+=@{name='Python';id='Python.Python.3.14';version='3.14.6'}}
+    if(-not $node){$missing+=@{name='Node.js';id='OpenJS.NodeJS';version='24.18.0'}}
+    if(-not $docker){$missing+=@{name='Docker Desktop';id='Docker.DockerDesktop';version='4.85.0'}}
+    foreach($dep in $missing){
+        Write-Host "Missing $($dep.name) $($dep.version). IT must approve installation, licenses and Windows/WSL requirements."
+        if($OfferInstall -and (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
+            $answer=Read-Host "Type INSTALL $($dep.id) after IT approval, or Enter to stop"
+            if($answer -ceq "INSTALL $($dep.id)") {
+                & winget.exe install --id $dep.id --exact --version $dep.version --source winget --interactive
+                if($LASTEXITCODE -notin @(0,3010,1641)){throw 'Installer did not succeed. No agreements are accepted automatically.'}
+                throw 'Dependency installation completed/requested restart. Reopen SETUP.bat after any requested reboot; PATH is refreshed in a new session.'
+            }
+        }
+        throw 'Required dependency missing. Use the exact official package or ask IT; no system features were changed.'
+    }
+    $pythonResult=& $script:HandoverPython -c 'import platform; print(platform.python_version())'
+    if($LASTEXITCODE -ne 0 -or -not $pythonResult){throw 'The detected Python executable could not run. Ask IT to repair/select Python 3.14.6.'}
+    $pythonVersion=$pythonResult.Trim()
+    if($LASTEXITCODE -ne 0 -or $pythonVersion -ne '3.14.6'){throw 'This build pins Python 3.14.6. Ask IT to install/select that version; no arbitrary latest upgrade.'}
+    if((& $node.Source --version).Trim() -ne 'v24.18.0'){throw 'This build pins Node.js 24.18.0. Ask IT to select that version.'}
+    $dockerOS=& docker.exe info --format '{{.OSType}}' 2>$null
+    if($LASTEXITCODE -ne 0 -or $dockerOS -ne 'linux'){throw 'Open IT-approved Docker Desktop in Linux-container mode. WSL/virtualization/license acceptance may need IT; no automatic reboot or feature changes.'}
+    & docker.exe compose version *> $null
+    if($LASTEXITCODE -ne 0){throw 'Docker Compose v2 is required.'}
+}
+function Test-OwnerProcess($record) {
+    $p=Get-CimInstance Win32_Process -Filter "ProcessId=$($record.pid)" -ErrorAction SilentlyContinue
+    if(-not $p){return $false}
+    if($p.CreationDate.ToUniversalTime().ToString('o') -ne $record.created -or $p.CommandLine -notlike ('*'+$install+'*')){throw 'Process identity mismatch. Refusing to control an unrelated process.'}
+    return $true
+}
+function Save-ProcessRecord([string]$Name,$Process) {
+    $proc=Get-CimInstance Win32_Process -Filter "ProcessId=$($Process.Id)"
+    @{pid=$Process.Id;created=$proc.CreationDate.ToUniversalTime().ToString('o')} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $private ($Name+'.process.json'))
+}
+function Quote-Arg([string]$Value){return '"'+$Value.Replace('"','\"')+'"'}
+function Test-PortFree([int]$Port) {
+    $listener=New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback,$Port)
+    try{$listener.Start()}catch{throw "Port $Port is occupied. No process will be killed. Stop the conflicting application or use a separately reviewed configuration."}finally{$listener.Stop()}
+}
+function Stop-Instance {
+    $backendRecord=Join-Path $private 'backend.process.json'
+    if(Test-Path -LiteralPath $backendRecord){
+        $record=Get-Content $backendRecord -Raw | ConvertFrom-Json
+        if(Test-OwnerProcess $record){
+            Set-Content -LiteralPath (Join-Path $private 'backend.stop') -Value 'stop'
+            for($i=0;$i -lt 20;$i++){if(-not (Get-Process -Id $record.pid -ErrorAction SilentlyContinue)){break};Start-Sleep -Milliseconds 500}
+            if(Get-Process -Id $record.pid -ErrorAction SilentlyContinue){throw 'Backend has not drained yet. Retry Stop; no forced database shutdown was performed.'}
+        }
+    }
+    $frontendRecord=Join-Path $private 'frontend.process.json'
+    if(Test-Path -LiteralPath $frontendRecord){
+        $record=Get-Content $frontendRecord -Raw | ConvertFrom-Json
+        if(Test-OwnerProcess $record){Stop-Process -Id $record.pid -ErrorAction Stop}
+    }
+    Invoke-Compose @('stop','--timeout','20') 'stop-infrastructure'
+    Write-Host 'STOPPED - this installation only. History, volumes and private configuration preserved.'
+}
+function Start-Instance {
+    Test-HostRequirements
+    Import-PrivateEnvironment
+    $python=Join-Path $install 'venv/Scripts/python.exe'
+    if(-not (Test-Path -LiteralPath $python) -or -not (Test-Path -LiteralPath (Join-Path $app 'clients/dashboard/.next/BUILD_ID'))){throw 'Setup/build is incomplete. Run SETUP.bat.'}
+    foreach($name in @('backend','frontend')) {
+        $recordFile=Join-Path $private ($name+'.process.json')
+        if(Test-Path $recordFile){
+            $record=Get-Content $recordFile -Raw | ConvertFrom-Json
+            if(Test-OwnerProcess $record){$running[$name]=$true}
+        }
+    }
+    if(-not $running.ContainsKey('backend')){Test-PortFree 18101}
+    if(-not $running.ContainsKey('frontend')){Test-PortFree 13101}
+    Invoke-Compose @('up','-d','--wait','--wait-timeout','120') 'start-infrastructure'
+    if(-not $state.migrated){throw 'Database migration has not completed. Run SETUP.bat.'}
+    if(-not $running.ContainsKey('backend')){
+        $stopMarker=Join-Path $private 'backend.stop'
+        if(Test-Path $stopMarker){[IO.File]::Delete($stopMarker)}
+        $process=Start-Process -FilePath $python -ArgumentList ((Quote-Arg (Join-Path $release 'Tools/run_backend.py'))+' '+(Quote-Arg $app)+' '+(Quote-Arg $private)) -WorkingDirectory $app -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $private 'backend.stdout.log') -RedirectStandardError (Join-Path $private 'backend.stderr.log')
+        Save-ProcessRecord 'backend' $process
+    }
+    for($i=0;$i -lt 40;$i++){
+        try{$health=Invoke-RestMethod 'http://127.0.0.1:18101/api/v1/health' -TimeoutSec 2;if($health.status -eq 'HEALTHY'){break}}catch{}
+        if($i -eq 39){throw 'Required backend health failed. Review private logs. Optional Vector RAG is not a health requirement.'};Start-Sleep -Milliseconds 500
+    }
+    if(-not $running.ContainsKey('frontend')){
+        $next=Join-Path $app 'clients/dashboard/node_modules/next/dist/bin/next'
+        $process=Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList ((Quote-Arg $next)+' start -H 127.0.0.1 -p 13101') -WorkingDirectory (Join-Path $app 'clients/dashboard') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $private 'frontend.stdout.log') -RedirectStandardError (Join-Path $private 'frontend.stderr.log')
+        Save-ProcessRecord 'frontend' $process
+    }
+    for($i=0;$i -lt 40;$i++){
+        try{$response=Invoke-WebRequest 'http://127.0.0.1:13101/analyzer' -UseBasicParsing -TimeoutSec 2;if($response.StatusCode -eq 200){break}}catch{}
+        if($i -eq 39){throw 'Frontend not ready. Review private frontend log.'};Start-Sleep -Milliseconds 500
+    }
+    Invoke-Checked $python @((Join-Path $release 'Tools/smoke.py'),$release) 'synthetic-smoke'
+    Write-Status 'READY' 'Secure Analyzer login, real synthetic bundle, evidence line and saved History passed; optional Vector RAG is not installed.'
+    Write-Host 'READY - core EIMS on http://127.0.0.1:13101/analyzer. Vector RAG models and external AI are not installed/configured.'
+    if(-not $NoBrowser){Start-Process 'http://127.0.0.1:13101/analyzer'}
+}
+
+$payload=Split-Path -Parent $PSScriptRoot
+$private=$null; $install=$null
+try {
+    [void](Test-Package $payload)
+    $version=Get-Content -LiteralPath (Join-Path $payload 'Tools/package.json') -Raw | ConvertFrom-Json
+    if($version.id -notmatch '^eims-[a-f0-9]{16}$'){throw 'Invalid package identity.'}
+    $install=Join-Path $env:LOCALAPPDATA ('EIMS-Coop/'+$version.id)
+    $release=Join-Path $install 'Release';$private=Join-Path $install 'Private';$app=Join-Path $install 'App'
+    $running=@{}
+    if($Action -eq 'Preflight'){Test-HostRequirements;Write-Host 'HOST PREFLIGHT PASS. No install, credentials, database or service changes performed.';exit 0}
+    if($Action -eq 'Setup'){
+        Test-HostRequirements -OfferInstall
+        $drive=Get-PSDrive -Name ([IO.Path]::GetPathRoot($install).Substring(0,1))
+        if($drive.Free -lt 8GB){throw 'At least 8 GiB free local disk is required for online setup; models are excluded.'}
+        $answer=Read-Host 'SETUP will install pinned Python/npm dependencies and create an isolated Docker project. Type SETUP to authorize, or Enter to cancel'
+        if($answer -cne 'SETUP'){Write-Host 'Cancelled; no installation changes.';exit 0}
+        if((Test-Path $install) -and -not (Test-Path (Join-Path $install 'installation.json'))){throw 'Unidentified existing installation/data. Nothing will be overwritten.'}
+        if(-not (Test-Path $install)){New-Item -ItemType Directory -Path $install | Out-Null;@{id=$version.id;project=('eims-coop-'+[guid]::NewGuid().ToString('N').Substring(0,12));migrated=$false} | ConvertTo-Json | Set-Content (Join-Path $install 'installation.json')}
+        if(-not (Test-Path $private)){New-Item -ItemType Directory -Path $private | Out-Null}
+        Protect-PrivateDirectory $private
+        $state=Get-Content (Join-Path $install 'installation.json') -Raw | ConvertFrom-Json
+        if($state.id -ne $version.id){throw 'Existing installation identity mismatch.'}
+        if(-not (Test-Path $release)){[void](Copy-VerifiedPackage $payload $release)}else{[void](Test-Package $release)}
+        $envPath=Join-Path $private '.env'
+        if(-not (Test-Path $envPath)){
+            if(Test-Path (Join-Path $private 'Data')){throw 'Existing initialized data without credentials. Do not regenerate or reset accounts.'}
+            $values=@{EIMS_DB_PASSWORD=(New-Secret);EIMS_JWT_SECRET_KEY=(New-Secret);EIMS_ADMIN_TOKEN=(New-Secret);EIMS_ADMIN_PASSWORD=(New-Secret);EIMS_MINIO_ACCESS_KEY=('eims'+(New-Secret).Substring(0,20));EIMS_MINIO_SECRET_KEY=(New-Secret);EIMS_ENVIRONMENT='production';EIMS_AUTH_MODE='secure';EIMS_DB_HOST='127.0.0.1';EIMS_DB_PORT='18543';EIMS_DB_USER='eims_user';EIMS_DB_NAME='eims_handover';EIMS_REDIS_HOST='127.0.0.1';EIMS_REDIS_PORT='16379';EIMS_MINIO_ENDPOINT='127.0.0.1:19000';EIMS_CORS_ORIGINS='["http://127.0.0.1:13101"]';EIMS_LOG_LEVEL='INFO';HF_HUB_OFFLINE='1';TRANSFORMERS_OFFLINE='1';HTTP_PROXY='http://127.0.0.1:9';HTTPS_PROXY='http://127.0.0.1:9';NO_PROXY='127.0.0.1,localhost';NEXT_PUBLIC_EIMS_API_URL='http://127.0.0.1:18101';EIMS_DATA_ROOT=((Join-Path $private 'Data').Replace('\','/'))}
+            $values.GetEnumerator() | Sort-Object Key | ForEach-Object {$_.Key+'='+$_.Value} | Set-Content -LiteralPath $envPath -Encoding ASCII
+            @('EIMS local administrator','Username: admin','Password: '+$values.EIMS_ADMIN_PASSWORD,'Private local account only. Never send this file with the USB.') | Set-Content -LiteralPath (Join-Path $private 'LOCAL_ADMIN.txt')
+            New-Item -ItemType Directory -Path (Join-Path $private 'Data') | Out-Null
+        }
+        # Codex may run inside an MSIX container. Docker runs outside that
+        # container, so its bind mount must use the actual filesystem path.
+        $physicalData=& $script:HandoverPython -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' (Join-Path $private 'Data')
+        if($LASTEXITCODE -ne 0 -or -not $physicalData){throw 'Cannot resolve isolated Docker data path.'}
+        $configuredData=@(Get-Content $envPath | Where-Object {$_ -like 'EIMS_DATA_ROOT=*'})
+        $physicalLine='EIMS_DATA_ROOT='+$physicalData.Trim().Replace('\','/')
+        if($configuredData.Count -ne 1){throw 'Ambiguous data configuration; preserve data and ask the owner.'}
+        if($configuredData[0] -ne $physicalLine){
+            if($state.migrated){throw 'Initialized Docker data path differs. No path or credentials were overwritten.'}
+            (Get-Content $envPath) | ForEach-Object {if($_ -like 'EIMS_DATA_ROOT=*'){$physicalLine}else{$_}} | Set-Content $envPath -Encoding ASCII
+        }
+        # Dependency installation/build must retain the operator's network/IT
+        # proxy. The private offline proxy is for application execution only.
+        $env:NEXT_PUBLIC_EIMS_API_URL='http://127.0.0.1:18101'
+        if(-not (Test-Path $app)){
+            Expand-Archive -LiteralPath (Join-Path $release 'Source_Code/EIMS_Source.zip') -DestinationPath $app
+        }
+        $python=Join-Path $install 'venv/Scripts/python.exe'
+        if(-not (Test-Path $python)){Invoke-Checked $script:HandoverPython @('-m','venv',(Join-Path $install 'venv')) 'create-venv'}
+        Invoke-Checked $python @('-m','pip','install','--timeout','30','--retries','1','--requirement',(Join-Path $release 'Tools/requirements-handover.txt')) 'install-python'
+        Push-Location (Join-Path $app 'clients/dashboard')
+        try{
+            $lockHash=(Get-FileHash -LiteralPath 'package-lock.json').Hash
+            $stampPath=Join-Path $private 'frontend-install.json'
+            $stamp=$null
+            if(Test-Path $stampPath){$stamp=Get-Content $stampPath -Raw | ConvertFrom-Json}
+            if($stamp -and $stamp.lockHash -eq $lockHash -and (Test-Path 'node_modules/.package-lock.json')){
+                Invoke-Checked (Get-Command npm.cmd).Source @('ls','--depth=0') 'npm-resume-check'
+                Write-Host 'Reusing the successful locked frontend installation; no npm ci retry.'
+            } else {
+                Invoke-Checked (Get-Command npm.cmd).Source @('ci','--no-audit','--no-fund','--fetch-timeout=30000','--fetch-retries=0') 'npm-ci'
+                @{lockHash=$lockHash;installedAt=(Get-Date).ToUniversalTime().ToString('o')} | ConvertTo-Json | Set-Content $stampPath
+            }
+            Invoke-Checked (Get-Command node.exe).Source @('node_modules/typescript/bin/tsc','--noEmit') 'typescript'
+            Invoke-Checked (Get-Command npm.cmd).Source @('run','build') 'frontend-build'
+        }finally{Pop-Location}
+        Import-PrivateEnvironment
+        $ownedCore=@(& docker.exe ps -q --filter ('label=com.docker.compose.project='+$state.project))
+        if($LASTEXITCODE -ne 0){throw 'Cannot verify Docker project ownership for setup resume.'}
+        foreach($port in @(18543,16379,19000,19001)){
+            # First initialization must not attach to any unrelated listener.
+            # Resume may already own these ports. Compose still rejects any
+            # unrelated conflicting bind; it never attaches to that listener.
+            if(-not $state.migrated -and -not $ownedCore.Count){Test-PortFree $port}
+        }
+        Invoke-Compose @('up','-d','--wait','--wait-timeout','120') 'setup-infrastructure'
+        if(-not $state.migrated){
+            Push-Location $app
+            try{Invoke-Checked $python @('-m','alembic','upgrade','head') 'initial-migration'}finally{Pop-Location}
+            $state.migrated=$true;$state | ConvertTo-Json | Set-Content (Join-Path $install 'installation.json')
+        }
+        Start-Instance
+        Write-Host ('First sign-in: admin; generated password is in the PRIVATE local file '+(Join-Path $private 'LOCAL_ADMIN.txt'))
+        exit 0
+    }
+    if(-not (Test-Path (Join-Path $install 'installation.json'))){if($Action -eq 'Stop'){Write-Host 'Already stopped; installation absent.';exit 0};throw 'Run SETUP.bat first.'}
+    $state=Get-Content (Join-Path $install 'installation.json') -Raw | ConvertFrom-Json
+    if($state.id -ne $version.id){throw 'Installation identity mismatch.'}
+    if(-not (Test-Path (Join-Path $private '.env'))){throw 'Private configuration is missing. Preserve existing data and ask the owner; do not regenerate accounts.'}
+    if($Action -eq 'Stop'){Stop-Instance}else{Start-Instance}
+    exit 0
+}catch{
+    if($install -and (Test-Path -LiteralPath $install)){Write-Status 'NOT_READY' 'Setup/start requires attention; read the private local logs and handover guide.'}
+    Write-Host ('[NOT READY] '+$_.Exception.Message) -ForegroundColor Red
+    exit 2
+}

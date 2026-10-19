@@ -25,9 +25,11 @@ def _field(text: str, *patterns: str) -> str:
 
 def _fortinet_field(text: str, key: str) -> str:
     """Extract key=value or key="value" from Fortinet log line."""
-    match = re.search(rf'(?:^|\s){re.escape(key)}="([^"]*)"', text)
+    match = re.search(rf'(?:^|\s){re.escape(key)}="((?:\\.|[^"\\])*)"', text)
     if match:
-        return match.group(1).strip()
+        return re.sub(r'\\(["\\])', r'\1', match.group(1)).strip()
+    if re.search(rf'(?:^|\s){re.escape(key)}="', text):
+        return ''
     match = re.search(rf'(?:^|\s){re.escape(key)}=(\S+)', text)
     if match:
         return match.group(1).strip()
@@ -91,10 +93,12 @@ def _parse_fortinet(text: str) -> EventMetadata:
         computer=devname,
         isCritical=is_critical,
         faultingApp="",
-        diagnosticCode=f"{log_type}/{subtype}" if log_type and subtype else "",
-        attributes={"codeType": "log_category", **{
+        diagnosticCode=(log_id if log_type == 'event' and subtype == 'system' and log_id in {'0100044544','0100044545','0100044546','0100044547'}
+                        else f"{log_type}/{subtype}" if log_type and subtype else ""),
+        attributes={"codeType": ('official_log_id' if log_type == 'event' and subtype == 'system' and log_id in {'0100044544','0100044545','0100044546','0100044547'} else 'log_category'), **{
             key: _fortinet_field(text, key) for key in
-            ("logid", "type", "subtype", "level", "action", "srcip", "dstip", "service", "policyid", "devname", "msg", "status", "reason")
+            ("logid", "type", "subtype", "level", "action", "srcip", "dstip", "service", "policyid", "devname", "msg", "status", "reason",
+             "cfgpath", "cfgobj", "cfgattr", "cfgtid", "user", "ui", "vd", "tz", "srcintf", "dstintf", "policyname", "devid", "eventtime", "file", "line")
         }},
     )
 

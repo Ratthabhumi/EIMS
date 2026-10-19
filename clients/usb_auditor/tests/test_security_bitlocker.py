@@ -74,9 +74,9 @@ def test_missing_recovery_protector():
     assert "no recovery protector" in result["detail"]
 
 
-def test_bitlocker_unavailable_defaults_fail():
+def test_bitlocker_unavailable_is_unknown():
     result = _evaluate("")
-    assert result["status"] == "FAIL"
+    assert result["status"] == "UNKNOWN"
     assert result["protection_status"] == "Unavailable"
 
 
@@ -85,7 +85,7 @@ def test_unknown_protection_warns():
         "protection_status": "Unknown",
         "volume_status": "Unknown",
     })
-    assert result["status"] == "WARNING"
+    assert result["status"] == "UNKNOWN"
 
 
 def test_decryption_in_progress_fails():

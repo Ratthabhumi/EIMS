@@ -56,7 +56,7 @@ LOG_FILE: Path = LOGS_DIR / "auditor.log"   # fallback (used if called outside m
 #                   failure is strictly non-fatal, so an unreachable backend
 #                   never blocks an audit.
 # EIMS_API_URL    → base URL of the EIMS backend (no trailing slash needed).
-EIMS_AUTO_SYNC_DEFAULT: str = "true"
+EIMS_AUTO_SYNC_DEFAULT: str = "false"
 EIMS_API_URL: str = os.getenv("EIMS_API_URL", "http://localhost:8000").strip().rstrip("/")
 
 

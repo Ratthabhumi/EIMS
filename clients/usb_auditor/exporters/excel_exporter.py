@@ -320,7 +320,10 @@ def export_summary() -> Path:
     ws.auto_filter.ref = ws.dimensions
 
     # ── Save ─────────────────────────────────────────────────────────────────
-    output_path = BASE_DIR / "Summary.xlsx"
+    output_path = REPORTS_DIR / "Summary.xlsx"
+    if output_path.exists():
+        from uuid import uuid4
+        output_path = REPORTS_DIR / ('Summary-' + uuid4().hex + '.xlsx')
     wb.save(output_path)
     logger.info("Summary.xlsx saved: %s (%d machine(s))", output_path, len(reports))
 

@@ -1,0 +1,6 @@
+OWNER AUTHORIZATION TEMPLATE — NOT AN AUTHORIZATION
+
+Record the authorized recipient, scope, source revision {REVISION}, limitations,
+and the owner's actual approval locally before an internal handover.
+Save the approved record as OWNER_HANDOVER_AUTHORIZATION.txt beside this template.
+Do not commit private consent records. This template does not grant permission.

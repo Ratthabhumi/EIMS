@@ -106,7 +106,9 @@ class TestParseEvents:
         assert _parse_events(None) == []
 
     def test_invalid_json(self):
-        assert _parse_events("not json") == []
+        import pytest
+        with pytest.raises(ValueError):
+            _parse_events("not json")
 
     def test_single_event(self):
         event = {
@@ -188,7 +190,7 @@ class TestCollectEventLogs:
         monkeypatch.setattr(mod, "_run_powershell", lambda cmd, timeout=30: "")
 
         result = collect_event_logs()
-        assert result["status"] == "ok"
+        assert result["status"] == "error"
         assert result["collected"] == 0
         assert result["events"] == []
 

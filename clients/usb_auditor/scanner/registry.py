@@ -150,18 +150,8 @@ def _evaluate_check(check: dict) -> dict:
 
     # ── Could not read the value ─────────────────────────────────────────────
     if not success:
-        # Special handling for SMBv1:
-        # On modern Windows, the protocol is removed entirely (not just disabled).
-        # A missing key is actually a secure state for SMBv1.
-        if key_name == "SMBv1":
-            result["status"] = "PASS"
-            result["detail"] = (
-                "SMBv1 registry key not found — "
-                "protocol may be fully removed on this Windows version (secure)"
-            )
-        else:
-            result["status"] = "FAIL"
-            result["detail"] = f"Registry key not found or unreadable: {full_path}"
+        result["status"] = "UNKNOWN"
+        result["detail"] = "Value absent or unreadable; effective feature state is not established."
         return result
 
     # ── Value exists — compare against expected ──────────────────────────────

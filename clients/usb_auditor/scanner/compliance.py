@@ -17,7 +17,7 @@ Scoring Model:
         <  80% → "Non-Compliant"
 
 Why 80% threshold?
-    Common industry baseline (CIS Controls, NIST CSF) uses tiered thresholds.
+    This is a project-local threshold, not a CIS/NIST compliance certification.
     80% allows one WARNING without failing compliance,
     but any FAIL on critical checks should be flagged clearly.
 
@@ -56,7 +56,8 @@ def _extract_statuses(data: dict) -> list[str]:
     statuses: list[str] = []
     for check_result in data.values():
         if isinstance(check_result, dict) and "status" in check_result:
-            statuses.append(check_result["status"])
+            if check_result["status"] != "NOT APPLICABLE":
+                statuses.append(check_result["status"])
     return statuses
 
 
@@ -146,12 +147,12 @@ def calculate_compliance(
         overall_score = round((total_earned / total_max) * 100)
 
     # ── Verdict ──────────────────────────────────────────────────────────────
-    verdict = "Compliant" if overall_score >= COMPLIANCE_THRESHOLD else "Non-Compliant"
+    verdict = "Partial" if "UNKNOWN" in all_statuses or not all_statuses else ("Compliant" if overall_score >= COMPLIANCE_THRESHOLD else "Non-Compliant")
 
     # ── Count totals ────────────────────────────────────────────────────────
     pass_count    = all_statuses.count("PASS")
     warning_count = all_statuses.count("WARNING")
-    fail_count    = sum(1 for s in all_statuses if s in ("FAIL", "UNKNOWN"))
+    fail_count    = all_statuses.count("FAIL")
 
     result = {
         "score":         overall_score,
@@ -160,6 +161,8 @@ def calculate_compliance(
         "pass_count":    pass_count,
         "warning_count": warning_count,
         "fail_count":    fail_count,
+        "unknown_count": all_statuses.count("UNKNOWN"),
+        "policy_scope": "local_baseline_not_universal_certification",
         "breakdown": {
             "security": {
                 "score":  domain_score(security_statuses),

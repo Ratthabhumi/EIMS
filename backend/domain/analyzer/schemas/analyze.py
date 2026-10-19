@@ -144,6 +144,7 @@ class StatsResponse(BaseModel):
     totalLogs: int = 0
     criticalErrors: int = 0
     avgSearchTimeSec: float = 0.0
+    avgSearchTimeMs: Optional[float] = None
     topWeeklyError: Optional[TopError] = None
     dailyTrends: List[DailyTrend] = []
     typeDistribution: List[TypeDistribution] = []

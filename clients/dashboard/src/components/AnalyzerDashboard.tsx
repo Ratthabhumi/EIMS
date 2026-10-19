@@ -11,7 +11,8 @@ const COLORS = ["#7B8F9F", "#6B9B7B", "#C2856E", "#8A997B", "#BF6B6A", "#9C9993"
 interface Stats {
   totalLogs: number;
   criticalErrors: number;
-  avgSearchTimeSec: number;
+  avgSearchTimeSec?: number;
+  avgSearchTimeMs?: number;
   dailyTrends: { date: string; count: number }[];
   categoryStats?: { name: string; value: number }[];
   providerStats?: { name: string; value: number }[];
@@ -46,6 +47,20 @@ export default function AnalyzerDashboard({ refreshTrigger = 0, avgSearchTimeMs 
     ? stats.categoryStats
     : (stats.providerStats || []);
 
+  const formatSearchTime = (ms?: number | null, sec?: number | null) => {
+    if (ms !== undefined && ms !== null) {
+      if (ms <= 0) return "0 ms";
+      if (ms < 10) return `${ms.toFixed(1)} ms`;
+      return `${Math.round(ms).toLocaleString()} ms`;
+    }
+    if (sec !== undefined && sec !== null && sec > 0) {
+      const msVal = sec * 1000;
+      if (msVal < 10) return `${msVal.toFixed(1)} ms`;
+      return `${Math.round(msVal).toLocaleString()} ms`;
+    }
+    return "—";
+  };
+
   return (
     <div className="w-full space-y-4">
       {/* Metric Cards */}
@@ -74,9 +89,13 @@ export default function AnalyzerDashboard({ refreshTrigger = 0, avgSearchTimeMs 
           <div>
             <p className="text-eims-text-secondary text-xs font-medium uppercase tracking-wider mb-1">Avg Search Time</p>
             <h3 className="text-2xl font-bold text-eims-text">
-              {avgSearchTimeMs !== null && avgSearchTimeMs !== undefined
-                ? `${avgSearchTimeMs < 1 ? avgSearchTimeMs.toFixed(1) : Math.round(avgSearchTimeMs)} ms`
-                : "—"}
+              {stats.avgSearchTimeMs !== undefined && stats.avgSearchTimeMs !== null
+                ? formatSearchTime(stats.avgSearchTimeMs)
+                : stats.avgSearchTimeSec !== undefined && stats.avgSearchTimeSec !== null
+                  ? formatSearchTime(null, stats.avgSearchTimeSec)
+                  : avgSearchTimeMs !== null && avgSearchTimeMs !== undefined
+                    ? formatSearchTime(avgSearchTimeMs)
+                    : "—"}
             </h3>
           </div>
           <div className="p-2.5 bg-teal-500/10 border border-teal-500/20 text-teal-500/80 dark:text-[#78B096] rounded-lg">

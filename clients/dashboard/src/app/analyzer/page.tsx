@@ -19,7 +19,7 @@ export default function AnalyzerPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [language, setLanguage] = useState("th");
+  const [language, setLanguage] = useState("en");
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -399,7 +399,7 @@ export default function AnalyzerPage() {
             {uploadMode === "bundle" ? (
               <div>
                 <div
-                  className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
+                  className="border-2 border-dashed border-eims-border rounded-lg p-4 sm:p-5 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
                   onClick={() => bundleInputRef.current?.click()}
                   role="button"
                   aria-label="Choose evidence bundle files"
@@ -407,9 +407,12 @@ export default function AnalyzerPage() {
                   tabIndex={0}
                 >
                   <input type="file" aria-label="Select evidence bundle files" multiple className="hidden" ref={bundleInputRef} onChange={handleBundleChange} accept=".log,.txt,.html,.htm,.xml,.csv,.evtx,.json" />
-                  <FileText className="w-7 h-7 text-eims-text-muted mx-auto mb-2" />
-                  <p className="text-xs font-medium text-eims-text">Click to add files (up to 12)</p>
-                  <p className="text-xs text-eims-text-muted mt-1">LOG, TXT, HTML, XML, CSV, EVTX, JSON · 5 MiB each · 30 MiB total</p>
+                  <FileText className="w-6 h-6 text-eims-text-muted mx-auto mb-2" />
+                  <p className="text-xs font-medium text-eims-text truncate max-w-full px-1">Click to add files (up to 12)</p>
+                  <div className="text-[11px] leading-relaxed text-eims-text-muted mt-1.5 break-words max-w-full">
+                    <span>LOG, TXT, HTML, XML, CSV, EVTX, JSON</span>
+                    <span className="block text-[10px] text-eims-text-muted/80 mt-0.5">5 MiB each · 30 MiB total</span>
+                  </div>
                 </div>
                 {bundleFiles.length > 0 && (
                   <ul className="mt-2 space-y-1.5 max-h-40 overflow-y-auto">
@@ -431,7 +434,7 @@ export default function AnalyzerPage() {
               </div>
             ) : uploadMode === "file" ? (
               <div
-                className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
+                className="border-2 border-dashed border-eims-border rounded-lg p-4 sm:p-5 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
                 role="button"
                 aria-label="Choose evidence file"
                 onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
@@ -440,9 +443,12 @@ export default function AnalyzerPage() {
                 tabIndex={0}
               >
                 <input type="file" aria-label="Select evidence file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".png,.jpg,.jpeg,.evtx,.txt,.log,.xml,.csv,.html,.htm,.json" />
-                <FileText className="w-7 h-7 text-eims-text-muted mx-auto mb-2" />
-                <p className="text-xs font-medium text-eims-text">{file ? file.name : "Click or paste (Ctrl+V) image"}</p>
-                <p className="text-xs text-eims-text-muted mt-1">Up to 5 MiB · EVTX, UTF-8 text/log/XML/CSV/HTML/JSON, PNG/JPEG (8 MP)</p>
+                <FileText className="w-6 h-6 text-eims-text-muted mx-auto mb-2" />
+                <p className="text-xs font-medium text-eims-text truncate max-w-full px-1">{file ? file.name : "Click to upload or paste (Ctrl+V)"}</p>
+                <div className="text-[11px] leading-relaxed text-eims-text-muted mt-1.5 break-words max-w-full">
+                  <span>EVTX, LOG, TXT, XML, CSV, JSON, PNG/JPG</span>
+                  <span className="block text-[10px] text-eims-text-muted/80 mt-0.5">Up to 5 MiB · PNG/JPEG (8 MP)</span>
+                </div>
               </div>
             ) : (
               <textarea

@@ -1177,14 +1177,14 @@
   },
   {
     "event_id": "1129",
-    "title": "Group Policy DNS Lookup Failed",
+    "title": "Group Policy Connectivity Failure",
     "provider": "Microsoft-Windows-GroupPolicy",
     "category": "Group Policy",
     "severity": "Error",
-    "description": "Group Policy could not be processed because DNS lookup for the domain/DC failed.",
+    "description": "Group Policy processing reports domain-controller connectivity difficulty; inspect the original message.",
     "keywords": ["group policy", "gpo", "dns", "lookup failed", "dc"],
     "related_events": ["1054", "1014", "1015"],
-    "operator_context": "Root cause is DNS; check DC SRV records, preferred DNS server config, and connectivity to resolve the FQDN.",
+    "operator_context": "DNS is only one possible check. Preserve the message and inspect domain-controller/network readiness; no root cause is confirmed by Event ID alone.",
     "source": "OPERATIONAL_EVENT_CATALOG"
   },
   {

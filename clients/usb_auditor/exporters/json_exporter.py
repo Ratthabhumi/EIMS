@@ -24,12 +24,27 @@ Immutability:
 
 import json
 import logging
+import re
+from uuid import uuid4
 from datetime import datetime, timezone
 from pathlib import Path
 
 from config.settings import REPORTS_DIR
 
 logger = logging.getLogger(__name__)
+
+
+def redact_secrets(value):
+    """Exclude legacy secret fields and recovery passwords from saved evidence."""
+    if isinstance(value, dict):
+        return {key: redact_secrets(item) for key, item in value.items()
+                if re.sub(r"[^a-z]", "", key.lower()) not in
+                {"recoverykey", "recoverypassword", "password", "accesstoken", "secretkey"}}
+    if isinstance(value, list):
+        return [redact_secrets(item) for item in value]
+    if isinstance(value, str):
+        return re.sub(r"(?<!\d)(?:\d{6}-){7}\d{6}(?!\d)", "[REDACTED]", value)
+    return value
 
 
 def save_report(
@@ -40,6 +55,7 @@ def save_report(
     compliance: dict,
     setup_verify: dict | None = None,
     event_logs: dict | None = None,
+    firewall_evidence: dict | None = None,
 ) -> Path:
     """
     Assemble all scan results into a single report dict and save as JSON.
@@ -67,29 +83,20 @@ def save_report(
     """
     # ── Build filename ───────────────────────────────────────────────────────
     computer_name = system.get("computer_name", "UNKNOWN")
-    timestamp_str = datetime.now().strftime("%d-%m-%Y_%H.%M")
+    timestamp_str = datetime.now().strftime("%d-%m-%Y_%H.%M.%S.%f") + "_" + uuid4().hex[:8]
 
     # Sanitize computer name: replace any character that's invalid in filenames
     safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in computer_name)
     filename = f"{safe_name}_{timestamp_str}.json"
     filepath = REPORTS_DIR / filename
 
-    # ── Remove old reports for same machine (1 machine = 1 file) ────────────
-    # Each audit overwrites the previous one so Excel always shows one row
-    # per machine, not one row per run.
-    for old_file in REPORTS_DIR.glob(f"{safe_name}_*.json"):
-        try:
-            old_file.unlink()
-            logger.info("Removed old report: %s", old_file.name)
-        except OSError as exc:
-            logger.warning("Could not remove old report '%s': %s", old_file.name, exc)
-
     # ── Assemble report payload ──────────────────────────────────────────────
     report = {
         "metadata": {
-            "auditor_version": "1.0.0",
+            "auditor_version": "1.1.0",
             "report_format":   "1",
             "generated_at":    datetime.now(timezone.utc).isoformat(),
+            "event_evidence_status": (event_logs or {}).get("status", "unavailable"),
         },
         "system":           system,
         "security":         security,
@@ -102,14 +109,16 @@ def save_report(
 
     if event_logs is not None:
         report["event_logs"] = event_logs
+    if firewall_evidence is not None:
+        report['firewall_evidence'] = firewall_evidence
 
     # ── Write JSON ───────────────────────────────────────────────────────────
     # indent=2   → human-readable (important for audit review)
     # ensure_ascii=False → preserve Thai/Unicode characters in computer names
     # We do NOT use mode="w" with exist_ok — if the file exists, something is wrong.
     try:
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(report, f, indent=2, ensure_ascii=False, default=str)
+        with open(filepath, "x", encoding="utf-8") as f:
+            json.dump(redact_secrets(report), f, indent=2, ensure_ascii=False, default=str)
 
         logger.info("Report saved: %s", filepath)
         return filepath

@@ -30,6 +30,7 @@ from config.settings import (
     EVENT_LOG_MAX_RECORDS,
 )
 from config import settings
+from exporters.json_exporter import redact_secrets
 
 logger = logging.getLogger(__name__)
 
@@ -58,21 +59,24 @@ def _run_powershell(command: str, timeout: int = 30) -> str:
     """
     try:
         result = subprocess.run(
-            ["powershell", "-NonInteractive", "-NoProfile", "-Command", command],
+            ["powershell", "-NonInteractive", "-NoProfile", "-Command",
+             "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); " + command],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=timeout,
         )
+        if result.returncode != 0:
+            raise RuntimeError("Event query failed; check permissions and channel availability")
         return result.stdout.strip()
     except subprocess.TimeoutExpired:
         logger.warning("PowerShell Get-WinEvent timed out after %ds", timeout)
-        return ""
+        raise RuntimeError("Event query timed out") from None
     except FileNotFoundError:
         logger.error("PowerShell executable not found on PATH")
-        return ""
-    except Exception as exc:
-        logger.error("Unexpected PowerShell error: %s", exc)
-        return ""
+        raise RuntimeError("PowerShell unavailable") from None
+    except (OSError, UnicodeError):
+        raise RuntimeError("Event query unavailable") from None
 
 
 def _build_powershell_command(hours: int, max_records: int) -> str:
@@ -88,12 +92,14 @@ def _build_powershell_command(hours: int, max_records: int) -> str:
     fields = _SELECT_FIELDS
 
     return (
-        f"$start = [DateTime]::Parse('{start_time}'); "
+        "$ErrorActionPreference='Stop'; try { "
+        f"$start = [DateTime]::Parse('{start_time}Z').ToLocalTime(); "
         f"Get-WinEvent -FilterHashtable @{{LogName={channels}; "
         f"StartTime=$start; Level=@({levels})}} "
         f"-MaxEvents {max_records} "
         f"| Select-Object {fields} "
         f"| ConvertTo-Json -Compress -Depth 1"
+        " } catch { if ($_.FullyQualifiedErrorId -like 'NoMatchingEventsFound*') { '[]' } else { exit 1 } }"
     )
 
 
@@ -127,14 +133,17 @@ def _parse_events(raw_json: str) -> list[dict]:
     try:
         data = json.loads(raw_json)
     except (json.JSONDecodeError, TypeError):
-        logger.warning("Failed to parse Get-WinEvent JSON output")
-        return []
+        raise ValueError("Invalid event response") from None
 
     if isinstance(data, dict):
         data = [data]
 
+    if not isinstance(data, list):
+        raise ValueError("Invalid event response type")
     events = []
     for item in data:
+        if not isinstance(item, dict):
+            raise ValueError("Invalid event record")
         event = {
             "occurrence_time": _parse_occurrence_time(item.get("TimeCreated")),
             "event_id": item.get("Id"),
@@ -146,7 +155,7 @@ def _parse_events(raw_json: str) -> list[dict]:
         }
         events.append(event)
 
-    return events
+    return redact_secrets(events)
 
 
 def _truncate_message(message: str, max_length: int = 500) -> str:
@@ -198,6 +207,8 @@ def collect_event_logs() -> dict:
         raw_output = _run_powershell(command, timeout=30)
 
         if not raw_output:
+            raise RuntimeError("No event response; collection was not verified")
+        if raw_output == "[]":
             return {
                 "enabled": True,
                 "collection_hours": hours,
@@ -219,6 +230,7 @@ def collect_event_logs() -> dict:
             "channels": list(_CHANNELS),
             "levels": list(_LEVELS),
             "collected": len(events),
+            "possibly_truncated": len(events) >= max_records,
             "status": "ok",
             "message": f"Collected {len(events)} events from {len(_CHANNELS)} channels",
             "events": events,

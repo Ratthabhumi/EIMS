@@ -47,12 +47,12 @@ def _run_powershell(command: str, timeout: int = 10) -> str:
     """
     try:
         result = subprocess.run(
-            ["powershell", "-NonInteractive", "-NoProfile", "-Command", command],
+            ["powershell", "-NonInteractive", "-NoProfile", "-Command", "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); " + command],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=timeout,
         )
-        return result.stdout.strip()
+        return result.stdout.strip() if result.returncode == 0 else ""
     except subprocess.TimeoutExpired:
         logger.warning("PowerShell command timed out: %s", command)
         return ""
@@ -99,7 +99,7 @@ def _check_firewall() -> dict:
 
     if not output:
         return {
-            "status": "FAIL",
+            "status": "UNKNOWN",
             "detail": "Could not retrieve Firewall status",
             "profiles": {},
         }
@@ -110,11 +110,13 @@ def _check_firewall() -> dict:
         if len(parts) >= 2:
             profile_name = parts[0]   # e.g. "Domain"
             enabled_str = parts[1]    # "True" or "False"
+            if enabled_str.lower() not in {'true', 'false'}:
+                return {'status':'UNKNOWN', 'detail':'Firewall profile state is not a verified boolean', 'profiles':{}}
             profiles[profile_name] = enabled_str.lower() == "true"
 
-    if not profiles:
+    if set(profiles) != {"Domain", "Private", "Public"}:
         return {
-            "status": "FAIL",
+            "status": "UNKNOWN",
             "detail": "Could not parse Firewall profile data",
             "profiles": {},
         }
@@ -170,7 +172,7 @@ def _check_defender() -> dict:
 
     if not output:
         return {
-            "status": "FAIL",
+            "status": "UNKNOWN",
             "detail": "Could not retrieve Defender status (may require Admin)",
             "av_enabled": False,
             "realtime": False,
@@ -184,6 +186,8 @@ def _check_defender() -> dict:
             key, _, value = line.partition(":")
             parsed[key.strip()] = value.strip()
 
+    if not {'AntivirusEnabled', 'RealTimeProtectionEnabled', 'AntivirusSignatureAge'} <= parsed.keys():
+        return {'status': 'UNKNOWN', 'detail': 'Defender data incomplete; antivirus state not established'}
     av_enabled = parsed.get("AntivirusEnabled", "False").lower() == "true"
     realtime   = parsed.get("RealTimeProtectionEnabled", "False").lower() == "true"
 
@@ -327,8 +331,8 @@ def _evaluate_bitlocker(fields: dict) -> dict:
     """
     if not fields.get("bitlocker_available"):
         return {
-            "status": "FAIL",
-            "detail": "BitLocker not available (requires Windows Pro/Enterprise)",
+            "status": "UNKNOWN",
+            "detail": "BitLocker unavailable or unreadable (requires Windows Pro/Enterprise)",
             "protection_status": "Unavailable",
             "volume_status": "Unavailable",
             "encryption_percentage": None,
@@ -397,7 +401,7 @@ def _evaluate_bitlocker(fields: dict) -> dict:
         }
 
     return {
-        "status": "WARNING",
+        "status": "UNKNOWN",
         "detail": "BitLocker status is Unknown — may be suspended",
         **base,
     }
@@ -475,7 +479,7 @@ def _check_windows_update() -> dict:
 
     if not output:
         return {
-            "status": "FAIL",
+            "status": "UNKNOWN",
             "detail": "Could not retrieve Windows Update history",
             "last_patch": "Unknown",
             "days_since": -1,
@@ -488,7 +492,7 @@ def _check_windows_update() -> dict:
         last_patch_str = output
     except ValueError:
         return {
-            "status": "FAIL",
+            "status": "UNKNOWN",
             "detail": f"Could not parse patch date: '{output}'",
             "last_patch": "Unknown",
             "days_since": -1,
@@ -547,7 +551,7 @@ def get_security_info() -> dict:
             # Unexpected error → FAIL with error message preserved for debugging
             logger.error("Security check '%s' failed unexpectedly: %s", check_name, exc)
             security[check_name] = {
-                "status": "FAIL",
+                "status": "UNKNOWN",
                 "detail": f"Unexpected error: {exc}",
             }
 

@@ -79,7 +79,11 @@ def _get_service_status(service_name: str) -> dict:
         display_name: str = info.get("display_name", label)
 
         # ── Determine audit result ───────────────────────────────────────
-        if actual_state == expected:
+        if actual_state == 'unknown' or start_type == 'unknown':
+            audit_status, detail = 'UNKNOWN', 'Service state/start mode unavailable'
+        elif service_name in {'BITS', 'wuauserv'} and actual_state == 'stopped' and start_type in {'manual', 'demand', 'demand_start'}:
+            audit_status, detail = 'NOT APPLICABLE', 'Demand-start service is stopped; this alone is not a violation.'
+        elif actual_state == expected:
             audit_status = "PASS"
             detail = f"{display_name} is {actual_state} (expected: {expected})"
         else:
@@ -107,7 +111,7 @@ def _get_service_status(service_name: str) -> dict:
         return {
             "service_name":   service_name,
             "display_name":   label,
-            "status":         "FAIL",
+            "status":         "UNKNOWN",
             "actual_state":   "not_found",
             "expected_state": expected,
             "start_type":     "unknown",
@@ -120,7 +124,7 @@ def _get_service_status(service_name: str) -> dict:
         return {
             "service_name":   service_name,
             "display_name":   label,
-            "status":         "FAIL",
+            "status":         "UNKNOWN",
             "actual_state":   "access_denied",
             "expected_state": expected,
             "start_type":     "unknown",
@@ -132,7 +136,7 @@ def _get_service_status(service_name: str) -> dict:
         return {
             "service_name":   service_name,
             "display_name":   label,
-            "status":         "FAIL",
+            "status":         "UNKNOWN",
             "actual_state":   "error",
             "expected_state": expected,
             "start_type":     "unknown",

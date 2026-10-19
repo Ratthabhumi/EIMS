@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import re
 import shutil
 import subprocess
 import sys
@@ -62,6 +63,7 @@ SOURCE_ALLOWLIST: tuple[str, ...] = (
     "scanner/__init__.py",
     "scanner/compliance.py",
     "scanner/event_logs.py",
+    "scanner/firewall_evidence.py",
     "scanner/registry.py",
     "scanner/security.py",
     "scanner/services.py",
@@ -135,6 +137,7 @@ def version_text(repo_root: Path, runtime_sha: str | None = None) -> str:
     commit_short = commit[:12] if commit and commit != "Unknown" else "Unknown"
     lines = [
         "EIMS Portable USB Auditor",
+        "Auditor Release    : 1.1.0 (one-click administrator, private offline evidence)",
         "Build Time UTC     : " + datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "Git Commit         : " + commit,
         "Git Commit Short   : " + commit_short,
@@ -186,6 +189,9 @@ def parse_manifest(manifest_path: Path) -> dict[str, tuple[int, str]]:
         parts = [p.strip() for p in line.split("|")]
         if len(parts) == 3:
             rel, size, sha = parts
+            if (rel in records or '\\' in rel or ':' in rel or rel.startswith('/')
+                    or '..' in Path(rel).parts or not re.fullmatch(r'[a-f0-9]{64}', sha)):
+                raise ValueError('Unsafe or duplicate manifest record')
             records[rel] = (int(size), sha)
     return records
 
@@ -341,6 +347,11 @@ def build_package(offline: bool = False) -> str | None:
 
     print(f"[..]   Staging package: {PACKAGE_DIR}")
     if PACKAGE_DIR.is_dir():
+        if any(p.is_file() and _is_generated_output(p.relative_to(PACKAGE_DIR).as_posix())
+               for p in PACKAGE_DIR.rglob('*')):
+            raise SystemExit('Existing stage contains collected evidence. Preserve it before rebuilding.')
+        if find_problems(PACKAGE_DIR):
+            raise SystemExit('Existing stage changed; preserve and review before rebuilding.')
         print("[..]   Replacing previous staged build (full rebuild)")
         shutil.rmtree(PACKAGE_DIR)
     PACKAGE_DIR.mkdir(parents=True, exist_ok=True)
@@ -358,8 +369,27 @@ def build_package(offline: bool = False) -> str | None:
     if not RUNNER_SOURCE.is_file():
         raise SystemExit(f"[FAIL] Runner missing: {RUNNER_SOURCE}")
     shutil.copy2(RUNNER_SOURCE, PACKAGE_DIR / "Run-EIMS-Audit.bat")
+    shutil.copy2(TOOLS_DIR / "Run-Private-Audit.ps1", PACKAGE_DIR / "Run-Private-Audit.ps1")
+    (PACKAGE_DIR / "PACKAGE_TYPE").write_text("USB_AUDITOR\n", encoding="ascii")
+    shutil.copy2(REPO_ROOT / 'LICENSE', PACKAGE_DIR / 'LICENSE')
+    (PACKAGE_DIR / 'START_HERE.txt').write_text('''USB 1: EIMS read-only Windows Auditor (x64).
+Double-click Run-EIMS-Audit.bat on an authorized target; approve Windows UAC.
+Bundled Python; no Docker or global Python installation. Denied UAC stops safely.
+Collects hardware, device/user identifiers, network/security, services, registry,
+bounded System/Application events and bounded listeners/inbound firewall rules.
+No automatic upload, recovery keys, service changes or firewall-policy changes.
+Reports, logs and Summary.xlsx stay in a new ACL-protected local folder under
+%LOCALAPPDATA%/EIMS-Auditor-Private. The launcher shows the exact location for the elevated Windows account.
+Treat evidence as confidential. Transfer only through company-approved storage.
+Exit 0: saved/pass; 1: saved/compliance findings; 3: partial; 2: failed/cancelled.
+Partial results require engineer review; missing evidence is not a clean bill of health.
+Import JSON manually into Full EIMS Inventory on USB 2. Inventory and Analyzer
+evidence bundles are separate formats. No Windows Security channel is collected.
+Windows Server and clean customer machines: not yet tested.
+''', encoding='utf-8')
 
-    shutil.copytree(RUNTIME_ROOT, PACKAGE_DIR / "runtime" / "python", dirs_exist_ok=True)
+    shutil.copytree(RUNTIME_ROOT, PACKAGE_DIR / "runtime" / "python", dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'pip', 'pip-*', 'pip*.exe', 'Scripts'))
     (PACKAGE_DIR / "runtime" / "python" / RUNTIME_COMPLETE_MARKER.name).unlink(missing_ok=True)
 
     (PACKAGE_DIR / "VERSION.txt").write_text(version_text(REPO_ROOT, runtime_sha), encoding="utf-8")

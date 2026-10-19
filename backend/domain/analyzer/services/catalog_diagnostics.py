@@ -24,6 +24,19 @@ def catalog_summary(source_family: str, text: str, language: str):
     limitations = ["Static reference knowledge does not establish the cause or impact of this record."]
     if entry:
         limitations.append(entry["limitations"])
+    if entry and entry.get('code_type') == 'official_log_id' and meta.sourceFamily == 'fortinet':
+        attrs = meta.attributes
+        policy = attrs.get('cfgpath') == 'firewall.policy'
+        action = attrs.get('action', '').casefold()
+        supported = action in {'add', 'edit', 'delete'} and bool(attrs.get('cfgobj'))
+        state = ('Change Evidence Observed' if attrs.get('cfgpath') and (not policy or supported)
+                 else 'Possible Policy Change — Needs Review' if policy else 'Insufficient Evidence')
+        context = state + ': ' + context
+        if policy and supported:
+            context += ' Observed policy action: ' + action + '; object: ' + attrs['cfgobj'] + '.'
+        if attrs.get('cfgattr'):
+            context += ' Raw attributes: ' + attrs['cfgattr']
+        limitations.append('Before/after baseline and actor authorization are not established. Missing user, timestamps or change attributes must be collected, not inferred.')
     return SolutionSummary(
         overview=("บริบทอ้างอิง (ยังไม่ยืนยันสาเหตุ): " if th else "Reference context (cause unconfirmed): ") + context,
         causes=["ยังไม่มีหลักฐานเพียงพอที่จะยืนยันสาเหตุ" if th else "No root cause is established by this record alone."],

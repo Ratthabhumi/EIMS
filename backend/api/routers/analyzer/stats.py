@@ -31,8 +31,10 @@ async def get_stats(
     daily_trends = { (datetime.utcnow() - timedelta(days=i)).strftime('%Y-%m-%d'): 0 for i in range(6, -1, -1) }
     type_distribution = Counter()
 
+    valid_times = []
     for record in records:
-        total_time += record.search_time_ms or 0
+        if record.search_time_ms is not None:
+            valid_times.append(record.search_time_ms)
         if record.event_metadata:
             meta = EventMetadata(**record.event_metadata)
             if meta.isCritical:
@@ -58,7 +60,8 @@ async def get_stats(
             "count": count
         }
 
-    avg_sec = round(total_time / total / 1000, 2) if total else 0.0
+    avg_ms = round(sum(valid_times) / len(valid_times), 1) if valid_times else 0.0
+    avg_sec = round(avg_ms / 1000.0, 3)
     
     daily_trends_list = [{"date": k, "count": v} for k, v in daily_trends.items()]
     type_dist_list = [{"name": k, "value": v} for k, v in type_distribution.most_common(5)]
@@ -72,6 +75,7 @@ async def get_stats(
         totalLogs=total,
         criticalErrors=critical,
         avgSearchTimeSec=avg_sec,
+        avgSearchTimeMs=avg_ms,
         topWeeklyError=top_weekly_error,
         dailyTrends=daily_trends_list,
         typeDistribution=type_dist_list

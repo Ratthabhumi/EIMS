@@ -1,3 +1,15 @@
+# EIMS USB Auditor 1.1.0 — current portable workflow
+
+Double-click `Run-EIMS-Audit.bat` from the reviewed USB package and approve normal Windows UAC. No typed scan confirmation, global Python, internet or Docker is required. Denied elevation stops without scanning.
+
+The elevated account owns a new private `%LOCALAPPDATA%/EIMS-Auditor-Private/<run-id>` directory. The console prints its actual path. JSON, logs and automatic Excel export remain there; nothing is automatically uploaded or written back to the USB. Alternate administrator credentials can change the account and output location.
+
+Nine stages are retained. Exit codes: 0 saved/pass, 1 saved/findings, 3 partial, 2 fatal/cancelled. UNKNOWN is not a proven security failure. Missing SMBv1 registry data does not establish effective feature state. Organization post-clone observations retain `policy_result` separately from general baseline compliance.
+
+The collector queries bounded System/Application events and read-only firewall evidence, not the Security channel. All earlier JSON reports are retained. Use the reviewed current package, not an older Downloads copy.
+
+## Historical developer notes (earlier workflows; current defaults above take precedence)
+
 # 🛡️ Portable Windows Compliance Auditor
 
 > **DevSecOps Portfolio Project — Version 1.0**  

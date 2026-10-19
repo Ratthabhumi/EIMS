@@ -24,6 +24,7 @@ Design:
 import argparse
 import ctypes
 import logging
+import json
 import socket
 import sys
 from datetime import datetime, timezone
@@ -37,6 +38,7 @@ from scanner.registry       import get_registry_info
 from scanner.setup_verify   import get_setup_verify_info
 from scanner.compliance     import calculate_compliance
 from scanner.event_logs      import collect_event_logs
+from scanner.firewall_evidence import collect_firewall_evidence
 from exporters.json_exporter  import save_report
 from exporters.excel_exporter import export_summary
 from sync.eims_sync           import sync_report
@@ -112,6 +114,7 @@ def parse_args() -> argparse.Namespace:
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    parser.add_argument("--authorized", action="store_true", help="Operator confirmed permission for target and private output")
     parser.add_argument(
         "--export",
         action="store_true",
@@ -141,7 +144,7 @@ def print_banner() -> None:
 
 # ── Scan Pipeline ────────────────────────────────────────────────────────────
 
-def run_scan(logger: logging.Logger) -> int:
+def run_scan(logger: logging.Logger, outcome=None) -> int:
     """
     Execute the full audit pipeline on the current machine.
 
@@ -166,6 +169,7 @@ def run_scan(logger: logging.Logger) -> int:
     print("\n[1/9] Collecting system information...")
     try:
         system = get_system_info()
+        system['collection_privileges'] = 'administrator' if is_admin() else 'standard_user'
         print(f"      [OK]  Computer : {system['computer_name']}")
         print(f"      [OK]  User     : {system['username']}")
         print(f"      [OK]  OS       : {system['windows_edition']}")
@@ -176,13 +180,14 @@ def run_scan(logger: logging.Logger) -> int:
     print("\n[2/9] Auditing Windows Security...")
     try:
         security = get_security_info()
+        network_evidence = collect_firewall_evidence()
         for name, result in security.items():
             if result["status"] == "PASS":
                 icon = "[OK]  "
             elif result["status"] == "WARNING":
                 icon = "[WARN]"
             else:
-                icon = "[FAIL]"
+                icon = "[" + result["status"] + "]"
             print(f"      {icon} {name:<20} -> {result['status']}")
     except Exception as exc:
         logger.critical("FATAL: Security scan failed: %s", exc)
@@ -197,7 +202,7 @@ def run_scan(logger: logging.Logger) -> int:
             elif result["status"] == "WARNING":
                 icon = "[WARN]"
             else:
-                icon = "[FAIL]"
+                icon = "[" + result["status"] + "]"
             print(f"      {icon} {svc_name:<20} -> {result['actual_state']}")
     except Exception as exc:
         logger.critical("FATAL: Services scan failed: %s", exc)
@@ -207,7 +212,7 @@ def run_scan(logger: logging.Logger) -> int:
     try:
         registry = get_registry_info()
         for key_name, result in registry.items():
-            icon = "[OK]  " if result["status"] == "PASS" else "[FAIL]"
+            icon = "[" + result["status"] + "]"
             print(f"      {icon} {key_name:<20} -> {result['status']} (actual: {result['actual']})")
     except Exception as exc:
         logger.critical("FATAL: Registry scan failed: %s", exc)
@@ -222,7 +227,7 @@ def run_scan(logger: logging.Logger) -> int:
             elif result["status"] == "WARNING":
                 icon = "[WARN]"
             else:
-                icon = "[FAIL]"
+                icon = "[" + result["status"] + "]"
             print(f"      {icon} {check_name:<20} -> {result['status']}")
     except Exception as exc:
         logger.critical("FATAL: Setup verification failed: %s", exc)
@@ -261,7 +266,10 @@ def run_scan(logger: logging.Logger) -> int:
 
     print("\n[8/9] Saving JSON Report...")
     try:
-        report_path = save_report(system, security, services, registry, compliance, setup_verify, event_logs)
+        report_path = save_report(system, security, services, registry, compliance, setup_verify, event_logs,
+                                  firewall_evidence=network_evidence)
+        if outcome is not None:
+            outcome['report_path'] = report_path
         print(f"      [OK]  Saved: {report_path}")
     except OSError as exc:
         logger.critical("FATAL: Could not save report: %s", exc)
@@ -292,12 +300,17 @@ def run_scan(logger: logging.Logger) -> int:
         print("      [INFO] Manual import can be used later")
 
     # Return exit code based on compliance verdict
+    if (compliance.get('verdict') == 'Partial' or compliance.get('unknown_count', 0) or not is_admin() or event_logs is None or event_logs.get("status") == "error"
+            or network_evidence.get('status') == 'partial'):
+        return 3  # Report saved; privileged checks or event collection incomplete.
     return 0 if verdict == "Compliant" else 1
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
+    args = parse_args()
+    print('Authorized systems only. Read-only audit; private local evidence destination applies.')
     # ── Build per-machine log file path BEFORE setup_logging ────────────────
     # Use socket.gethostname() here (not get_system_info) to avoid
     # importing scanner before logging is ready.
@@ -311,7 +324,6 @@ def main() -> int:
     logger = logging.getLogger(__name__)
 
     print_banner()
-    args = parse_args()
 
     # Admin warning (non-blocking)
     if not is_admin():
@@ -336,22 +348,49 @@ def main() -> int:
         return exit_code
 
     # ── Normal scan mode ─────────────────────────────────────────────────────
-    exit_code = run_scan(logger)
+    outcome = {}
+    exit_code = run_scan(logger, outcome)
+    excel_path = None
 
     # ── Optional Excel export ─────────────────────────────────────────────────
-    if args.export or args.only_export:
+    if exit_code != 2:
         print("\n[+] Exporting Summary.xlsx...")
         try:
             output = export_summary()
+            excel_path = output
             print(f"    [OK]  Exported: {output}")
         except RuntimeError as exc:
             print(f"    [SKIP] Export skipped: {exc}")
+            exit_code = 3  # JSON may exist, but the requested export is incomplete.
         except OSError as exc:
             logger.error("Export I/O error: %s", exc)
+            exit_code = 3
 
-    print("\n" + "-" * 54)
-    print(f"  Audit complete. Exit code: {exit_code}")
-    print("-" * 54 + "\n")
+    print("\n========================================")
+    print(" EIMS AUDIT COMPLETE" if exit_code != 2 else " EIMS AUDIT ERROR")
+    print("========================================")
+    path = outcome.get('report_path')
+    if path:
+        data = json.loads(path.read_text(encoding='utf-8'))
+        events = data.get('event_logs') or {}
+        network = data.get('firewall_evidence') or {}
+        print("Computer       :", data['system'].get('computer_name', 'Unknown'))
+        print("Privilege      :", 'Administrator' if is_admin() else 'Standard user')
+        print("Inventory      :", 'Partial' if exit_code == 3 else 'Complete')
+        print("Windows Events :", events.get('collected', 'Unavailable'), '| status:', events.get('status', 'unavailable'))
+        if events.get('possibly_truncated'):
+            print("Event limit reached; additional events may exist. Cap:", events.get('max_records'))
+        for label, key in [('TCP Listeners', 'tcp_listeners'), ('UDP Endpoints', 'udp_endpoints'), ('Firewall Rules', 'inbound_rules')]:
+            item = network.get(key) or {}
+            print(f"{label:15}:", len(item.get('records', [])) if item.get('status') == 'ok' else 'Unavailable',
+                  '(capped)' if item.get('truncated') else '')
+        print("Security Checks:", data['compliance']['verdict'], '| local baseline, organization checks separate')
+    print("Audit Result   :", {0:'PASS', 1:'FINDINGS', 3:'PARTIAL', 2:'ERROR'}.get(exit_code, 'ERROR'))
+    print("JSON Report    :", path or 'Not saved')
+    print("Excel Report   :", excel_path or 'Unavailable')
+    if not __import__('config.settings', fromlist=['is_auto_sync_enabled']).is_auto_sync_enabled():
+        print("No automatic network upload was performed.")
+    print("========================================")
 
     return exit_code
 

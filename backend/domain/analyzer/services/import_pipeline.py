@@ -308,6 +308,7 @@ async def _analyze_event(
             api_key,
             description,
             db,
+            channel=event.get('channel', ''),
         )
         final_summary = format_summary_text(solution, language)
 

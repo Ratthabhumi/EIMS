@@ -247,13 +247,16 @@ async def get_history_stats(
         "7045": "System",
     }
     
+    valid_search_times = []
+
     for record in history_records:
         # Critical Errors
         if record.event_metadata and record.event_metadata.get("isCritical", False):
             critical_errors += 1
             
         # Search Time
-        total_search_time += (record.search_time_ms or 0)
+        if record.search_time_ms is not None:
+            valid_search_times.append(record.search_time_ms)
         
         # Provider Stats
         provider = record.provider or "Unknown"
@@ -293,7 +296,8 @@ async def get_history_stats(
             day_str = record.created_at.strftime("%m/%d")
             daily_counts[day_str] = daily_counts.get(day_str, 0) + 1
             
-    avg_search_time = (total_search_time / total_logs / 1000) if total_logs > 0 else 0
+    avg_search_time_ms = (sum(valid_search_times) / len(valid_search_times)) if valid_search_times else 0.0
+    avg_search_time = avg_search_time_ms / 1000.0
     
     provider_stats = [{"name": k, "value": v} for k, v in provider_counts.items()]
     category_stats = [{"name": k, "value": v} for k, v in category_counts.items()]
@@ -307,7 +311,8 @@ async def get_history_stats(
     return {
         "totalLogs": total_logs,
         "criticalErrors": critical_errors,
-        "avgSearchTimeSec": round(avg_search_time, 2),
+        "avgSearchTimeSec": round(avg_search_time, 3),
+        "avgSearchTimeMs": round(avg_search_time_ms, 1),
         "dailyTrends": daily_trends,
         "categoryStats": category_stats,
         "providerStats": provider_stats

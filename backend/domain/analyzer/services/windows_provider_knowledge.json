@@ -1,0 +1,134 @@
+[
+  {
+    "provider": "dnsclient",
+    "event_id": "8016",
+    "channel": "System",
+    "message_pattern": "(?is)register.{0,180}(?:host|a or aaaa|resource record)",
+    "meaning": "The message reports a dynamic DNS host-record registration failure.",
+    "reference": "https://learn.microsoft.com/en-us/windows-server/networking/dns/dynamic-update",
+    "scope": "Message-qualified Windows context; exact product/version must be checked",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "timeservice",
+    "event_id": "129",
+    "channel": "System",
+    "message_pattern": "(?is)ntpclient.{0,200}domain peer",
+    "meaning": "NtpClient reports unsuccessful domain-peer discovery for time synchronization.",
+    "reference": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/error-message-run-w32tm-resync-no-time-data-available",
+    "scope": "Message-qualified Windows context; exact product/version must be checked",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "filtermanager",
+    "event_id": "11",
+    "channel": "System",
+    "message_pattern": "(?is)(?:bypass.{0,50}i/?o|bypassio)",
+    "meaning": "The message concerns a file-system filter and Bypass I/O capability; it is not a disk-controller diagnosis.",
+    "reference": "https://learn.microsoft.com/en-us/answers/questions/1179534/how-to-fix-event-id-11-filtermanager",
+    "scope": "Message-qualified Windows context; exact product/version must be checked",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "grouppolicy",
+    "event_id": "1129",
+    "channel": "System",
+    "message_pattern": "(?is)(?:group policy.{0,350}(?:connectivity|domain controller)|domain controller.{0,200}group policy)",
+    "meaning": "Group Policy processing reports domain-controller connectivity context; the precise cause remains unconfirmed.",
+    "reference": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/group-policy/netlogon-event-id-5719-or-group-policy-event-1129",
+    "scope": "Message-qualified Windows context; exact product/version must be checked",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "servicecontrolmanager",
+    "event_id": "7031",
+    "channel": "System",
+    "message_pattern": "(?is)service.{0,250}terminated unexpectedly",
+    "meaning": "The named service terminated unexpectedly. Retain its name and recovery action from the message.",
+    "reference": "https://learn.microsoft.com/en-us/answers/questions/3935629/explanation-of-event-viewer-request",
+    "scope": "Message-qualified Windows context; exact product/version must be checked",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "windowsupdateclient",
+    "event_id": "20",
+    "channel": "System",
+    "message_pattern": "(?is)(?:installation failure|failed.{0,80}(?:install|update))",
+    "meaning": "The message reports an update installation failure. Preserve update identity and the original HRESULT.",
+    "reference": "https://learn.microsoft.com/en-us/answers/questions/2757085/event-id-20",
+    "scope": "Message-qualified Windows context; exact product/version must be checked",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "netlogon",
+    "event_id": "5719",
+    "channel": "System",
+    "message_pattern": "(?is)(?:domain controller|secure session.{0,80}domain)",
+    "meaning": "The message concerns domain-controller discovery/connectivity or domain-session establishment.",
+    "reference": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/group-policy/netlogon-event-id-5719-or-group-policy-event-1129",
+    "scope": "Message-qualified Windows context; exact product/version must be checked",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "apcpbeagent",
+    "event_id": "3005",
+    "channel": "Application",
+    "message_pattern": "(?!)",
+    "meaning": "APC PowerChute Business Edition Agent; precise Event 3005 semantics remain UNVERIFIED.",
+    "reference": "https://www.apc.com/us/en/faqs/FA159894/",
+    "scope": "Message-qualified Windows context; exact product/version must be checked",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "securityauditing",
+    "event_id": "4946",
+    "channel": "Security",
+    "message_pattern": "(?is)(?:rule|setting)",
+    "meaning": "Local firewall rule added. Optional audited evidence; not collected by the System/Application-only USB collector.",
+    "reference": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4946",
+    "scope": "Local Security audit-policy evidence; not equivalent to Group Policy change auditing",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "securityauditing",
+    "event_id": "4947",
+    "channel": "Security",
+    "message_pattern": "(?is)(?:rule|setting)",
+    "meaning": "Local firewall rule modified. Optional audited evidence; not collected by the System/Application-only USB collector.",
+    "reference": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4947",
+    "scope": "Local Security audit-policy evidence; not equivalent to Group Policy change auditing",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "securityauditing",
+    "event_id": "4948",
+    "channel": "Security",
+    "message_pattern": "(?is)(?:rule|setting)",
+    "meaning": "Local firewall rule deleted. Optional audited evidence; not collected by the System/Application-only USB collector.",
+    "reference": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4948",
+    "scope": "Local Security audit-policy evidence; not equivalent to Group Policy change auditing",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  },
+  {
+    "provider": "securityauditing",
+    "event_id": "4950",
+    "channel": "Security",
+    "message_pattern": "(?is)(?:rule|setting)",
+    "meaning": "Local firewall setting changed. Optional audited evidence; not collected by the System/Application-only USB collector.",
+    "reference": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4950",
+    "scope": "Local Security audit-policy evidence; not equivalent to Group Policy change auditing",
+    "last_reviewed": "2026-10-19",
+    "reference_basis": "Owner-supplied research; bounded interpretation, not root-cause confirmation"
+  }
+]

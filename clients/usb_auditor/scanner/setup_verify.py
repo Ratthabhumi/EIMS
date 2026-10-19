@@ -64,7 +64,7 @@ def _check_computer_name_serial() -> dict:
     Verify that the Computer Name matches the machine's BIOS serial number.
 
     Expected: computer name equals serial number (or starts with it if a
-    location/department suffix has been appended, e.g. "5CD0141N35-Int3").
+    location/department suffix has been appended, e.g. "SYNTHETIC-HOST").
 
     Scoring:
         PASS    = computer name exactly equals BIOS serial number
@@ -338,6 +338,12 @@ def get_setup_verify_info() -> dict:
             "Microsoft.GamingApp", "Xbox / Gaming App"
         ),
     }
+
+    for check in results.values():
+        check['policy_scope'] = 'organization_post_clone'
+        check['policy_result'] = check['status']
+        check['status'] = 'NOT APPLICABLE'
+        check['detail'] = 'Organization-specific check, not general Windows compliance. Observed: ' + check.get('detail', '')
 
     pass_count = sum(1 for v in results.values() if v["status"] == "PASS")
     warn_count = sum(1 for v in results.values() if v["status"] == "WARNING")

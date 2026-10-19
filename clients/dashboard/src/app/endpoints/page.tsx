@@ -533,6 +533,13 @@ function EndpointsDashboardContent() {
                 <h4 className="text-sm font-semibold text-eims-text flex items-center gap-2 border-b border-eims-border pb-2 mb-4">
                   <Clock className="w-4 h-4 text-red-400" />
                   Event Evidence & AI Findings
+                  {selectedAsset.offline_report_data?.event_logs?.events?.length > 0 && (
+                    <Link href={`/analyzer?asset_id=${encodeURIComponent(selectedAsset.asset_id)}`}
+                      className="ml-auto text-eims-primary hover:underline text-xs"
+                      title="Review the bounded Windows analyses saved when this report was imported">
+                      Analyze Windows Logs
+                    </Link>
+                  )}
                 </h4>
                 {selectedAsset.offline_report_data?.event_logs && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">

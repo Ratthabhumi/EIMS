@@ -164,6 +164,6 @@ def test_capabilities_reports_real_status():
         "localKnowledge", "catalogEntries", "vectorRetrieval", "externalAI",
     }
     assert caps["localKnowledge"] is True
-    assert caps["catalogEntries"] == 163
+    assert caps["catalogEntries"] == 167
     assert caps["vectorRetrieval"] in ("available", "not-cached", "unavailable")
     assert caps["externalAI"] == "disabled"

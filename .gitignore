@@ -89,3 +89,8 @@ test-results/
 
 # Local private assets, evaluation databases and consolidation records
 /.local-private/
+
+# Generated co-op handover payload, reports and release permission records
+/Final_CO-OP/
+# Private owner permission record; publish the empty template only.
+/tools/handover/OWNER_HANDOVER_AUTHORIZATION.txt
