@@ -215,3 +215,17 @@ The preserved predecessor Auditor has 1,013 files, and the predecessor Full
 package has 34 files. Current dated backup paths are recorded in the private
 startup delivery receipt. No protected backup was deleted, and no live
 credentials, audit policy, services or database were changed.
+
+
+### Portable Evidence default — 2026-10-20
+
+At the owner's request, launcher 1.3.2 accepts removable media with persistent
+file permissions (including the NTFS delivery USB) for the existing default
+`Evidence` directory beside the EXEs. Owner/SYSTEM ACL checks, free-space checks,
+write verification, existing-report preservation and no network-share output
+remain enforced. Non-ACL media still requires the explicit approval record;
+NTFS itself is not encryption. No company encryption approval is asserted.
+
+Verification: 15 targeted portable-entry, startup-window and GUI-session tests
+passed, including NTFS-removable default output and preserved synthetic reports.
+No audit scan, frontend build or administrator collection was rerun this round.

@@ -21,7 +21,7 @@ def test_missing_parent_and_network_destinations_fail_before_collection(tmp_path
             entry.prepare_output(tmp_path, str(bad))
 
 
-def test_removable_requires_explicit_encryption_approval_record(tmp_path, monkeypatch):
+def test_non_acl_media_requires_explicit_encryption_approval_record(tmp_path, monkeypatch):
     monkeypatch.setattr(entry, 'volume_info', lambda p: (2, False))
     with pytest.raises(PermissionError):
         entry.prepare_output(tmp_path)
@@ -29,6 +29,17 @@ def test_removable_requires_explicit_encryption_approval_record(tmp_path, monkey
     (tmp_path / 'audit-policy.json').write_text(json.dumps({
         'encrypted_removable_media_approved': True, 'approval_reference': 'SYNTHETIC-UNIT-TEST-ONLY'}))
     assert entry.prepare_output(tmp_path) == tmp_path / 'Evidence'
+
+
+def test_ntfs_usb_defaults_to_beside_exe_and_preserves_reports(tmp_path, monkeypatch):
+    monkeypatch.setattr(entry, 'volume_info', lambda p: (2, True))
+    evidence = entry.prepare_output(tmp_path)
+    assert evidence == tmp_path / 'Evidence'
+    entry.verify_private_acl(evidence)
+    prior = evidence / 'reports' / 'synthetic.json'
+    prior.write_text('{}', encoding='utf-8')
+    assert entry.prepare_output(tmp_path) == evidence
+    assert prior.read_text('utf-8') == '{}'
 
 
 def test_low_space_fails_before_creating_evidence(tmp_path, monkeypatch):

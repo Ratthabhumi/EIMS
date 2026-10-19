@@ -155,11 +155,11 @@ def prepare_output(root, requested=None):
     drive_type, acl_supported = volume_info(path.parent)
     if drive_type == 4:
         raise ValueError('Copy the application from the approved share to a local folder first')
-    if drive_type == 2 or not acl_supported:
+    if not acl_supported:
         # Explicit preconfigured company approval; this is NOT encryption detection.
         policy = json.loads((root / 'audit-policy.json').read_text('utf-8')) if (root / 'audit-policy.json').is_file() else {}
         if policy.get('encrypted_removable_media_approved') is not True or not policy.get('approval_reference'):
-            raise PermissionError('Removable/non-ACL evidence requires company-approved encryption and an approval reference in audit-policy.json. No collection started.')
+            raise PermissionError('Media without file permissions requires company-approved encryption and an approval reference in audit-policy.json. No collection started.')
     if shutil.disk_usage(path.parent).free < 64 * 1024 * 1024:
         raise OSError('At least 64 MiB free space is required before collection')
     existed = path.exists()
