@@ -24,7 +24,7 @@ Unreadable controls and missing registry values are UNKNOWN, not proven FAIL/PAS
 - PowerShell parsing: PASS. Denied-UAC simulation: PASS. Standard-user elevation-loop rejection: PASS.
 - Actual normal-UAC administrator run: PASS; one new JSON and one Excel workbook, 416 System/Application events, firewall evidence OK. Audit result PARTIAL because effective SMBv1 state could not be verified from its missing registry value. This is not a proven disabled/enabled feature or fatal scan failure.
 - Live UAC denial by the operator, clean Windows Server and alternate-admin-account output access: NOT RUN; do not confuse simulated branch tests with these live cases.
-- The older offline HTTP E2E suite was BLOCKED before startup because its guard requires operational port 8000 to be free. The existing service was not stopped. The separate isolated History/API tests above passed; the blocked five cases are not counted as passes.
+- HTTP E2E retry on 19 October: all five previously blocked HTTP cases PASS, plus the proxy-denial case PASS (6 tests, 0 failures/errors/skips). Port 8000 was free on retry; the original guard and test code were retained. No existing service was stopped. The unchanged synthetic SQLite harness verified Windows analysis, Veeam analysis, unsupported input, malformed input and saved History over real HTTP. This is not clean-machine or production deployment validation. Command: `venv/Scripts/python.exe -m pytest --noconftest tests/test_offline_e2e_sandbox.py -q`.
 - Existing dashboard TypeScript/production build results are from the preceding verified pass; no frontend files changed during this patch and no rebuild was repeated.
 
 ## Package boundaries and owner checks
