@@ -83,11 +83,14 @@ def build():
     copy2(ROOT / 'LICENSE', PACKAGE / 'LICENSE')
     include_licenses(PACKAGE)
     (PACKAGE / 'PACKAGE_TYPE').write_text('USB_AUDITOR_EXE\n', encoding='ascii')
-    (PACKAGE / 'README.txt').write_text('''EIMS Portable Windows Auditor 1.3.0 (Windows PC x64 candidate)
+    (PACKAGE / 'README.txt').write_text('''EIMS Portable Windows Auditor 1.3.1 (Windows PC x64 candidate)
 Choose EIMS-Auditor-Standard.exe (no elevation) or EIMS-Auditor-Admin.exe (normal UAC).
 Both open the same GUI with optional business fields and module selection.
 Start Audit, review immutable evidence, apply separate annotations, then Export.
 New audit clears customer fields; profiles are never automatically reloaded.
+Startup shows a live integrity check before any scanner runs. On unapproved
+USB storage, choose an approved LOCAL parent for EIMS_Evidence explicitly.
+The EXEs may run from USB; reports are not silently redirected to AppData.
 Both use the SAME scanner/exporters. No Python/Node/Docker installation is needed.
 Run only a trusted reviewed package. These EXEs are UNSIGNED; company IT must
 approve signing/allowlisting if required. Hashes show consistency, not authenticity.
@@ -132,7 +135,7 @@ actual release acceptance and owner-approved USB replacement are complete.
                   'source_files': [{'path': p.relative_to(ROOT).as_posix(), 'sha256': sha(p)} for p in sorted(files)],
                   'dependencies': {n: importlib.metadata.version(n) for n in ['pyinstaller', 'pyinstaller-hooks-contrib', 'psutil', 'openpyxl', 'et-xmlfile', 'pefile']}}
     (PACKAGE / 'BUILD_PROVENANCE.json').write_text(json.dumps(provenance, indent=2), encoding='utf-8')
-    (PACKAGE / 'VERSION.txt').write_text('EIMS Portable Auditor 1.3.0\nMode: ONEDIR dual EXE, shared engine/runtime\n'
+    (PACKAGE / 'VERSION.txt').write_text('EIMS Portable Auditor 1.3.1\nMode: ONEDIR dual EXE, shared engine/runtime\n'
                                        + 'Source commit: ' + provenance['source_commit'] + '\n'
                                        + 'Worktree modifications recorded in BUILD_PROVENANCE.json\nPyInstaller 6.22.3; Python ' + sys.version.split()[0] + '\n', encoding='utf-8')
     legacy.write_manifest(PACKAGE)
@@ -143,7 +146,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build', action='store_true')
     parser.add_argument('--check', type=Path)
-    parser.add_argument('--slot', choices=['package', 'verified', 'gui', 'gui_final', 'gui_release', 'ready'], default='package')
+    parser.add_argument('--slot', choices=['package', 'verified', 'gui', 'gui_final', 'gui_release', 'ready', 'startup_fix'], default='package')
     args = parser.parse_args()
     if args.build:
         PACKAGE = BUILD / args.slot / 'EIMS_USB_Auditor'

@@ -109,12 +109,14 @@ def reject_links(path):
             raise OSError('Links/reparse destinations are not permitted')
 
 
-def verify_package(root):
+def verify_package(root, progress=None):
     """Hash consistency only; an unsigned manifest is not publisher authentication."""
     reject_links(root)
     records = {}
     reading = False
-    for line in (root / 'MANIFEST.txt').read_text('utf-8').splitlines():
+    lines = (root / 'MANIFEST.txt').read_text('utf-8').splitlines()
+    total = sum(' | ' in line for line in lines)
+    for line in lines:
         if line == '--- files ---':
             reading = True
             continue
@@ -128,6 +130,8 @@ def verify_package(root):
         reject_links(path)
         if path.stat().st_size != int(size) or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
             raise ValueError('Package integrity failure: ' + rel)
+        if progress:
+            progress(len(records), total)
     required = {'EIMS-Auditor-Standard.exe', 'EIMS-Auditor-Admin.exe', 'VERSION.txt', 'README.txt'}
     if not required <= records.keys() or not any(p.startswith('_internal/') for p in records):
         raise ValueError('Incomplete portable package')
@@ -197,9 +201,15 @@ def launch(mode):
         admin = bool(ctypes.windll.shell32.IsUserAnAdmin())
         if mode == 'admin' and not admin:
             raise PermissionError('Administrator privileges were not granted; no collection started')
-        if getattr(sys, 'frozen', False):
-            verify_package(root)
-        evidence = prepare_output(root, args.output_dir)
+        if not args.headless:
+            from startup_gui import prepare_gui
+            evidence = prepare_gui(root, args.output_dir, mode)
+            if evidence is None:
+                return 2
+        else:
+            if getattr(sys, 'frozen', False):
+                verify_package(root)
+            evidence = prepare_output(root, args.output_dir)
         os.environ.update(EIMS_REPORTS_DIR=str(evidence / 'reports'), EIMS_LOGS_DIR=str(evidence / 'logs'),
                           EIMS_AUTO_SYNC='false', EIMS_AUDITOR_MODE=mode)
         if not args.headless:

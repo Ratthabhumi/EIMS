@@ -33,7 +33,8 @@ function Protect-PrivateDirectory([string]$Path) {
 }
 function Invoke-Checked([string]$Exe,[string[]]$Arguments,[string]$Label) {
     $log=Join-Path $private ($Label+'.log')
-    Write-Host "Running $Label. Detailed output stays in the private local log."
+    Write-Host "Running $Label. A moving indicator and elapsed time will appear below."
+    Write-Host "Private detailed log: $log" -ForegroundColor DarkGray
     if($Exe -like '*npm.cmd') {
         # Invoke Node directly: avoid .cmd quoting/working-directory ambiguity.
         $Arguments=@((Join-Path (Split-Path $Exe) 'node_modules/npm/bin/npm-cli.js'))+$Arguments
@@ -257,6 +258,7 @@ try {
             $state.migrated=$true;$state | ConvertTo-Json | Set-Content (Join-Path $install 'installation.json')
         }
         Start-Instance
+        Write-Host 'EIMS SETUP COMPLETE - installation and startup checks passed.' -ForegroundColor Green
         Write-Host ('First sign-in: admin; generated password is in the PRIVATE local file '+(Join-Path $private 'LOCAL_ADMIN.txt'))
         exit 0
     }

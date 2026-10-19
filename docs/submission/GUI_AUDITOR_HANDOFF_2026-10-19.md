@@ -166,3 +166,52 @@ was invented and direct FAT32 collection remains restricted. Full EIMS includes
 this delivery is not an automatic source upgrade of an installed copy.
 No setup, service restart, database reset or credential rotation occurred.
 Detailed copy receipts remain private under `Final_CO-OP/verification`.
+
+## Startup feedback and NTFS update — 2026-10-20
+
+The owner explicitly confirmed formatting only D: after verified backup and
+restoration. A protected local snapshot preserved 1,016 user files (35,718,016
+bytes). D: was changed from FAT32 to NTFS, retained label `128 GB`, and every
+backed-up user file was restored and hash-verified before replacing the program.
+Windows-generated System Volume Information was regenerated, not treated as
+user data. E: was not formatted. The protected backup remains local and ignored.
+
+Auditor launcher 1.3.1 now shows a responsive startup window while checking
+package files, rather than checking the whole USB before displaying anything.
+It can launch directly from USB; failed/unapproved output preflight offers an
+explicit approved local parent selection for a protected `EIMS_Evidence`
+directory. Cancellation starts no scan. There is no silent AppData fallback and
+NTFS does not imply encryption or company approval for USB evidence storage.
+
+The actual Standard EXE was launched from D:. Its startup progress/storage
+prompt was observed. With an explicit private local output argument it reached
+the normal Customer & Asset GUI, showing actual Standard privilege. No audit
+or customer data collection was started in that verification. Interactive folder
+selection is covered by source tests; a completed native dialog selection is
+not claimed. Admin scanning was not rerun this round.
+
+SETUP's owned-command runner now emits a moving activity indicator, elapsed
+time, private-log byte count and DONE/FAILED with the actual exit status. It
+does not invent a download percentage or disclose child log contents. Timeout
+still stops only its own child command tree. An already-running old command
+does not acquire this feedback mid-execution; no install retry or service/DB
+operation was triggered for this change.
+
+Verification: **17 targeted tests passed**, including actual Tk responsiveness,
+explicit output choice/cancel, immutable GUI export, private-output preservation,
+live subprocess feedback, nonzero failure and bounded timeout. PowerShell parse
+passed, and an isolated real `Invoke-Checked -> command_runner -> owned Python
+child` invocation displayed RUNNING then DONE. No frontend code changed; the
+previous TypeScript/build evidence is historical and was not rerun here.
+
+Both updated physical packages and their dated backups were hash-verified:
+
+| Artifact | SHA-256 of MANIFEST.txt |
+| --- | --- |
+| D: Auditor 1.3.1, 1,013 files | `37f191427b2afe7380e59b6cb69c0057a65d8cd40e590a2e46d460ed9bd0ff33` |
+| E: progress/launcher source update, 35 files | `5f6a14801b06452e6d14858146e1472bdaff3801df6d1790fc6d4cf76521955b` |
+
+The preserved predecessor Auditor has 1,013 files, and the predecessor Full
+package has 34 files. Current dated backup paths are recorded in the private
+startup delivery receipt. No protected backup was deleted, and no live
+credentials, audit policy, services or database were changed.
