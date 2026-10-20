@@ -48,6 +48,10 @@ def test_fully_compliant_machine():
 def test_protection_off_fully_encrypted():
     result = _evaluate(fields_override={"protection_status": "Off"})
     assert result["status"] == "FAIL"
+    assert result["encryption_percentage"] == 100
+    assert "fully encrypted" in result["detail"]
+    assert "not encrypted" not in result["detail"]
+    assert "protection is OFF" in result["detail"]
 
 
 def test_encryption_in_progress():
@@ -66,6 +70,15 @@ def test_fully_unencrypted():
         "encryption_percentage": 0,
     })
     assert result["status"] == "FAIL"
+    assert result["encryption_percentage"] == 0
+    assert "fully decrypted" in result["detail"]
+
+
+@pytest.mark.parametrize('value', ['', 'unreadable', '-1', '101'])
+def test_invalid_percentage_stays_unknown(value):
+    result = _evaluate(FULLY_ENCRYPTED_OUTPUT.replace('EncryptionPercentage=100', 'EncryptionPercentage='+value))
+    assert result['encryption_percentage'] is None
+    assert result['status'] == 'UNKNOWN'
 
 
 def test_missing_recovery_protector():

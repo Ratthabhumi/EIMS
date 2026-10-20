@@ -304,7 +304,8 @@ def _parse_bitlocker_output(output: str) -> dict:
         elif key == "EncryptionMethod":
             fields["encryption_method"] = value
         elif key == "EncryptionPercentage":
-            fields["encryption_percentage"] = int(value) if value.isdigit() else 0
+            percentage = int(value) if value.isdigit() else None
+            fields["encryption_percentage"] = percentage if percentage is not None and 0 <= percentage <= 100 else None
         elif key == "RecoveryProtectorCount":
             fields["recovery_protector_count"] = int(value) if value.isdigit() else 0
         elif key in bool_keys:
@@ -360,6 +361,13 @@ def _evaluate_bitlocker(fields: dict) -> dict:
         "tpm_ready":   fields.get("tpm_ready", False),
     }
 
+    if progress is None or volume in ("Unknown", ""):
+        return {
+            "status": "UNKNOWN",
+            "detail": f"BitLocker encryption state could not be read; observed protection: {protection}",
+            **base,
+        }
+
     if volume in ("EncryptionInProgress", "EncryptionPaused"):
         pct = f" ({progress}%)" if progress is not None and progress < 100 else ""
         return {
@@ -376,7 +384,7 @@ def _evaluate_bitlocker(fields: dict) -> dict:
         }
 
     if protection == "On":
-        if volume == "FullyEncrypted" and (progress or 0) >= 100:
+        if volume == "FullyEncrypted" and progress == 100:
             if rp_count > 0:
                 return {
                     "status": "PASS",
@@ -395,9 +403,15 @@ def _evaluate_bitlocker(fields: dict) -> dict:
         }
 
     if protection == "Off":
+        if volume == "FullyEncrypted" and progress == 100:
+            detail = "C: drive is fully encrypted (100%), but BitLocker protection is OFF; protection may be suspended"
+        elif volume == "FullyDecrypted" and progress == 0:
+            detail = "C: drive is fully decrypted (0%) and BitLocker protection is OFF"
+        else:
+            detail = f"BitLocker protection is OFF; observed volume: {volume}, encryption: {progress}%"
         return {
             "status": "FAIL",
-            "detail": "BitLocker is OFF — C: drive is not encrypted",
+            "detail": detail,
             **base,
         }
 
