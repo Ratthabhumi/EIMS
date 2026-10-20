@@ -143,7 +143,7 @@ services:
       retries: 30
 ''' % (images['pgvector/pgvector:pg16'],images['redis:7-alpine'],images['minio/minio:latest'])
 
-def guide_pdf(path: Path, sections: list[tuple[str,str]]):
+def guide_pdf(path: Path, sections: list[tuple[str,str]], subtitle='Local engineering handover'):
     from reportlab.lib import colors
     from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.lib.units import inch
@@ -151,7 +151,7 @@ def guide_pdf(path: Path, sections: list[tuple[str,str]]):
     styles=getSampleStyleSheet()
     styles['Title'].textColor=colors.HexColor('#1E3A8A')
     styles['BodyText'].fontSize=10;styles['BodyText'].leading=14
-    story=[Paragraph('EIMS - Engineering Handover',styles['Title']),Paragraph('19 October 2026 | Local staging only',styles['Normal']),Spacer(1,12)]
+    story=[Paragraph('EIMS - Engineering Handover',styles['Title']),Paragraph(escape(subtitle),styles['Normal']),Spacer(1,12)]
     for title,body in sections:
         story.append(KeepTogether([Paragraph(escape(title),styles['Heading2']),Paragraph(escape(body).replace('\n','<br/>'),styles['BodyText'])]));story.append(Spacer(1,9))
     def page_number(canvas,doc):
@@ -203,21 +203,23 @@ def build():
     with zipfile.ZipFile(archive) as z:
         if z.testzip() or len(z.namelist())!=len(members):raise RuntimeError('Source ZIP verification failed')
     write(PAYLOAD/'Tools/source-ledger.json',json.dumps({'revision':revision,'branch':git('branch','--show-current'),'trackedPathsHash':digest('\n'.join(tracked).encode()),'files':ledger,'packageTransforms':transforms},indent=2)+'\n')
-    write(PAYLOAD/'Tools/package.json',json.dumps({'id':'eims-'+identity,'mode':'GUIDED_FULL_EIMS_CORE','python':'3.14.6','node':'24.18.0','dockerDesktopObserved':'4.85.0','setup':'ONLINE_REQUIRED','portableVerified':False},indent=2)+'\n')
+    write(PAYLOAD/'Tools/package.json',json.dumps({'id':'eims-'+identity,'mode':'GUIDED_FULL_EIMS_CORE','python':'3.14.6','node':'24.18.0','dockerDesktopObserved':'4.85.0','setup':'ONLINE_REQUIRED','portableVerified':False,'localPasswordless':True},indent=2)+'\n')
     write(PAYLOAD/'Tools/release-gate.json',json.dumps({'status':'HANDOVER_APPROVAL_PENDING','securityReview':'MANUAL_AND_HISTORICAL_CLOSURE_PENDING','reviewedBy':None,'reviewedAt':None,'evidence':[]},indent=2)+'\n')
     write(PAYLOAD/'Tools/requirements-handover.txt',runtime_pins())
     write(PAYLOAD/'Tools/compose.yaml',compose_text())
-    for name in ['Runtime.ps1','Prerequisites.ps1','Integrity.ps1','run_backend.py','smoke.py','command_runner.py']:shutil.copyfile(TOOLS/name,PAYLOAD/'Tools'/name)
+    for name in ['Runtime.ps1','Prerequisites.ps1','Integrity.ps1','run_backend.py','handover_session.py','smoke.py','command_runner.py']:shutil.copyfile(TOOLS/name,PAYLOAD/'Tools'/name)
     write(PAYLOAD/'OWNER_HANDOVER_AUTHORIZATION.txt',(TOOLS/'OWNER_HANDOVER_AUTHORIZATION.txt').read_text().replace('{REVISION}',revision))
     for batch,action in [('SETUP.bat','Setup'),('Start.bat','Start'),('Stop.bat','Stop')]:
         content='@echo off\r\nsetlocal EnableExtensions DisableDelayedExpansion\r\n"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -File "%~dp0Tools\\Runtime.ps1" -Action '+action+' %*\r\nset "EIMS_RESULT=%ERRORLEVEL%"\r\nif not defined EIMS_NONINTERACTIVE pause\r\nexit /b %EIMS_RESULT%\r\n'
+        if action == 'Setup':
+            content=content.replace('if not defined EIMS_NONINTERACTIVE pause','if not "%EIMS_RESULT%"=="0" if not defined EIMS_NONINTERACTIVE pause')
         (PAYLOAD/batch).write_bytes(content.encode('ascii'))
     write(PAYLOAD/'VERSION.txt',f'EIMS co-op handover | {datetime.now(timezone.utc).isoformat()}\nRevision: {revision}\nBranch: {git("branch","--show-current")}\nReviewed current local file contents are included; see Tools/source-ledger.json.\nSnapshot transforms: known default removal, secure browser sign-in, isolated API/console references.\nClassification: owner permission recorded; independent payload review required. See release-gate.json and Developer_Docs/ACCEPTANCE.md. Clean Windows is NOT TESTED.\n')
     for name in ['01_report.txt','02_Task_long.log']:
         shutil.copyfile(ROOT/'EIMS_supervision_synthetic_demo_files_2026-10-09'/name,PAYLOAD/'Sample_Logs'/name)
     shutil.copyfile(ROOT/'tests/fixtures/windows_shutdown_synthetic.txt',PAYLOAD/'Sample_Logs/windows_shutdown_synthetic.txt')
     write(PAYLOAD/'Sample_Logs/README.txt','Synthetic examples only.\nVeeam: select Evidence Bundle, English; add 01_report.txt and 02_Task_long.log together. Expected observed required-file error, source 02_Task_long.log line 1001; cross-file association NONE. No shared cause is established.\nWindows: upload windows_shutdown_synthetic.txt. Event 41 indicates an unclean restart, not proof of power loss.\nNever import customer logs into this handover demonstration.\n')
-    write(PAYLOAD/'Demo/DEMO_STEPS.txt','1. SETUP.bat once, then sign in with the generated PRIVATE local admin account.\n2. Start.bat opens http://127.0.0.1:13101/analyzer.\n3. Select Evidence Bundle and English. Upload the two Veeam synthetic files.\n4. Analyze, review the observed required-file error and original line 1001.\n5. Reopen the saved synthetic result in History.\n6. Stop.bat preserves the isolated data.\nDo not describe a diagnostic match as a confirmed cause. No fabricated recording is supplied.\n')
+    write(PAYLOAD/'Demo/DEMO_STEPS.txt','1. SETUP.bat once; the authorized Windows session opens the Dashboard automatically.\n2. Start.bat opens http://127.0.0.1:13101/analyzer.\n3. Select Evidence Bundle and English. Upload the two Veeam synthetic files.\n4. Analyze, review the observed required-file error and original line 1001.\n5. Reopen the saved synthetic result in History.\n6. Stop.bat preserves the isolated data.\nDo not describe a diagnostic match as a confirmed cause. No fabricated recording is supplied.\n')
     quick='''EIMS - QUICK START
 ==================
 STATUS: Owner-authorized internal handover; independent payload scan required.
@@ -230,8 +232,8 @@ FIRST TIME (copy this whole folder to your PC first):
 2. IT must approve Docker Desktop/WSL, Python 3.14.6 and Node 24.18.0.
 3. Approve the exact installation actions when prompted. No licenses are auto-accepted.
 4. If an installer requires restart, restart yourself and run SETUP.bat again.
-5. Sign in as admin using the generated private LOCAL_ADMIN.txt file.
-   SETUP shows its local location. No shared password is on this USB.
+5. The authorized Windows session opens the Dashboard automatically.
+   Use Start.bat again when the short local session expires.
 
 NEXT TIME: Start.bat.     TO STOP: Stop.bat.
 The application/data are installed under your user-local EIMS-Coop folder.
@@ -251,7 +253,7 @@ If scripts are blocked, ask IT. Do not disable Windows security controls.
       ('Capabilities and boundaries','Windows text/EVTX and selected Veeam/firewall formats are supported by the existing parsers. PAN-OS support is bounded to known CSV families. Filename/line references and History are retained. Event 41 does not prove a power outage; file access does not prove exfiltration; shared identifiers do not prove causality. Formal engineer usability evaluation is still planned.'),
       ('Windows prerequisites','Target: Windows 11 x64 build 22631 or newer, at least 8 GiB free disk, online access to official package sources and Docker registries. Inspected runtime pins: Python 3.14.6, Node 24.18.0; Docker Desktop observed 4.85.0. Check current IT and Docker supported-platform/licensing requirements. ARM64, Windows Server and offline installation are not validated.'),
       ('First setup','Run SETUP.bat once after permission is granted. It checks dependencies and offers exact winget package identities/versions when missing. Installers remain interactive; no agreements, WSL feature changes or reboot are automated. Approve SETUP explicitly. Files install under %LOCALAPPDATA%/EIMS-Coop/<package-id>. Interrupted setup reuses the installation identity and saved credentials. Existing unrecognized data or missing credentials stops setup.'),
-      ('Start, sign in and stop','Use Start.bat after setup. It reuses installed dependencies and starts only the installation-specific Docker project plus owned localhost servers. Start requires actual core health and an authenticated synthetic smoke test before READY. Browser sign-in uses admin and the unique password stored in the private local LOCAL_ADMIN.txt file. Passwords/tokens are not logged or embedded in USB/PDF. Stop.bat requests backend drain and stops the owned frontend and named Docker project without deleting data.'),
+      ('Start, local session and stop','Use Start.bat after setup. It reuses installed dependencies and starts only the installation-specific Docker project plus owned localhost servers. Start requires actual core health and an authenticated synthetic smoke test before READY. Browser access uses a short-lived Windows-authorized local session; no manual password entry is required. Passwords/tokens are not logged or embedded in USB/PDF. Stop.bat requests backend drain and stops the owned frontend and named Docker project without deleting data.'),
       ('Synthetic demonstration and History','Use the two Veeam files in Sample_Logs as a bundle, in English. Expected observed failure: a required file was not found; original reference 02_Task_long.log:1001. Cross-file association remains none. The smoke test checks real authenticated analysis and stored History. The Windows sample illustrates unclean restart uncertainty. Do not mix unrelated cases or import confidential customer data.'),
       ('Knowledge and optional components','Curated local diagnostic references remain available. ML runtimes/models and cloud keys are not included; external HTTP is blocked in the isolated launcher environment. Optional Vector RAG must report unavailable honestly. Full OCR execution requires separately approved Tesseract configuration. Grafana, Prometheus, Loki and PgBouncer are not started in the handover core; the application already supports direct PostgreSQL access.'),
       ('Services and private variables','Frontend: 127.0.0.1:13101; backend: 127.0.0.1:18101. PostgreSQL: 18543, EIMS_DB_PASSWORD; Redis: 16379 (isolated local project, no generated password because the existing client has no Redis password support); MinIO: 19000/19001, EIMS_MINIO_ACCESS_KEY and EIMS_MINIO_SECRET_KEY. Auth: EIMS_JWT_SECRET_KEY, EIMS_ADMIN_TOKEN, EIMS_ADMIN_PASSWORD. CORS permits only the isolated frontend. All listeners bind loopback. This is single-user local isolation, not multi-tenant hardening.'),

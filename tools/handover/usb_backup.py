@@ -140,8 +140,21 @@ def stage_restore(payload, private):
     if (private / '.env').exists():
         return False  # Existing local credentials are never automatically overwritten.
     manifest = verified_checkpoint(checkpoint)
-    shutil.copyfile(checkpoint / 'private.env', private / '.env')
-    shutil.copyfile(checkpoint / 'LOCAL_ADMIN.txt', private / 'LOCAL_ADMIN.txt')
+    package=json.loads((Path(payload)/'Tools/package.json').read_text('utf-8-sig'))
+    if package.get('demoOnly'):
+        if manifest.get('credentialPolicy')!='FRESH_LOCAL_DEMO':
+            raise ValueError('Demo checkpoint must not carry reusable installation credentials')
+        import secrets
+        fields=('EIMS_DB_PASSWORD','EIMS_JWT_SECRET_KEY','EIMS_ADMIN_TOKEN','EIMS_ADMIN_PASSWORD','EIMS_MINIO_ACCESS_KEY','EIMS_MINIO_SECRET_KEY')
+        values={key:secrets.token_hex(32) for key in fields}
+        values['EIMS_MINIO_ACCESS_KEY']='eims'+secrets.token_hex(10)
+        lines=(checkpoint/'private.env').read_text('utf-8-sig').splitlines()
+        if not set(fields)<={line.split('=',1)[0] for line in lines}:raise ValueError('Incomplete demo environment template')
+        (private/'.env').write_text('\n'.join(line.split('=',1)[0]+'='+values[line.split('=',1)[0]] if line.split('=',1)[0] in values else line for line in lines)+'\n',encoding='ascii')
+        (private/'LOCAL_ADMIN.txt').write_text('Local recovery account only.\nUsername: admin\nPassword: '+values['EIMS_ADMIN_PASSWORD']+'\n',encoding='ascii')
+    else:
+        shutil.copyfile(checkpoint / 'private.env', private / '.env')
+        shutil.copyfile(checkpoint / 'LOCAL_ADMIN.txt', private / 'LOCAL_ADMIN.txt')
     atomic_json(private / 'restore-pending.json', {'checkpoint': str(checkpoint), 'id': manifest['id']})
     print('Verified USB checkpoint selected. Existing local sessions remain preserved.', flush=True)
     return True
@@ -184,6 +197,10 @@ def _restore_objects(private, checkpoint):
 
 def checkpoint(install, payload):
     private = Path(install) / 'Private'
+    owner = json.loads((Path(install) / 'installation.json').read_text('utf-8-sig'))
+    package = json.loads((Path(payload) / 'Tools/package.json').read_text('utf-8-sig'))
+    if owner['id'] != package['id']:
+        raise ValueError('USB package identity changed; refusing to copy a previous installation onto it')
     root = usb_root(payload)
     snapshots = root / 'Snapshots'
     snapshots.mkdir(parents=True, exist_ok=True)
@@ -193,7 +210,8 @@ def checkpoint(install, payload):
     staging = snapshots / ('.pending-' + identity)
     staging.mkdir()
     with (staging / 'database.dump').open('xb') as output, (private / 'usb-backup-detail.log').open('ab') as log:
-        subprocess.run(compose(install, payload) + ['exec', '-T', 'postgres', 'pg_dump', '-Fc',
+        subprocess.run(compose(install, payload) + ['exec', '-T', 'postgres', 'pg_dump', '-Fc'] +
+            (['--exclude-table-data=public.users'] if package.get('demoOnly') else []) + [
             '--no-owner', '--no-acl', '-U', 'eims_user', '-d', 'eims_handover'],
             stdout=output, stderr=log, check=True, timeout=180)
     with (staging / 'database.dump').open('rb') as stream:
@@ -203,7 +221,15 @@ def checkpoint(install, payload):
         subprocess.run(compose(install, payload) + ['exec', '-T', 'postgres', 'pg_restore', '--list'],
                        stdin=source, stdout=log, stderr=log, check=True, timeout=60)
     shutil.copyfile(private / '.env', staging / 'private.env')
-    shutil.copyfile(private / 'LOCAL_ADMIN.txt', staging / 'LOCAL_ADMIN.txt')
+    if package.get('demoOnly'):
+        # SETUP resolves this working path on restore; never ship the builder's username/path.
+        envfile=staging/'private.env'
+        lines=envfile.read_text('utf-8-sig').splitlines()
+        sensitive={'EIMS_DB_PASSWORD','EIMS_JWT_SECRET_KEY','EIMS_ADMIN_TOKEN','EIMS_ADMIN_PASSWORD','EIMS_MINIO_ACCESS_KEY','EIMS_MINIO_SECRET_KEY'}
+        envfile.write_text('\n'.join('EIMS_DATA_ROOT=DEMO_LOCAL_WORKING_DATA' if line.startswith('EIMS_DATA_ROOT=') else line.split('=',1)[0]+'=' if line.split('=',1)[0] in sensitive else line for line in lines)+'\n',encoding='ascii')
+        (staging/'LOCAL_ADMIN.txt').write_text('SYNTHETIC_DEMO: fresh credentials are generated locally on restore. No password is shipped.\n')
+    else:
+        shutil.copyfile(private / 'LOCAL_ADMIN.txt', staging / 'LOCAL_ADMIN.txt')
     objects = []
     client = object_client(private)
     for bucket in client.list_buckets()['Buckets']:
@@ -225,6 +251,7 @@ def checkpoint(install, payload):
     rows = [{'path': p.relative_to(staging).as_posix(), 'size': p.stat().st_size, 'sha256': digest(p)}
             for p in sorted(staging.rglob('*')) if p.is_file()]
     atomic_json(staging / 'checkpoint.json', {'format': 'eims-checkpoint-v1', 'status': 'COMPLETE',
+        'credentialPolicy':'FRESH_LOCAL_DEMO' if package.get('demoOnly') else 'PRESERVE',
         'id': identity, 'files': rows, 'scope': 'Transactional PostgreSQL dump and copied MinIO objects; Redis cache is reconstructed. Cross-service point-in-time consistency is not asserted.'})
     verified_checkpoint(staging)
     complete = snapshots / identity

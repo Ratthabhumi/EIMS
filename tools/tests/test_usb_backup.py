@@ -17,7 +17,7 @@ def setup(tmp_path, monkeypatch):
     install = tmp_path / 'Local'
     private = install / 'Private'
     private.mkdir(parents=True)
-    (install / 'installation.json').write_text(json.dumps({'project': 'eims-synthetic'}))
+    (install / 'installation.json').write_text(json.dumps({'id':'eims-0000000000000000','project': 'eims-synthetic'}))
     (private / '.env').write_text('EIMS_ADMIN_PASSWORD=SYNTHETIC_ONLY\n')
     (private / 'LOCAL_ADMIN.txt').write_text('SYNTHETIC_ONLY')
     monkeypatch.setattr(backup, 'object_client', lambda p: SimpleNamespace(list_buckets=lambda: {'Buckets': []}))
@@ -25,6 +25,37 @@ def setup(tmp_path, monkeypatch):
         kwargs['stdout'].write(b'PGDMP-SYNTHETIC-POSTGRES-DUMP')
     monkeypatch.setattr(backup.subprocess, 'run', dump)
     return payload, install
+
+
+def test_demo_checkpoint_omits_builder_working_path(tmp_path,monkeypatch):
+    payload,install=setup(tmp_path,monkeypatch)
+    config=json.loads((payload/'Tools/package.json').read_text());config['demoOnly']=True
+    (payload/'Tools/package.json').write_text(json.dumps(config))
+    source='EIMS_ADMIN_PASSWORD=SYNTHETIC_ONLY\nEIMS_DATA_ROOT=C:/Users/SYNTHETIC_BUILDER/Private/Data\n'
+    (install/'Private/.env').write_text(source)
+    point=backup.checkpoint(install,payload)
+    assert 'SYNTHETIC_BUILDER' not in (point/'private.env').read_text()
+    assert 'EIMS_DATA_ROOT=DEMO_LOCAL_WORKING_DATA' in (point/'private.env').read_text()
+    assert (install/'Private/.env').read_text()==source
+    backup.verified_checkpoint(point)
+
+
+def test_demo_restore_mints_fresh_local_credentials_once(tmp_path,monkeypatch):
+    payload,install=setup(tmp_path,monkeypatch)
+    package=json.loads((payload/'Tools/package.json').read_text());package['demoOnly']=True
+    (payload/'Tools/package.json').write_text(json.dumps(package))
+    keys=['EIMS_DB_PASSWORD','EIMS_JWT_SECRET_KEY','EIMS_ADMIN_TOKEN','EIMS_ADMIN_PASSWORD','EIMS_MINIO_ACCESS_KEY','EIMS_MINIO_SECRET_KEY']
+    (install/'Private/.env').write_text('\n'.join(k+'=SYNTHETIC_NOT_A_REAL_SECRET' for k in keys)+'\n')
+    point=backup.checkpoint(install,payload)
+    assert 'SYNTHETIC_NOT_A_REAL_SECRET' not in (point/'private.env').read_text()
+    assert 'SYNTHETIC_ONLY' not in (point/'LOCAL_ADMIN.txt').read_text()
+    private=tmp_path/'fresh/Private';private.mkdir(parents=True)
+    assert backup.stage_restore(payload,private)
+    values=backup.environment(private)
+    assert all(values[k] and values[k]!='SYNTHETIC_NOT_A_REAL_SECRET' for k in keys)
+    original=(private/'.env').read_bytes()
+    assert backup.stage_restore(payload,private) is False
+    assert (private/'.env').read_bytes()==original
 
 
 def test_complete_checkpoint_is_verified_and_failed_new_copy_preserves_it(tmp_path, monkeypatch):

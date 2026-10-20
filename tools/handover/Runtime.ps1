@@ -113,7 +113,7 @@ function Test-OwnerProcess($record) {
     if($record.PSObject.Properties['host'] -and $record.host -ne [Environment]::MachineName){return $false}
     $p=Get-CimInstance Win32_Process -Filter "ProcessId=$($record.pid)" -ErrorAction SilentlyContinue
     if(-not $p){return $false}
-    if($p.CreationDate.ToUniversalTime().Ticks -ne ([DateTimeOffset]$record.created).UtcTicks -or $p.CommandLine -notlike ('*'+$install+'*')){throw 'Process identity mismatch. Refusing to control an unrelated process.'}
+    if($p.CreationDate.ToUniversalTime().Ticks -ne ([DateTimeOffset]$record.created).UtcTicks -or $p.CommandLine -notlike ('*'+$install+'*')){return $false} # Stale record: never control that process; Start still checks occupied ports.
     return $true
 }
 function Save-ProcessRecord([string]$Name,$Process) {
@@ -187,6 +187,10 @@ function Start-Instance {
     if(-not $running.ContainsKey('frontend')){Test-PortFree 13101}
     Invoke-Compose @('up','-d','--wait','--wait-timeout','120') 'start-infrastructure'
     if(-not $state.migrated){throw 'Database migration has not completed. Run SETUP.bat.'}
+    if($version.PSObject.Properties['localPasswordless'] -and $version.localPasswordless){
+        Protect-PrivateDirectory $private
+        @{sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value;logon=(Get-Process -Id $PID).SessionId} | ConvertTo-Json | Set-Content (Join-Path $private 'local-session-enabled.json') -Encoding UTF8
+    }
     if(-not $running.ContainsKey('backend')){
         $stopMarker=Join-Path $private 'backend.stop'
         if(Test-Path $stopMarker){[IO.File]::Delete($stopMarker)}
@@ -217,12 +221,20 @@ function Start-Instance {
         if($i -eq 39){throw 'Frontend not ready. Review private frontend log.'};Start-Sleep -Milliseconds 500
     }
     Invoke-Checked $python @((Join-Path $release 'Tools/smoke.py'),$release) 'synthetic-smoke'
+    if($version.PSObject.Properties['demoOnly'] -and $version.demoOnly){
+        Invoke-Checked $python @((Join-Path $release 'Tools/seed_demo.py'),$release,$private) 'synthetic-demo-inventory'
+    }
     if($portable){Start-UsbBackup}
     Write-Status 'READY' 'Secure Analyzer login, real synthetic bundle, evidence line and saved History passed; optional Vector RAG is not installed.'
     Write-Host 'EIMS services: READY'
     Write-Host 'Dashboard: READY - http://127.0.0.1:13101/analyzer'
     Write-Host 'READY - core EIMS on http://127.0.0.1:13101/analyzer. Vector RAG models and external AI are not installed/configured.'
-    if(-not $NoBrowser){Start-Process 'http://127.0.0.1:13101/analyzer'}
+    if(-not $NoBrowser){
+        if($version.PSObject.Properties['localPasswordless'] -and $version.localPasswordless){
+            & $python (Join-Path $release 'Tools/handover_session.py') launch $app $private
+            if($LASTEXITCODE -ne 0){throw 'Browser session could not open. Use Start.bat from the authorized Windows session.'}
+        }else{Start-Process 'http://127.0.0.1:13101/analyzer'}
+    }
 }
 
 $payload=Split-Path -Parent $PSScriptRoot
@@ -345,7 +357,6 @@ try {
         }
         Start-Instance
         Write-Host 'EIMS SETUP COMPLETE - installation and startup checks passed.' -ForegroundColor Green
-        Write-Host ('First sign-in: admin; generated password is in the PRIVATE local file '+(Join-Path $private 'LOCAL_ADMIN.txt'))
         exit 0
     }
     if(-not (Test-Path (Join-Path $install 'installation.json'))){if($Action -eq 'Stop'){Write-Host 'Already stopped; installation absent.';exit 0};throw 'Run SETUP.bat first.'}

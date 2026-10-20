@@ -24,9 +24,10 @@ function Get-CimInstance {return [pscustomobject]@{CreationDate=[datetime]'2026-
 $record='{"pid":123,"created":"2026-10-20T00:00:00.123456Z"}' | ConvertFrom-Json
 if(-not (Test-OwnerProcess $record)){throw 'Matching instant rejected'}
 $record.created='2026-10-20T00:00:01.123456Z'
-$rejected=$false
-try{Test-OwnerProcess $record | Out-Null}catch{$rejected=$true}
-if(-not $rejected){throw 'Reused PID accepted'}
+if(Test-OwnerProcess $record){throw 'Reused PID accepted'}
+$record.created='2026-10-20T00:00:00.123456Z'
+function Get-CimInstance {return [pscustomobject]@{CreationDate=[datetime]'2026-10-20T00:00:00.1234560Z';CommandLine='C:\Unrelated\server'}}
+if(Test-OwnerProcess $record){throw 'Unrelated command accepted'}
 Write-Output 'Identity comparison PASS'
 '''
     # -Command does not bind trailing argv consistently across the two shells.
