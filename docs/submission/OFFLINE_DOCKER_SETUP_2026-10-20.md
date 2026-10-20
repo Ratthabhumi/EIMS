@@ -104,3 +104,14 @@ Source/public documentation only is eligible for GitHub publication.
 Physical E: replacement requires separate owner approval with a dated backup and
 post-copy verification. Do not alter `EIMS_Data` or D:. No production approval,
 historical credential rotation or fresh-PC certification is inferred from packaging.
+
+## Physical USB delivery completed
+
+On 2026-10-20 the owner corrected the earlier selection and explicitly authorized
+updating E:. The ACRONIS_MEDIA NTFS removable volume identity was verified before
+copy and activation. All 83 incoming files passed manifest verification before
+activation and again at `E:\Final_EIMS_Project`. Manifest matches the candidate above.
+The previous 78-file package was preserved and its hashes verified at
+`E:\Final_EIMS_Project_Backup_2026-10-20_OfflineDocker`.
+Private `E:\EIMS_Data` file hashes and count remained unchanged. D: was not touched.
+Local delivery receipt: `Final_CO-OP/verification/offline-docker-usb-delivery.json`.
