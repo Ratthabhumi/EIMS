@@ -80,6 +80,23 @@ the delivered USB copies only after verified preservation. Real auditing later i
 still supported: the existing storage-policy dialog can require a separate approved
 protected output folder. Demo examples must not be presented as collected evidence.
 
-Physical USB verification receipts are recorded locally after deployment. Company
+Physical USB deployment completed and was reverified:
+
+- D: contains one Auditor package, unchanged Standard/Admin EXEs, 3 synthetic JSON
+  reports and a three-row Summary.xlsx. Historical duplicate package and old root
+  handover notes were removed after protected backup verification.
+- E: contains the 92-file demo package and exactly one 5-file data-only demo
+  checkpoint. Both incoming copies were verified before removing the former
+  delivery folders, and all hashes were checked again after activation.
+- D manifest: `8742799c76cab5207b6f49a014246132b10bbe3f6259dfdc8e18df7805d0979b`.
+- E manifest: `6cec9e54916f51a0f6d5ca9bd9750cb2c1004806b2745a505869e083ed7a0a46`.
+- Native PowerShell Preflight passed directly from updated E:. Post-delivery checks
+  confirmed all demo classifications, workbook rows, unchanged executable hashes,
+  UAC levels, blank checkpoint secret fields and absence of a shipped browser key.
+- Source ledger points to code commit `3da80db`; generated binaries, originals,
+  private inventories and logs remain excluded from public Git.
+
+Receipts: `Final_CO-OP/verification/demo-usb-delivery-result.json` and
+`demo-post-delivery-check.json` (local, ignored). Company
 Docker/Windows IT approvals and second-PC acceptance remain the owner's responsibility.
 No additional research is required for this patch.
