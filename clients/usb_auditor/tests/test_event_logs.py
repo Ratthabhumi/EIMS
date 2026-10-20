@@ -45,8 +45,8 @@ class TestTruncateMessage:
 
     def test_long_message_truncated(self):
         result = _truncate_message("x" * 600)
-        assert len(result) == 503  # 500 + "..."
-        assert result.endswith("...")
+        assert len(result) == 600  # Preserve the complete message below the explicit byte cap.
+        assert result == "x" * 600
 
     def test_empty_message(self):
         assert _truncate_message("") == ""
@@ -139,7 +139,8 @@ class TestParseEvents:
     def test_message_truncation(self):
         event = {"Id": 1, "ProviderName": "Test", "LevelDisplayName": "Info", "LogName": "System", "Message": "x" * 600}
         result = _parse_events(json.dumps(event))
-        assert len(result[0]["message"]) == 503
+        assert len(result[0]["message"]) == 600
+        assert result[0]["message_truncated"] is False
 
 
 # ---------------------------------------------------------------------------

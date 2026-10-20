@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import threading
 import time
+sys.dont_write_bytecode = True  # The reviewed Tools directory must remain immutable.
 
 # Validate the supplied installation boundary before resolving MSIX paths.
 # Windows may redirect App but leave the ACL-protected Private directory on
@@ -23,9 +24,14 @@ if not (private / '.env').is_file() or not (app / 'backend/main.py').is_file():
     raise SystemExit('Incomplete isolated installation')
 os.chdir(app)
 sys.path.insert(0, str(app))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import uvicorn
 
-server = uvicorn.Server(uvicorn.Config('backend.main:app', host='127.0.0.1', port=18101, log_level='warning'))
+from backend.main import app as application
+if (private / 'local-session-enabled.json').is_file():
+    from handover_session import attach
+    attach(application, app, private)
+server = uvicorn.Server(uvicorn.Config(application, host='127.0.0.1', port=18101, log_level='warning'))
 
 def watch_stop():
     while not server.should_exit:

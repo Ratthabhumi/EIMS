@@ -32,6 +32,7 @@ Design:
 
 import logging
 import subprocess
+from scanner.processes import run_readonly
 
 import psutil
 
@@ -46,15 +47,17 @@ def _run_powershell(command: str, timeout: int = 15) -> str:
     Returns empty string on any failure.
     """
     try:
-        result = subprocess.run(
-            ["powershell", "-NonInteractive", "-NoProfile", "-Command", command],
+        result = run_readonly(
+            ["powershell", "-NonInteractive", "-NoProfile", "-Command", "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); $ErrorActionPreference='Stop'; " + command],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=timeout,
         )
+        if result.returncode != 0:
+            raise OSError('Post-clone query unavailable or blocked')
         return result.stdout.strip()
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-        return ""
+        raise OSError('Post-clone query unavailable or blocked') from None
 
 
 # ── Individual Checks ─────────────────────────────────────────────────────────
@@ -76,7 +79,7 @@ def _check_computer_name_serial() -> dict:
         immediately after cloning for asset tracking and SCCM/WSUS compliance.
     """
     serial = _run_powershell(
-        "$ErrorActionPreference = 'SilentlyContinue'; "
+        "$ErrorActionPreference = 'Stop'; "
         "(Get-CimInstance Win32_BIOS).SerialNumber"
     ).strip()
 
@@ -255,7 +258,7 @@ def _check_appx_uninstalled(package_name: str, display_name: str) -> dict:
         display_name : Human-readable label for messages
     """
     output = _run_powershell(
-        f"$ErrorActionPreference = 'SilentlyContinue'; "
+        f"$ErrorActionPreference = 'Stop'; "
         f"(Get-AppxPackage -Name '{package_name}').Name"
     )
 
@@ -278,22 +281,22 @@ def _check_appx_uninstalled(package_name: str, display_name: str) -> dict:
 
 
 def _check_non_unicode_thai() -> dict:
-    return {"status": "WARNING", "detail": "Check not implemented"}
+    return {"status": "UNKNOWN", "detail": "Check not implemented"}
 
 def _check_dhcp() -> dict:
-    return {"status": "WARNING", "detail": "Check not implemented"}
+    return {"status": "UNKNOWN", "detail": "Check not implemented"}
 
 def _check_datetime_sync() -> dict:
-    return {"status": "WARNING", "detail": "Check not implemented"}
+    return {"status": "UNKNOWN", "detail": "Check not implemented"}
 
 def _check_thai_keyboard() -> dict:
-    return {"status": "WARNING", "detail": "Check not implemented"}
+    return {"status": "UNKNOWN", "detail": "Check not implemented"}
 
 def _check_netlogon_reg() -> dict:
-    return {"status": "WARNING", "detail": "Check not implemented"}
+    return {"status": "UNKNOWN", "detail": "Check not implemented"}
 
 def _check_default_apps() -> dict:
-    return {"status": "WARNING", "detail": "Check not implemented"}
+    return {"status": "UNKNOWN", "detail": "Check not implemented"}
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
@@ -320,23 +323,25 @@ def get_setup_verify_info() -> dict:
     """
     logger.info("Starting post-clone setup verification...")
 
+    def observed(callback, *args):
+        try:
+            return callback(*args)
+        except (OSError, UnicodeError, subprocess.SubprocessError):
+            return {'status': 'UNKNOWN', 'detail': 'Query unavailable/blocked; no condition was established'}
+
     results = {
-        "computer_name_serial": _check_computer_name_serial(),
-        "timezone":       _check_timezone(),
-        "non_unicode_thai": _check_non_unicode_thai(),
-        "dhcp":           _check_dhcp(),
-        "datetime_sync":  _check_datetime_sync(),
-        "thai_keyboard":  _check_thai_keyboard(),
-        "netlogon_reg":   _check_netlogon_reg(),
-        "default_apps":   _check_default_apps(),
-        "sentinelone":    _check_sentinelone(),
-        "wifi_profiles":  _check_wifi_profiles(),
-        "new_outlook":    _check_appx_uninstalled(
-            "Microsoft.OutlookForWindows", "New Outlook"
-        ),
-        "xbox":           _check_appx_uninstalled(
-            "Microsoft.GamingApp", "Xbox / Gaming App"
-        ),
+        'computer_name_serial': observed(_check_computer_name_serial),
+        'timezone': observed(_check_timezone),
+        'non_unicode_thai': observed(_check_non_unicode_thai),
+        'dhcp': observed(_check_dhcp),
+        'datetime_sync': observed(_check_datetime_sync),
+        'thai_keyboard': observed(_check_thai_keyboard),
+        'netlogon_reg': observed(_check_netlogon_reg),
+        'default_apps': observed(_check_default_apps),
+        'sentinelone': observed(_check_sentinelone),
+        'wifi_profiles': observed(_check_wifi_profiles),
+        'new_outlook': observed(_check_appx_uninstalled, 'Microsoft.OutlookForWindows', 'New Outlook'),
+        'xbox': observed(_check_appx_uninstalled, 'Microsoft.GamingApp', 'Xbox / Gaming App'),
     }
 
     for check in results.values():

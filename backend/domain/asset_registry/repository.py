@@ -111,6 +111,7 @@ class AssetRepository:
         asset = result.scalar_one_or_none()
         
         if asset:
+            await self.attach_business_metadata(asset)
             # Refresh Redis volatile cache TTL
             await self.cache_manager.set_value(cache_key, self._serialize_asset_for_cache(asset), ttl_seconds=ASSET_CACHE_TTL_SECONDS)
             
@@ -177,7 +178,35 @@ class AssetRepository:
         if state:
             query = query.where(InfrastructureAsset.lifecycle_state == state)
         result = await self.db_session.execute(query)
-        return list(result.scalars().all())
+        assets = list(result.scalars().all())
+        for asset in assets:
+            await self.attach_business_metadata(asset)
+        return assets
+
+    async def attach_business_metadata(self, asset):
+        from clients.usb_auditor.session_model import FIELDS, validate_context
+        latest = (await self.db_session.execute(select(AuditLog).where(
+            AuditLog.asset_id == asset.asset_id, AuditLog.action_verb == 'EDIT_BUSINESS_METADATA'
+        ).order_by(AuditLog.performed_at.desc(), AuditLog.log_id.desc()).limit(1))).scalar_one_or_none()
+        report = asset.offline_report_data or {}
+        value = latest.immutable_payload['after'] if latest else {
+            key: report[key] for key in (*FIELDS, 'manual_annotations', 'manual_change_log') if key in report}
+        asset.business_metadata = validate_context(value)
+        return asset
+
+    async def edit_business_metadata(self, asset_id, context, actor):
+        from clients.usb_auditor.session_model import validate_context
+        asset = await self.get_asset_by_id(asset_id)
+        if not asset:
+            raise ResourceNotFoundException(resource_type='InfrastructureAsset', resource_id=str(asset_id))
+        after = validate_context(context)
+        entry = AuditLog(asset_id=asset_id, action_verb='EDIT_BUSINESS_METADATA',
+                         immutable_payload={'before':asset.business_metadata, 'after':after,
+                                            'operator':actor, 'identity_source':'EIMS_authentication_mode'})
+        self.db_session.add(entry)
+        await self.db_session.commit()
+        asset.business_metadata = after
+        return asset
 
     async def create_ocr_registration(self, minio_uri: str) -> OCRRegistrationRecord:
         """Asynchronously records a newly uploaded asset document to initiate OCR pipeline."""
@@ -236,7 +265,7 @@ class AssetRepository:
             audit_entry = AuditLog(
                 asset_id=asset.asset_id,
                 action_verb="IMPORT_REPORT",
-                immutable_payload={"event": "Offline USB Auditor Import", "score": compliance_score}
+                immutable_payload={"event": "Offline USB Auditor Import", "score": compliance_score, "original_report": report_data}
             )
             self.db_session.add(audit_entry)
         else:
@@ -250,12 +279,14 @@ class AssetRepository:
             audit_entry = AuditLog(
                 asset_id=asset.asset_id,
                 action_verb="UPDATE_FROM_REPORT",
-                immutable_payload={"event": "Offline USB Auditor Update", "new_score": compliance_score}
+                immutable_payload={"event": "Offline USB Auditor Update", "new_score": compliance_score, "original_report": report_data}
             )
             self.db_session.add(audit_entry)
 
         await self.db_session.commit()
         await self.db_session.refresh(asset)
+
+        await self.attach_business_metadata(asset)
 
         # Update cache
         cache_key = self._get_cache_key(asset.asset_id)

@@ -56,7 +56,7 @@ def _extract_statuses(data: dict) -> list[str]:
     statuses: list[str] = []
     for check_result in data.values():
         if isinstance(check_result, dict) and "status" in check_result:
-            if check_result["status"] != "NOT APPLICABLE":
+            if check_result["status"] not in {"NOT APPLICABLE", "SKIPPED_BY_OPERATOR"}:
                 statuses.append(check_result["status"])
     return statuses
 
