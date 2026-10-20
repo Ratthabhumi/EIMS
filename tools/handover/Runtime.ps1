@@ -2,6 +2,7 @@
 param([ValidateSet('Setup','Start','Stop','Preflight','BackupStatus')][string]$Action='Preflight',[switch]$NoBrowser)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Integrity.ps1')
+. (Join-Path $PSScriptRoot 'Prerequisites.ps1')
 
 
 function Get-AppPython {
@@ -74,7 +75,7 @@ function Import-BundledImages {
         $actual=& docker.exe image inspect $image.tag --format '{{.Id}}' 2>$null
         if($LASTEXITCODE -ne 0 -or $actual -ne $image.imageId){throw 'Bundled container image identity mismatch.'}
     }
-    Write-Host 'Pinned infrastructure images ready; no registry download required.'
+    Write-Host 'Container images: READY - pinned bundled images; no registry download required.'
 }
 
 function Import-PrivateEnvironment {
@@ -103,31 +104,14 @@ function Test-HostRequirements([switch]$OfferInstall) {
     }
     $node=Get-Command node.exe -ErrorAction SilentlyContinue
     if($script:PreparedRoot){$node=[pscustomobject]@{Source=(Join-Path $script:PreparedRoot 'Node/node.exe')}}
-    $docker=Get-Command docker.exe -ErrorAction SilentlyContinue
-    if(-not $script:HandoverPython){$missing+=@{name='Python';id='Python.Python.3.14';version='3.14.6'}}
-    if(-not $node){$missing+=@{name='Node.js';id='OpenJS.NodeJS';version='24.18.0'}}
-    if(-not $docker){$missing+=@{name='Docker Desktop';id='Docker.DockerDesktop';version='4.85.0'}}
-    foreach($dep in $missing){
-        Write-Host "Missing $($dep.name) $($dep.version). IT must approve installation, licenses and Windows/WSL requirements."
-        if($OfferInstall -and (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
-            $answer=Read-Host "Type INSTALL $($dep.id) after IT approval, or Enter to stop"
-            if($answer -ceq "INSTALL $($dep.id)") {
-                & winget.exe install --id $dep.id --exact --version $dep.version --source winget --interactive
-                if($LASTEXITCODE -notin @(0,3010,1641)){throw 'Installer did not succeed. No agreements are accepted automatically.'}
-                throw 'Dependency installation completed/requested restart. Reopen SETUP.bat after any requested reboot; PATH is refreshed in a new session.'
-            }
-        }
-        throw 'Required dependency missing. Use the exact official package or ask IT; no system features were changed.'
-    }
+    if(-not $script:HandoverPython -or -not $node){throw 'Legacy runtime dependencies are absent. Use the prepared USB package with bundled Python/Node; no online installation was started.'}
     $pythonResult=& $script:HandoverPython -c 'import platform; print(platform.python_version())'
     if($LASTEXITCODE -ne 0 -or -not $pythonResult){throw 'The detected Python executable could not run. Ask IT to repair/select Python 3.14.6.'}
     $pythonVersion=$pythonResult.Trim()
     if($LASTEXITCODE -ne 0 -or $pythonVersion -ne '3.14.6'){throw 'This build pins Python 3.14.6. Ask IT to install/select that version; no arbitrary latest upgrade.'}
     if((-not $script:PreparedRoot) -and (& $node.Source --version).Trim() -ne 'v24.18.0'){throw 'This build pins Node.js 24.18.0. Ask IT to select that version.'}
-    $dockerOS=& docker.exe info --format '{{.OSType}}' 2>$null
-    if($LASTEXITCODE -ne 0 -or $dockerOS -ne 'linux'){throw 'Open IT-approved Docker Desktop in Linux-container mode. WSL/virtualization/license acceptance may need IT; no automatic reboot or feature changes.'}
-    & docker.exe compose version *> $null
-    if($LASTEXITCODE -ne 0){throw 'Docker Compose v2 is required.'}
+    Ensure-EimsDocker -Payload $payload -PackageId $version.id -AllowInstall:$OfferInstall -AllowStart:($Action -ne 'Preflight')
+
 }
 function Test-OwnerProcess($record) {
     if($record.PSObject.Properties['host'] -and $record.host -ne [Environment]::MachineName){return $false}
@@ -239,6 +223,8 @@ function Start-Instance {
     Invoke-Checked $python @((Join-Path $release 'Tools/smoke.py'),$release) 'synthetic-smoke'
     if($portable){Start-UsbBackup}
     Write-Status 'READY' 'Secure Analyzer login, real synthetic bundle, evidence line and saved History passed; optional Vector RAG is not installed.'
+    Write-Host 'EIMS services: READY'
+    Write-Host 'Dashboard: READY - http://127.0.0.1:13101/analyzer'
     Write-Host 'READY - core EIMS on http://127.0.0.1:13101/analyzer. Vector RAG models and external AI are not installed/configured.'
     if(-not $NoBrowser){Start-Process 'http://127.0.0.1:13101/analyzer'}
 }
@@ -319,6 +305,7 @@ try {
                 if($LASTEXITCODE -ne 0){throw 'Prepared runtime changed; no overwrite performed.'}
             }
             $python=Get-AppPython
+            Write-Host 'Bundled runtime: VERIFIED'
         } else {
         $python=Get-AppPython
         if(-not (Test-Path $python)){Invoke-Checked $script:HandoverPython @('-m','venv',(Join-Path $install 'venv')) 'create-venv'}

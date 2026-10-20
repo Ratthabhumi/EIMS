@@ -97,3 +97,6 @@ test-results/
 
 # Private portable recovery checkpoints (database, credentials, customer objects)
 EIMS_Data/
+
+# Vendor installation binaries are local-only, never public source
+Installers/

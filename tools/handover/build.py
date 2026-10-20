@@ -207,7 +207,7 @@ def build():
     write(PAYLOAD/'Tools/release-gate.json',json.dumps({'status':'HANDOVER_APPROVAL_PENDING','securityReview':'MANUAL_AND_HISTORICAL_CLOSURE_PENDING','reviewedBy':None,'reviewedAt':None,'evidence':[]},indent=2)+'\n')
     write(PAYLOAD/'Tools/requirements-handover.txt',runtime_pins())
     write(PAYLOAD/'Tools/compose.yaml',compose_text())
-    for name in ['Runtime.ps1','Integrity.ps1','run_backend.py','smoke.py','command_runner.py']:shutil.copyfile(TOOLS/name,PAYLOAD/'Tools'/name)
+    for name in ['Runtime.ps1','Prerequisites.ps1','Integrity.ps1','run_backend.py','smoke.py','command_runner.py']:shutil.copyfile(TOOLS/name,PAYLOAD/'Tools'/name)
     write(PAYLOAD/'OWNER_HANDOVER_AUTHORIZATION.txt',(TOOLS/'OWNER_HANDOVER_AUTHORIZATION.txt').read_text().replace('{REVISION}',revision))
     for batch,action in [('SETUP.bat','Setup'),('Start.bat','Start'),('Stop.bat','Stop')]:
         content='@echo off\r\nsetlocal EnableExtensions DisableDelayedExpansion\r\n"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -File "%~dp0Tools\\Runtime.ps1" -Action '+action+' %*\r\nset "EIMS_RESULT=%ERRORLEVEL%"\r\nif not defined EIMS_NONINTERACTIVE pause\r\nexit /b %EIMS_RESULT%\r\n'
