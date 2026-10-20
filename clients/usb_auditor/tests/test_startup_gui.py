@@ -14,19 +14,28 @@ def test_storage_failure_requires_explicit_choice_and_keeps_actual_error(monkeyp
         if requested is None:raise PermissionError('FAT32 requires approved storage')
         return Path(requested)
     monkeypatch.setattr(portable_entry,'prepare_output',prepare)
-    actual=select_output(tmp_path,None,lambda:str(tmp_path),lambda message:messages.append(message) or True)
+    actual=select_output(tmp_path,None,lambda:str(tmp_path),messages.append)
     assert calls==[None,str(tmp_path/'EIMS_Evidence')]
     assert actual==tmp_path/'EIMS_Evidence' and messages==['FAT32 requires approved storage']
 
 
-def test_decline_does_not_redirect_or_create_output(monkeypatch,tmp_path):
+def test_cancel_picker_does_not_redirect_or_create_output(monkeypatch,tmp_path):
     import portable_entry
     from startup_gui import select_output
     def rejected(*args):raise PermissionError('Denied')
     monkeypatch.setattr(portable_entry,'prepare_output',rejected)
-    def forbidden():raise AssertionError('No path selection was authorized')
-    assert select_output(tmp_path,None,forbidden,lambda message:False) is None
+    messages=[]
+    assert select_output(tmp_path,None,lambda:'',messages.append) is None
+    assert messages==['Denied']
     assert not list(tmp_path.iterdir())
+
+
+def test_valid_default_storage_needs_no_picker_or_confirmation(monkeypatch,tmp_path):
+    import portable_entry
+    from startup_gui import select_output
+    monkeypatch.setattr(portable_entry,'prepare_output',lambda root,requested:root/'Evidence')
+    def forbidden(*args):raise AssertionError('Valid storage needs no prompt')
+    assert select_output(tmp_path,None,forbidden,forbidden)==tmp_path/'Evidence'
 
 
 def test_startup_window_is_visible_and_responsive_before_verification_finishes(monkeypatch,tmp_path):

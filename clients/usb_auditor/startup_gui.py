@@ -14,8 +14,9 @@ def select_output(package, requested, choose, explain):
         try:
             return prepare_output(package, requested)
         except (OSError, ValueError) as exc:
-            if not explain(str(exc)):
-                return None
+            # Show the reason in the existing startup window. The folder picker
+            # already provides an explicit choice and Cancel; no extra Yes/No.
+            explain(str(exc))
             parent = choose()
             if not parent:
                 return None
@@ -84,10 +85,9 @@ def prepare_gui(package, requested, mode):
         if not result.get('verified'):return None
         status.set('Package verified. Checking approved report storage…');window.update_idletasks()
         def explain(error):
-            return messagebox.askyesno('Select approved report storage',
-                error+'\n\nOpen the Auditor from this USB and save reports in a protected LOCAL folder instead?\n'
-                'Choose an approved parent folder; reports will be stored in its EIMS_Evidence subfolder.\n'
-                'No scan has started and no storage policy will be bypassed.',parent=window)
+            status.set(error+'\nChoose an approved parent folder, or Cancel. '
+                       'Reports use its protected EIMS_Evidence subfolder. No scan has started.')
+            window.update_idletasks()
         return select_output(package,requested,
             lambda:filedialog.askdirectory(title='Choose an approved LOCAL parent for EIMS_Evidence',mustexist=True,parent=window),explain)
     finally:
