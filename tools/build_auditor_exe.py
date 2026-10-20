@@ -86,7 +86,8 @@ def build():
     (PACKAGE / 'README.txt').write_text('''EIMS Portable Windows Auditor 1.3.3 (Windows PC x64 candidate)
 Choose EIMS-Auditor-Standard.exe (no elevation) or EIMS-Auditor-Admin.exe (normal UAC).
 Both open the same GUI with optional business fields and module selection.
-Start Audit, review immutable evidence, apply separate annotations, then Export.
+Start Audit automatically saves one raw JSON, one log and cumulative Summary.xlsx.
+Save Review stores separate notes without duplicating raw scans. Retry Excel never rescans.
 New audit clears customer fields; profiles are never automatically reloaded.
 Startup shows a live integrity check before any scanner runs. On NTFS USB,
 Evidence beside the EXEs is the default; reports travel with the USB.
@@ -100,7 +101,9 @@ AppLocker, App Control, Windows UAC or PowerShell policy.
 Copy the complete folder from an approved share to a writable local directory;
 direct network-share execution/output is rejected. Default output is Evidence
 beside these EXEs; there is NO silent AppData fallback. Local Evidence uses a
-protected owner/SYSTEM ACL, including NTFS USB. NTFS is not encryption.
+protected owner/SYSTEM ACL on fixed disks. NTFS USB Evidence allows authenticated
+Windows users to modify evidence, with SYSTEM/Administrators full access, never Everyone.
+This is portable access, not company-group authorization or encryption. Keep media protected.
 Use --output-dir ABSOLUTE_APPROVED_DIRECTORY to select
 an explicit local/removable destination (parent must already exist).
 For media without file permissions, IT must approve encryption and prepare audit-policy.json

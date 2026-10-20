@@ -186,6 +186,7 @@ def _load_reports(report_paths=None) -> list[dict]:
         return []
 
     reports: list[dict] = []
+    identities = set()
     for filepath in report_files:
         try:
             with open(filepath, "r", encoding="utf-8") as f:
@@ -193,6 +194,15 @@ def _load_reports(report_paths=None) -> list[dict]:
                 if not isinstance(data, dict):
                     raise ValueError("JSON evidence must be an object: " + filepath.name)
                 data = _strip_secret_keys(data)
+                meta, system = data.get('metadata', {}), data.get('system', {})
+                identity = ('scan', meta['scan_id']) if meta.get('scan_id') else (
+                    ('legacy', system.get('computer_name'), system['scan_timestamp'], system.get('collection_privileges'))
+                    if system.get('scan_timestamp') else ('file', filepath.name))
+                if identity in identities:
+                    continue
+                identities.add(identity)
+                from review_store import load_review
+                data.update(load_review(filepath))
                 data["_export_report_file"] = filepath.name
                 reports.append(data)
         except (json.JSONDecodeError, OSError) as exc:

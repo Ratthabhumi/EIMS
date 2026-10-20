@@ -43,7 +43,7 @@ export function HandoverAuthGate({ children }: { children: React.ReactNode }) {
     })();
   }, []);
   useEffect(() => () => restore.current?.(), []);
-  if (signedIn) return <><div role="note" className="border-b px-4 py-2 text-sm">SYNTHETIC DEMO — fictional devices and findings for internal evaluation.</div>{children}</>;
+  if (signedIn) return <>{children}</>;
   return <main className="flex min-h-screen items-center justify-center p-8">
     <div role="status" className="space-y-3"><h1 className="text-2xl font-bold">EIMS local handover</h1>
       <p>{error || "Opening your Windows-authorized session…"}</p></div>

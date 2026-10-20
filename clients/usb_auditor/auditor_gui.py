@@ -19,6 +19,8 @@ class AuditorGUI:
         self.root, self.evidence, self.mode = root, Path(evidence), mode
         self.events = queue.Queue()
         self.report = None
+        self.report_path = None
+        self.review_dirty = False
         self.context = {}
         self.rows, self.annotations, self.trail = {}, {}, []
         self.busy = False
@@ -103,12 +105,14 @@ class AuditorGUI:
         ttk.Label(footer,textvariable=self.status,wraplength=1050).pack(anchor='w',pady=4)
         bar=ttk.Frame(footer);bar.pack(fill='x')
         self.start_button=ttk.Button(bar,text='Start Audit',command=self.start);self.start_button.pack(side='left')
-        self.export_button=ttk.Button(bar,text='Export reviewed JSON + Excel',command=self.export,state='disabled');self.export_button.pack(side='left',padx=8)
+        self.export_button=ttk.Button(bar,text='Save Review',command=self.export,state='disabled');self.export_button.pack(side='left',padx=8)
+        self.retry_button=ttk.Button(bar,text='Retry Excel',command=self.retry_summary,state='disabled');self.retry_button.pack(side='left',padx=8)
         ttk.Button(bar,text='Open Evidence folder',command=lambda:os.startfile(self.evidence)).pack(side='left')
         ttk.Button(bar,text='New audit (clear customer fields)',command=self.reset).pack(side='right')
         self.paths=tk.StringVar(value=str(evidence))
         ttk.Label(footer,textvariable=self.paths,wraplength=1050,font=('Segoe UI',9)).pack(anchor='w',pady=4)
         self.tabs.select(0)
+        for var in self.fields.values():var.trace_add('write',self.mark_dirty)
         root.protocol('WM_DELETE_WINDOW', self.close)
         root.after(100,self.poll)
 
@@ -123,7 +127,7 @@ class AuditorGUI:
             return
         for var in self.fields.values():var.set('')
         for var in self.modules.values():var.set(True)
-        self.report=None;self.annotations={};self.trail=[];self.rows={};self.context={}
+        self.report=None;self.report_path=None;self.review_dirty=False;self.retry_button.configure(state='disabled');self.annotations={};self.trail=[];self.rows={};self.context={}
         for field,var in self.manual.items():var.set('Open' if field=='review_status' else '')
         self.detail.configure(state='normal');self.detail.delete('1.0','end');self.detail.configure(state='disabled')
         self.tree.delete(*self.tree.get_children())
@@ -152,7 +156,12 @@ class AuditorGUI:
                                  lambda n,label:self.events.put(('progress',(n,label))))
             if not result.get('report_path'):raise RuntimeError('Scan failed; no successful report was produced. See execution log: '+str(path))
             report=json.loads(result['report_path'].read_text(encoding='utf-8'))
-            self.events.put(('complete',(report,code,result['report_path'],path)))
+            warning=''
+            try:
+                from exporters.excel_exporter import export_summary
+                export_summary([result['report_path']])
+            except Exception as exc:warning=str(exc)
+            self.events.put(('complete',(report,code,result['report_path'],path,warning)))
         except Exception as exc:self.events.put(('error',str(exc)))
 
     def poll(self):
@@ -161,7 +170,8 @@ class AuditorGUI:
                 kind,value=self.events.get_nowait()
                 if kind=='progress':self.progress['value']=value[0];self.status.set(f'{value[0]}/9 — {value[1]}')
                 elif kind=='complete':
-                    self.report,code,json_path,log_path=value
+                    self.report,code,json_path,log_path,warning=value
+                    self.report_path=json_path;self.review_dirty=False
                     self.busy=False
                     self.context.update({key:self.report[key] for key in ('selected_modules','context_version')})
                     self.rows={row[0]:row for row in findings(self.report)}
@@ -172,12 +182,17 @@ class AuditorGUI:
                     compliance=self.report['compliance']
                     check_summary=' / '.join(f'{key}: {compliance.get(key,0)}' for key in ('pass_count','warning_count','fail_count','unknown_count'))
                     self.summary.set(f"{system.get('computer_name')} | {system.get('windows_edition')} {system.get('build_number','')} | CPU {system.get('cpu','N/A')} | RAM {system.get('ram_gb','N/A')} GB | Disk {system.get('disk_gb','N/A')} GB | IP {system.get('ip_address')}\nPrivilege: {system.get('collection_privileges')} | {compliance.get('verdict')} | {check_summary}\nEvents {events.get('collected',0)} {counts} | {endpoints}\nCollection limitations: {system.get('collection_limitations',[])}; inspect UNKNOWN/PARTIAL findings below.")
-                    self.status.set('Collection finished — PARTIAL' if code==3 else 'Collection finished — review findings')
-                    self.paths.set(f'Original JSON: {json_path}\nLog: {log_path}')
-                    self.export_button.configure(state='normal')
+                    self.status.set(('Audit Completed — JSON/Log Saved; Excel needs retry: '+warning) if warning else ('Audit Completed — Saved (PARTIAL findings)' if code==3 else 'Audit Completed — Saved'))
+                    self.retry_button.configure(state='normal' if warning else 'disabled')
+                    self.paths.set(f'Original JSON: {json_path}\nExcel: {json_path.parent / "Summary.xlsx"}\nLog: {log_path}')
+                    self.export_button.configure(state='disabled')
                 elif kind=='exported':
-                    self.busy=False;self.export_button.configure(state='normal');self.paths.set(value)
-                    self.status.set('Reviewed JSON and Excel saved; original scan is unchanged.')
+                    self.busy=False;self.review_dirty=False;self.export_button.configure(state='disabled')
+                    self.status.set('Review Saved; original JSON is unchanged.'+(' Excel needs retry: '+value if value else ''))
+                    self.retry_button.configure(state='normal' if value else 'disabled')
+                elif kind=='summary':
+                    self.busy=False;self.retry_button.configure(state='normal' if value else 'disabled')
+                    self.status.set('Excel needs retry: '+value if value else 'Summary.xlsx Saved — no new scan.')
                 elif kind=='error':
                     self.busy=False;self.start_button.configure(state='normal' if not self.report else 'disabled')
                     if self.report:self.export_button.configure(state='normal')
@@ -205,7 +220,24 @@ class AuditorGUI:
         self.trail.append({'at':now(),'operator':getpass.getuser(),'identity_source':'local_os_user_not_EIMS_authentication',
                            'finding_id':key,'before':copy.deepcopy(before),'after':copy.deepcopy(item)})
         self.annotations[key]=item
-        self.status.set('Annotation applied separately from original evidence. Export to save it.')
+        self.mark_dirty()
+        self.status.set('Annotation applied separately from original evidence. Save Review to keep it.')
+
+    def mark_dirty(self,*_):
+        if self.report and not self.busy:
+            self.review_dirty=True;self.export_button.configure(state='normal')
+
+    def retry_summary(self):
+        if self.busy or not self.report:return
+        self.busy=True;self.retry_button.configure(state='disabled')
+        def worker():
+            warning=''
+            try:
+                from exporters.excel_exporter import export_summary
+                export_summary([self.report_path])
+            except Exception as exc:warning=str(exc)
+            self.events.put(('summary',warning))
+        threading.Thread(target=worker,daemon=True).start()
 
     def export(self):
         if self.busy or not self.report:return
@@ -216,17 +248,17 @@ class AuditorGUI:
                 **{group:{key:self.fields[group,key].get() for key in fields} for group,fields in FIELDS.items()},
                 'manual_annotations':list(self.annotations.values()),'manual_change_log':self.trail})
         except ValueError as exc:messagebox.showerror('Invalid context',str(exc));return
+        if not self.review_dirty:return
         self.busy=True;self.export_button.configure(state='disabled')
         def worker():
             try:
-                from exporters.json_exporter import save_report
+                from review_store import save_review
                 from exporters.excel_exporter import export_summary
-                r=self.report
-                path=save_report(*(r[k] for k in ('system','security','services','registry','compliance')),
-                                 setup_verify=r.get('setup_verify'),event_logs=r.get('event_logs'),
-                                 firewall_evidence=r.get('firewall_evidence'),extra=context)
-                excel=export_summary([path])
-                self.events.put(('exported',f'Reviewed JSON: {path}\nExcel: {excel}\nLogs: {self.evidence / "logs"}'))
+                save_review(self.report_path,context)
+                warning=''
+                try:export_summary([self.report_path])
+                except Exception as exc:warning=str(exc)
+                self.events.put(('exported',warning))
             except Exception as exc:self.events.put(('error',str(exc)))
         threading.Thread(target=worker,daemon=True).start()
 

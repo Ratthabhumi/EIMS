@@ -35,7 +35,7 @@ def test_ntfs_usb_defaults_to_beside_exe_and_preserves_reports(tmp_path, monkeyp
     monkeypatch.setattr(entry, 'volume_info', lambda p: (2, True))
     evidence = entry.prepare_output(tmp_path)
     assert evidence == tmp_path / 'Evidence'
-    entry.verify_private_acl(evidence)
+    entry.verify_private_acl(evidence, portable=True)
     prior = evidence / 'reports' / 'synthetic.json'
     prior.write_text('{}', encoding='utf-8')
     assert entry.prepare_output(tmp_path) == evidence
@@ -82,3 +82,11 @@ def test_embedded_secrets_not_retained_in_messages():
     text = 'password="SYNTHETIC_SECRET" access_token=SYNTHETIC_TOKEN'
     cleaned = redact_secrets(text)
     assert 'SYNTHETIC_SECRET' not in cleaned and 'SYNTHETIC_TOKEN' not in cleaned
+
+
+def test_portable_acl_not_bound_to_current_machine_sid(tmp_path,monkeypatch):
+    folder=tmp_path/'Portable';folder.mkdir()
+    entry.protect_new_directory(folder,portable=True)
+    entry.verify_private_acl(folder,portable=True)
+    monkeypatch.setattr(entry,'current_sid',lambda:'S-1-5-21-111-222-333-1001')
+    entry.verify_private_acl(folder,portable=True)

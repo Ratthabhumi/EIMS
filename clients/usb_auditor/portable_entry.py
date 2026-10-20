@@ -47,18 +47,21 @@ def current_sid():
         kernel.CloseHandle(token)
 
 
-def protect_new_directory(path):
+def protect_new_directory(path, portable=False):
     adv, kernel = _windows()
     adv.ConvertStringSecurityDescriptorToSecurityDescriptorW.argtypes = [w.LPCWSTR, w.DWORD, ctypes.POINTER(w.LPVOID), ctypes.POINTER(w.DWORD)]
     adv.SetFileSecurityW.argtypes = [w.LPCWSTR, w.DWORD, w.LPVOID]
     kernel.LocalFree.argtypes = [w.LPVOID]
     descriptor = w.LPVOID()
     sid = current_sid()
-    sddl = f'O:{sid}D:P(A;OICI;FA;;;{sid})(A;OICI;FA;;;SY)'
+    # USB users have different machine SIDs. Stable Windows groups allow
+    # authenticated operators to carry evidence between PCs; never Everyone.
+    sddl = ('D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;0x1301bf;;;AU)'
+            if portable else f'O:{sid}D:P(A;OICI;FA;;;{sid})(A;OICI;FA;;;SY)')
     if not adv.ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl, 1, ctypes.byref(descriptor), None):
         raise ctypes.WinError(ctypes.get_last_error())
     try:
-        if not adv.SetFileSecurityW(str(path), 0x80000005, descriptor):
+        if not adv.SetFileSecurityW(str(path), 0x80000004 if portable else 0x80000005, descriptor):
             raise ctypes.WinError(ctypes.get_last_error())
     finally:
         kernel.LocalFree(descriptor)
@@ -77,7 +80,7 @@ def volume_info(path):
     return kernel.GetDriveTypeW(root.value), bool(flags.value & 8)
 
 
-def verify_private_acl(path):
+def verify_private_acl(path, portable=False):
     adv, kernel = _windows()
     adv.GetFileSecurityW.argtypes = [w.LPCWSTR, w.DWORD, w.LPVOID, w.DWORD, ctypes.POINTER(w.DWORD)]
     adv.ConvertSecurityDescriptorToStringSecurityDescriptorW.argtypes = [w.LPVOID, w.DWORD, w.DWORD, ctypes.POINTER(w.LPWSTR), ctypes.POINTER(w.DWORD)]
@@ -93,11 +96,16 @@ def verify_private_acl(path):
     try:
         sddl = text.value
         sid = current_sid()
-        if not sddl.startswith('O:' + sid) or 'D:P' not in sddl:
+        if (not portable and not sddl.startswith('O:' + sid)) or 'D:P' not in sddl:
             raise PermissionError('Existing Evidence is not a protected directory owned by this account; use a different approved --output-dir')
+        allowed = {sid, 'SY', 'S-1-5-18'}
+        if portable:
+            allowed |= {'BA', 'AU', 'S-1-5-32-544', 'S-1-5-11'}
+            if not re.search(r';(?:AU|S-1-5-11)\)', sddl):
+                raise PermissionError('Portable Evidence requires authenticated-user access; ask IT to repair this folder')
         for ace in re.findall(r'\(([^()]*)\)', sddl):
             parts = ace.split(';')
-            if parts[0] in {'A', 'OA'} and parts[-1] not in {sid, 'SY', 'S-1-5-18'}:
+            if parts[0] in {'A', 'OA'} and parts[-1] not in allowed:
                 raise PermissionError('Existing Evidence permits other accounts; no collection started')
     finally:
         kernel.LocalFree(ctypes.cast(text, w.LPVOID))
@@ -167,9 +175,9 @@ def prepare_output(root, requested=None):
     if not path.is_dir():
         raise OSError('Evidence destination is not a directory')
     if acl_supported and not existed:
-        protect_new_directory(path)
+        protect_new_directory(path, portable=drive_type == 2)
     if acl_supported:
-        verify_private_acl(path)
+        verify_private_acl(path, portable=drive_type == 2)
     for name in ('reports', 'logs'):
         reject_links(path / name)
         (path / name).mkdir(exist_ok=True)

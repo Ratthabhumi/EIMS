@@ -96,6 +96,7 @@ def save_report(
     # ── Assemble report payload ──────────────────────────────────────────────
     report = {
         "metadata": {
+            "scan_id": uuid4().hex,
             "auditor_version": "1.3.0",
             "report_format":   "1",
             "launch_mode": os.getenv("EIMS_AUDITOR_MODE", "legacy"),

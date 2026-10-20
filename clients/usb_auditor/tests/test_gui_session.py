@@ -42,6 +42,8 @@ def test_actual_tk_fields_annotations_and_literal_excel(monkeypatch,tmp_path):
     from auditor_gui import AuditorGUI
     from exporters import json_exporter,excel_exporter
     root=tk.Tk()
+    import auditor_gui
+    monkeypatch.setattr(auditor_gui.messagebox,'showerror',lambda *args:pytest.fail(str(args)))
     try:
         app=AuditorGUI(root,tmp_path,'standard')
         root.update()
@@ -56,7 +58,7 @@ def test_actual_tk_fields_annotations_and_literal_excel(monkeypatch,tmp_path):
         raw={'system':{'computer_name':'SYNTHETIC','collection_privileges':'standard_user'},'security':{'defender':{'status':'UNKNOWN','detail':'blocked'}},'services':{},'registry':{},'compliance':{'score':0,'verdict':'Partial'}}
         original=copy.deepcopy(raw)
         from session_model import findings
-        app.report=raw;app.context={'selected_modules':dict.fromkeys(MODULES,True)}
+        app.report=raw;app.report_path=tmp_path/'reports/raw.json';app.report_path.write_text(json.dumps(raw));app.context={'selected_modules':dict.fromkeys(MODULES,True)}
         app.rows={row[0]:row for row in findings(raw)}
         app.tree.insert('','end',iid='security.defender',values=('UNKNOWN','Defender'))
         app.tree.selection_set('security.defender');app.select_finding()
@@ -68,7 +70,12 @@ def test_actual_tk_fields_annotations_and_literal_excel(monkeypatch,tmp_path):
             root.update();ticks+=1;time.sleep(.01)
         assert not app.busy and ticks>1
         assert raw==original
-        output=json.loads(next((tmp_path/'reports').glob('*.json')).read_text())
+        from review_store import load_review
+        output=load_review(app.report_path)
+        assert len(list((tmp_path/'reports').glob('*.json')))==1
+        assert json.loads(app.report_path.read_text())==raw
+        app.export()
+        assert not app.busy
         assert output['customer']['contact_email']=='it@example.invalid'
         assert output['manual_annotations'][0]['review_status']=='Investigating'
         assert output['manual_change_log'][0]['identity_source']=='local_os_user_not_EIMS_authentication'
