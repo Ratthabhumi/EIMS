@@ -83,7 +83,7 @@ def build():
     copy2(ROOT / 'LICENSE', PACKAGE / 'LICENSE')
     include_licenses(PACKAGE)
     (PACKAGE / 'PACKAGE_TYPE').write_text('USB_AUDITOR_EXE\n', encoding='ascii')
-    (PACKAGE / 'README.txt').write_text('''EIMS Portable Windows Auditor 1.3.2 (Windows PC x64 candidate)
+    (PACKAGE / 'README.txt').write_text('''EIMS Portable Windows Auditor 1.3.3 (Windows PC x64 candidate)
 Choose EIMS-Auditor-Standard.exe (no elevation) or EIMS-Auditor-Admin.exe (normal UAC).
 Both open the same GUI with optional business fields and module selection.
 Start Audit, review immutable evidence, apply separate annotations, then Export.
@@ -108,8 +108,10 @@ from the example with an approval reference. This records approval; it does NOT
 detect/establish encryption. Never approve plaintext media contrary to company policy.
 Alternate-admin accounts may require a separate approved Evidence directory.
 
-JSON, uniquely named Excel and unique execution logs remain in Evidence/reports
-and Evidence/logs. Every JSON is preserved. No automatic upload occurs. Read-only
+Every scan keeps its own JSON and execution log in Evidence/reports and
+Evidence/logs. Summary.xlsx is regenerated from all JSON reports, one row per
+report, with mode and customer context. A locked workbook stays unchanged; close
+Excel before exporting again. JSON evidence is always preserved. No automatic upload occurs. Read-only
 System/Application events and firewall evidence are bounded. Security channel is
 NOT enabled. Messages use explicit 64 KiB/event, 8 MiB/collection UTF-8 limits;
 truncation/redaction metadata is retained. Final JSON is capped at 16 MiB.
@@ -136,7 +138,7 @@ actual release acceptance and owner-approved USB replacement are complete.
                   'source_files': [{'path': p.relative_to(ROOT).as_posix(), 'sha256': sha(p)} for p in sorted(files)],
                   'dependencies': {n: importlib.metadata.version(n) for n in ['pyinstaller', 'pyinstaller-hooks-contrib', 'psutil', 'openpyxl', 'et-xmlfile', 'pefile']}}
     (PACKAGE / 'BUILD_PROVENANCE.json').write_text(json.dumps(provenance, indent=2), encoding='utf-8')
-    (PACKAGE / 'VERSION.txt').write_text('EIMS Portable Auditor 1.3.2\nMode: ONEDIR dual EXE, shared engine/runtime\n'
+    (PACKAGE / 'VERSION.txt').write_text('EIMS Portable Auditor 1.3.3\nMode: ONEDIR dual EXE, shared engine/runtime\n'
                                        + 'Source commit: ' + provenance['source_commit'] + '\n'
                                        + 'Worktree modifications recorded in BUILD_PROVENANCE.json\nPyInstaller 6.22.3; Python ' + sys.version.split()[0] + '\n', encoding='utf-8')
     legacy.write_manifest(PACKAGE)
@@ -147,7 +149,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build', action='store_true')
     parser.add_argument('--check', type=Path)
-    parser.add_argument('--slot', choices=['package', 'verified', 'gui', 'gui_final', 'gui_release', 'ready', 'startup_fix', 'evidence_usb'], default='package')
+    parser.add_argument('--slot', choices=['package', 'verified', 'gui', 'gui_final', 'gui_release', 'ready', 'startup_fix', 'evidence_usb', 'excel_summary'], default='package')
     args = parser.parse_args()
     if args.build:
         PACKAGE = BUILD / args.slot / 'EIMS_USB_Auditor'

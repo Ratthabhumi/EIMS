@@ -229,3 +229,42 @@ NTFS itself is not encryption. No company encryption approval is asserted.
 Verification: 15 targeted portable-entry, startup-window and GUI-session tests
 passed, including NTFS-removable default output and preserved synthetic reports.
 No audit scan, frontend build or administrator collection was rerun this round.
+
+
+### Single cumulative Excel summary — 2026-10-20
+
+Auditor 1.3.3 changes only the Excel exporter and delivery build metadata.
+Summary.xlsx is regenerated from every JSON in the selected reports directory,
+including when the GUI passes only its just-exported file. Every JSON remains
+immutable. Summary rows include actual Standard/Admin collection privilege,
+original timestamp, customer/asset/audit context and source report filename.
+Business Context and Manual Review sheets remain available; formula-shaped
+input remains literal text. Invalid JSON aborts replacement rather than silently
+shrinking an existing summary.
+
+The exporter writes a same-directory temporary workbook, flushes it, verifies
+ZIP/workbook integrity and row count, then atomically replaces Summary.xlsx.
+A locked destination or write failure leaves the previous workbook and all JSON
+unchanged. No new random-named XLSX summary is created. Earlier Excel exports
+are preserved as historical artifacts.
+
+Verification: 38 focused tests passed across exporter, GUI-session, admin audit
+and legacy BitLocker/secret handling. The four exporter regressions also passed
+after placing Audit Mode next to Computer Name. Lock testing used an actual
+Windows file handle denying replacement, not an opened Microsoft Excel UI.
+Actual exporter bytecode extracted from the built EXE aggregated three synthetic
+scans without launching any scanner. Dashboard and scanner code are unchanged.
+
+Physical D: delivery verified: 1,013 program files; all seven pre-existing
+evidence files preserved in a verified backup. The actual delivered exporter
+regenerated Summary.xlsx from three existing JSON reports, producing three rows
+without running a new scan. Standard/Admin embedded exporter bytecode matches.
+Earlier random-named workbooks were retained in the dated backup; the active
+reports directory now has one Summary.xlsx. Windows denied
+renaming the package, so the verified predecessor was copied to backup before
+updating only changed program files, with the integrity manifest replaced last.
+Evidence JSON bytes and scanner source were not changed.
+
+Current package manifest SHA-256:
+`d8b5eb361d8db4babc886fb3ebfcf0275c9f1eaa0a0b1f5165b208f758e87c82`.
+Backup: `D:/EIMS_USB_Auditor_Backup_2026-10-20_Summary`.

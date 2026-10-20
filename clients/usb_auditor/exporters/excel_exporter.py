@@ -20,6 +20,9 @@ Why openpyxl?
 
 import json
 import logging
+import os
+import tempfile
+import zipfile
 from pathlib import Path
 
 import openpyxl
@@ -27,6 +30,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
 from config.settings import REPORTS_DIR, BASE_DIR
+from session_model import FIELDS
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +89,12 @@ COLUMNS: list[tuple[str, list[str], int]] = [
     ("Xbox",             ["setup_verify", "xbox",          "status"],               12),
     ("Scan Date",        ["system", "scan_timestamp"],                              22),
 ]
+
+COLUMNS.insert(1, ("Audit Mode", ["system", "collection_privileges"], 18))
+COLUMNS += [("Report File", ["_export_report_file"], 42)]
+COLUMNS += [(label, [group, field], 24) for group, fields in FIELDS.items()
+            for field, label in fields.items()]
+
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -163,7 +173,7 @@ def _load_reports(report_paths=None) -> list[dict]:
     """
     Load all JSON report files from the reports/ directory.
 
-    Skips files that cannot be parsed (corrupted/incomplete).
+    Fails on unreadable/invalid reports so an existing summary is not silently reduced.
     Returns a list of report dicts sorted by scan timestamp (oldest first).
     Any secret-sensitive keys present in legacy files are stripped in memory.
     """
@@ -180,12 +190,16 @@ def _load_reports(report_paths=None) -> list[dict]:
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                reports.append(_strip_secret_keys(data))
+                if not isinstance(data, dict):
+                    raise ValueError("JSON evidence must be an object: " + filepath.name)
+                data = _strip_secret_keys(data)
+                data["_export_report_file"] = filepath.name
+                reports.append(data)
         except (json.JSONDecodeError, OSError) as exc:
-            logger.warning("Skipping corrupted report '%s': %s", filepath.name, exc)
+            raise OSError("Cannot read JSON evidence: " + filepath.name + "; previous Summary.xlsx preserved") from exc
 
     logger.info("Loaded %d report(s) from %s", len(reports), REPORTS_DIR)
-    return reports
+    return sorted(reports, key=lambda r: (str(r.get("system", {}).get("scan_timestamp") or r.get("metadata", {}).get("generated_at") or ""), r["_export_report_file"]))
 
 
 # ── Main Export Function ─────────────────────────────────────────────────────
@@ -204,7 +218,14 @@ def export_summary(report_paths=None) -> Path:
         RuntimeError: If no reports are found to export.
         OSError:      If the file cannot be written.
     """
-    reports = _load_reports(report_paths)
+    # GUI callers supply the just-saved file. Keep validating that input, but
+    # Summary.xlsx always represents every scan in this Evidence directory.
+    if report_paths is not None:
+        for item in report_paths:
+            path = Path(item)
+            if path.is_symlink() or path.resolve().parent != REPORTS_DIR.resolve() or path.suffix.lower() != ".json":
+                raise ValueError("Only JSON evidence in the approved reports directory can be exported")
+    reports = _load_reports()
 
     if not reports:
         raise RuntimeError(
@@ -258,6 +279,8 @@ def export_summary(report_paths=None) -> Path:
 
         for col_idx, (header_text, json_path, _) in enumerate(COLUMNS, start=1):
             value = _get_nested(report, json_path)
+            if header_text == "Audit Mode":
+                value = {"administrator": "Admin", "standard_user": "Standard"}.get(value, value)
             cell = ws.cell(row=row_idx, column=col_idx, value=value)
             cell.border = border
             cell.alignment = Alignment(horizontal="center", vertical="center")
@@ -321,7 +344,6 @@ def export_summary(report_paths=None) -> Path:
     # Allows filtering by any column directly in Excel
     ws.auto_filter.ref = ws.dimensions
 
-    from session_model import FIELDS
     business = wb.create_sheet('Business Context')
     business.append(['Report', 'Group', 'Field', 'Value'])
     annotations = wb.create_sheet('Manual Review')
@@ -340,17 +362,36 @@ def export_summary(report_paths=None) -> Path:
             for cell in row:
                 if isinstance(cell.value, str):cell.data_type = 's'
     # ── Save ─────────────────────────────────────────────────────────────────
-    from uuid import uuid4
-    import os
-    import zipfile
-    output_path = REPORTS_DIR / ('Summary-' + uuid4().hex + '.xlsx')
-    with output_path.open('xb') as handle:
-        wb.save(handle)
-        handle.flush()
-        os.fsync(handle.fileno())
-    with zipfile.ZipFile(output_path) as archive:
-        if archive.testzip() is not None:
-            raise OSError('Excel integrity verification failed; JSON remains saved')
-    logger.info("Summary.xlsx saved: %s (%d machine(s))", output_path, len(reports))
-
+    output_path = REPORTS_DIR / 'Summary.xlsx'
+    if output_path.is_symlink() or output_path.is_junction():
+        wb.close()
+        raise OSError('Summary.xlsx must not be a link; JSON remains saved')
+    temporary = None
+    try:
+        fd, name = tempfile.mkstemp(prefix='.Summary-', suffix='.tmp', dir=REPORTS_DIR)
+        temporary = Path(name)
+        with os.fdopen(fd, 'wb') as handle:
+            wb.save(handle)
+            handle.flush()
+            os.fsync(handle.fileno())
+        with zipfile.ZipFile(temporary) as archive:
+            if archive.testzip() is not None:
+                raise OSError('Excel integrity verification failed; JSON remains saved')
+        with temporary.open('rb') as handle:
+            checked = openpyxl.load_workbook(handle, read_only=True)
+            try:
+                if checked['Compliance Summary'].max_row != len(reports) + 1:
+                    raise OSError('Excel row verification failed; JSON remains saved')
+            finally:
+                checked.close()
+        # Same-volume atomic replacement. An Excel lock leaves the old workbook intact.
+        os.replace(temporary, output_path)
+    finally:
+        wb.close()
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                logger.warning('Temporary workbook could not be removed; previous summary and JSON remain safe')
+    logger.info("Summary.xlsx saved: %s (%d scan(s))", output_path, len(reports))
     return output_path
