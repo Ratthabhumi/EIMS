@@ -16,6 +16,7 @@ import subprocess
 import zipfile
 
 import build
+from container_images import archive_identities
 
 CATALOG = {
     'Docker': dict(path='Installers/Docker/Docker Desktop Installer.exe', version='4.85.0.235549',
@@ -33,6 +34,8 @@ SOURCE_PATHS = [
     'tools/handover/Runtime.ps1', 'tools/handover/Prerequisites.ps1',
     'tools/handover/build.py', 'tools/handover/prepare_offline_prerequisites.py',
     'tools/tests/test_offline_prerequisites.py',
+    'tools/handover/container_images.py', 'tools/handover/prepare_portable_setup.py',
+    'tools/tests/test_container_images.py',
 ]
 
 
@@ -69,7 +72,8 @@ def finalize(root: Path, baseline: Path) -> None:
     original = verify_baseline(baseline)
     # Only these existing files may change. Everything else must stay byte-identical.
     mutable = {'Tools/Runtime.ps1','Source_Code/EIMS_Source.zip','Tools/source-ledger.json',
-        'Tools/package.json','START_HERE.txt','Tools/security-review.json','Tools/release-gate.json'}
+        'Tools/package.json','START_HERE.txt','Tools/security-review.json','Tools/release-gate.json',
+        'Tools/container-images.json'}
     for row in original['files']:
         if row['path'] not in mutable:
             assert sha(root / row['path']) == row['sha256'], 'Unexpected payload change: ' + row['path']
@@ -90,8 +94,10 @@ def finalize(root: Path, baseline: Path) -> None:
         'https://www.docker.com/legal/docker-subscription-service-agreement/\n'
         'https://learn.microsoft.com/en-us/windows/wsl/install#offline-install\n'
         'No clean-PC installation or legal compliance certification is claimed.\n', encoding='utf-8')
-    for name in ('Runtime.ps1','Prerequisites.ps1'):
+    for name in ('Runtime.ps1','Prerequisites.ps1','container_images.py'):
         (root / 'Tools' / name).write_bytes((build.TOOLS / name).read_bytes())
+    records = json.loads((root / 'Tools/container-images.json').read_text())
+    write_json(root / 'Tools/container-images.json', archive_identities(root / 'Tools/Container_Images.tar', records))
     package = json.loads((root / 'Tools/package.json').read_text())
     old_package = json.loads((baseline / 'Tools/package.json').read_text())
     for key in ('id','mediaId','storageMode','preparedRuntime','backupIntervalSeconds'):
@@ -100,7 +106,7 @@ def finalize(root: Path, baseline: Path) -> None:
     write_json(root / 'Tools/package.json', package)
     start = (baseline / 'START_HERE.txt').read_text()
     (root / 'START_HERE.txt').write_text(
-        'OFFLINE FIRST-RUN SETUP\n'
+        start if start.startswith('OFFLINE FIRST-RUN SETUP\n') else 'OFFLINE FIRST-RUN SETUP\n'
         'After company IT approval, double-click SETUP.bat. Existing working Docker is reused.\n'
         'If missing, official Docker/WSL installers are bundled in Installers; no download\n'
         'or typed INSTALL/YES is needed. Follow genuine vendor license and UAC dialogs.\n'

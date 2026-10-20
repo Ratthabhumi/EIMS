@@ -62,18 +62,14 @@ function Invoke-Compose([string[]]$Arguments,[string]$Label) {
 function Import-BundledImages {
     $imageList=Join-Path $payload 'Tools/container-images.json'
     if(-not (Test-Path $imageList)){return}
-    $images=@(Get-Content -LiteralPath $imageList -Raw | ConvertFrom-Json)
-    $missing=$false
-    foreach($image in $images){
-        try {
-            $actual=& docker.exe image inspect $image.tag --format '{{.Id}}' 2>$null
-            if($LASTEXITCODE -ne 0 -or $actual -ne $image.imageId){$missing=$true}
-        } catch {$missing=$true}
-    }
-    if($missing){Invoke-Checked 'docker.exe' @('load','--input',(Join-Path $payload 'Tools/Container_Images.tar')) 'load-bundled-images'}
-    foreach($image in $images){
-        $actual=& docker.exe image inspect $image.tag --format '{{.Id}}' 2>$null
-        if($LASTEXITCODE -ne 0 -or $actual -ne $image.imageId){throw 'Bundled container image identity mismatch.'}
+    $verifier=Join-Path $payload 'Tools/container_images.py'
+    & (Get-AppPython) $verifier $payload
+    $imageResult=$LASTEXITCODE
+    if($imageResult -notin @(0,2)){throw 'Bundled image archive/catalog validation failed. No images were loaded.'}
+    if($imageResult -eq 2){
+        Invoke-Checked 'docker.exe' @('load','--input',(Join-Path $payload 'Tools/Container_Images.tar')) 'load-bundled-images'
+        & (Get-AppPython) $verifier $payload
+        if($LASTEXITCODE -ne 0){throw 'Bundled container image identity mismatch. See per-tag expected/actual digests above; no infrastructure was started.'}
     }
     Write-Host 'Container images: READY - pinned bundled images; no registry download required.'
 }

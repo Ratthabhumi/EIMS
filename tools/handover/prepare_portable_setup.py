@@ -13,6 +13,7 @@ import uuid
 import zipfile
 
 import build as full
+from container_images import archive_identities
 
 
 def sha(path):
@@ -63,10 +64,11 @@ def prepare(stage):
     bootstrap = target / 'Tools/BootstrapPython'
     shutil.copytree(prepared / 'Python', bootstrap,
         ignore=shutil.ignore_patterns('site-packages', '__pycache__', '*.pyc'))
-    for name in ('Runtime.ps1', 'prepared_runtime.py', 'usb_backup.py', 'command_runner.py'):
+    for name in ('Runtime.ps1', 'Prerequisites.ps1', 'container_images.py', 'prepared_runtime.py', 'usb_backup.py', 'command_runner.py'):
         shutil.copyfile(full.TOOLS / name, target / 'Tools' / name)
     images = json.loads((stage / 'container-images.json').read_text())
-    shutil.copyfile(stage / 'container-images.json', target / 'Tools/container-images.json')
+    images = archive_identities(target / 'Tools/Container_Images.tar', images)
+    (target / 'Tools/container-images.json').write_text(json.dumps(images, indent=2), encoding='utf-8')
     compose = (target / 'Tools/compose.yaml').read_text('utf-8')
     for image in images:
         compose = compose.replace('image: ' + image['upstream'], 'image: ' + image['tag'] + '\n    pull_policy: never')
