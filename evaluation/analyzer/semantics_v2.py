@@ -81,6 +81,14 @@ def project(prediction, files):
     identity = metadata.get("eventId") if family in {"windows_event", "fortinet", "cisco_asa", "json"} else None
     if identity in ("", "Unknown"):
         identity = None
+    if family == "json" and primary in files:
+        # The parser's JSON-LOG fallback/status label is not a source-provided
+        # event identifier. Keep its raw metadata, but do not certify identity.
+        raw = json.loads(files[primary][1])
+        supplied = [str(raw[k]) for k in ("eventId", "event_id", "id", "code")
+                    if isinstance(raw, dict) and k in raw and raw[k] is not None]
+        if identity not in supplied:
+            identity = None
     failure_type = metadata.get("diagnosticCode") or "UNCLASSIFIED_FAILURE" if failed else None
     return {"source_family": family, "event_identity": identity,
             "failure_present": bool(failed), "failure_type": failure_type,

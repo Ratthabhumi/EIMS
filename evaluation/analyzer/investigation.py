@@ -68,17 +68,19 @@ def make_claims(response, files):
             valid = 1 <= line <= len(lines) and lines[line - 1].strip()[:500] == e["message"]
             refs.append({"file": file, "line": line, "message": e["message"],
                          "coordinate_valid": valid, "origin": "native_bundle_citation"})
-    # Single-file route emits text evidence. Resolve only unique literal source
-    # matches; ambiguous or compacted-away text remains explicitly unavailable.
+    # Single-file route may emit a literal signature rather than a full line.
+    # Resolve only one exact occurrence, record its character span and preserve
+    # the actual raw line. Never fuzzy-match, guess a file or infer semantic support.
     unresolved = []
     if not summary.get("evidenceItems"):
         for text in summary.get("evidence", []):
-            matches = [(name, i) for name, (_, raw) in files.items()
-                       for i, line in enumerate(raw.splitlines(), 1) if line == text]
+            matches = [(name, i, line.index(text), line) for name, (_, raw) in files.items()
+                       for i, line in enumerate(raw.splitlines(), 1) if text and line.count(text) == 1]
             if len(matches) == 1:
-                name, line = matches[0]
-                refs.append({"file": name, "line": line, "message": text,
-                             "coordinate_valid": True, "origin": "uniquely_resolved_text_citation"})
+                name, number, start, raw_line = matches[0]
+                refs.append({"file": name, "line": number, "message": raw_line,
+                             "quoted_excerpt": text, "span_start": start, "span_end": start + len(text),
+                             "coordinate_valid": True, "origin": "unique_exact_literal_citation_span"})
             else:
                 unresolved.append({"text": text, "reason": "SOURCE_LINE_AMBIGUOUS_OR_UNAVAILABLE"})
     claims = []

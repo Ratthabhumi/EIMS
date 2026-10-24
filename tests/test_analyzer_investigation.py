@@ -193,3 +193,26 @@ def test_demo_has_explicit_outcome_without_claiming_causation():
     assert s["root_cause_status"] == "UNKNOWN"
     assert p["native_response"]["files"][0]["sourceFamily"] == "veeam_vbr"
     assert p["native_response"]["files"][1]["sourceFamily"] == "vmware"
+
+
+def test_json_fallback_label_is_not_source_provided_event_identity():
+    c, files = source("json_info")
+    with runner.offline_guard():
+        prediction = runner.predict(c, files, "rule_only")
+        projected = semantics_v2.project(prediction, files)
+    assert prediction["per_file_metadata"][c["files"][0]["path"]]["eventId"] == "JSON-LOG"
+    assert projected["event_identity"] is None
+
+
+def test_literal_signature_maps_only_unique_exact_source_span():
+    from evaluation.analyzer.investigation import make_claims
+    response = {"eventMetadata": {"sourceFamily": "vmware"}, "solutionSummary": {
+        "overview": "Synthetic overview", "evidence": ["Could not delete change tracking file"]}}
+    line = "2026-10-25T00:00:00Z vmx: Could not delete change tracking file"
+    files = {"a.txt": (line.encode(), line)}
+    _, refs, missing = make_claims(response, files)
+    assert not missing and len(refs) == 1
+    r = refs[0]
+    assert r["message"] == line and line[r["span_start"]:r["span_end"]] == r["quoted_excerpt"]
+    _, refs, missing = make_claims(response, {**files, "b.txt": files["a.txt"]})
+    assert not refs and missing[0]["reason"] == "SOURCE_LINE_AMBIGUOUS_OR_UNAVAILABLE"
