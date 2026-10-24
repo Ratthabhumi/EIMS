@@ -1,0 +1,10 @@
+{
+  "source_sha": "ddf717e81e389eb69cdb338becf0ba8d3bb6f3a7",
+  "case_status": "DRAFT_DEMO_ONLY_NOT_GOLD",
+  "input_sha256": {
+    "a-veeam.txt": "18d67852d4f8e2b4db17d4677c201d08d0e3ed0ec7fbb02742d0eeb4d2b7982d",
+    "b-vmware.txt": "8759011a666aba0aa41fa87d26ce196fd5c88a3e64d1809d3b3d56770a0a5a3a"
+  },
+  "no_operational_storage": true,
+  "external_network": "BLOCKED"
+}
