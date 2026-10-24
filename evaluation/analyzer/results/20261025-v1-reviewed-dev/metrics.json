@@ -1,0 +1,733 @@
+{
+  "case_count": 0,
+  "error_count": 0,
+  "source": {
+    "accuracy": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "exact class incl UNKNOWN and ERROR",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "per_class": {},
+    "confusion_matrix": {},
+    "macro": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      }
+    },
+    "micro": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "tp": 0,
+      "fp": 0,
+      "fn": 0
+    }
+  },
+  "diagnostic": {
+    "accuracy": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "exact class incl UNKNOWN and ERROR",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "per_class": {},
+    "confusion_matrix": {},
+    "macro": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      }
+    },
+    "micro": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "tp": 0,
+      "fp": 0,
+      "fn": 0
+    }
+  },
+  "diagnostic_errors_by_vendor": {},
+  "first_failure_accuracy": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "exact file/line-set; explicit null counts; errors wrong",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "terminal_failure_accuracy": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "exact file/line-set; explicit null counts; errors wrong",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "evidence_span": {
+    "precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "deduplicated exact (file,1-based line) sets",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "recall": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "deduplicated exact (file,1-based line) sets",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "f1": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "deduplicated exact (file,1-based line) sets",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+  },
+  "false_positive_failure_rate": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "finding on a truth-negative case",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "provenance": {
+    "coordinate_validity": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "existing line and exact/truncated-prefix raw message; not semantic support",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "file_precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "citation file in truth evidence",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "exact_line_precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "citation file+line in truth evidence; repeated citations counted",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "citation_coverage": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "cases with at least one truth-supported emitted citation",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "semantic_support_precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "human-reviewed citation support bound to prediction hash; coordinate validity alone insufficient",
+      "undefined": "EMPTY_DENOMINATOR"
+    }
+  },
+  "correlation": {
+    "precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "recall": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "f1": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "false_merge_count": 0,
+    "false_split_count": 0
+  },
+  "kb": {
+    "applicability_precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "exact official URL against reviewed applicable_kb; prerequisites must be reviewed",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "recommendation_coverage": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "applicable URLs retrieved / annotated applicable URLs",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "prerequisite_satisfaction": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "NOT_MEASURED; separate prerequisite review required",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "cross_vendor_contamination": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "NOT_MEASURED; URL mismatch alone cannot establish vendor contamination",
+      "undefined": "EMPTY_DENOMINATOR"
+    }
+  },
+  "identity_abstention": {
+    "precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "recall": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "f1": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+  },
+  "false_certain_identity_rate": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "diagnostic identity emitted where UNKNOWN expected; errors separately counted",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "unsupported_claim_rate": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "human-reviewed material claims bound to prediction hash; uncertain labels excluded and counted",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "manual_review": {
+    "claim_labels": 0,
+    "citation_labels": 0,
+    "uncertain_labels": 0,
+    "policy": "reviewed subset only; no claim of exhaustive narrative review"
+  },
+  "latency": {
+    "p50_seconds": null,
+    "p95_seconds": null,
+    "sample_count": 0,
+    "raw_seconds": [],
+    "policy": "perf_counter wall seconds; linear interpolated percentiles; no fabricated zeros"
+  },
+  "status": "INSUFFICIENT_DATA",
+  "exploratory_draft_only": {
+    "status": "NOT_GOLD_NOT_ACCURACY_CERTIFICATION",
+    "case_count": 0,
+    "error_count": 0,
+    "source": {
+      "accuracy": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "exact class incl UNKNOWN and ERROR",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "per_class": {},
+      "confusion_matrix": {},
+      "macro": {
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": "EMPTY_DENOMINATOR",
+          "undefined_classes": []
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": "EMPTY_DENOMINATOR",
+          "undefined_classes": []
+        },
+        "f1": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": "EMPTY_DENOMINATOR",
+          "undefined_classes": []
+        }
+      },
+      "micro": {
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "single-label micro over all classes",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "single-label micro over all classes",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "f1": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "single-label micro over all classes",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "tp": 0,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "diagnostic": {
+      "accuracy": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "exact class incl UNKNOWN and ERROR",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "per_class": {},
+      "confusion_matrix": {},
+      "macro": {
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": "EMPTY_DENOMINATOR",
+          "undefined_classes": []
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": "EMPTY_DENOMINATOR",
+          "undefined_classes": []
+        },
+        "f1": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": "EMPTY_DENOMINATOR",
+          "undefined_classes": []
+        }
+      },
+      "micro": {
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "single-label micro over all classes",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "single-label micro over all classes",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "f1": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "single-label micro over all classes",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "tp": 0,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "diagnostic_errors_by_vendor": {},
+    "first_failure_accuracy": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "exact file/line-set; explicit null counts; errors wrong",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "terminal_failure_accuracy": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "exact file/line-set; explicit null counts; errors wrong",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "evidence_span": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "deduplicated exact (file,1-based line) sets",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "deduplicated exact (file,1-based line) sets",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "deduplicated exact (file,1-based line) sets",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "tp": 0,
+      "fp": 0,
+      "fn": 0
+    },
+    "false_positive_failure_rate": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "finding on a truth-negative case",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "provenance": {
+      "coordinate_validity": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "existing line and exact/truncated-prefix raw message; not semantic support",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "file_precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "citation file in truth evidence",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "exact_line_precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "citation file+line in truth evidence; repeated citations counted",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "citation_coverage": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "cases with at least one truth-supported emitted citation",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "semantic_support_precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "human-reviewed citation support bound to prediction hash; coordinate validity alone insufficient",
+        "undefined": "EMPTY_DENOMINATOR"
+      }
+    },
+    "correlation": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "false_merge_count": 0,
+      "false_split_count": 0
+    },
+    "kb": {
+      "applicability_precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "exact official URL against reviewed applicable_kb; prerequisites must be reviewed",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "recommendation_coverage": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "applicable URLs retrieved / annotated applicable URLs",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "prerequisite_satisfaction": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "NOT_MEASURED; separate prerequisite review required",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "cross_vendor_contamination": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "NOT_MEASURED; URL mismatch alone cannot establish vendor contamination",
+        "undefined": "EMPTY_DENOMINATOR"
+      }
+    },
+    "identity_abstention": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "tp": 0,
+      "fp": 0,
+      "fn": 0
+    },
+    "false_certain_identity_rate": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "diagnostic identity emitted where UNKNOWN expected; errors separately counted",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "unsupported_claim_rate": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "human-reviewed material claims bound to prediction hash; uncertain labels excluded and counted",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "manual_review": {
+      "claim_labels": 0,
+      "citation_labels": 0,
+      "uncertain_labels": 0,
+      "policy": "reviewed subset only; no claim of exhaustive narrative review"
+    },
+    "latency": {
+      "p50_seconds": null,
+      "p95_seconds": null,
+      "sample_count": 0,
+      "raw_seconds": [],
+      "policy": "perf_counter wall seconds; linear interpolated percentiles; no fabricated zeros"
+    }
+  },
+  "composition": {
+    "reviewed_executed": 0,
+    "draft_executed": 0,
+    "heldout_executed": 0
+  }
+}
