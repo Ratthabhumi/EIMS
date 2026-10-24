@@ -8,6 +8,7 @@ from copy import deepcopy
 from datetime import datetime
 import io
 import json
+import re
 from pathlib import Path
 from unittest.mock import patch
 
@@ -89,7 +90,21 @@ def make_claims(response, files):
                        "support_judgment": "NOT_REVIEWED", "reviewer": None, "rationale": None})
     add("overview", summary.get("overview", ""), "UNCERTAIN", "RCA_OVERVIEW", refs)
     for i, r in enumerate(refs):
-        add(f"observed-{i}", r["message"], "DIRECTLY_OBSERVED", "OBSERVED_LOG_TEXT", [r])
+        role = "SEVERITY" if re.match(r"^\s*Level\s*:", r["message"], re.I) else "FAILURE_DESCRIPTION"
+        if "CTK_CTKUNLINK" in r["message"]:
+            role = "TECHNICAL_FAILURE"
+        add(f"observed-{i}", r["message"], "DIRECTLY_OBSERVED", role, [r])
+    # Metadata fields rendered by the native API also need their own support
+    # role. These are declared source projections, not invented native finding
+    # citations, and never support a detailed root-cause claim automatically.
+    if meta.get("sourceFamily") == "windows_event":
+        for file_index, (name, (_, raw)) in enumerate(sorted(files.items())):
+            for line, text in enumerate(raw.splitlines(), 1):
+                role = "EVENT_IDENTITY" if re.match(r"^\s*Event\s*ID\s*:", text, re.I) else "SEVERITY" if re.match(r"^\s*Level\s*:", text, re.I) else None
+                if role:
+                    add(f"metadata-{file_index}-{line}", text, "DIRECTLY_OBSERVED", role,
+                        [{"file": name, "line": line, "message": text, "coordinate_valid": True,
+                          "origin": "native_metadata_to_source_projection"}])
     for key, category, role in (("causes", "HYPOTHESIS", "POSSIBLE_CAUSE"),
                                 ("steps", "UNCERTAIN", "RECOMMENDATION"),
                                 ("limitations", "UNCERTAIN", "UNKNOWN"),

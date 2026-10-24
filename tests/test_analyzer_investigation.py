@@ -92,6 +92,10 @@ def test_full_pipeline_really_runs_route_synthesis_and_memory_history(cid):
     assert all(c["support_judgment"] == "NOT_REVIEWED" and c["reviewer"] is None for c in a["claims"])
     if cid == "esxi_tracker":
         assert any(s["stage"] == "deterministic_vendor_summary" and s["returned_summary"] for s in a["investigation_trace"])
+    if cid == "win_policy":
+        assert any(c["evidence_type"] == "SEVERITY" and c["evidence"][0]["line"] == 4 for c in a["claims"])
+        assert any(c["evidence_type"] == "EVENT_IDENTITY" and c["evidence"][0]["line"] == 3 for c in a["claims"])
+        assert all(c["category"] != "SUPPORTED_INFERENCE" for c in a["claims"])
 
 
 def test_full_route_parity_against_isolated_fastapi_transport(monkeypatch):
