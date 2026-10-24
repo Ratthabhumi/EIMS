@@ -59,6 +59,11 @@ _HIGH_CONFIDENCE_KEYWORDS = (
     "processing finished with errors",
 )
 
+# Broadcom documents 2620 as DISKLIBERR_CHANGETRACK / CTK_CTKUNLINK.
+# Match the operation namespace AND exact error number, never 26200 or a
+# bare unrelated inventory number. This is not a final job/session status.
+_CTK_UNLINK_FAILED = re.compile(r"\bCTK_CTKUNLINK\b.*?\bresult\s*[:=]?\s*2620\b", re.IGNORECASE)
+
 # Explicit session/job failure outcome patterns (rank 2 — confirmed failures).
 _SESSION_FAILED_RE = re.compile(
     r"(?:task|job)\s+session\s+['\"]?[^'\"]*['\"]?\s+has\s+been\s+completed[,\s]+status\s*:\s*['\"]?failed['\"]?",
@@ -166,11 +171,27 @@ def _is_veeam_config_line(line: str) -> bool:
     return any(rx.search(line) for rx in _VEEAM_CONFIG_SUPPRESS)
 
 
+def _is_successful_fortinet_configuration(line: str) -> bool:
+    """Narrow structured success record; preserve contradictory/error events."""
+    if "logid=" not in line.lower() or "devname=" not in line.lower():
+        return False
+    from backend.domain.analyzer.services.parser import _fortinet_field
+    field = lambda key: _fortinet_field(line, key).lower()
+    message = field("msg")
+    return (
+        field("logid") in {"0100044546", "0100044547"}
+        and field("type") == "event" and field("subtype") == "system"
+        and field("level") == "information" and field("action") == "edit"
+        and message.startswith("configuration ") and message.endswith("updated successfully")
+        and not re.search(r"\b(failed|failure|exception|critical|fatal)\b", message)
+    )
+
+
 def _is_noise(line: str) -> bool:
     stripped = line.strip()
     if len(stripped) < 8:
         return True
-    if _is_veeam_config_line(stripped):
+    if _is_veeam_config_line(stripped) or _is_successful_fortinet_configuration(stripped):
         return True
     return any(rx.search(stripped) for rx in _NOISE_RES)
 
@@ -188,13 +209,13 @@ def _signal_strength(line: str) -> int:
     Config lines and explicit Info lines always return 0.
     """
     # Config suppression takes priority.
-    if _is_veeam_config_line(line):
+    if _is_veeam_config_line(line) or _is_successful_fortinet_configuration(line):
         return 0
 
     lowered = line.lower()
 
     # High-confidence diagnostic keywords.
-    if any(k in lowered for k in _HIGH_CONFIDENCE_KEYWORDS):
+    if any(k in lowered for k in _HIGH_CONFIDENCE_KEYWORDS) or _CTK_UNLINK_FAILED.search(line):
         return 3
 
     # Explicit session/job failure outcome.

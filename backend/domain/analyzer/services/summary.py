@@ -641,7 +641,15 @@ def _build_from_web(
         # as the primary overview.  Use an honest evidence-based statement.
         _generic_codes = {"VEEAM-UNKNOWN", "VMWARE-UNKNOWN", "VEEAM-SESSION-FAILED", ""}
         if label in _generic_codes or not label:
-            if target == "th":
+            if label != "VEEAM-SESSION-FAILED":
+                overview = (
+                    f"{who}: ยังไม่พบ diagnostic signature ที่ระบุชัดเจน "
+                    "ผลลัพธ์สุดท้ายของ task/session ยังไม่ทราบจากหลักฐานที่ให้มา"
+                    if target == "th" else
+                    f"{who}: No recognized diagnostic signature is present. "
+                    "The final task/session outcome is unknown from the supplied evidence."
+                )
+            elif target == "th":
                 overview = (
                     f"{who}: session/job ล้มเหลว "
                     "หลักฐานที่มีอยู่ยืนยันได้เพียงนี้ ยังไม่พบ root-cause signature ที่เฉพาะเจาะจง"

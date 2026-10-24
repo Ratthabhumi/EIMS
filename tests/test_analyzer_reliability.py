@@ -16,6 +16,7 @@ from backend.domain.analyzer.services.bundle import (
     BUNDLE_MAX_FILE_BYTES,
     BUNDLE_MAX_FILES,
     BUNDLE_MAX_TOTAL_BYTES,
+    build_evidence_items,
     correlate_bundle,
     is_log_source_path,
     resource_paths_for_line,
@@ -39,6 +40,77 @@ from backend.domain.analyzer.services.vendor_parsers import (
     parse_syslog_hinted,
     parse_veeam,
 )
+
+
+def test_curated_summary_is_request_local_deep_copy(monkeypatch):
+    from copy import deepcopy
+    from backend.domain.analyzer.services import event_knowledge
+    from backend.domain.analyzer.schemas.analyze import IncidentAssessment
+    seed = deepcopy(event_knowledge.EVENT_KNOWLEDGE["4624"])
+    seed["en"].incident = IncidentAssessment(unknowns=["seed-only"])
+    monkeypatch.setitem(event_knowledge.EVENT_KNOWLEDGE, "4624", seed)
+    before = seed["en"].model_dump()
+    first = event_knowledge.get_curated_summary("4624", "en")
+    first.evidence.append("SYNTHETIC_CASE_A_ONLY")
+    first.steps.append("CASE_A_RECOMMENDATION")
+    first.incident.unknowns.append("CASE_A_UNKNOWN")
+    second = event_knowledge.get_curated_summary("4624", "en")
+    assert first is not second
+    assert second.model_dump() == before
+    assert seed["en"].model_dump() == before
+
+
+@pytest.mark.parametrize("family,label", [("veeam_vbr", "VEEAM-UNKNOWN"), ("vmware", "VMWARE-UNKNOWN")])
+def test_unknown_vendor_summary_does_not_invent_terminal_failure(family, label):
+    solution = summary_mod._build_from_web(label, "Synthetic vendor", "", [], "en", source_family=family)
+    assert "completed with a Failed status" not in solution.overview
+    assert "outcome" in solution.overview.lower() and "unknown" in solution.overview.lower()
+
+
+def test_explicit_session_failed_summary_still_reports_observed_status():
+    solution = summary_mod._build_from_web("VEEAM-SESSION-FAILED", "Synthetic Veeam", "", [], "en", source_family="veeam_vbr", diagnostic_code="VEEAM-SESSION-FAILED")
+    assert "completed with a Failed status" in solution.overview
+
+
+def test_ctk_2620_is_technical_failure_without_inventing_job_outcome():
+    from backend.domain.analyzer.services.evidence import build_evidence_records
+    line = "2026-10-25T10:00:03Z Er(02) vmx - CTK_CTKUNLINK result:2620"
+    incident = extract_incident(line, "vmware")
+    assert incident["firstMeaningfulFailure"] == line
+    assert incident["terminalFailure"] == line  # legacy field means last signal
+    entry = summarize_file_evidence("vmware.txt", line.encode(), line, "vmware")
+    evidence = build_evidence_items([entry])
+    assert evidence[0]["lineNumber"] == 1 and evidence[0]["message"] == line
+    assert "Task session" not in str(incident)
+    assert "locked" not in " ".join(incident["evidence"]).lower()
+
+
+@pytest.mark.parametrize("line", [
+    "2026-10-25T10:00:03Z In(05) vmx - CTK_CTKUNLINK result:0",
+    "2026-10-25T10:00:03Z In(05) vmx - CTK_CTKUNLINK result:26200",
+    "Inventory item result:2620; no CTK operation in this record",
+])
+def test_ctk_code_requires_correct_namespace_and_exact_error_number(line):
+    assert extract_incident(line, "vmware")["firstMeaningfulFailure"] is None
+
+
+def test_successful_fortinet_config_edit_is_not_failure_evidence():
+    line = 'date=2026-10-25 time=12:00:00 devname="FG-SYNTHETIC" logid="0100044547" type="event" subtype="system" level="information" action="edit" msg="Configuration setting error-log-retention=7 updated successfully"'
+    meta = parse_event_metadata(line)
+    assert meta.sourceFamily == "fortinet" and meta.eventId == "0100044547"
+    assert extract_incident(line, "fortinet")["firstMeaningfulFailure"] is None
+    assert build_evidence_items([summarize_file_evidence("fortinet.txt", line.encode(), line, "fortinet")]) == []
+
+
+@pytest.mark.parametrize("level,message", [
+    ("error", "Configuration setting update failed"),
+    ("information", "Configuration setting update failed; rollback required"),
+    ("error", "Configuration setting error-log-retention=7 updated successfully"),
+])
+def test_real_fortinet_failure_and_error_severity_are_not_suppressed(level, message):
+    line = f'date=2026-10-25 time=12:00:00 devname="FG-SYNTHETIC" logid="0100044547" type="event" subtype="system" level="{level}" action="edit" msg="{message}"'
+    assert extract_incident(line, "fortinet")["firstMeaningfulFailure"] == line
+    assert build_evidence_items([summarize_file_evidence("fortinet.txt", line.encode(), line, "fortinet")])
 
 # ---------------------------------------------------------------------------
 # Sanitized synthetic fixtures (structure only, fake hosts/IDs)

@@ -503,6 +503,9 @@ def build_evidence_items(
     files: List[BundleFileEvidence],
 ) -> List[Dict[str, object]]:
     """Failure-relevant lines with file provenance (line numbers 1-based)."""
+    from backend.domain.analyzer.services.incident_extract import (
+        _CTK_UNLINK_FAILED, _is_successful_fortinet_configuration,
+    )
     items: List[Dict[str, object]] = []
     for entry in files:
         count = 0
@@ -511,7 +514,9 @@ def build_evidence_items(
                 return items
             if count >= MAX_EVIDENCE_ITEMS_PER_FILE:
                 break
-            if not FAILURE_LINE.search(line):
+            if _is_successful_fortinet_configuration(line):
+                continue
+            if not FAILURE_LINE.search(line) and not _CTK_UNLINK_FAILED.search(line):
                 continue
             stripped = line.strip()
             if len(stripped) > 500:

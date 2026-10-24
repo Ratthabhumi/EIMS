@@ -30,4 +30,7 @@ def get_curated_summary(event_id: str, language: str) -> SolutionSummary | None:
         return None
     lang = language if language in ("th", "en") else "th"
     
-    return EVENT_KNOWLEDGE[event_id].get(lang)
+    template = EVENT_KNOWLEDGE[event_id].get(lang)
+    # Routes attach incident/evidence/limitations to the returned model. Never
+    # mutate the shared curated template or leak one request into another.
+    return template.model_copy(deep=True) if template is not None else None
