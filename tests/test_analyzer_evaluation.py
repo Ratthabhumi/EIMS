@@ -115,7 +115,15 @@ def copied_manifest(tmp_path):
     target = tmp_path / "gold"
     shutil.copytree(MANIFEST.parent, target)
     path = target / MANIFEST.name
-    return path, json.loads(path.read_text(encoding="utf-8"))
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    # Tests own their review-state fixtures. Actual human review must not
+    # break the suite or be silently downgraded in the real manifest.
+    for c in doc["cases"]:
+        c["review_status"] = "DRAFT"
+        c.pop("reviewer_id", None)
+        c.pop("reviewed_annotation_sha256", None)
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    return path, doc
 
 
 @pytest.mark.parametrize("mutation,error", [
@@ -234,6 +242,7 @@ def test_predict_does_not_import_operational_database_vector_or_http(monkeypatch
 
 
 def test_runner_keeps_drafts_out_of_reviewed_metrics_and_preserves_output(tmp_path, monkeypatch):
+    manifest, _ = copied_manifest(tmp_path)
     monkeypatch.setattr(runner, "REPO", tmp_path)
     monkeypatch.setattr(runner, "git", lambda *args: "fixture-sha")
     # Schema and input validation still use the actual nonempty corpus;
@@ -241,17 +250,18 @@ def test_runner_keeps_drafts_out_of_reviewed_metrics_and_preserves_output(tmp_pa
     (tmp_path / "tests").mkdir()
     (tmp_path / "tests/test_analyzer_reliability.py").write_text("# no copied fixtures")
     output = tmp_path / "evaluation/analyzer/results/run"
-    result = runner.run(MANIFEST, "rule_only", "dev", output, include_draft=True, repeats=1, warmups=0)
+    result = runner.run(manifest, "rule_only", "dev", output, include_draft=True, repeats=1, warmups=0)
     assert result["status"] == "INSUFFICIENT_DATA"
     assert result["source"]["accuracy"]["value"] is None
     assert result["exploratory_draft_only"]["source"]["accuracy"]["denominator"] == 12
     before = (output / "metrics.json").read_bytes()
     with pytest.raises(ValueError, match="already exists"):
-        runner.run(MANIFEST, "rule_only", "dev", output, include_draft=True)
+        runner.run(manifest, "rule_only", "dev", output, include_draft=True)
     assert before == (output / "metrics.json").read_bytes()
 
 
 def test_case_exception_is_recorded_and_included_in_denominator(tmp_path, monkeypatch):
+    manifest, _ = copied_manifest(tmp_path)
     monkeypatch.setattr(runner, "REPO", tmp_path)
     monkeypatch.setattr(runner, "git", lambda *args: "fixture-sha")
     (tmp_path / "tests").mkdir()
@@ -260,7 +270,7 @@ def test_case_exception_is_recorded_and_included_in_denominator(tmp_path, monkey
         raise RuntimeError("synthetic failure")
     monkeypatch.setattr(runner, "predict", fail)
     output = tmp_path / "test-results/run"
-    m = runner.run(MANIFEST, "rule_only", "dev", output, include_draft=True, repeats=1, warmups=0)
+    m = runner.run(manifest, "rule_only", "dev", output, include_draft=True, repeats=1, warmups=0)
     assert m["exploratory_draft_only"]["error_count"] == 12
     assert m["exploratory_draft_only"]["source"]["accuracy"]["denominator"] == 12
     assert len((output / "errors.csv").read_text().splitlines()) == 13
