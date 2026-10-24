@@ -1,0 +1,5 @@
+Log Name: System
+Source: EventLog
+Event ID: 6005
+Level: Information
+Description: The Event log service was started.

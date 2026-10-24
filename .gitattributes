@@ -1,0 +1,10 @@
+# Gold hashes bind literal bytes; never rewrite fixture newlines on checkout.
+evaluation/analyzer/gold/cases/** -text
+# Keep evaluator and artifact serialization portable between Windows and Linux.
+evaluation/analyzer/*.py text eol=lf
+evaluation/analyzer/**/*.json text eol=lf
+evaluation/analyzer/**/*.jsonl text eol=lf
+evaluation/analyzer/**/*.csv text eol=lf
+tools/eval_analyzer.py text eol=lf
+tools/review_analyzer_case.py text eol=lf
+tests/test_analyzer_evaluation.py text eol=lf

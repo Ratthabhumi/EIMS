@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "created_at_utc": "2026-10-24T19:26:24.293157+00:00",
+  "analyzer_git_sha": "1612bbe3216fd36d01d4dbbb1c0566dcafed9955",
+  "source_commit_declared": "bf634d9ddf86f44220ef961cf4be32988cfc5ee5",
+  "analyzer_tree_sha": "9c32b0af3719b0cab32c8d0b6277d1bb92bf337e",
+  "manifest_sha256": "79ff3f15e5919441890ea2e6b873fbab23075f0043d9ca9babc44314631b367f",
+  "annotation_sha256": {},
+  "scorer_sha256": "550acbd60af89e04f93b966a296b89923655961ce5899484280722ddc6fd065f",
+  "runner_sha256": "222b52d7b56591c3e0a5cca7d8f9bc1855db071269862b363f47dcc67ed0c93b",
+  "git_dirty": true,
+  "mode": "rule_only",
+  "split": "dev",
+  "include_draft": false,
+  "warmups": 3,
+  "repeats": 3,
+  "environment": {
+    "python": "3.14.3",
+    "platform": "Windows",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 158 Stepping 10, GenuineIntel",
+    "versions": {
+      "pydantic": "2.13.4",
+      "pytest": "9.1.1",
+      "jsonschema": "4.26.0"
+    },
+    "hash_seed": "0",
+    "model_loaded": false
+  },
+  "unavailable": {
+    "M2": "NOT_RUN: no isolated index/model validated",
+    "M3": "NOT_RUN: no authorization/model configured"
+  },
+  "manual_reviews_sha256": null
+}

@@ -1,0 +1,1 @@
+date=2026-10-22 time=04:10:00 devname="FG-LAB" logid="0000000013" type="traffic" subtype="forward" level="warning" action="deny" srcip=192.0.2.10 dstip=198.51.100.10 msg="Denied synthetic flow by explicit policy"

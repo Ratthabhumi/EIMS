@@ -1,0 +1,5 @@
+Log Name: System
+Source: Microsoft-Windows-GroupPolicy
+Event ID: 1129
+Level: Error
+Description: Group Policy could not contact a domain controller; network connectivity failed.

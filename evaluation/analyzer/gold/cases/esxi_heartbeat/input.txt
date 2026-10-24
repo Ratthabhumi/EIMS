@@ -1,0 +1,2 @@
+2026-10-20T08:22:00Z In(05) vmx - VMware ESXi hostd heartbeat received
+2026-10-20T08:22:01Z In(05) vmx - VMware ESXi idle state confirmed
