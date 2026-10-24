@@ -1,5 +1,5 @@
 """Offline adapter to existing Analyzer stages; never import HTTP/DB/vector code."""
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 import csv
 import hashlib
@@ -214,22 +214,34 @@ def git(*args):
     return subprocess.check_output(["git", *args], cwd=REPO, text=True).strip()
 
 
-def run(manifest, mode, split, output, include_draft=False, repeats=3, warmups=3, manual_review_path=None):
-    if repeats < 1 or warmups < 0:
-        raise ValueError("repeats must be positive and warmups nonnegative")
-    if mode not in {"rule_only", "rule_kb"}:
-        raise ValueError("NOT_RUN: RAG/LLM modes are not isolated or authorized")
-    doc, payloads = load_manifest(manifest)
-    cases = sorted([c for c in doc["cases"] if c["split"] == split and
-                    (include_draft or c["review_status"] == "REVIEWED")], key=lambda c: c["case_id"])
-    if split == "heldout" and any(c["review_status"] != "REVIEWED" for c in cases):
-        raise ValueError("heldout execution requires human-reviewed labels; DRAFT is reserved")
+def validate_output(output):
     if output.exists():
         raise ValueError("output already exists; immutable run directories only")
     resolved = output.resolve()
     if not any(resolved.is_relative_to((REPO / allowed).resolve())
                for allowed in ("evaluation/analyzer/results", "test-results")):
         raise ValueError("output must stay in repository evaluation results or test-results")
+    return resolved
+
+
+def run(manifest, mode, split, output, include_draft=False, repeats=3, warmups=3, manual_review_path=None, annotations_v2=None, grounding_reviews=None):
+    if repeats < 1 or warmups < 0:
+        raise ValueError("repeats must be positive and warmups nonnegative")
+    if mode not in {"rule_only", "rule_kb", "full_investigation"}:
+        raise ValueError("NOT_RUN: RAG/LLM modes are not isolated or authorized")
+    doc, payloads = load_manifest(manifest)
+    semantics = {}
+    if annotations_v2:
+        from evaluation.analyzer.semantics_v2 import load_annotations
+        _, semantics = load_annotations(annotations_v2, manifest, doc["cases"])
+        if split != "dev":
+            raise ValueError("v2 migration is DEV-only; v1 heldout lock is preserved")
+    cases = sorted([c for c in doc["cases"] if c["split"] == split and
+                    (not semantics or c["case_id"] in semantics) and
+                    (include_draft or semantics.get(c["case_id"], c)["review_status"] == "REVIEWED")], key=lambda c: c["case_id"])
+    if split == "heldout" and any(c["review_status"] != "REVIEWED" for c in cases):
+        raise ValueError("heldout execution requires human-reviewed labels; DRAFT is reserved")
+    resolved = validate_output(output)
     if any(resolved.is_relative_to(safe_input(manifest.parent, f["path"])) for c in doc["cases"] for f in c["files"]):
         raise ValueError("output collides with input")
     config = {"schema_version": "1.0", "created_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -247,18 +259,38 @@ def run(manifest, mode, split, output, include_draft=False, repeats=3, warmups=3
                               "hash_seed": os.environ.get("PYTHONHASHSEED", "unset"), "model_loaded": False},
               "unavailable": {"M2": "NOT_RUN: no isolated index/model validated", "M3": "NOT_RUN: no authorization/model configured"}}
     config["manual_reviews_sha256"] = hashlib.sha256(manual_review_path.read_bytes()).hexdigest() if manual_review_path else None
+    if annotations_v2:
+        config["annotations_v2_sha256"] = hashlib.sha256(annotations_v2.read_bytes()).hexdigest()
+        config["semantics_v2_code_sha256"] = hashlib.sha256(Path(__file__).with_name("semantics_v2.py").read_bytes()).hexdigest()
+    if mode == "full_investigation":
+        config["investigation_code_sha256"] = hashlib.sha256(Path(__file__).with_name("investigation.py").read_bytes()).hexdigest()
+        config["full_path_isolation"] = "real route/summary/History reconstruction; injected memory sink, local KB, no RAG/vector export; no HTTP authentication test"
+        config["timing_boundary"] = "warm full harness incl stage comparison, pristine cache copy, native orchestration/synthesis, memory serialization/reload; excludes HTTP/auth and operational PostgreSQL"
+        config["grounding_code_sha256"] = hashlib.sha256(Path(__file__).with_name("grounding.py").read_bytes()).hexdigest()
+    config["grounding_reviews_sha256"] = hashlib.sha256(grounding_reviews.read_bytes()).hexdigest() if grounding_reviews else None
+    def execute_prediction(c):
+        if mode == "full_investigation":
+            from evaluation.analyzer.investigation import predict_full
+            result = predict_full(c, payloads[c["case_id"]])
+        else:
+            result = predict(c, payloads[c["case_id"]], mode)
+        if semantics:
+            from evaluation.analyzer.semantics_v2 import project
+            result["semantics_v2"] = project(result, payloads[c["case_id"]])
+        return result
     predictions = []
-    with offline_guard():
+    # Full adapter installs its own guard after Windows event-loop IPC setup.
+    with (nullcontext() if mode == "full_investigation" else offline_guard()):
         for c in cases:
             samples = []
             try:
                 for _ in range(warmups):
-                    predict(c, payloads[c["case_id"]], mode)
+                    execute_prediction(c)
                 result = None
                 canonical = None
                 for _ in range(repeats):
                     start = time.perf_counter()
-                    result = predict(c, payloads[c["case_id"]], mode)
+                    result = execute_prediction(c)
                     samples.append(time.perf_counter() - start)
                     if canonical is not None and digest(result) != canonical:
                         raise ValueError("NONDETERMINISTIC_PREDICTION")
@@ -279,12 +311,31 @@ def run(manifest, mode, split, output, include_draft=False, repeats=3, warmups=3
     metrics["exploratory_draft_only"] = {"status": "NOT_GOLD_NOT_ACCURACY_CERTIFICATION", **exploratory}
     metrics["composition"] = {"reviewed_executed": len(reviewed), "draft_executed": len(draft),
                               "heldout_executed": len(cases) if split == "heldout" else 0}
+    if semantics:
+        from evaluation.analyzer.semantics_v2 import score_semantics
+        selected = [semantics[c["case_id"]] for c in cases]
+        metrics["semantics_v2"] = {}
+        for status in ("REVIEWED", "DRAFT"):
+            cohort = [c for c in selected if c["review_status"] == status]
+            ids = {c["case_id"] for c in cohort}
+            metrics["semantics_v2"][status.lower()] = score_semantics(cohort, [p for p in predictions if p["case_id"] in ids])
+        metrics["semantics_v2"]["status"] = "INSUFFICIENT_DATA" if not metrics["semantics_v2"]["reviewed"]["case_count"] else "REVIEWED_V2_BASELINE"
+    queue = None
+    if mode == "full_investigation":
+        from evaluation.analyzer.grounding import review_queue, score_grounding, validate_reviews
+        queue = review_queue(predictions)
+        judgments = json.loads(grounding_reviews.read_text(encoding="utf-8")) if grounding_reviews else queue
+        validate_reviews(judgments, predictions, payloads)
+        metrics["grounding"] = score_grounding(judgments, predictions)
     output.mkdir(parents=True, exist_ok=False)
     def write(name, value):
         (output / name).write_text(json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
     write("config.json", config)
     write("metrics.json", metrics)
     write("manual_reviews.json", manual)
+    if queue is not None:
+        write("claim_grounding_queue.json", queue)
+        write("grounding_metrics.json", metrics["grounding"])
     for name, values in (("predictions.jsonl", predictions), ("case_scores.jsonl", scores + draft_scores)):
         (output / name).write_text("".join(json.dumps(v, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n" for v in values), encoding="utf-8")
     with (output / "errors.csv").open("w", newline="", encoding="utf-8") as f:

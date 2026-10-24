@@ -22,7 +22,7 @@ jobs:
           pip install pytest
 
       - name: Hermetic analyzer reliability tests (no DB, no network)
-        run: python -m pytest tests/test_analyzer_reliability.py tests/test_analyzer_evaluation.py -q
+        run: python -m pytest tests/test_analyzer_reliability.py tests/test_analyzer_evaluation.py tests/test_analyzer_investigation.py -q
 
   dashboard-typecheck-build:
     runs-on: ubuntu-latest

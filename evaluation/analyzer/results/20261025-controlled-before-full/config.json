@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "created_at_utc": "2026-10-24T20:24:11.243869+00:00",
+  "analyzer_git_sha": "ddf717e81e389eb69cdb338becf0ba8d3bb6f3a7",
+  "source_commit_declared": "bf634d9ddf86f44220ef961cf4be32988cfc5ee5",
+  "analyzer_tree_sha": "9c32b0af3719b0cab32c8d0b6277d1bb92bf337e",
+  "manifest_sha256": "79ff3f15e5919441890ea2e6b873fbab23075f0043d9ca9babc44314631b367f",
+  "annotation_sha256": {
+    "bundle_related": "ca1f0515e2bcabfec360bd879735900342deca80860354eab34f8581eac15ba4",
+    "bundle_unrelated": "b9a6c5ce0791bac379510b19ec24bbb35d017df986e632b8c2f9246d1c52e027",
+    "esxi_heartbeat": "f402c610fbc95a0cd7a9d5304f0e3d57c5fe193a02c76908249b22e08559c21e",
+    "esxi_tracker": "f74a24de47bae3ff8fce979c4d707040763b545c107cbeab066b4ad1da554ee3",
+    "fort_accept": "98a197d247e317935a638b1cab4cc6ef94201b1826533c636ea8145c3ec9425b",
+    "fort_config": "5636d6ef8fc49e54af85a7a184a439607fa247390f81ecb04050faf8724c8b07",
+    "json_info": "4b034fa6978778786c41ca822b82d21c5ee95918fce8539c2f33dd4058364e44",
+    "noise_filename": "3eaa04f1ea8fb1ff2a9bf4a32a2d7ce6749747f46d9f0f389dec19be302db2c8",
+    "veeam_options": "00e7d5e8656ecacd87bc8e1c2af0d20f1b53f98bcdcaec3fcf156f0c326f350d",
+    "veeam_tracker": "d1639baf69c2f7b6f248fc702ee03c57c9c2b92dd35019c8c23498e41f01b2e7",
+    "win_boot": "c729eef58fe7cd9250849cf1505ab77eb5780753a0336c4d5b4237d174240735",
+    "win_policy": "4423091303ce2dd818a3df9f4df6a7c0873a76cbff34069262d7534abc84daae"
+  },
+  "scorer_sha256": "550acbd60af89e04f93b966a296b89923655961ce5899484280722ddc6fd065f",
+  "runner_sha256": "a0ca7461fb8b1f79147b3b2f30c325a5a2bea5ae8e3d0524c9d937ff2ad12a98",
+  "git_dirty": true,
+  "mode": "full_investigation",
+  "split": "dev",
+  "include_draft": true,
+  "warmups": 3,
+  "repeats": 3,
+  "environment": {
+    "python": "3.14.3",
+    "platform": "Windows",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 158 Stepping 10, GenuineIntel",
+    "versions": {
+      "pydantic": "2.13.4",
+      "pytest": "9.1.1",
+      "jsonschema": "4.26.0"
+    },
+    "hash_seed": "0",
+    "model_loaded": false
+  },
+  "unavailable": {
+    "M2": "NOT_RUN: no isolated index/model validated",
+    "M3": "NOT_RUN: no authorization/model configured"
+  },
+  "manual_reviews_sha256": null,
+  "annotations_v2_sha256": "d721ce32c4936101acdb546e2f179e702e8d38fae1d76082bf6e38d79d99e503",
+  "semantics_v2_code_sha256": "8c4d52739a979e9a69863827a9ad188db7d1ada15cd0aaabcef9c7285568726d",
+  "investigation_code_sha256": "136c490551e1e057a245c22c1da27453855d24f709aeb0d79f263dad9e56c053",
+  "full_path_isolation": "real route/summary/History reconstruction; injected memory sink, local KB, no RAG/vector export; no HTTP authentication test",
+  "timing_boundary": "warm full harness incl stage comparison, pristine cache copy, native orchestration/synthesis, memory serialization/reload; excludes HTTP/auth and operational PostgreSQL",
+  "grounding_code_sha256": "51460c83945199e96184287fa1b865bf3696625aafdfef919801941e9cbd9c75",
+  "grounding_reviews_sha256": null
+}

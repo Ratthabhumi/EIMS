@@ -1,0 +1,335 @@
+{
+  "schema_version": "2.0",
+  "source_manifest": "manifest.v1.json",
+  "source_manifest_sha256": "79ff3f15e5919441890ea2e6b873fbab23075f0043d9ca9babc44314631b367f",
+  "scope": "DEV_ONLY_PROPOSED",
+  "cases": [
+    {
+      "case_id": "win_policy",
+      "base_annotation_sha256": "4423091303ce2dd818a3df9f4df6a7c0873a76cbff34069262d7534abc84daae",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "windows_event",
+        "event_identity": "1129",
+        "failure_present": true,
+        "failure_type": "WINDOWS-GROUP-POLICY-CONNECTIVITY",
+        "first_observed_failure": {
+          "file": "cases/win_policy/input.txt",
+          "line": 5
+        },
+        "last_observed_failure": {
+          "file": "cases/win_policy/input.txt",
+          "line": 5
+        },
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [
+          {
+            "file": "cases/win_policy/input.txt",
+            "line": 3,
+            "evidence_type": "EVENT_IDENTITY"
+          },
+          {
+            "file": "cases/win_policy/input.txt",
+            "line": 4,
+            "evidence_type": "SEVERITY"
+          },
+          {
+            "file": "cases/win_policy/input.txt",
+            "line": 5,
+            "evidence_type": "FAILURE_DESCRIPTION"
+          }
+        ],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "win_boot",
+      "base_annotation_sha256": "c729eef58fe7cd9250849cf1505ab77eb5780753a0336c4d5b4237d174240735",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "windows_event",
+        "event_identity": "6005",
+        "failure_present": false,
+        "failure_type": null,
+        "first_observed_failure": null,
+        "last_observed_failure": null,
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [
+          {
+            "file": "cases/win_boot/input.txt",
+            "line": 3,
+            "evidence_type": "EVENT_IDENTITY"
+          },
+          {
+            "file": "cases/win_boot/input.txt",
+            "line": 4,
+            "evidence_type": "SEVERITY"
+          },
+          {
+            "file": "cases/win_boot/input.txt",
+            "line": 5,
+            "evidence_type": "INFORMATIONAL"
+          }
+        ],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "veeam_tracker",
+      "base_annotation_sha256": "d1639baf69c2f7b6f248fc702ee03c57c9c2b92dd35019c8c23498e41f01b2e7",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "veeam_vbr",
+        "event_identity": null,
+        "failure_present": true,
+        "failure_type": "VMWARE-CBT-DELETE-FAILED",
+        "first_observed_failure": {
+          "file": "cases/veeam_tracker/input.txt",
+          "line": 2
+        },
+        "last_observed_failure": {
+          "file": "cases/veeam_tracker/input.txt",
+          "line": 2
+        },
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [
+          {
+            "file": "cases/veeam_tracker/input.txt",
+            "line": 2,
+            "evidence_type": "FAILURE_DESCRIPTION"
+          }
+        ],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "veeam_options",
+      "base_annotation_sha256": "00e7d5e8656ecacd87bc8e1c2af0d20f1b53f98bcdcaec3fcf156f0c326f350d",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "veeam_vbr",
+        "event_identity": null,
+        "failure_present": false,
+        "failure_type": null,
+        "first_observed_failure": null,
+        "last_observed_failure": null,
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "esxi_tracker",
+      "base_annotation_sha256": "f74a24de47bae3ff8fce979c4d707040763b545c107cbeab066b4ad1da554ee3",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "vmware",
+        "event_identity": null,
+        "failure_present": true,
+        "failure_type": "VMWARE-CBT-DELETE-FAILED",
+        "first_observed_failure": {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 1
+        },
+        "last_observed_failure": {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 2
+        },
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [
+          {
+            "file": "cases/esxi_tracker/input.txt",
+            "line": 1,
+            "evidence_type": "FAILURE_DESCRIPTION"
+          },
+          {
+            "file": "cases/esxi_tracker/input.txt",
+            "line": 2,
+            "evidence_type": "TECHNICAL_FAILURE"
+          }
+        ],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "base_annotation_sha256": "f402c610fbc95a0cd7a9d5304f0e3d57c5fe193a02c76908249b22e08559c21e",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "vmware",
+        "event_identity": null,
+        "failure_present": false,
+        "failure_type": null,
+        "first_observed_failure": null,
+        "last_observed_failure": null,
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "fort_accept",
+      "base_annotation_sha256": "98a197d247e317935a638b1cab4cc6ef94201b1826533c636ea8145c3ec9425b",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "fortinet",
+        "event_identity": "0000000013",
+        "failure_present": false,
+        "failure_type": null,
+        "first_observed_failure": null,
+        "last_observed_failure": null,
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [
+          {
+            "file": "cases/fort_accept/input.txt",
+            "line": 1,
+            "evidence_type": "EVENT_IDENTITY"
+          },
+          {
+            "file": "cases/fort_accept/input.txt",
+            "line": 1,
+            "evidence_type": "SEVERITY"
+          },
+          {
+            "file": "cases/fort_accept/input.txt",
+            "line": 1,
+            "evidence_type": "INFORMATIONAL"
+          }
+        ],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "fort_config",
+      "base_annotation_sha256": "5636d6ef8fc49e54af85a7a184a439607fa247390f81ecb04050faf8724c8b07",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "fortinet",
+        "event_identity": "0100044547",
+        "failure_present": false,
+        "failure_type": null,
+        "first_observed_failure": null,
+        "last_observed_failure": null,
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [
+          {
+            "file": "cases/fort_config/input.txt",
+            "line": 1,
+            "evidence_type": "EVENT_IDENTITY"
+          },
+          {
+            "file": "cases/fort_config/input.txt",
+            "line": 1,
+            "evidence_type": "SEVERITY"
+          },
+          {
+            "file": "cases/fort_config/input.txt",
+            "line": 1,
+            "evidence_type": "INFORMATIONAL"
+          }
+        ],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "noise_filename",
+      "base_annotation_sha256": "3eaa04f1ea8fb1ff2a9bf4a32a2d7ce6749747f46d9f0f389dec19be302db2c8",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "unknown_text",
+        "event_identity": null,
+        "failure_present": false,
+        "failure_type": null,
+        "first_observed_failure": null,
+        "last_observed_failure": null,
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "json_info",
+      "base_annotation_sha256": "4b034fa6978778786c41ca822b82d21c5ee95918fce8539c2f33dd4058364e44",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "json",
+        "event_identity": null,
+        "failure_present": false,
+        "failure_type": null,
+        "first_observed_failure": null,
+        "last_observed_failure": null,
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "bundle_related",
+      "base_annotation_sha256": "ca1f0515e2bcabfec360bd879735900342deca80860354eab34f8581eac15ba4",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "veeam_vbr",
+        "event_identity": null,
+        "failure_present": false,
+        "failure_type": null,
+        "first_observed_failure": null,
+        "last_observed_failure": null,
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "base_annotation_sha256": "b9a6c5ce0791bac379510b19ec24bbb35d017df986e632b8c2f9246d1c52e027",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-semantics-v2",
+      "truth": {
+        "source_family": "veeam_vbr",
+        "event_identity": null,
+        "failure_present": false,
+        "failure_type": null,
+        "first_observed_failure": null,
+        "last_observed_failure": null,
+        "explicit_terminal_outcome": null,
+        "root_cause_status": "UNKNOWN",
+        "supported_claims": [],
+        "evidence_references": [],
+        "uncertainty_reason": "No explicit final job/session status or proven physical root cause in these supplied lines. AI proposal requires actual human review."
+      }
+    }
+  ]
+}
