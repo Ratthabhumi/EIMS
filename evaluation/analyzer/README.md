@@ -1,5 +1,9 @@
 # Analyzer evaluation v1
 
+Follow-up: [parallel semantics v2 and full-investigation mode](SEMANTICS_V2.md).
+The v1 definitions and historical results below remain unchanged. No human
+review status has been promoted by this continuation.
+
 The runner calls existing production parser, evidence extraction, incident
 extraction, bundle and local vendor-reference functions. It does not call
 `build_summary`, HTTP endpoints, History, SQL, vector writes, web search or

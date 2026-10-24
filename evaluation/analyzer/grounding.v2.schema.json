@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "judgments"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.0"
+    },
+    "judgments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "prediction_sha256",
+          "claim_id",
+          "text",
+          "claim_category",
+          "evidence",
+          "support_judgment",
+          "reviewer",
+          "rationale"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string"
+          },
+          "prediction_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "claim_id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "claim_category": {
+            "enum": [
+              "DIRECTLY_OBSERVED",
+              "SUPPORTED_INFERENCE",
+              "HYPOTHESIS",
+              "UNSUPPORTED",
+              "UNCERTAIN"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "file",
+                "line",
+                "evidence_type"
+              ],
+              "properties": {
+                "file": {
+                  "type": "string"
+                },
+                "line": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "end_line": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "evidence_type": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "support_judgment": {
+            "enum": [
+              "NOT_REVIEWED",
+              "SUPPORTED",
+              "UNSUPPORTED",
+              "UNCERTAIN"
+            ]
+          },
+          "reviewer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rationale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
