@@ -111,7 +111,9 @@
         "origin",
         "review_status",
         "files",
-        "truth"
+        "truth",
+        "scenario_group",
+        "annotator_id"
       ],
       "properties": {
         "case_id": {
@@ -162,7 +164,9 @@
             "abstain_expected",
             "evidence",
             "correlation_pairs",
-            "applicable_kb"
+            "applicable_kb",
+            "first_failure",
+            "terminal_failure"
           ],
           "properties": {
             "source_family": {
@@ -228,6 +232,10 @@
               "type": "string"
             }
           }
+        },
+        "reviewed_annotation_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         }
       }
     }

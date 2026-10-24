@@ -1,0 +1,2 @@
+[2026-10-20 04:01:00] Info [Veeam.Backup.Core] Replica task begins for LAB-TRACKER
+[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file

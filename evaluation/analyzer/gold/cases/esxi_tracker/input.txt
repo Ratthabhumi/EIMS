@@ -1,0 +1,2 @@
+2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk
+2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620

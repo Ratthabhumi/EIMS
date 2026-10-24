@@ -1,0 +1,3 @@
+[2026-10-20 05:02:00] Info [Veeam.Backup.Core] Loading backup schedule
+[2026-10-20 05:02:01] Info ScheduleOptions: RetryFailedJob=true; RetryCount=4; ErrorThreshold=0
+[2026-10-20 05:02:02] Info Configuration read successfully

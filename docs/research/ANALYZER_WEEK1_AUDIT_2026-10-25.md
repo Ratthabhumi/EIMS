@@ -58,3 +58,28 @@ Independent gold corpus: NOT VERIFIED / TO BUILD.
 Fresh test run: NOT RUN (remote source inspection only).
 Analyzer baseline metrics: NOT MEASURED.
 USB source parity: NOT CHECKED (physical drives unavailable here).
+
+## Local execution continuation — 2026-10-25
+
+The remote-only snapshot above is historical. Actual implementation and fresh
+test results are recorded in [current state](ANALYZER_CURRENT_STATE_2026.md)
+and [baseline results](../ANALYZER_BASELINE_RESULTS.md). The initial empty
+manifest has been extended rather than recreated. No Analyzer production
+behavior was changed before or after the initial dev smoke measurement.
+
+| Research source | Principle | Current implementation | Measured gap | Proposed improvement | Validation | Actual result |
+|---|---|---|---|---|---|---|
+| [Splunk findings](https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.5/investigations/findings-and-finding-groups-in-splunk-enterprise-security) | Link findings to contributing evidence | Evidence items + incident sketch | Coordinates alone do not establish semantic support | Human support labels bound to prediction hashes | Separate coordinate/semantic metrics | Coordinate outputs measured; semantic review count 0 |
+| [Elastic categorization](https://www.elastic.co/docs/solutions/observability/logs/categorize-log-entries) | Categorize similar messages and noise | Source classifier + signal suppression | Dev proposals expose config/header mismatch | Review false-positive candidates before rule changes | Negative cases with exact spans | 3 dev cases need adjudication; no commercial comparison |
+| [Wazuh rule testing](https://documentation.wazuh.com/current/user-manual/ruleset/testing.html) | Repeatable sample-based decoder/rule checks | Existing parser + 129 regression tests | Regression success is not accuracy | Separate corpus/runner/scorer | Hash-validated, scenario-separated dev run | Executed 12 DRAFT cases; 0 reviewed, no certified accuracy |
+| [Loki structured metadata](https://grafana.com/docs/loki/latest/get-started/labels/structured-metadata/) | Distinguish metadata from indexed labels | Existing job/resource identity correlation | Two-pair sample cannot establish generalization | Expand reviewed positive/negative pairs | Pairwise existing correlate_bundle invocations | 1 TP, 0 FP, 0 FN on 2 DRAFT-labeled pairs |
+| [Microsoft 1129 guidance](https://learn.microsoft.com/en-us/troubleshoot/windows-server/group-policy/netlogon-event-id-5719-or-group-policy-event-1129) | Interpret event within connectivity context | Windows metadata parser | Severity header may not support a material diagnosis | Human adjudication of evidence, not coordinate-only PASS | Source/identity and span scores kept separate | Identity matched; evidence-header candidate remains unreviewed |
+| [Veeam CBT guidance](https://www.veeam.com/kb1113) | CBT troubleshooting is conditional, not universal | Existing CBT diagnostic + local article gates | Signature recognition does not establish repair applicability | Review prerequisites before recommending actions | M1 records emitted official URLs | References execute; prerequisite score NOT_MEASURED |
+| [Broadcom snapshot article](https://knowledge.broadcom.com/external/article/424591) | Snapshot failure context and version applicability matter | Vendor KB operation-local gates | Keyword agreement alone is not applicability | Human KB label review; preserve per-file context | M1 per-file trace plus exact URL labels | Reserved snapshot case not executed; real environment compatibility unverified |
+| [Fortinet log ID reference](https://docs.fortinet.com/document/fortigate/7.2.3/fortios-log-message-reference/34314/log-id-numbers) | Stable IDs and structured event context | Fortinet key/value parser | Benign configuration message selected as signal in DRAFT dev | Review configuration-event suppression candidate | Preserve exact raw input and prediction | Direct reference fetch returned 403; documentation access limitation disclosed |
+
+Official references were accessed on 2026-10-25; Fortinet's direct page could
+not be fetched. No vendor log samples were copied into the corpus. These are
+engineering analogies and annotation aids, not comparative accuracy results.
+In particular, Veeam CBT reset guidance is not authority to perform a reset or
+proof it is appropriate for any synthetic/field incident.

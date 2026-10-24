@@ -56,3 +56,19 @@ Undefined denominators must be represented as null/N/A with stated support, neve
 ## Release gate
 
 A passing regression suite is not an accuracy score. No experimental performance claim until input hashes validated, gold labels reviewed, held-out split populated, mode verified, and an actual run produces the report. Do not modify operational databases or physical USBs during this phase.
+
+## Implemented v1 adapter — 2026-10-25
+
+See [execution and scoring policy](README.md). The manifest's first declared
+file is the source/identity target. Mode names are `rule_only` (M0) and
+`rule_kb` (M1); they differ only by actual per-file curated reference retrieval,
+not by a hidden synthesis path. M2/M3 remain NOT_RUN. Stage evaluation does not
+claim full summary-path ablation.
+
+The initial AI-authored corpus is 17 DRAFT cases: 12 dev, 5 reserved heldout.
+Human-reviewed support is zero until actual review is recorded. Draft dev smoke
+metrics are stored separately and cannot satisfy the release gate above.
+Heldout DRAFT execution is rejected. The versioned lock binds input hashes and
+truth before execution; review metadata alone can subsequently be added.
+Schema validation is followed by semantic file/span/pair, duplicate, scenario
+and review-receipt checks. Machine checks cannot certify semantic independence.

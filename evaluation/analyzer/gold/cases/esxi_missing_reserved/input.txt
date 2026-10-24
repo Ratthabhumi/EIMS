@@ -1,0 +1,2 @@
+2026-10-22T03:04:00Z Er(02) vmx - VMware SNAPSHOT RevertSnapshot InvalidSnapshotFormat
+2026-10-22T03:04:01Z Er(02) vmx - SNAPSHOT A required file was not found

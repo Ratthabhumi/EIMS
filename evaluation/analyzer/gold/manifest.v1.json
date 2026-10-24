@@ -2,5 +2,546 @@
   "schema_version": "1.0",
   "source_commit": "bf634d9ddf86f44220ef961cf4be32988cfc5ee5",
   "status": "DRAFT",
-  "cases": []
+  "cases": [
+    {
+      "case_id": "win_policy",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "network-policy",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/win_policy/input.txt",
+          "sha256": "b61c82af78664356855ad74be9d8c08d5386cdc3403a49c9ecd86005d771ce1c",
+          "source_family": "windows_event"
+        }
+      ],
+      "truth": {
+        "source_family": "windows_event",
+        "diagnostic_code": "1129",
+        "abstain_expected": false,
+        "first_failure": {
+          "file": "cases/win_policy/input.txt",
+          "line": 5
+        },
+        "terminal_failure": {
+          "file": "cases/win_policy/input.txt",
+          "line": 5
+        },
+        "evidence": [
+          {
+            "file": "cases/win_policy/input.txt",
+            "line": 5
+          }
+        ],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "win_boot",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "event-service-start",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/win_boot/input.txt",
+          "sha256": "37ffe791b6c87e4e97388be91e9ecf776eb4c6c35b50dcd6410c017645d57606",
+          "source_family": "windows_event"
+        }
+      ],
+      "truth": {
+        "source_family": "windows_event",
+        "diagnostic_code": "6005",
+        "abstain_expected": false,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "veeam_tracker",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "tracking-cleanup",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/veeam_tracker/input.txt",
+          "sha256": "3ce25544fb7f6bbdd3508d8f08d520c39fc4f193f0d70df00214ab0cab778a22",
+          "source_family": "veeam_vbr"
+        }
+      ],
+      "truth": {
+        "source_family": "veeam_vbr",
+        "diagnostic_code": "VMWARE-CBT-DELETE-FAILED",
+        "abstain_expected": false,
+        "first_failure": {
+          "file": "cases/veeam_tracker/input.txt",
+          "line": 2
+        },
+        "terminal_failure": {
+          "file": "cases/veeam_tracker/input.txt",
+          "line": 2
+        },
+        "evidence": [
+          {
+            "file": "cases/veeam_tracker/input.txt",
+            "line": 2
+          }
+        ],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "veeam_options",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "benign-retry-configuration",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/veeam_options/input.txt",
+          "sha256": "26cef224d3fd50df89d9cce841d298eb04104103ca52391f2be61f10b91dcabf",
+          "source_family": "veeam_vbr"
+        }
+      ],
+      "truth": {
+        "source_family": "veeam_vbr",
+        "diagnostic_code": null,
+        "abstain_expected": true,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "esxi_tracker",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "tracking-cleanup",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/esxi_tracker/input.txt",
+          "sha256": "63e13fb8990d50218fb88cb12ce0ad88f20e7c1fb8b887b31708bea8850c4ed1",
+          "source_family": "vmware"
+        }
+      ],
+      "truth": {
+        "source_family": "vmware",
+        "diagnostic_code": "VMWARE-CBT-DELETE-FAILED",
+        "abstain_expected": false,
+        "first_failure": {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 1
+        },
+        "terminal_failure": {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 2
+        },
+        "evidence": [
+          {
+            "file": "cases/esxi_tracker/input.txt",
+            "line": 1
+          },
+          {
+            "file": "cases/esxi_tracker/input.txt",
+            "line": 2
+          }
+        ],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "benign-hypervisor-heartbeat",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/esxi_heartbeat/input.txt",
+          "sha256": "7e0fbb3722f77833994ee8de5ff125bb0a7cf40e64125d00f5c3df18d44e5e33",
+          "source_family": "vmware"
+        }
+      ],
+      "truth": {
+        "source_family": "vmware",
+        "diagnostic_code": null,
+        "abstain_expected": true,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "fort_accept",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "allowed-traffic",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/fort_accept/input.txt",
+          "sha256": "a9c73d285e3e7db65a0fd3ed7b22553582c80f3963d7ddf70f7c839a8aa1f45b",
+          "source_family": "fortinet"
+        }
+      ],
+      "truth": {
+        "source_family": "fortinet",
+        "diagnostic_code": "0000000013",
+        "abstain_expected": false,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "fort_config",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "benign-firewall-configuration",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/fort_config/input.txt",
+          "sha256": "896227e964a6f31240705f9852d6e7cc6b124c7da6a1e29084ef9a54649a443e",
+          "source_family": "fortinet"
+        }
+      ],
+      "truth": {
+        "source_family": "fortinet",
+        "diagnostic_code": "0100044547",
+        "abstain_expected": false,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "noise_filename",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "filename-decoy",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/noise_filename/veeam_windows.txt",
+          "sha256": "aecc0127dde63d225373769879413cced28a83924ee3995215d09c99ed9a0bf8",
+          "source_family": "unknown_text"
+        }
+      ],
+      "truth": {
+        "source_family": "unknown_text",
+        "diagnostic_code": null,
+        "abstain_expected": true,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "json_info",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "structured-benign-status",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/json_info/input.txt",
+          "sha256": "bea43ed654fd60fec2c0dca60645e2ed09fcda9874eb1760de95971371a6f4f9",
+          "source_family": "json"
+        }
+      ],
+      "truth": {
+        "source_family": "json",
+        "diagnostic_code": null,
+        "abstain_expected": true,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "bundle_related",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "shared-operation-identity",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/bundle_related/a.txt",
+          "sha256": "657bc92b3fa4d62e161e9217e22815b2c2ba68a5d048494e3f6e11f28967b2c0",
+          "source_family": "veeam_vbr"
+        },
+        {
+          "path": "cases/bundle_related/b.txt",
+          "sha256": "aad4044f2ae152253d4dcfa78c1e376e6ff90f32fc576d22766dffd477b94fee",
+          "source_family": "veeam_vbr"
+        }
+      ],
+      "truth": {
+        "source_family": "veeam_vbr",
+        "diagnostic_code": null,
+        "abstain_expected": true,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [
+          {
+            "a": "cases/bundle_related/a.txt",
+            "b": "cases/bundle_related/b.txt",
+            "related": true,
+            "rationale": "synthetic operation identity explicitly shared"
+          }
+        ],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "split": "dev",
+      "origin": "synthetic",
+      "scenario_group": "distinct-operation-identities",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/bundle_unrelated/a.txt",
+          "sha256": "00ad10f28fac5cae5713e8d562aa0281889f942dcbc730d0bf17fdaf3863e96d",
+          "source_family": "veeam_vbr"
+        },
+        {
+          "path": "cases/bundle_unrelated/b.txt",
+          "sha256": "8e83aede3e4bbfd740e196d2b4f6aa665fd3f5d39d09304b187881d72f7dbc21",
+          "source_family": "veeam_vbr"
+        }
+      ],
+      "truth": {
+        "source_family": "veeam_vbr",
+        "diagnostic_code": null,
+        "abstain_expected": true,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [
+          {
+            "a": "cases/bundle_unrelated/a.txt",
+            "b": "cases/bundle_unrelated/b.txt",
+            "related": false,
+            "rationale": "different operation IDs and days"
+          }
+        ],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "win_auth_reserved",
+      "split": "heldout",
+      "origin": "synthetic",
+      "scenario_group": "failed-authentication",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/win_auth_reserved/input.txt",
+          "sha256": "4ef134f40f613c3e44ddbc89d7a871b7ed3c9d916b27cf86e9cdd47024f6b7ba",
+          "source_family": "windows_event"
+        }
+      ],
+      "truth": {
+        "source_family": "windows_event",
+        "diagnostic_code": "4625",
+        "abstain_expected": false,
+        "first_failure": {
+          "file": "cases/win_auth_reserved/input.txt",
+          "line": 5
+        },
+        "terminal_failure": {
+          "file": "cases/win_auth_reserved/input.txt",
+          "line": 5
+        },
+        "evidence": [
+          {
+            "file": "cases/win_auth_reserved/input.txt",
+            "line": 5
+          }
+        ],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "veeam_outcome_reserved",
+      "split": "heldout",
+      "origin": "synthetic",
+      "scenario_group": "explicit-terminal-session",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/veeam_outcome_reserved/input.txt",
+          "sha256": "8c707f7c4a5b66198b0e44af330adf48fd6603c69d0ee95ad0f09560a50878ad",
+          "source_family": "veeam_vbr"
+        }
+      ],
+      "truth": {
+        "source_family": "veeam_vbr",
+        "diagnostic_code": "VEEAM-SESSION-FAILED",
+        "abstain_expected": false,
+        "first_failure": {
+          "file": "cases/veeam_outcome_reserved/input.txt",
+          "line": 2
+        },
+        "terminal_failure": {
+          "file": "cases/veeam_outcome_reserved/input.txt",
+          "line": 2
+        },
+        "evidence": [
+          {
+            "file": "cases/veeam_outcome_reserved/input.txt",
+            "line": 2
+          }
+        ],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "esxi_missing_reserved",
+      "split": "heldout",
+      "origin": "synthetic",
+      "scenario_group": "snapshot-revert-missing-file",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/esxi_missing_reserved/input.txt",
+          "sha256": "cd1e20b6d7f1bf6c6dc89b5020a0ac048b718793623acdc28265752bc71ec6c5",
+          "source_family": "vmware"
+        }
+      ],
+      "truth": {
+        "source_family": "vmware",
+        "diagnostic_code": "VMWARE-SNAPSHOT-FILE-MISSING",
+        "abstain_expected": false,
+        "first_failure": {
+          "file": "cases/esxi_missing_reserved/input.txt",
+          "line": 1
+        },
+        "terminal_failure": {
+          "file": "cases/esxi_missing_reserved/input.txt",
+          "line": 2
+        },
+        "evidence": [
+          {
+            "file": "cases/esxi_missing_reserved/input.txt",
+            "line": 1
+          },
+          {
+            "file": "cases/esxi_missing_reserved/input.txt",
+            "line": 2
+          }
+        ],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "fort_deny_reserved",
+      "split": "heldout",
+      "origin": "synthetic",
+      "scenario_group": "denied-traffic",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/fort_deny_reserved/input.txt",
+          "sha256": "677a97bf7b266e65d436faee2910c365425832ea2589ff54921c5b6e8b285d17",
+          "source_family": "fortinet"
+        }
+      ],
+      "truth": {
+        "source_family": "fortinet",
+        "diagnostic_code": "0000000013",
+        "abstain_expected": false,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    },
+    {
+      "case_id": "unknown_truncated_reserved",
+      "split": "heldout",
+      "origin": "synthetic",
+      "scenario_group": "truncated-unidentified-evidence",
+      "review_status": "DRAFT",
+      "annotator_id": "ai-proposed-20261025",
+      "files": [
+        {
+          "path": "cases/unknown_truncated_reserved/input.txt",
+          "sha256": "0bf810bd5d183ed51f089aa46de82fac7a73cc3d222f4cf0842af6c9d396eca8",
+          "source_family": "unknown_text"
+        }
+      ],
+      "truth": {
+        "source_family": "unknown_text",
+        "diagnostic_code": null,
+        "abstain_expected": true,
+        "first_failure": null,
+        "terminal_failure": null,
+        "evidence": [],
+        "correlation_pairs": [],
+        "applicable_kb": [],
+        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+      }
+    }
+  ]
 }
