@@ -1,0 +1,26 @@
+{
+  "boundary": "Next handlers -> real loopback HTTP login/JWT/PostgreSQL; no Next HTTP/browser",
+  "tests": [
+    {
+      "name": "real credential login issues HttpOnly Secure session; no JWT response",
+      "status": "PASS"
+    },
+    {
+      "name": "cookie forwarded server-side and verified against real account",
+      "status": "PASS"
+    },
+    {
+      "name": "logout expires browser cookie",
+      "status": "PASS"
+    },
+    {
+      "name": "protected request without logged-out cookie is rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "real login-issued expired JWT rejected and cookie cleared",
+      "status": "PASS"
+    }
+  ],
+  "passed": 5
+}

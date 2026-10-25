@@ -75,7 +75,8 @@ def test_empty_truncated_and_negative_controls_have_no_fabricated_source(text):
 
 @pytest.mark.parametrize('text', ['password="SYNTHETIC_ONLY"', "pwd='SYNTHETIC_ONLY'", 'api_key=SYNTHETIC_ONLY',
                                  'access_token=SYNTHETIC_ONLY', 'Authorization: Bearer SYNTHETIC_ONLY',
-                                 'Authorization: Basic SYNTHETIC_ONLY', '{"password":"SYNTHETIC_ONLY"}'])
+                                 'Authorization: Basic SYNTHETIC_ONLY', '{"password":"SYNTHETIC_ONLY"}',
+                                 r'{"password":"SYNTHETIC_ONLY\"TAIL"}'])
 def test_credential_masking_preserves_line_boundaries_and_json_syntax(text):
     import json
     from backend.domain.analyzer.services.evidence_privacy import protect_log_text

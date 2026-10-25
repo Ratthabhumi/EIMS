@@ -73,7 +73,7 @@ PDF/browser behavior was tested. React source text remains text, not injected HT
 
 | Layer | Result / boundary |
 |---|---|
-| Combined Analyzer + integration regression | **230 passed, 1 skipped**, 16 existing dependency/utcnow warnings, 22.06 seconds; Windows symlink privilege skip |
+| Combined Analyzer + integration regression | **231 passed, 1 skipped**, 16 existing dependency/utcnow warnings, 14.76 seconds; Windows symlink privilege skip; includes escaped-quote credential control |
 | PostgreSQL/JWT | 16 tests in the combined suite; actual synthetic DB, real credential login, deleted user, demoted admin, other-owner feedback/stats, Demo compatibility and credential masking |
 | Next routes / export templates | **13 passed** using actual route/template code with controlled synthetic upstream responses |
 | Next routes → real backend HTTP → PostgreSQL | **5 passed**: actual credential login, HttpOnly/Secure cookie attributes, real subject verification, logout access denial, actual issuance with short test TTL and expired-token rejection |
@@ -154,3 +154,25 @@ review, then consolidate owner authorization for the PR stack. No merge request
 is treated as already granted; no release is declared while this gate is incomplete.
 Human review of fort_config, esxi_tracker and win_policy remains a separate owner
 decision. Technical progress is not scientific validation.
+
+## Frozen experiment and evidence publication
+
+Native full snapshot source **256bbc6c49aa6ae4a147940479f5c0568debb381**:
+evaluation/analyzer/results/20261025-secure-checkpoint-full. Executes 12 DRAFT,
+zero reviewed/heldout, zero errors; exact source coordinate overlap 4 TP / 0 FP /
+0 FN against unchanged proposals. All **135 claims** are NOT_REVIEWED;
+semantic support and unsupported-claim rate remain NOT_MEASURED/null. A subsequent
+small quoted-secret escape hardening is covered by the 231-test regression;
+the snapshot is not relabelled as an execution of a later source SHA.
+
+Session route reports are published under evidence/20261025-session. They contain
+test names/status and explicit execution boundaries, never credential/JWT values.
+Browser status is explicitly NOT_TESTED with the tool rejection, not an invented
+PASS report. Exact final-head CI remains the authoritative test result in the PR.
+v1/v2 annotations, HELDOUT and original controlled artifacts are byte-unchanged.
+
+Chapter 4 delta: secure login is now implemented and validated below the browser
+boundary; deleted users and current role enforcement are measured, and shared
+unowned vectors are excluded in Secure Mode. None improves a scientific accuracy
+denominator. The existing GRADUATION_DEFENSE_UPDATE_20261025.md remains the report
+structure; this addendum supplies new measured facts rather than replacing it.
