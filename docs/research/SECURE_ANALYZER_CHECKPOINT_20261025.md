@@ -73,8 +73,8 @@ PDF/browser behavior was tested. React source text remains text, not injected HT
 
 | Layer | Result / boundary |
 |---|---|
-| Combined Analyzer + integration regression | **231 passed, 1 skipped**, 16 existing dependency/utcnow warnings, 14.76 seconds; Windows symlink privilege skip; includes escaped-quote credential control |
-| PostgreSQL/JWT | 16 tests in the combined suite; actual synthetic DB, real credential login, deleted user, demoted admin, other-owner feedback/stats, Demo compatibility and credential masking |
+| Combined Analyzer + integration regression | **234 passed, 1 skipped**, 18 existing dependency/utcnow warnings, 28.38 seconds; Windows symlink privilege skip; includes escaped-quote credential and request-context isolation controls |
+| PostgreSQL/JWT | 18 tests in the combined suite; actual synthetic DB, real credential login, deleted user, demoted admin, other-owner feedback/stats/search, Demo compatibility and credential masking |
 | Next routes / export templates | **13 passed** using actual route/template code with controlled synthetic upstream responses |
 | Next routes → real backend HTTP → PostgreSQL | **5 passed**: actual credential login, HttpOnly/Secure cookie attributes, real subject verification, logout access denial, actual issuance with short test TTL and expired-token rejection |
 | Dashboard production build | Passed compilation, TypeScript and 14 routes |
@@ -162,7 +162,7 @@ evaluation/analyzer/results/20261025-secure-checkpoint-full. Executes 12 DRAFT,
 zero reviewed/heldout, zero errors; exact source coordinate overlap 4 TP / 0 FP /
 0 FN against unchanged proposals. All **135 claims** are NOT_REVIEWED;
 semantic support and unsupported-claim rate remain NOT_MEASURED/null. A subsequent
-small quoted-secret escape hardening is covered by the 231-test regression;
+small quoted-secret escape hardening and global-search isolation are covered by the final regression;
 the snapshot is not relabelled as an execution of a later source SHA.
 
 Session route reports are published under evidence/20261025-session. They contain
@@ -184,3 +184,20 @@ appears before AI proposals. These are prepared read-only pages, not executed
 secure browser acceptance or completed review. Human judgments remain 0/135.
 Prediction hashes bind the pages to this snapshot's queue; no reviewer receipt
 or Gold status is generated.
+
+## Global Search authorization follow-up
+
+Repository-wide History references exposed another entry point: AnalysisSearchProvider
+returned descriptions without an owner predicate. A two-account synthetic test
+reproduced another owner's search marker (one failing targeted regression); the
+corrected test passes. Both FTS and fallback SQL now constrain username. The
+controller supplies a task-local subject and resets it in finally; a concurrent
+two-subject control proves no shared-provider identity mutation. Direct calls
+without an authenticated scope fail closed. Other search domains keep their
+existing permission model; this is not a comprehensive cross-domain RBAC claim.
+
+Optional missing FTS schema previously could poison the transaction before its
+ILIKE fallback. The FTS attempt is now savepoint-isolated; actual dedicated-DB
+tests verify fallback results, owner filtering and a subsequent healthy History
+query without adding columns/indexes or applying a migration. FTS with a deployed
+index is not separately certified by this test.

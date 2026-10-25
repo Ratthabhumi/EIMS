@@ -23,6 +23,8 @@ from backend.domain.analyzer.models.user import User
 from backend.domain.analyzer.services import summary, vector_db
 from backend.domain.analyzer.services.vendor_knowledge import vendor_reference_results
 from tools.demo_analyzer_investigation import hero_inputs
+from backend.domain.search import controller as search_api
+from backend.domain.search.providers.analysis_provider import AnalysisSearchProvider
 
 TEST_KEY = 'synthetic-integration-signing-key-only-20261025'
 TEST_PASSWORD = 'synthetic-test-password-only'
@@ -91,6 +93,7 @@ def integrated(monkeypatch):
                 app.include_router(feedback.router, prefix='/feedback')
                 app.include_router(admin.router, prefix='/admin')
                 app.include_router(obsidian.router, prefix='/export')
+                app.include_router(search_api.search_router, prefix='/global')
                 async def db():
                     yield session
                 app.dependency_overrides[analyze.get_db] = db
@@ -275,4 +278,35 @@ def test_sensitive_credentials_are_not_returned_or_persisted(integrated):
         metadata = r.json()['eventMetadata']['attributes']['evidencePrivacy']
         assert metadata['credentialsRedacted'] >= 3
         assert r.json()['solutionSummary']['evidenceItems'][0]['sourceContextOrigin'] == 'redacted_extracted_source_excerpt'
+    integrated(check)
+
+
+def test_global_search_history_is_owner_scoped(integrated, monkeypatch):
+    # Isolate ownership from FTS availability for the red/green reproduction.
+    async def fallback(self, db, query, limit):
+        return await self._fallback_ilike(db, query, limit)
+    monkeypatch.setattr(AnalysisSearchProvider, '_search_vector', fallback)
+    async def check(client, session, calls):
+        session.add(AnalysisHistory(username='synthetic-owner', event_id='1129', provider='synthetic',
+                                    description='SYNTHETIC_PRIVATE_SEARCH_MARKER', event_metadata={},search_results=[]))
+        await session.commit()
+        endpoint='/global/api/v1/search?q=SYNTHETIC_PRIVATE_SEARCH_MARKER&type=analysis'
+        owner=await client.get(endpoint,headers=bearer())
+        assert owner.status_code == 200
+        assert 'SYNTHETIC_PRIVATE_SEARCH_MARKER' in owner.text
+        other=await client.get(endpoint,headers=bearer('synthetic-other'))
+        assert other.status_code == 200
+        assert 'SYNTHETIC_PRIVATE_SEARCH_MARKER' not in other.text
+    integrated(check)
+
+
+def test_global_search_missing_fts_column_rolls_back_then_filters(integrated):
+    async def check(client, session, calls):
+        session.add(AnalysisHistory(username='synthetic-owner', event_id='1129', provider='synthetic',
+                                    description='SYNTHETIC_FALLBACK_MARKER', event_metadata={},search_results=[]))
+        await session.commit()
+        endpoint='/global/api/v1/search?q=SYNTHETIC_FALLBACK_MARKER&type=analysis'
+        assert 'SYNTHETIC_FALLBACK_MARKER' in (await client.get(endpoint,headers=bearer())).text
+        assert 'SYNTHETIC_FALLBACK_MARKER' not in (await client.get(endpoint,headers=bearer('synthetic-other'))).text
+        assert (await client.get('/history/',headers=bearer())).status_code == 200
     integrated(check)

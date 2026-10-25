@@ -116,3 +116,30 @@ def test_secure_mode_never_reads_or_publishes_unowned_history_vectors(monkeypatc
         assert await vector_db.search_similar_logs(ForbiddenDB(), 'synthetic-private', event_id='1129', source_family='windows_event') == []
         assert await vector_db.add_solution(ForbiddenDB(), '1129', 'synthetic-private', {'overview':'private'}) is None
     asyncio.run(check())
+
+
+def test_analysis_search_subject_is_task_local_and_required():
+    import asyncio
+    from contextlib import asynccontextmanager
+    from backend.domain.search.providers.analysis_provider import AnalysisSearchProvider, analysis_search_owner
+    class DB:
+        @asynccontextmanager
+        async def begin_nested(self):
+            yield
+    class Provider(AnalysisSearchProvider):
+        async def _search_vector(self, db, query, limit):
+            before = analysis_search_owner.get()
+            await asyncio.sleep(0)
+            assert analysis_search_owner.get() == before
+            return [before]
+    async def request(name):
+        token = analysis_search_owner.set(name)
+        try:
+            return await Provider().search(DB(), 'synthetic', 10)
+        finally:
+            analysis_search_owner.reset(token)
+    async def check():
+        assert await asyncio.gather(request('owner-A'), request('owner-B')) == [['owner-A'], ['owner-B']]
+        assert analysis_search_owner.get() is None
+        assert await Provider().search(DB(), 'synthetic', 10) == []
+    asyncio.run(check())

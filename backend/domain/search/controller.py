@@ -28,6 +28,7 @@ from backend.domain.search.providers import (
 from backend.domain.search.registry import SearchProviderRegistry
 from backend.domain.search.schemas import SearchResponse, SearchResultSchema
 from backend.domain.search.service import GlobalSearchService
+from backend.domain.search.providers.analysis_provider import analysis_search_owner
 from backend.infrastructure.database import get_db_session
 
 # Core Law 5 Section 5.2 strict adherence: No trailing slashes in route declarations
@@ -79,13 +80,13 @@ async def global_search(
     Executes relevance-ranked cross-domain search and wraps the page slice
     within the canonical Core Law 5 Section 6.1 collection wrapper.
     """
-    results, total_records = await service.global_search(
-        db=db,
-        query=q,
-        search_type=search_type,
-        page=page,
-        limit=limit,
-    )
+    token = analysis_search_owner.set(_user)
+    try:
+        results, total_records = await service.global_search(
+            db=db, query=q, search_type=search_type, page=page, limit=limit,
+        )
+    finally:
+        analysis_search_owner.reset(token)
     serialized_data = [SearchResultSchema(**asdict(result)) for result in results]
     pagination_block = PaginationMetadata(
         total_records=total_records,

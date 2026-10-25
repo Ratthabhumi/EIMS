@@ -4,12 +4,15 @@
   "automatic_review_reason": "blocked by policy",
   "next_handler_unit_checks": 13,
   "next_handlers_to_real_login_postgres_checks": 5,
-  "combined_python_passed": 231,
+  "combined_python_passed": 234,
   "combined_python_skipped": 1,
   "skip_reason": "Windows symlink privilege",
   "scientific_status": "INCOMPLETE",
   "human_reviewed_dev": 0,
   "human_reviewed_claims": 0,
   "installed_deployment": "NOT_TESTED",
-  "usb": "NOT_TESTED"
+  "usb": "NOT_TESTED",
+  "postgres_suite_tests": 18,
+  "global_search_owner_reproduction": "FAIL before correction; PASS after; synthetic-only",
+  "global_search_context_isolation": "PASS"
 }
