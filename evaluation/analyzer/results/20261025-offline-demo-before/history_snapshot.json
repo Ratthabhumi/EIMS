@@ -1,0 +1,148 @@
+{
+  "id": 1,
+  "event_id": "VMWARE-CBT-DELETE-FAILED",
+  "provider": "Veeam Backup & Replication",
+  "parse_method": "Evidence bundle (2 files)",
+  "description": "===== FILE: a-veeam.txt =====\n[2026-10-25T10:00:00Z] Info [Veeam.Backup.Core] Synthetic replica task started\n[2026-10-25T10:00:02Z] Error [CViSnapReplica] Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'\n[2026-10-25T10:00:05Z] Error [Veeam.Backup.Core] Task session 'demo-session-only' has been completed, status: 'Failed'\n\n\n===== FILE: b-vmware.txt =====\n2026-10-25T10:00:01Z Er(02) vmx - VMware DISKLIB-CTK: Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'\n2026-10-25T10:00:03Z Er(02) vmx - CTK_CTKUNLINK result:2620\n",
+  "ai_summary": "Analysis summary:\n\nOverview\nVMware could not delete a change-tracking (.ctk) file. Result 2620 was recorded in the evidence. A CTK_CTKUNLINK operation result was recorded in the evidence.\n\nPossible causes\n1. CTK file missing, state-mismatched, or corrupt (locking is NOT proven)\n2. Stale snapshot cleanup from a previous operation, or datastore inconsistency\n\nRecommended steps\n1. Check the related .ctk.vmdk files in a datastore listing\n2. Inspect vmware.log and hostd.log around the failure time\n3. Refer to official Broadcom material: Article 418256 (CTK) \u2014 verify each article\u2019s scope before applying",
+  "solution_summary": {
+    "overview": "VMware could not delete a change-tracking (.ctk) file. Result 2620 was recorded in the evidence. A CTK_CTKUNLINK operation result was recorded in the evidence.",
+    "causes": [
+      "CTK file missing, state-mismatched, or corrupt (locking is NOT proven)",
+      "Stale snapshot cleanup from a previous operation, or datastore inconsistency"
+    ],
+    "steps": [
+      "Check the related .ctk.vmdk files in a datastore listing",
+      "Inspect vmware.log and hostd.log around the failure time",
+      "Refer to official Broadcom material: Article 418256 (CTK) \u2014 verify each article\u2019s scope before applying"
+    ],
+    "evidence": [
+      "Could not delete change tracking file"
+    ],
+    "confidence": "medium",
+    "limitations": [
+      "Do NOT claim the file is locked unless lock evidence exists"
+    ],
+    "nextEvidence": [
+      "VM vmware.log",
+      "ESXi hostd.log",
+      "Datastore file listing (.vmdk / .ctk.vmdk state)"
+    ],
+    "incident": {
+      "firstMeaningfulFailure": "2026-10-25T10:00:01Z Er(02) vmx - VMware DISKLIB-CTK: Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'",
+      "terminalFailure": "[2026-10-25T10:00:05Z] Error [Veeam.Backup.Core] Task session 'demo-session-only' has been completed, status: 'Failed'",
+      "timeline": [
+        "2026-10-25T10:00:01Z Er(02) vmx - VMware DISKLIB-CTK: Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'",
+        "[2026-10-25T10:00:02Z] Error [CViSnapReplica] Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'",
+        "[2026-10-25T10:00:05Z] Error [Veeam.Backup.Core] Task session 'demo-session-only' has been completed, status: 'Failed'"
+      ],
+      "operationStage": "SessionResult",
+      "diagnosticSignatures": [
+        "2026-10-25T10:00:01Z Er(02) vmx - VMware DISKLIB-CTK: Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'",
+        "[2026-10-25T10:00:02Z] Error [CViSnapReplica] Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'"
+      ],
+      "observedPaths": [
+        "/vmfs/volumes/demo/demo.vmdk"
+      ],
+      "unknowns": [
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Whether the file was locked, corrupt, moved, renamed, or absent"
+      ],
+      "nextEvidence": [
+        "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+        "Veeam Job session log",
+        "Agent/component log from the relevant Veeam component",
+        "vmware.log / hostd.log when a VMware operation is implicated"
+      ]
+    },
+    "evidenceItems": [
+      {
+        "sourceFile": "a-veeam.txt",
+        "lineNumber": 2,
+        "timestamp": "2026-10-25T10:00:02Z",
+        "message": "[2026-10-25T10:00:02Z] Error [CViSnapReplica] Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'",
+        "signature": "could not delete change tracking file",
+        "observedPath": "/vmfs/volumes/demo/demo.vmdk"
+      },
+      {
+        "sourceFile": "a-veeam.txt",
+        "lineNumber": 3,
+        "timestamp": "2026-10-25T10:00:05Z",
+        "message": "[2026-10-25T10:00:05Z] Error [Veeam.Backup.Core] Task session 'demo-session-only' has been completed, status: 'Failed'",
+        "signature": "",
+        "observedPath": ""
+      },
+      {
+        "sourceFile": "b-vmware.txt",
+        "lineNumber": 1,
+        "timestamp": "2026-10-25T10:00:01Z",
+        "message": "2026-10-25T10:00:01Z Er(02) vmx - VMware DISKLIB-CTK: Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'",
+        "signature": "could not delete change tracking file",
+        "observedPath": "/vmfs/volumes/demo/demo.vmdk"
+      }
+    ]
+  },
+  "event_metadata": {
+    "eventId": "VMWARE-CBT-DELETE-FAILED",
+    "provider": "Veeam Backup & Replication",
+    "level": "Error",
+    "logName": "a-veeam.txt",
+    "timestamp": "2026-10-25T10:00:00",
+    "computer": "",
+    "isCritical": true,
+    "faultingApp": "",
+    "sourceFamily": "veeam_vbr",
+    "product": "Veeam Backup & Replication",
+    "diagnosticCode": "VMWARE-CBT-DELETE-FAILED",
+    "parserConfidence": 0.9,
+    "attributes": {
+      "filename": "a-veeam.txt",
+      "syslog": {
+        "fields": {
+          "fileName": "/vmfs/volumes/demo/demo.vmdk"
+        }
+      },
+      "bundle": {
+        "files": [
+          {
+            "filename": "a-veeam.txt",
+            "sizeBytes": 322,
+            "sha256": "18d67852d4f8e2b4db17d4677c201d08d0e3ed0ec7fbb02742d0eeb4d2b7982d",
+            "sourceFamily": "veeam_vbr",
+            "product": "Veeam Backup & Replication",
+            "diagnosticCode": "VMWARE-CBT-DELETE-FAILED",
+            "parserConfidence": 0.9
+          },
+          {
+            "filename": "b-vmware.txt",
+            "sizeBytes": 192,
+            "sha256": "8759011a666aba0aa41fa87d26ce196fd5c88a3e64d1809d3b3d56770a0a5a3a",
+            "sourceFamily": "vmware",
+            "product": "VMware vSphere/ESXi",
+            "diagnosticCode": "VMWARE-CBT-DELETE-FAILED",
+            "parserConfidence": 0.9
+          }
+        ],
+        "correlationConfidence": "medium",
+        "correlationReasons": [
+          "Medium: exact path '/vmfs/volumes/demo/demo.vmdk' observed in a-veeam.txt, b-vmware.txt with overlapping timestamp windows (\u00b15 min tolerance; original timestamps preserved)."
+        ],
+        "correlatedSources": [
+          "a-veeam.txt",
+          "b-vmware.txt"
+        ]
+      }
+    }
+  },
+  "search_results": [
+    {
+      "title": "Broadcom Support (official) \u2014 Virtual machine backups fail due to locked files even if the VM is moved to other ESXi hosts in the cluster",
+      "link": "https://knowledge.broadcom.com/external/article/418256",
+      "snippet": "Broadcom Support knowledge article 418256 \u2014 applies under the conditions stated in the article (verify environment before applying)",
+      "sourceType": "official"
+    }
+  ],
+  "username": "synthetic-evaluation",
+  "created_at": "2026-10-25T00:00:00"
+}
