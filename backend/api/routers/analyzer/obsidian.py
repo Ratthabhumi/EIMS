@@ -28,5 +28,5 @@ async def export_obsidian(req: ObsidianRequest, db: AsyncSession = Depends(get_d
             solution_summary=history_item.solution_summary
         )
         return {"status": "success", "filepath": path}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to export to Obsidian: {e}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Export failed") from None

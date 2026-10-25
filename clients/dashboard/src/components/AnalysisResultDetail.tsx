@@ -27,6 +27,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
   const [answer, setAnswer] = React.useState<string>("");
   const [asking, setAsking] = React.useState<boolean>(false);
   const [askError, setAskError] = React.useState<string>("");
+  const [feedbackError, setFeedbackError] = React.useState('');
 
   if (!result) return null;
 
@@ -69,6 +70,16 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
     } finally {
       setAsking(false);
     }
+  };
+
+  const submitFeedback = async (score: number) => {
+    setFeedbackError('');
+    if (typeof historyId !== 'number') { setFeedbackError('Saved analysis required'); return; }
+    try {
+      const response = await fetch(apiUrl(`/api/v1/history/${historyId}/feedback?score=${score}`), { method: 'POST' });
+      if (!response.ok) throw new Error(`Feedback failed (${response.status})`);
+      setFeedback(score);
+    } catch { setFeedbackError('Feedback was not saved / ไม่สามารถบันทึก feedback ได้'); }
   };
 
   // Extract variables
@@ -333,14 +344,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={async () => {
-                if (historyId !== null) {
-                  try {
-                    await fetch(apiUrl(`/api/v1/history/${historyId}/feedback?score=1`), { method: "POST" });
-                  } catch (e) {}
-                }
-                setFeedback(1);
-              }}
+              onClick={() => submitFeedback(1)}
               className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
                 feedback === 1
                   ? "bg-teal-500/20 border-teal-500 text-teal-400 font-bold"
@@ -350,14 +354,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
               👍 {isEn ? "Helpful" : "ใช้ได้ผล"}
             </button>
             <button
-              onClick={async () => {
-                if (historyId !== null) {
-                  try {
-                    await fetch(apiUrl(`/api/v1/history/${historyId}/feedback?score=-1`), { method: "POST" });
-                  } catch (e) {}
-                }
-                setFeedback(-1);
-              }}
+              onClick={() => submitFeedback(-1)}
               className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
                 feedback === -1
                   ? "bg-rose-500/20 border-rose-500 text-rose-400 font-bold"
@@ -370,6 +367,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
         </div>
       )}
 
+      {feedbackError && <p role="alert" className="text-eims-text">{feedbackError}</p>}
       {/* Bundle correlation */}
       {isBundle && (
         <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">

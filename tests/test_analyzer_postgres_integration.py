@@ -16,14 +16,16 @@ from sqlalchemy import func, select
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from backend.api.routers.analyzer import analyze, history
+from backend.api.routers.analyzer import analyze, history, auth as auth_api, stats, feedback, admin, obsidian
 from backend.domain.analyzer import auth
 from backend.domain.analyzer.models.history import AnalysisHistory
+from backend.domain.analyzer.models.user import User
 from backend.domain.analyzer.services import summary, vector_db
 from backend.domain.analyzer.services.vendor_knowledge import vendor_reference_results
 from tools.demo_analyzer_investigation import hero_inputs
 
 TEST_KEY = 'synthetic-integration-signing-key-only-20261025'
+TEST_PASSWORD = 'synthetic-test-password-only'
 
 
 def dedicated_url(value):
@@ -73,13 +75,22 @@ def integrated(monkeypatch):
         try:
             async with engine.begin() as conn:
                 await conn.run_sync(lambda c: AnalysisHistory.__table__.create(c, checkfirst=True))
+                await conn.run_sync(lambda c: User.__table__.create(c, checkfirst=True))
             async with engine.connect() as conn:
                 outer = await conn.begin()
                 session = AsyncSession(bind=conn, expire_on_commit=False, join_transaction_mode='create_savepoint')
                 before = await conn.scalar(select(func.count()).select_from(AnalysisHistory))
+                for username, role in [('synthetic-owner', 'user'), ('synthetic-other', 'user'), ('synthetic-admin', 'admin')]:
+                    session.add(User(username=username, role=role, password=auth.hash_password(TEST_PASSWORD)))
+                await session.flush()
                 app = FastAPI()
                 app.include_router(analyze.router, prefix='/analyze')
                 app.include_router(history.router, prefix='/history')
+                app.include_router(auth_api.router, prefix='/auth')
+                app.include_router(stats.router, prefix='/stats')
+                app.include_router(feedback.router, prefix='/feedback')
+                app.include_router(admin.router, prefix='/admin')
+                app.include_router(obsidian.router, prefix='/export')
                 async def db():
                     yield session
                 app.dependency_overrides[analyze.get_db] = db
@@ -200,3 +211,68 @@ def test_path_components_are_neutralized_without_filesystem_access(integrated):
 def test_refuses_operational_or_remote_database(url):
     with pytest.raises(ValueError, match='Refusing database'):
         dedicated_url(url)
+
+
+def test_login_session_deleted_account_and_current_admin_role(integrated):
+    async def check(client, session, calls):
+        bad = await client.post('/auth/login', json={'username':'synthetic-owner','password':'wrong'})
+        assert bad.status_code == 401
+        r = await client.post('/auth/login', json={'username':'synthetic-owner','password':TEST_PASSWORD})
+        assert r.status_code == 200
+        headers = {'Authorization':'Bearer '+r.json()['access_token']}
+        assert (await client.get('/auth/session', headers=headers)).json()['username'] == 'synthetic-owner'
+        changed = headers['Authorization'][:-5] + 'wrong'
+        assert (await client.get('/history/', headers={'Authorization':changed})).status_code == 401
+        admin_headers = bearer('synthetic-admin', role='admin')
+        assert (await client.get('/admin/users', headers=admin_headers)).status_code == 200
+        account = (await session.execute(select(User).where(User.username=='synthetic-admin'))).scalars().one()
+        account.role = 'user'
+        await session.commit()
+        assert (await client.get('/admin/users', headers=admin_headers)).status_code == 403
+        assert (await client.post('/export/obsidian/export', headers=admin_headers, json={'history_id':1})).status_code == 403
+        account = (await session.execute(select(User).where(User.username=='synthetic-owner'))).scalars().one()
+        await session.delete(account)
+        await session.commit()
+        assert (await client.get('/history/', headers=headers)).status_code == 401
+    integrated(check)
+
+
+def test_demo_mode_remains_shared_without_login(integrated, monkeypatch):
+    monkeypatch.setattr(auth.settings, 'AUTH_MODE', 'demo')
+    async def check(client, session, calls):
+        assert (await client.get('/auth/session')).json() == {'username':'demo','mode':'demo'}
+        assert (await client.get('/history/')).status_code == 200
+    integrated(check)
+
+
+def test_legacy_feedback_and_statistics_are_owner_scoped(integrated):
+    async def check(client, session, calls):
+        row = AnalysisHistory(username='synthetic-owner', event_id='6005', provider='synthetic',
+                              solution_summary={'overview':'owner-only'}, event_metadata={},search_results=[])
+        session.add(row)
+        await session.commit()
+        r = await client.post('/feedback/feedback', headers=bearer('synthetic-other'), json={'history_id':row.id,'score':-1})
+        assert r.status_code == 404
+        assert (await client.get('/stats/', headers=bearer('synthetic-other'))).json()['totalLogs'] == 0
+        data = (await client.get('/stats/correlations', headers=bearer('synthetic-other'))).json()
+        assert '6005' not in str(data)
+    integrated(check)
+
+
+def test_sensitive_credentials_are_not_returned_or_persisted(integrated):
+    async def check(client, session, calls):
+        text = ('2026-10-25T10:00:00Z Er(02) vmx - CTK_CTKUNLINK result:2620 '
+                'password="SYNTHETIC_SECRET_ONLY" access_token=SYNTHETIC_ACCESS_ONLY '
+                'Authorization: Bearer SYNTHETIC_BEARER_ONLY\n'
+                'user=synthetic-user ip=192.0.2.9 path=/synthetic/private-only\n')
+        r = await client.post('/analyze/', headers=bearer(), data={'language':'en'},files={'file':('privacy.txt',text.encode(),'text/plain')})
+        assert r.status_code == 200
+        for secret in ('SYNTHETIC_SECRET_ONLY','SYNTHETIC_ACCESS_ONLY','SYNTHETIC_BEARER_ONLY'):
+            assert secret not in r.text
+        stored = await session.get(AnalysisHistory, r.json()['historyId'])
+        for secret in ('SYNTHETIC_SECRET_ONLY','SYNTHETIC_ACCESS_ONLY','SYNTHETIC_BEARER_ONLY'):
+            assert secret not in str(stored.__dict__)
+        metadata = r.json()['eventMetadata']['attributes']['evidencePrivacy']
+        assert metadata['credentialsRedacted'] >= 3
+        assert r.json()['solutionSummary']['evidenceItems'][0]['sourceContextOrigin'] == 'redacted_extracted_source_excerpt'
+    integrated(check)

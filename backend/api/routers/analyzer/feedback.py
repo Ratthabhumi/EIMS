@@ -24,7 +24,9 @@ async def submit_feedback(
     _user: str = Depends(get_current_user),
     x_gemini_api_key: Optional[str] = Header(None)
 ):
-    history_item = (await db.execute(select(AnalysisHistory).filter(AnalysisHistory.id == req.history_id))).scalars().first()
+    history_item = (await db.execute(select(AnalysisHistory).filter(
+        AnalysisHistory.id == req.history_id, AnalysisHistory.username == _user,
+    ))).scalars().first()
     if not history_item:
         raise HTTPException(status_code=404, detail="History not found")
         

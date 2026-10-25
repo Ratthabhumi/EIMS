@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, text
 from backend.domain.analyzer.models.vector import VectorKnowledge
 from backend.domain.analyzer.services.vendor_parsers import is_vendor_diagnostic_code
+from backend.core.config import settings
 
 # Cross-identity distance gate: a candidate whose diagnostic identity
 # differs from the request is only reusable when it is genuinely close.
@@ -131,6 +132,10 @@ async def add_solution(
     exclude it.  When no exact row exists there is nothing to quarantine
     and nothing is inserted.
     """
+    # Existing shared knowledge rows have no owner identity. Do not publish
+    # private secure-user History into that namespace until it is owner-scoped.
+    if settings.AUTH_MODE.lower() == 'secure':
+        return None
     sol_dict = dict(solution_summary) if isinstance(solution_summary, dict) else {}
     if source_family or diagnostic_identity:
         sol_dict["_knowledge"] = {
@@ -310,6 +315,8 @@ async def search_similar_logs(
     - negative-feedback rows are excluded; score-0 rows only under the
       same diagnostic identity; verified rows are preferred.
     """
+    if settings.AUTH_MODE.lower() == 'secure':
+        return []
     family = source_family or ""
     identity = str(diagnostic_code or event_id or "")
 

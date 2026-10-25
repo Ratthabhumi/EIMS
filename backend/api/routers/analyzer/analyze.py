@@ -195,12 +195,15 @@ async def submit_analysis(
     from backend.domain.analyzer.services.evidence import build_evidence_records
     from backend.domain.analyzer.services.incident_extract import incident_from_records
 
+    from backend.domain.analyzer.services.evidence_privacy import protect_log_text, apply_context_policy
+    combined_text, privacy = protect_log_text(combined_text)
     source_records = build_evidence_records(
         [((file.filename or "") if file else "", combined_text)], max_chars=MAX_CHARS
     )
     combined_text = compact_log_evidence(combined_text)
 
     metadata = parse_event_metadata(combined_text, (file.filename or "") if file else "")
+    metadata.attributes = {**(metadata.attributes or {}), 'evidencePrivacy': privacy}
     lang = language if language in ("th", "en") else "th"
 
     start_time = time.time()
@@ -238,6 +241,7 @@ async def submit_analysis(
     # the synthesis path did not provide (curated vendor paths already do).
     incident = incident_from_records(source_records, metadata.sourceFamily or "")
     solution.evidenceItems = [EvidenceItem(**item) for item in build_evidence_items([], records=source_records)]
+    apply_context_policy(solution.evidenceItems, {((file.filename or '') if file else ''): privacy})
     if not solution.evidence and incident.get("evidence"):
         solution.evidence = [str(x) for x in incident["evidence"][:8]]
     if not solution.nextEvidence and incident.get("nextEvidence"):
@@ -352,11 +356,14 @@ async def submit_bundle(
     per_file = []
     combined_parts: List[str] = []
     record_sources: List[tuple] = []
+    privacy_by_file = {}
+    from backend.domain.analyzer.services.evidence_privacy import protect_log_text, apply_context_policy
     for filename, content in cleaned:
         try:
             extracted, _desc = _process_upload(content, filename, None)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"{filename}: {e}")
+        extracted, privacy_by_file[filename] = protect_log_text(extracted or '')
         compacted = compact_log_evidence(extracted or "")
         meta = parse_event_metadata(compacted, filename)
         per_file.append(
@@ -389,6 +396,7 @@ async def submit_bundle(
                 primary = entry
                 break
     primary_meta = parse_event_metadata(compact_log_evidence(primary.text), primary.filename)
+    primary_meta.attributes = {**(primary_meta.attributes or {}), 'evidencePrivacy': {'files':privacy_by_file}}
 
     # Structured evidence records: one normalized representation for
     # chronology, correlation, and KB operation context — independent of
@@ -448,6 +456,7 @@ async def submit_bundle(
     try:
         items = build_evidence_items(per_file, records=bundle_records)
         solution.evidenceItems = [EvidenceItem(**item) for item in items]
+        apply_context_policy(solution.evidenceItems, privacy_by_file)
     except Exception:
         pass
     try:

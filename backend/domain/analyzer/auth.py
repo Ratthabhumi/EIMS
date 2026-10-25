@@ -79,6 +79,7 @@ def create_access_token(username: str, role: str = "user") -> str:
 
 from backend.infrastructure.database import get_db_session
 from backend.domain.analyzer.models.user import User
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def _normalize_case(username: str) -> str:
@@ -86,9 +87,15 @@ def _normalize_case(username: str) -> str:
     return "admin" if username.lower() == "admin" else username
 
 
-async def verify_credentials(username: str, password: str) -> str | None:
+async def verify_credentials(username: str, password: str, session: AsyncSession | None = None) -> str | None:
     """Validates credentials against the hashed users table (auto-upgrades legacy plaintext rows)."""
-    async for db in get_db_session():
+    async def sessions():
+        if session is not None:
+            yield session
+        else:
+            async for db in get_db_session():
+                yield db
+    async for db in sessions():
         try:
             user = (await db.execute(select(User).filter(User.username == _normalize_case(username)))).scalars().first()
             if user and verify_password(password, user.password or ""):
@@ -102,9 +109,15 @@ async def verify_credentials(username: str, password: str) -> str | None:
             return None
 
 
-async def get_user_role(username: str) -> str:
+async def get_user_role(username: str, session: AsyncSession | None = None) -> str:
     """Returns the stored role for a username, defaulting to the safe 'user' role."""
-    async for db in get_db_session():
+    async def sessions():
+        if session is not None:
+            yield session
+        else:
+            async for db in get_db_session():
+                yield db
+    async for db in sessions():
         try:
             user = (await db.execute(select(User).filter(User.username == _normalize_case(username)))).scalars().first()
             if user:
@@ -134,6 +147,7 @@ async def seed_users():
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: AsyncSession = Depends(get_db_session),
 ) -> str:
     """Resolves the authenticated username from a bearer JWT.
 
@@ -161,17 +175,20 @@ async def get_current_user(
         username = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        user = (await db.execute(select(User).where(User.username == username))).scalars().first()
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         return username
     except Exception:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
-async def require_admin(username: str = Depends(get_current_user)) -> str:
+async def require_admin(username: str = Depends(get_current_user), db: AsyncSession = Depends(get_db_session)) -> str:
     """Requires an authenticated admin user (JWT with role='admin'); otherwise 403."""
     # Demo identity cannot be admin
     if username in ("guest", "demo"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
-    role = await get_user_role(username)
+    role = await get_user_role(username, db)
     if role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return username
@@ -190,6 +207,7 @@ async def verify_admin_token(
 
 async def require_admin_or_token(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: AsyncSession = Depends(get_db_session),
 ) -> str:
     """Admin-scoped gate accepting either a valid admin JWT or the configured admin bearer token.
 
@@ -210,13 +228,10 @@ async def require_admin_or_token(
     try:
         payload = jwt.decode(raw_token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
-        role = payload.get("role")
         if not username:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        if role != "admin":
-            db_role = await get_user_role(username)
-            if db_role != "admin":
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+        if await get_user_role(username, db) != "admin":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
         return username
     except jwt.PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

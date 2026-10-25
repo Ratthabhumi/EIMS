@@ -71,3 +71,47 @@ def test_fortinet_controls_do_not_extend_success_suppression_without_evidence(ac
 @pytest.mark.parametrize('text', ['', 'CTK_CTK', 'Info no failure', 'CTK_CTKUNLINK result:0'])
 def test_empty_truncated_and_negative_controls_have_no_fabricated_source(text):
     assert build_evidence_items([], records=build_evidence_records([('synthetic.txt', text)])) == []
+
+
+@pytest.mark.parametrize('text', ['password="SYNTHETIC_ONLY"', "pwd='SYNTHETIC_ONLY'", 'api_key=SYNTHETIC_ONLY',
+                                 'access_token=SYNTHETIC_ONLY', 'Authorization: Bearer SYNTHETIC_ONLY',
+                                 'Authorization: Basic SYNTHETIC_ONLY', '{"password":"SYNTHETIC_ONLY"}'])
+def test_credential_masking_preserves_line_boundaries_and_json_syntax(text):
+    import json
+    from backend.domain.analyzer.services.evidence_privacy import protect_log_text
+    original = text + '\nbenign line\n'
+    masked, policy = protect_log_text(original)
+    assert 'SYNTHETIC_ONLY' not in masked and '[REDACTED]' in masked
+    assert masked.count('\n') == original.count('\n') and policy['credentialsRedacted'] >= 1
+    if text.startswith('{'):
+        assert json.loads(masked.splitlines()[0])['password'] == '[REDACTED]'
+
+
+def test_privacy_policy_preserves_forensic_identifiers_and_marks_controls(monkeypatch):
+    from backend.domain.analyzer.services.evidence_privacy import protect_log_text, apply_context_policy
+    from backend.domain.analyzer.schemas.analyze import EvidenceItem
+    source = 'user=synthetic-user ip=192.0.2.4 path=/synthetic/private password policy failed\n'
+    assert protect_log_text(source)[0] == source
+    masked, policy = protect_log_text('line\x00one\nline\ttwo')
+    assert masked == 'line\ufffdone\nline\ttwo' and policy['controlCharactersReplaced'] == 1
+    monkeypatch.setenv('EIMS_EVIDENCE_CONTEXT', 'none')
+    _, policy = protect_log_text(source)
+    item = EvidenceItem(sourceFile='synthetic.txt', sourceContext=[{'lineNumber':1,'text':source}])
+    apply_context_policy([item], {'synthetic.txt':policy})
+    assert item.sourceContext == [] and item.sourceContextOrigin == 'withheld_by_policy'
+
+
+def test_secure_mode_never_reads_or_publishes_unowned_history_vectors(monkeypatch):
+    import asyncio
+    from backend.domain.analyzer.services import vector_db
+    monkeypatch.setattr(vector_db.settings, 'AUTH_MODE', 'secure')
+    class ForbiddenDB:
+        async def execute(self, *a, **kw):
+            raise AssertionError('Shared vector store must not be touched')
+    def forbidden(*a, **kw):
+        raise AssertionError('No embedding/model for unowned private History')
+    monkeypatch.setattr(vector_db, '_get_embedding', forbidden)
+    async def check():
+        assert await vector_db.search_similar_logs(ForbiddenDB(), 'synthetic-private', event_id='1129', source_family='windows_event') == []
+        assert await vector_db.add_solution(ForbiddenDB(), '1129', 'synthetic-private', {'overview':'private'}) is None
+    asyncio.run(check())
