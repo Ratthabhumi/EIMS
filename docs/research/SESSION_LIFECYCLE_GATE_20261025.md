@@ -1,3 +1,23 @@
+## Current checkpoint — 26 October 2026 publication
+
+This update supersedes historical status below; historical measurements remain intact.
+Implementation source: `348f892719cc0e839cd2813d344d26e672c883fd`.
+See [grounded diagnosis report](GROUNDED_DIAGNOSIS_CHECKPOINT_20261025.md) and
+[next execution instructions](NEXT_EXECUTION_PROMPT_20261026.md).
+
+- Implemented vendor-grounded Fortinet configuration identity, Windows 1129 symptom-only summary,
+  CTK cause abstention and narrower KB applicability; removed cross-vendor default assumptions.
+- Local regression: 273 passed, 1 Windows skip, including 31 dedicated PostgreSQL tests.
+  Actual Alembic upgrade was rehearsed from a minimal parent schema; full historical chain and
+  operational migration remain untested. Bounded cleanup, rollback and concurrency verified.
+- Direct organization APIs now require admin/service authorization in Secure Mode;
+  customer evaluation forms are also restricted, ingestion requires service authorization,
+  and secure WebSocket streaming is disabled pending an authenticated transport.
+- Controlled DEV: 12 DRAFT, zero execution errors, 77 claims, zero human judgments.
+  Narrative changed 12/12; typed v2 fields unchanged 12/12. Claim reduction from 135 is not accuracy.
+- HTTPS browser acceptance, independent human validation, institutional retention and deployment
+  acceptance remain open. M2/M3 remain NOT_RUN. Existing review packets are historical.
+
 # EIMS session/privacy checkpoint — 25 October 2026
 
 ## A. Git state

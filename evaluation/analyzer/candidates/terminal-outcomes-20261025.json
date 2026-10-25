@@ -1,0 +1,21 @@
+{
+  "status": "DRAFT",
+  "origin": "AI-generated synthetic review candidates, related to regression scenarios",
+  "evaluation_membership": "NOT_IN_DEV_OR_HELDOUT",
+  "reviewer": null,
+  "warning": "Not independent heldout evidence. Human review and leakage assessment required before any cohort inclusion.",
+  "cases": [
+    {
+      "case_id": "candidate_recovered_ctk_success",
+      "source": "2026-10-25T08:00:00Z CTK_CTKUNLINK result:2620\n2026-10-25T08:02:00Z Job session 'synthetic-recovery' has been completed, status: 'Success'\n",
+      "proposed": {"failure_present": true, "first_observed_failure_line": 1, "last_observed_failure_line": 1, "explicit_terminal_outcome": "SUCCESS", "terminal_line": 2, "physical_root_cause": "UNKNOWN"},
+      "review_question": "Earlier technical failure and final success are different facts; does the text establish recovery mechanism? No mechanism should be inferred without evidence."
+    },
+    {
+      "case_id": "candidate_explicit_job_failed",
+      "source": "2026-10-25T09:00:00Z Job session 'synthetic-failed' has been completed, status: 'Failed'\n",
+      "proposed": {"failure_present": true, "first_observed_failure_line": 1, "last_observed_failure_line": 1, "explicit_terminal_outcome": "FAILED", "terminal_line": 1, "physical_root_cause": "UNKNOWN"},
+      "review_question": "Does an explicit Failed job status identify a physical cause? Keep outcome and root cause separate."
+    }
+  ]
+}

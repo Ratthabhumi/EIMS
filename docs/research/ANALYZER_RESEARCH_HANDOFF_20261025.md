@@ -1,3 +1,25 @@
+## Research handoff update — 26 October 2026
+
+The three vendor investigations below have now informed production code and regression tests:
+Fortinet configuration identity, CTK symptom/cause separation with KB gates, and Windows 1129
+symptom-only diagnosis. Do not repeat broad research on those resolved questions.
+See GROUNDED_DIAGNOSIS_CHECKPOINT_20261025.md for source URLs and measured limits.
+
+Remaining targeted research, only when it changes an implementation decision:
+1. Trusted HTTPS/reverse proxy and installed Next.js browser session behavior: cookie scope,
+   Origin/Host trust, logout/back-cache and multiple-worker throttling. Deliver official sources,
+   version applicability and executable negative tests; research cannot replace actual browser QA.
+2. Minimal owner/service/admin permission design for shared organization endpoints, customer
+   forms and WebSocket. Compare least-privilege options; preserve closed defaults until tested.
+3. Institutional session/audit retention: distinguish a proposed policy from an approved one.
+   There is no approved universal seven-day period. Keep Analysis History outside auth cleanup.
+4. Independent claim adjudication with small denominators, disagreement and abstention;
+   AI-generated candidates and regression-derived examples must not become independent HELDOUT.
+
+Return decision / source URL / applicability / uncertainty / smallest test / cost.
+Defer model training, new vendors, broad competitor surveys and large infrastructure until
+reviewed evidence demonstrates a specific benefit. Older questions below are historical.
+
 # Research handoff for ChatGPT — 25 ตุลาคม 2026
 
 ## สถานะที่ยืนยันแล้ว

@@ -1,0 +1,901 @@
+{
+  "before_source": "77603388de96324fc5dbf56e1de2cdc192cde747",
+  "after_source": "348f892719cc0e839cd2813d344d26e672c883fd",
+  "unchanged_controls": [
+    "manifest_sha256",
+    "annotation_sha256",
+    "scorer_sha256",
+    "runner_sha256",
+    "annotations_v2_sha256",
+    "semantics_v2_code_sha256",
+    "investigation_code_sha256",
+    "grounding_code_sha256"
+  ],
+  "cases": [
+    {
+      "case_id": "bundle_related",
+      "before_hash": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "after_hash": "bfce2e5f6c9855e0c3caa604fe205908a6410db728ab52dab8fde47428165291",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "Veeam Backup & Replication: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+          "Veeam Job session log",
+          "Agent/component log from the relevant Veeam component",
+          "vmware.log / hostd.log when a VMware operation is implicated"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+            "Veeam Job session log",
+            "Agent/component log from the relevant Veeam component",
+            "vmware.log / hostd.log when a VMware operation is implicated"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "Veeam Backup & Replication: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [],
+        "nextEvidence": [],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": []
+        }
+      },
+      "removed_claims": [
+        "Agent/component log from the relevant Veeam component",
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Veeam Job session log",
+        "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+        "Whether the file was locked, corrupt, moved, renamed, or absent",
+        "vmware.log / hostd.log when a VMware operation is implicated"
+      ],
+      "added_claims": []
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "before_hash": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "after_hash": "f6d071b0499f6f826e10b7b6bc1089e2238470eb78027d9c92d611fe0f9d35ca",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "Veeam Backup & Replication: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+          "Veeam Job session log",
+          "Agent/component log from the relevant Veeam component",
+          "vmware.log / hostd.log when a VMware operation is implicated"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+            "Veeam Job session log",
+            "Agent/component log from the relevant Veeam component",
+            "vmware.log / hostd.log when a VMware operation is implicated"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "Veeam Backup & Replication: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [],
+        "nextEvidence": [],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": []
+        }
+      },
+      "removed_claims": [
+        "Agent/component log from the relevant Veeam component",
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Veeam Job session log",
+        "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+        "Whether the file was locked, corrupt, moved, renamed, or absent",
+        "vmware.log / hostd.log when a VMware operation is implicated"
+      ],
+      "added_claims": []
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "before_hash": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "after_hash": "a137e3bd0471b66edff9942aa7a2268cd61d6ebb62714881b5d636fa17fea5d3",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "VMware vSphere/ESXi: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "VM vmware.log",
+          "ESXi hostd.log",
+          "Datastore file listing (.vmdk / .ctk.vmdk state)"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "VM vmware.log",
+            "ESXi hostd.log",
+            "Datastore file listing (.vmdk / .ctk.vmdk state)"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "VMware vSphere/ESXi: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [],
+        "nextEvidence": [],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": []
+        }
+      },
+      "removed_claims": [
+        "Datastore file listing (.vmdk / .ctk.vmdk state)",
+        "ESXi hostd.log",
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "VM vmware.log",
+        "Whether the file was locked, corrupt, moved, renamed, or absent"
+      ],
+      "added_claims": []
+    },
+    {
+      "case_id": "esxi_tracker",
+      "before_hash": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "after_hash": "08293285d5963efc5e1ec92fe9ef8f20b66a0b493997fa1e92ca4b8a94d8297f",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "VMware could not delete a change-tracking (.ctk) file. Result 2620 was recorded in the evidence. A CTK_CTKUNLINK operation result was recorded in the evidence.",
+        "causes": [
+          "CTK file missing, state-mismatched, or corrupt (locking is NOT proven)",
+          "Stale snapshot cleanup from a previous operation, or datastore inconsistency"
+        ],
+        "limitations": [
+          "Do NOT claim the file is locked unless lock evidence exists"
+        ],
+        "nextEvidence": [
+          "VM vmware.log",
+          "ESXi hostd.log",
+          "Datastore file listing (.vmdk / .ctk.vmdk state)"
+        ],
+        "incident": {
+          "diagnosticSignatures": [
+            "2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk",
+            "2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620"
+          ],
+          "firstMeaningfulFailure": "2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk",
+          "nextEvidence": [
+            "VM vmware.log",
+            "ESXi hostd.log",
+            "Datastore file listing (.vmdk / .ctk.vmdk state)"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620",
+          "timeline": [
+            "2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk",
+            "2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620"
+          ],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "VMware could not delete a change-tracking (.ctk) file. Result 2620 was recorded in the evidence. A CTK_CTKUNLINK operation result was recorded in the evidence.",
+        "causes": [
+          "Physical root cause is UNKNOWN; an unsuccessful change-tracking deletion alone does not establish its cause"
+        ],
+        "limitations": [
+          "Do NOT claim the file is locked unless lock evidence exists"
+        ],
+        "nextEvidence": [
+          "VM vmware.log",
+          "ESXi hostd.log",
+          "Datastore file listing (.vmdk / .ctk.vmdk state)"
+        ],
+        "incident": {
+          "diagnosticSignatures": [
+            "2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk",
+            "2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620"
+          ],
+          "firstMeaningfulFailure": "2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk",
+          "nextEvidence": [
+            "VM vmware.log",
+            "ESXi hostd.log",
+            "Read-only datastore file listing for the observed CTK operation",
+            "Explicit final backup/job status and VMware product/version"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620",
+          "timeline": [
+            "2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk",
+            "2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620"
+          ],
+          "unknowns": [
+            "Physical root cause is not established by these signals alone",
+            "Cause of the observed change-tracking deletion failure is unknown",
+            "Final backup/job outcome is not present in this evidence"
+          ]
+        }
+      },
+      "removed_claims": [
+        "CTK file missing, state-mismatched, or corrupt (locking is NOT proven)",
+        "Refer to official Broadcom material: Article 418256 (CTK) â€” verify each articleâ€™s scope before applying",
+        "Stale snapshot cleanup from a previous operation, or datastore inconsistency"
+      ],
+      "added_claims": [
+        "Physical root cause is UNKNOWN; an unsuccessful change-tracking deletion alone does not establish its cause",
+        "Refer to official Broadcom VMware CBT troubleshooting documentation â€” verify scope before applying"
+      ]
+    },
+    {
+      "case_id": "fort_accept",
+      "before_hash": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "after_hash": "0546e2befd552149e6cdb27d5aaef2d2637aea1233a82f128687af53e86d213d",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "Fortinet FortiGate: diagnostic 0000000013.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "Full FortiGate log segment with session close codes"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "Full FortiGate log segment with session close codes"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "Fortinet FortiGate: diagnostic 0000000013.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [],
+        "nextEvidence": [],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": []
+        }
+      },
+      "removed_claims": [
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Full FortiGate log segment with session close codes",
+        "Whether the file was locked, corrupt, moved, renamed, or absent"
+      ],
+      "added_claims": []
+    },
+    {
+      "case_id": "fort_config",
+      "before_hash": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "after_hash": "5d62582aac1a705c564407b857c7fe88c09a18a837a26afd27c49624c40ec00f",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "Fortinet FortiGate: diagnostic 0100044547.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "Full FortiGate log segment with session close codes"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "Full FortiGate log segment with session close codes"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "FortiGate configuration event 0100044547: successful informational edit; no failure observed in the supplied records.",
+        "causes": [],
+        "limitations": [
+          "The supplied fields do not validate a particular FortiOS format/version or the operational effect of the edit."
+        ],
+        "nextEvidence": [
+          "Configuration audit fields cfgpath/cfgattr, actor, device context and FortiOS version if audit detail is required"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "Configuration audit fields cfgpath/cfgattr, actor, device context and FortiOS version if audit detail is required"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": []
+        }
+      },
+      "removed_claims": [
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Follow the references below; avoid destructive actions before preserving evidence",
+        "Fortinet FortiGate: diagnostic 0100044547.",
+        "Full FortiGate log segment with session close codes",
+        "Preserve the complete original log and record the event sequence",
+        "Search the primary error line in Fortinet Docs",
+        "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome.",
+        "Whether the file was locked, corrupt, moved, renamed, or absent"
+      ],
+      "added_claims": [
+        "Configuration audit fields cfgpath/cfgattr, actor, device context and FortiOS version if audit detail is required",
+        "For a configuration audit, obtain cfgpath/cfgattr, actor, original device context and FortiOS version.",
+        "FortiGate configuration event 0100044547: successful informational edit; no failure observed in the supplied records.",
+        "The supplied fields do not validate a particular FortiOS format/version or the operational effect of the edit."
+      ]
+    },
+    {
+      "case_id": "json_info",
+      "before_hash": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "after_hash": "a99530c66f6010a5262ba0105ced4dc5a2ced52d2b920bd6bf2cd39db17f2aae",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "JSON structured log diagnostic record (json).",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "Complete structured event payload"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "Complete structured event payload"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "JSON structured log diagnostic record (json).",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [],
+        "nextEvidence": [],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": []
+        }
+      },
+      "removed_claims": [
+        "Complete structured event payload",
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Whether the file was locked, corrupt, moved, renamed, or absent"
+      ],
+      "added_claims": []
+    },
+    {
+      "case_id": "noise_filename",
+      "before_hash": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "after_hash": "745e6a5869f9451f4a59cf4643a65b720830bdef63dffaff8cc65984444d41cb",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "This log format has an unidentified source (unknown source), so no cause can be concluded yet. Please identify the emitting product.",
+        "causes": [
+          "The product/system that emitted this log is still unknown",
+          "The text does not match known Windows Event, Veeam, VMware, Fortinet, Cisco, or Linux syslog shapes"
+        ],
+        "limitations": [
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "Original file plus a note about which product emitted it"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "Original file plus a note about which product emitted it"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "This log format has an unidentified source (unknown source), so no cause can be concluded yet. Please identify the emitting product.",
+        "causes": [
+          "The product/system that emitted this log is still unknown",
+          "The text does not match known Windows Event, Veeam, VMware, Fortinet, Cisco, or Linux syslog shapes"
+        ],
+        "limitations": [],
+        "nextEvidence": [],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": []
+        }
+      },
+      "removed_claims": [
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Original file plus a note about which product emitted it",
+        "Whether the file was locked, corrupt, moved, renamed, or absent"
+      ],
+      "added_claims": []
+    },
+    {
+      "case_id": "veeam_options",
+      "before_hash": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "after_hash": "dce96b66d5d4910ee1ad689dd7e461adfbe82708c8c596b1b180c88df94e0790",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "Veeam Backup & Replication: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+          "Veeam Job session log",
+          "Agent/component log from the relevant Veeam component",
+          "vmware.log / hostd.log when a VMware operation is implicated"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+            "Veeam Job session log",
+            "Agent/component log from the relevant Veeam component",
+            "vmware.log / hostd.log when a VMware operation is implicated"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "Veeam Backup & Replication: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+        "causes": [
+          "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome."
+        ],
+        "limitations": [],
+        "nextEvidence": [],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": []
+        }
+      },
+      "removed_claims": [
+        "Agent/component log from the relevant Veeam component",
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Veeam Job session log",
+        "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+        "Whether the file was locked, corrupt, moved, renamed, or absent",
+        "vmware.log / hostd.log when a VMware operation is implicated"
+      ],
+      "added_claims": []
+    },
+    {
+      "case_id": "veeam_tracker",
+      "before_hash": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "after_hash": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "VMware could not delete a change-tracking (.ctk) file.",
+        "causes": [
+          "CTK file missing, state-mismatched, or corrupt (locking is NOT proven)",
+          "Stale snapshot cleanup from a previous operation, or datastore inconsistency"
+        ],
+        "limitations": [
+          "Do NOT claim the file is locked unless lock evidence exists"
+        ],
+        "nextEvidence": [
+          "VM vmware.log",
+          "ESXi hostd.log",
+          "Datastore file listing (.vmdk / .ctk.vmdk state)"
+        ],
+        "incident": {
+          "diagnosticSignatures": [
+            "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file"
+          ],
+          "firstMeaningfulFailure": "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file",
+          "nextEvidence": [
+            "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+            "Veeam Job session log",
+            "Agent/component log from the relevant Veeam component",
+            "vmware.log / hostd.log when a VMware operation is implicated"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file",
+          "timeline": [
+            "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file"
+          ],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "VMware could not delete a change-tracking (.ctk) file.",
+        "causes": [
+          "Physical root cause is UNKNOWN; an unsuccessful change-tracking deletion alone does not establish its cause"
+        ],
+        "limitations": [
+          "Do NOT claim the file is locked unless lock evidence exists"
+        ],
+        "nextEvidence": [
+          "VM vmware.log",
+          "ESXi hostd.log",
+          "Datastore file listing (.vmdk / .ctk.vmdk state)"
+        ],
+        "incident": {
+          "diagnosticSignatures": [
+            "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file"
+          ],
+          "firstMeaningfulFailure": "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file",
+          "nextEvidence": [
+            "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+            "Veeam Job session log",
+            "Agent/component log from the relevant Veeam component",
+            "Read-only datastore file listing for the observed CTK operation",
+            "Explicit final backup/job status and VMware product/version",
+            "VM vmware.log and ESXi hostd.log for the observed CTK operation"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file",
+          "timeline": [
+            "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file"
+          ],
+          "unknowns": [
+            "Physical root cause is not established by these signals alone",
+            "Cause of the observed change-tracking deletion failure is unknown",
+            "Final backup/job outcome is not present in this evidence"
+          ]
+        }
+      },
+      "removed_claims": [
+        "CTK file missing, state-mismatched, or corrupt (locking is NOT proven)",
+        "Refer to official Broadcom material: Article 418256 (CTK) â€” verify each articleâ€™s scope before applying",
+        "Stale snapshot cleanup from a previous operation, or datastore inconsistency"
+      ],
+      "added_claims": [
+        "Physical root cause is UNKNOWN; an unsuccessful change-tracking deletion alone does not establish its cause",
+        "Refer to official Broadcom VMware CBT troubleshooting documentation â€” verify scope before applying"
+      ]
+    },
+    {
+      "case_id": "win_boot",
+      "before_hash": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "after_hash": "dbb7282b1602fd775b220e12764a0ad12272c6ec844bc9b573c2f646c916f568",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "Event ID 6005 from EventLog is a Windows event log entry.",
+        "causes": [
+          "The EventLog process crashed or encountered an unexpected service error.",
+          "Insufficient system permissions or corrupted system/component configuration files.",
+          "System resource depletion (CPU / Memory / Disk I/O) during operation execution."
+        ],
+        "limitations": [
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "Full Event Viewer export (.evtx) around the failure time"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [
+            "Full Event Viewer export (.evtx) around the failure time"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": [
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "Event ID 6005 from EventLog is a Windows event log entry.",
+        "causes": [
+          "The actual root cause is unknown from the supplied evidence; inspect the full event and its context."
+        ],
+        "limitations": [],
+        "nextEvidence": [],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "None",
+          "nextEvidence": [],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "None",
+          "timeline": [],
+          "unknowns": []
+        }
+      },
+      "removed_claims": [
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Follow the reference links below and restart if required",
+        "Full Event Viewer export (.evtx) around the failure time",
+        "Insufficient system permissions or corrupted system/component configuration files.",
+        "System resource depletion (CPU / Memory / Disk I/O) during operation execution.",
+        "The EventLog process crashed or encountered an unexpected service error.",
+        "Whether the file was locked, corrupt, moved, renamed, or absent"
+      ],
+      "added_claims": [
+        "The actual root cause is unknown from the supplied evidence; inspect the full event and its context.",
+        "Verify reference product/version and symptom applicability before considering changes"
+      ]
+    },
+    {
+      "case_id": "win_policy",
+      "before_hash": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "after_hash": "5a047c3db1b5286fd0eea387a798756b8fad762cc6db16bee4dfab3270fdf075",
+      "semantics_v2_unchanged": true,
+      "before": {
+        "overview": "Event ID 1129 from Microsoft-Windows-GroupPolicy is a Windows event log entry.",
+        "causes": [
+          "The Microsoft-Windows-GroupPolicy process crashed or encountered an unexpected service error.",
+          "Insufficient system permissions or corrupted system/component configuration files.",
+          "System resource depletion (CPU / Memory / Disk I/O) during operation execution."
+        ],
+        "limitations": [
+          "Some signals have no parseable timestamp; their chronology is unverified",
+          "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+          "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+          "Whether the file was locked, corrupt, moved, renamed, or absent"
+        ],
+        "nextEvidence": [
+          "Full Event Viewer export (.evtx) around the failure time"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "Description: Group Policy could not contact a domain controller; network connectivity failed.",
+          "nextEvidence": [
+            "Full Event Viewer export (.evtx) around the failure time"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "Description: Group Policy could not contact a domain controller; network connectivity failed.",
+          "timeline": [
+            "Level: Error",
+            "Description: Group Policy could not contact a domain controller; network connectivity failed."
+          ],
+          "unknowns": [
+            "Some signals have no parseable timestamp; their chronology is unverified",
+            "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+            "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+            "Whether the file was locked, corrupt, moved, renamed, or absent"
+          ]
+        }
+      },
+      "after": {
+        "overview": "Group Policy Event 1129 reports failure to contact a Domain Controller.",
+        "causes": [
+          "Actual root cause is UNKNOWN; this event does not establish which DNS, LDAP or network component caused the symptom."
+        ],
+        "limitations": [
+          "Transient startup/network readiness and physical causes are unconfirmed; obtain evidence before changing configuration."
+        ],
+        "nextEvidence": [
+          "Full Event Viewer export (.evtx) around the failure time"
+        ],
+        "incident": {
+          "diagnosticSignatures": [],
+          "firstMeaningfulFailure": "Description: Group Policy could not contact a domain controller; network connectivity failed.",
+          "nextEvidence": [
+            "Full Event Viewer export (.evtx) around the failure time"
+          ],
+          "observedPaths": [],
+          "operationStage": "",
+          "terminalFailure": "Description: Group Policy could not contact a domain controller; network connectivity failed.",
+          "timeline": [
+            "Level: Error",
+            "Description: Group Policy could not contact a domain controller; network connectivity failed."
+          ],
+          "unknowns": [
+            "Some signals have no parseable timestamp; their chronology is unverified",
+            "Physical root cause is not established by these signals alone"
+          ]
+        }
+      },
+      "removed_claims": [
+        "Event ID 1129 from Microsoft-Windows-GroupPolicy is a Windows event log entry.",
+        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+        "Follow the reference links below and restart if required",
+        "Insufficient system permissions or corrupted system/component configuration files.",
+        "Review full event details in Event Viewer",
+        "Search this Event ID on Microsoft Learn for official guidance",
+        "Some signals have no parseable timestamp; their chronology is unverified",
+        "System resource depletion (CPU / Memory / Disk I/O) during operation execution.",
+        "The Microsoft-Windows-GroupPolicy process crashed or encountered an unexpected service error.",
+        "Whether the file was locked, corrupt, moved, renamed, or absent"
+      ],
+      "added_claims": [
+        "Actual root cause is UNKNOWN; this event does not establish which DNS, LDAP or network component caused the symptom.",
+        "Check DNS/DC connectivity and contemporaneous network diagnostics to distinguish hypotheses; determine whether this occurred during startup.",
+        "Collect System and GroupPolicy Operational events with ActivityID and timestamps.",
+        "Group Policy Event 1129 reports failure to contact a Domain Controller.",
+        "Transient startup/network readiness and physical causes are unconfirmed; obtain evidence before changing configuration."
+      ]
+    }
+  ]
+}
