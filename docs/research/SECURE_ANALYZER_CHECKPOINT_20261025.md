@@ -176,3 +176,11 @@ boundary; deleted users and current role enforcement are measured, and shared
 unowned vectors are excluded in Secure Mode. None improves a scientific accuracy
 denominator. The existing GRADUATION_DEFENSE_UPDATE_20261025.md remains the report
 structure; this addendum supplies new measured facts rather than replacing it.
+
+Priority human packet: [source-first review pages](evidence/20261025-session/review/README.md)
+prepare **36/135 claims from 3/12 DEV** (fort_config, esxi_tracker, win_policy),
+selected by the owner's priority rather than random sampling. Raw numbered input
+appears before AI proposals. These are prepared read-only pages, not executed
+secure browser acceptance or completed review. Human judgments remain 0/135.
+Prediction hashes bind the pages to this snapshot's queue; no reviewer receipt
+or Gold status is generated.
