@@ -1,0 +1,12 @@
+{"case_id": "bundle_related", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "bundle_unrelated", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "esxi_heartbeat", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "esxi_tracker", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [["cases/esxi_tracker/input.txt", 2]], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "fort_accept", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "fort_config", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "json_info", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "noise_filename", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "veeam_options", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "veeam_tracker", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "win_boot", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}
+{"case_id": "win_policy", "diagnostic_correct": true, "extra_evidence": [], "first_correct": true, "missing_evidence": [], "source_correct": true, "status": "OK", "terminal_correct": true}

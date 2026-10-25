@@ -57,3 +57,68 @@ Further combined full-investigation testing and exact-head CI are recorded in
 the PR after evaluation infrastructure integration. Before/after DRAFT outputs
 must remain separate; no human-reviewed accuracy or root-cause correctness is
 certified by these software regressions.
+
+## Controlled native investigation comparison
+
+Before source `ddf717e81e389eb69cdb338becf0ba8d3bb6f3a7`; corrected source
+`522e28607347d0703b007a1a2dde217847bd39fa` (contains fix cb97135 plus the
+unchanged evaluator). All three modes preserve exact manifest/annotation,
+scorer/runner, semantics, full-adapter and grounding hashes. Configuration files
+declare untracked-artifact dirtiness. Subsequent merges add only the byte policy,
+documentation and retained exploratory outputs; Analyzer/evaluator code is unchanged.
+
+| Exploratory DEV comparison, 12 DRAFT | Before | After |
+|---|---:|---:|
+| Event identity agreement | 12/12 | 12/12 |
+| Binary failure agreement (3 positive / 9 negative) | 12/12 | 12/12 |
+| Failure-type proposal agreement | 11/12 | 11/12 |
+| First observed failure agreement | 12/12 | 12/12 |
+| Last observed failure agreement | 11/12 | 12/12 |
+| Explicit terminal agreement (all null) | 12/12 | 12/12 |
+| Positive explicit-terminal support | 0 | 0 |
+| Full native citation coordinate overlap | 3 TP / 0 FP / 1 FN | 3 TP / 0 FP / 1 FN |
+| Full emitted claims awaiting human judgment | 135 | 134 |
+
+M0, M1 and full path all execute 12 DEV, zero HELDOUT, zero reviewed, zero
+execution errors. Last-observed improvement reflects recognition of CTK 2620;
+it is not validated accuracy. The v2 projection already excluded the narrow
+successful Fortinet record, so no aggregate detection gain is claimed from that
+production correction. Windows taxonomy remains UNCLASSIFIED versus the DRAFT
+proposal; no unsupported rule change was made to force agreement. Native
+single-file citations still do not include every proposed failure line: 3/4
+coordinate recall remains a candidate for review rather than a claimed fix.
+
+Explicit-terminal sensitivity, physical RCA correctness, narrative abstention
+quality, semantic support and unsupported-claim rate remain undefined/unmeasured.
+Typed UNKNOWN fields and matching coordinates do not prove narrative correctness.
+M2/M3 remain NOT_RUN. No latency improvement is claimed from these small noisy
+warm-harness timings, which exclude real HTTP/auth/PostgreSQL.
+
+Combined executed regression: **189 passed, 1 skipped, 0 failures/errors**,
+190 collected, 12.097 seconds in JUnit. The same Windows symlink privilege skip
+applies. Independent-process corrected full prediction hashes match **12/12**;
+the baseline independent repeat also matched 12/12. Synthetic two-file corrected
+demo returns MEDIUM association, explicit FAILED, root UNKNOWN and an equal
+isolated History roundtrip. This is not operational PostgreSQL persistence.
+
+Artifacts: `evaluation/analyzer/results/20261025-controlled-after-{m0,m1,full}`
+and `20261025-controlled-demo-after`. Prior controlled baseline and v1 outputs
+remain unchanged. Actual CI status must be read on the final PR head; local
+results are not a substitute for exact-head CI.
+
+## Remaining work by priority
+
+1. Human semantic adjudication when available: fort_config, esxi_tracker,
+   win_policy; all 12 remain DRAFT with blank reviewer fields.
+2. Assess remaining native citation coverage and Windows taxonomy against
+   evidence, without tuning against an unreviewed target. Expand a separate
+   positive-final-outcome benchmark only after annotation protocol agreement.
+3. Claim-level human grounding before reporting unsupported-claim rates or RCA
+   accuracy. See the hash-bound queue and Thai DEV packet in the base PR.
+4. Production persisted-source viewer, real PostgreSQL/HTTP/auth integration,
+   USB import and M2/M3 require their own scoped validation; none is certified.
+   Bounded research questions are handed off in ANALYZER_RESEARCH_HANDOFF_20261025.md.
+
+This is a dependent PR targeting the Week1 evaluation branch (PR #2), not main.
+No main merge, demo checkout edit, operational database action, authentication
+change, customer log export or external model execution was performed.

@@ -1,0 +1,3 @@
+[2026-10-25T10:00:00Z] Info [Veeam.Backup.Core] Synthetic replica task started
+[2026-10-25T10:00:02Z] Error [CViSnapReplica] Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'
+[2026-10-25T10:00:05Z] Error [Veeam.Backup.Core] Task session 'demo-session-only' has been completed, status: 'Failed'
