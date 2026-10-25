@@ -23,8 +23,10 @@ async def verify_mtls_fingerprint(
     x_client_cert_fingerprint: str | None = Header(None, alias="X-Client-Cert-Fingerprint")
 ) -> str:
     """
-    FastAPI security dependency enforcing Mutual TLS (mTLS) cryptographic client validation
-    on high-frequency edge ingestion routes per Core Law 5 Section 5.3 and Section 7.1.
+    Validate the format of a fingerprint supplied by a trusted TLS terminator.
+    This is NOT a TLS handshake or certificate verification. Secure ingestion
+    additionally requires the router's admin/service credential. The deployment
+    must strip client-supplied identity headers and restrict direct backend access.
 
     Reverse proxy layers (or test injectors) extract active client SSL certificate SHA-256
     hashes and inject them into the 'X-Client-Cert-Fingerprint' internal routing header.
@@ -41,7 +43,7 @@ async def verify_mtls_fingerprint(
         )
 
     if not _SHA256_HEX_REGEX.match(x_client_cert_fingerprint):
-        logger.warning(f"mTLS Ingestion Rejection: Malformed SHA-256 certificate hash '{x_client_cert_fingerprint}'.")
+        logger.warning("mTLS Ingestion Rejection: Malformed certificate fingerprint header.")
         raise EIMSProblemException(
             status=status.HTTP_401_UNAUTHORIZED,
             title="Invalid mTLS Certificate Fingerprint",
@@ -50,5 +52,5 @@ async def verify_mtls_fingerprint(
             provided_fingerprint_length=len(x_client_cert_fingerprint)
         )
 
-    logger.debug(f"mTLS cryptographic identity authenticated successfully: SHA-256='{x_client_cert_fingerprint}'")
+    logger.debug("Certificate fingerprint header format accepted; transport trust is external.")
     return x_client_cert_fingerprint

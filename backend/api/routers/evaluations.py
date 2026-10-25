@@ -14,27 +14,21 @@ from backend.domain.evaluation.schemas import (
     ServiceEvaluationResponse
 )
 from backend.core.logger import get_logger
-from backend.domain.analyzer.auth import verify_admin_token, get_current_user
+from backend.domain.analyzer.auth import require_admin_or_token
 from backend.core.config import settings
 
 logger = get_logger("eims.evaluations")
-router = APIRouter(prefix="/api/v1/evaluations", tags=["Evaluation System"])
+router = APIRouter(prefix="/api/v1/evaluations", tags=["Evaluation System"], dependencies=[Depends(require_admin_or_token)])
 
 # Dependency that requires admin in secure mode, but allows demo mode
 async def require_admin_for_write(
-    credentials: HTTPAuthorizationCredentials | None = Depends(HTTPBearer(auto_error=False)),
+    admin: str = Depends(require_admin_or_token),
 ) -> str:
     """Requires admin for write operations.
     In demo mode: normal dashboard usage, no login required.
     In secure mode: requires valid admin JWT (role=='admin') or EIMS_ADMIN_TOKEN.
     """
-    from backend.core.config import settings
-    from backend.domain.analyzer.auth import require_admin_or_token
-
-    if settings.AUTH_MODE.lower() == "demo":
-        return "demo"
-
-    return await require_admin_or_token(credentials)
+    return admin
 
 
 DEFAULT_QUESTIONS = [

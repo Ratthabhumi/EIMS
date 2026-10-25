@@ -13,14 +13,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.domain.analyzer.auth import get_current_user
+from backend.domain.analyzer.auth import get_current_user, require_admin_or_token
 from backend.domain.asset_registry.schemas import PaginationMetadata
 from backend.domain.timeline.schemas import TimelineResponse
 from backend.domain.timeline.service import TimelineService
 from backend.infrastructure.database import get_db_session
 
 # Core Law 5 Section 5.2 strict adherence: No trailing slashes in route declarations
-timeline_router = APIRouter(prefix="/api/v1", tags=["Unified Timeline"])
+timeline_router = APIRouter(prefix="/api/v1", tags=["Unified Timeline"], dependencies=[Depends(require_admin_or_token)])
 
 timeline_service = TimelineService()
 

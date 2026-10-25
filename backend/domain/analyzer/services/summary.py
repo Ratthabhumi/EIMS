@@ -521,14 +521,10 @@ def _get_specific_causes(faulting_app: str, language: str) -> List[str]:
 def _fallback_causes(event_id: str, provider: str, language: str) -> List[str]:
     if language == "th":
         return [
-            f"กระบวนการของ {provider or 'ระบบ'} หยุดทำงานกะทันหัน หรือเกิดข้อผิดพลาดในการเรียกใช้เซอร์วิส",
-            "สิทธิ์การเข้าถึงระบบไม่เพียงพอ (Permission Denied) หรือไฟล์คอนฟิกูเรชันของระบบเสียหาย",
-            "ทรัพยากรระบบ (CPU / Memory / Disk) ไม่เพียงพอขณะกำลังประมวลผลคำขอ",
+            "ยังไม่ทราบสาเหตุจริงจากหลักฐานที่ให้มา ต้องตรวจข้อความและบริบทของ Event เพิ่มเติม",
         ]
     return [
-        f"The {provider or 'system'} process crashed or encountered an unexpected service error.",
-        "Insufficient system permissions or corrupted system/component configuration files.",
-        "System resource depletion (CPU / Memory / Disk I/O) during operation execution.",
+        "The actual root cause is unknown from the supplied evidence; inspect the full event and its context.",
     ]
 
 
@@ -537,12 +533,12 @@ def _fallback_steps(language: str) -> List[str]:
         return [
             "ตรวจสอบรายละเอียด Event ใน Event Viewer ให้ครบถ้วน",
             "ค้นหา Event ID นี้ใน Microsoft Learn เพื่อดูวิธีแก้ไขอย่างเป็นทางการ",
-            "ทำตามขั้นตอนในลิงก์อ้างอิงด้านล่าง แล้วรีสตาร์ทเครื่องหากจำเป็น",
+            "ตรวจว่าเอกสารอ้างอิงตรงกับผลิตภัณฑ์ เวอร์ชัน และอาการก่อนพิจารณาแก้ไข",
         ]
     return [
         "Review full event details in Event Viewer",
         "Search this Event ID on Microsoft Learn for official guidance",
-        "Follow the reference links below and restart if required",
+        "Verify reference product/version and symptom applicability before considering changes",
     ]
 
 
@@ -1018,6 +1014,11 @@ async def build_summary(
 ) -> SolutionSummary:
     lang = language if language in ("th", "en") else "th"
     family = source_family or "windows_event"
+
+    from backend.domain.analyzer.services.observed_summary import observed_event_summary
+    observed = observed_event_summary(event_id, provider, family, evidence_text or description or '', lang)
+    if observed is not None:
+        return observed
 
     # Deterministic vendor knowledge wins for recognized diagnostics:
     # offline, no hallucinated filenames, honest confidence.

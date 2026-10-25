@@ -126,6 +126,81 @@ def test_unknown_secret_formats_are_explicitly_outside_masking_contract():
     assert protect_log_text(source)[0] == source  # no full-DLP claim
 
 
+@pytest.mark.parametrize('family', ['windows_event','fortinet','cisco_asa','linux_syslog','json','unknown_text','vmware','veeam_vbr'])
+def test_limitations_follow_observed_evidence_not_vendor_defaults(family):
+    from backend.domain.analyzer.services.incident_extract import extract_incident
+    for text in ['2026-10-25T10:00:00Z service failed to connect', '2026-10-25T10:00:00Z operation completed successfully']:
+        incident = extract_incident(text, family)
+        narrative = ' '.join(incident['unknowns']+incident['nextEvidence']).lower()
+        assert 'ctk' not in narrative and 'vmdk' not in narrative and 'locked' not in narrative
+        if 'successfully' in text:
+            assert incident['unknowns'] == []
+
+
+def test_fortinet_success_summary_reports_activity_not_diagnostic_failure(monkeypatch):
+    import asyncio
+    from backend.domain.analyzer.services import summary
+    monkeypatch.setattr(summary, '_translate', lambda text, target: text)
+    text = 'devname="FG-LAB" logid="0100044547" type="event" subtype="system" level="information" action="edit" msg="Configuration setting error-log-retention=7 updated successfully"'
+    result = asyncio.run(summary.build_summary('0100044547','Fortinet FortiGate','',[],language='en',
+        source_family='fortinet',diagnostic_code='0100044547',evidence_text=text))
+    assert 'configuration' in result.overview.lower() and '0100044547' in result.overview
+    assert 'diagnostic' not in result.overview.lower()
+    assert result.causes == []
+    assert 'primary error' not in ' '.join(result.steps).lower()
+
+
+def test_windows_1129_uses_observed_connectivity_not_generic_causes(monkeypatch):
+    import asyncio
+    from backend.domain.analyzer.services import summary
+    monkeypatch.setattr(summary, '_translate', lambda text, target: text)
+    result = asyncio.run(summary.build_summary('1129','Microsoft-Windows-GroupPolicy','',[],language='en',
+        source_family='windows_event',evidence_text='Group Policy could not contact a domain controller; network connectivity failed.'))
+    narrative = result.model_dump_json().lower()
+    assert 'domain controller' in result.overview.lower()
+    assert all(x not in narrative for x in ['process crashed','resource depletion','corrupted','restart','ctk'])
+    assert 'unknown' in narrative
+
+
+def test_ctk_failure_is_not_a_physical_cause_or_applicable_lock_kb():
+    from backend.domain.analyzer.services.vendor_knowledge import get_vendor_summary, vendor_reference_results
+    text = 'CTK_CTKUNLINK result:2620 Could not delete change tracking file'
+    result = get_vendor_summary('VMWARE-CBT-DELETE-FAILED','en',text)
+    assert 'unknown' in ' '.join(result.causes).lower()
+    assert all(x not in ' '.join(result.causes).lower() for x in ['corrupt','missing','inconsisten','stale'])
+    assert not any('418256' in r.link for r in vendor_reference_results('VMWARE-CBT-DELETE-FAILED',text,'en'))
+
+
+def test_secure_websocket_rejects_before_registering_client(monkeypatch):
+    import asyncio
+    from backend.domain.telemetry import ws_controller
+    monkeypatch.setattr(ws_controller.settings,'AUTH_MODE','secure')
+    class Socket:
+        closed=None
+        async def close(self,code,reason): self.closed=code
+        async def accept(self): raise AssertionError('Unauthenticated connection accepted')
+    ws=Socket()
+    asyncio.run(ws_controller.websocket_dashboard(ws,token='forged-query-token'))
+    assert ws.closed==1008
+
+
+@pytest.mark.parametrize('level,message', [('error','Configuration edit failed'),('error','Configuration edit updated successfully'),('information','Configuration edit failed but updated successfully')])
+def test_contradictory_configuration_fields_do_not_claim_success(level,message):
+    from backend.domain.analyzer.services.observed_summary import observed_event_summary
+    text=f'logid="0100044547" devname="FG-LAB" type="event" subtype="system" level="{level}" action="edit" msg="{message}"'
+    result=observed_event_summary('0100044547','FortiGate','fortinet',text,'en')
+    assert 'not established' in result.overview
+    assert 'no failure observed' not in result.overview
+
+
+def test_windows_identity_does_not_invent_a_missing_connectivity_message():
+    from backend.domain.analyzer.services.observed_summary import observed_event_summary
+    result=observed_event_summary('1129','Microsoft-Windows-GroupPolicy','windows_event','Event ID: 1129','en')
+    assert 'full event message' in result.overview
+    assert 'reports failure' not in result.overview
+    assert observed_event_summary('1129','Unrelated','windows_event','domain controller connectivity failed','en') is None
+
+
 def test_secure_mode_never_reads_or_publishes_unowned_history_vectors(monkeypatch):
     import asyncio
     from backend.domain.analyzer.services import vector_db

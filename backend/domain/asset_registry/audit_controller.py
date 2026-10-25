@@ -14,13 +14,13 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.domain.analyzer.auth import get_current_user
+from backend.domain.analyzer.auth import get_current_user, require_admin_or_token
 from backend.domain.asset_registry.models import AuditLog
 from backend.domain.asset_registry.schemas import AuditLogListResponse, AuditLogResponse, PaginationMetadata
 from backend.infrastructure.database import get_db_session
 
 # Core Law 5 Section 5.2 strict adherence: No trailing slashes in route declarations
-audit_router = APIRouter(prefix="/api/v1", tags=["Compliance Auditing & Audit Log"])
+audit_router = APIRouter(prefix="/api/v1", tags=["Compliance Auditing & Audit Log"], dependencies=[Depends(require_admin_or_token)])
 
 
 @audit_router.get(

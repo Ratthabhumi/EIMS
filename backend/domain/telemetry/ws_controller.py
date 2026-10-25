@@ -9,6 +9,7 @@ import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from backend.core.logger import get_logger
 from backend.infrastructure.cache import cache_manager
+from backend.core.config import settings
 
 logger = get_logger("eims.api.ws")
 
@@ -71,7 +72,11 @@ async def websocket_dashboard(websocket: WebSocket, token: str = Query(None)):
     Bi-directional WebSocket streaming pipeline pushing live security anomaly alerts 
     to Next.js clients.
     """
-    # Core Law 5 Section 8: Validate JWT token here (bypassed for local dev)
+    # This transport has no established authenticated browser handshake yet.
+    # Fail closed in secure mode rather than stream private alerts anonymously.
+    if settings.AUTH_MODE.lower() != 'demo':
+        await websocket.close(code=1008, reason='Authenticated dashboard streaming is not configured')
+        return
     await manager.connect(websocket)
     try:
         while True:

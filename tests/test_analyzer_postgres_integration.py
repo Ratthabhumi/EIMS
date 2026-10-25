@@ -27,6 +27,13 @@ from backend.domain.analyzer.services.vendor_knowledge import vendor_reference_r
 from tools.demo_analyzer_investigation import hero_inputs
 from backend.domain.search import controller as search_api
 from backend.domain.search.providers.analysis_provider import AnalysisSearchProvider
+from backend.api.routers import evaluations
+from backend.domain.evaluation.models import ServiceSession, ServiceEvaluation
+from backend.domain.asset_registry.controller import asset_router
+from backend.domain.asset_registry.audit_controller import audit_router
+from backend.domain.telemetry.query_controller import telemetry_query_router
+from backend.domain.timeline.controller import timeline_router
+from backend.domain.telemetry.controller import telemetry_router
 
 TEST_KEY = 'synthetic-integration-signing-key-only-20261025'
 TEST_PASSWORD = 'synthetic-test-password-only'
@@ -83,6 +90,8 @@ def integrated(monkeypatch):
                 await conn.run_sync(lambda c: User.__table__.create(c, checkfirst=True))
                 await conn.run_sync(lambda c: AnalyzerSession.__table__.create(c, checkfirst=True))
                 await conn.run_sync(lambda c: LoginWindow.__table__.create(c, checkfirst=True))
+                await conn.run_sync(lambda c: ServiceSession.__table__.create(c, checkfirst=True))
+                await conn.run_sync(lambda c: ServiceEvaluation.__table__.create(c, checkfirst=True))
             async with engine.connect() as conn:
                 outer = await conn.begin()
                 session = AsyncSession(bind=conn, expire_on_commit=False, join_transaction_mode='create_savepoint')
@@ -105,6 +114,8 @@ def integrated(monkeypatch):
                 app.include_router(admin.router, prefix='/admin')
                 app.include_router(obsidian.router, prefix='/export')
                 app.include_router(search_api.search_router, prefix='/global')
+                for router in [evaluations.router, asset_router, audit_router, telemetry_query_router, timeline_router, telemetry_router]:
+                    app.include_router(router)
                 async def db():
                     yield session
                 app.dependency_overrides[analyze.get_db] = db
@@ -432,4 +443,146 @@ def test_global_search_missing_fts_column_rolls_back_then_filters(integrated):
         assert 'SYNTHETIC_FALLBACK_MARKER' in (await client.get(endpoint,headers=bearer())).text
         assert 'SYNTHETIC_FALLBACK_MARKER' not in (await client.get(endpoint,headers=bearer('synthetic-other'))).text
         assert (await client.get('/history/',headers=bearer())).status_code == 200
+    integrated(check)
+
+
+def test_direct_org_routes_cannot_bypass_search_admin_gate(integrated):
+    async def check(client, session, calls):
+        created=await client.post('/api/v1/evaluations/sessions',headers=bearer('synthetic-admin'),
+            json={'title':'SYNTHETIC_PRIVATE','customer_name':'synthetic-customer'})
+        assert created.status_code==201,created.text
+        sid=created.json()['session_id']
+        paths=['/api/v1/assets','/api/v1/assets/ocr-history','/api/v1/assets/ocr-history/image?object_key=synthetic',
+               '/api/v1/audit-logs','/api/v1/telemetry/metrics','/api/v1/telemetry/winlogs',
+               '/api/v1/timeline','/api/v1/evaluations/sessions?skip=1',
+               f'/api/v1/evaluations/sessions/{sid}', f'/api/v1/evaluations/sessions/{sid}/responses']
+        for headers,expected in [(bearer(),403),(bearer('synthetic-other'),403),({},401),({'Authorization':'Bearer tampered'},401)]:
+            for path in paths:
+                r=await client.get(path,headers=headers)
+                assert r.status_code==expected,(path,r.status_code,r.text)
+                assert 'synthetic-customer' not in r.text
+        rows=await client.get('/api/v1/evaluations/sessions',headers=bearer('synthetic-admin'))
+        assert rows.status_code==200 and 'synthetic-customer' in rows.text
+        for headers,expected in [(bearer(),403),({},401)]:
+            r=await client.post('/api/v1/telemetry/upload/evtx',headers={**headers,'X-Client-Cert-Fingerprint':'a'*64},
+                files={'file':('synthetic.evtx',b'synthetic-only','application/octet-stream')})
+            assert r.status_code==expected
+    integrated(check)
+
+
+def test_auth_retention_preserves_active_rows_and_history_and_rolls_back(integrated, monkeypatch):
+    from backend.domain.analyzer.services.session_maintenance import cleanup_auth_records
+    async def check(client, session, calls):
+        now = datetime.now(timezone.utc)
+        old = now-timedelta(days=8)
+        row = await session.get(AnalyzerSession, session_security.digest('synthetic-session-synthetic-other'))
+        row.expires_at = old
+        window = LoginWindow(id='synthetic-expired-window',attempts=9,started_at=old)
+        session.add(window)
+        session.add(LoginWindow(id='synthetic-live-window',attempts=8,started_at=now))
+        await session.commit()
+        original_execute = session.execute
+        async def fail_second_delete(statement, *args, **kwargs):
+            if getattr(statement,'is_delete',False) and statement.table.name == 'analyzer_login_windows':
+                raise RuntimeError('synthetic rollback control')
+            return await original_execute(statement,*args,**kwargs)
+        monkeypatch.setattr(session,'execute',fail_second_delete)
+        with pytest.raises(RuntimeError,match='rollback control'):
+            await cleanup_auth_records(session,retention_seconds=7*86400,now=now)
+        monkeypatch.setattr(session,'execute',original_execute)
+        assert await session.get(AnalyzerSession,session_security.digest('synthetic-session-synthetic-other')) is not None
+        await session.commit()
+        preview=await cleanup_auth_records(session,retention_seconds=7*86400,batch_size=1,now=now,dry_run=True)
+        assert preview == {'analyzer_sessions':1,'analyzer_login_windows':1}
+        assert await session.get(LoginWindow,'synthetic-expired-window') is not None
+        await session.commit()
+        counts=await cleanup_auth_records(session,retention_seconds=7*86400,batch_size=1,now=now)
+        assert counts == {'analyzer_sessions':1,'analyzer_login_windows':1}
+        assert await session.get(LoginWindow,'synthetic-live-window') is not None
+        assert (await client.get('/history/',headers=bearer())).status_code == 200
+    integrated(check)
+
+
+def test_actual_auth_migration_reconnect_and_concurrent_maintenance(integrated):
+    """Execute the actual Alembic revision in a fresh retained synthetic schema.
+
+    No downgrade/drop: generated test-only auth rows remain for inspection. The
+    operational URL cannot pass dedicated_url. The old application data is not used.
+    """
+    import importlib
+    import uuid
+    from sqlalchemy import text, inspect
+    from alembic.migration import MigrationContext
+    from alembic.operations import Operations
+    from backend.domain.analyzer.services.session_maintenance import cleanup_auth_records
+    async def check(unused_client, unused_session, calls):
+        url=dedicated_url(os.environ['EIMS_TEST_DATABASE_URL'])
+        schema='eims_rehearsal_'+uuid.uuid4().hex
+        engine=create_async_engine(url)
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(f'CREATE SCHEMA {schema}'))  # generated identifier only
+                await conn.execute(text(f'SET LOCAL search_path TO {schema}'))
+                await conn.run_sync(lambda c: User.__table__.create(c))
+                await conn.run_sync(lambda c: AnalysisHistory.__table__.create(c))
+                def migrate(c):
+                    assert not inspect(c).has_table('analyzer_sessions',schema=schema)
+                    context=MigrationContext.configure(c)
+                    revision=importlib.import_module('migrations.versions.e1a202610250_revocable_analyzer_sessions')
+                    with Operations.context(context):
+                        revision.upgrade()
+                    assert {i['name'] for i in inspect(c).get_indexes('analyzer_sessions',schema=schema)} == {
+                        'ix_analyzer_sessions_user_id','ix_analyzer_sessions_expires_at'}
+                    assert inspect(c).has_table('analyzer_login_windows',schema=schema)
+                await conn.run_sync(migrate)
+        finally:
+            await engine.dispose()
+        def new_engine():
+            return create_async_engine(url,connect_args={'server_settings':{'search_path':schema}})
+        engine=new_engine()
+        try:
+            async with AsyncSession(engine) as db:
+                db.add(User(username='synthetic-migration',password=auth.hash_password(TEST_PASSWORD),role='user'))
+                await db.commit()
+            app=FastAPI()
+            app.include_router(auth_api.router,prefix='/auth')
+            async def migrated_db():
+                async with AsyncSession(engine,expire_on_commit=False) as db:
+                    yield db
+            app.dependency_overrides[auth_api.get_db_session]=migrated_db
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://synthetic-test') as client:
+                login=await client.post('/auth/login',json={'username':'synthetic-migration','password':TEST_PASSWORD})
+                assert login.status_code==200,login.text
+                headers={'Authorization':'Bearer '+login.json()['access_token']}
+                assert (await client.get('/auth/session',headers=headers)).status_code==200
+                await engine.dispose()  # new physical connections, not ORM identity reuse
+                engine=new_engine()
+                assert (await client.get('/auth/session',headers=headers)).status_code==200
+                assert (await client.post('/auth/logout',headers=headers)).status_code==200
+                assert (await client.get('/auth/session',headers=headers)).status_code==401
+                assert (await client.post('/auth/login',json={'username':'synthetic-migration','password':TEST_PASSWORD})).status_code==200
+            # Real PostgreSQL contention using independently committed connections.
+            async def attempt():
+                async with AsyncSession(engine) as db:
+                    try:
+                        await session_security.reserve_login(db,'synthetic-concurrent','loopback-test')
+                        return 200
+                    except Exception as exc:
+                        if getattr(exc,'status_code',None)==429:
+                            return 429
+                        raise
+            attempts=await asyncio.gather(*(attempt() for _ in range(20)))
+            assert attempts.count(200)==8 and attempts.count(429)==12
+            async with AsyncSession(engine) as db:
+                db.add(LoginWindow(id='synthetic-old-window',attempts=1,started_at=datetime.now(timezone.utc)-timedelta(days=8)))
+                await db.commit()
+            async with AsyncSession(engine) as lock, AsyncSession(engine) as worker:
+                await lock.execute(select(LoginWindow).where(LoginWindow.id=='synthetic-old-window').with_for_update())
+                assert (await cleanup_auth_records(worker,retention_seconds=7*86400))['analyzer_login_windows']==0
+                await lock.rollback()
+                assert (await cleanup_auth_records(worker,retention_seconds=7*86400))['analyzer_login_windows']==1
+                # Both migration-issued sessions remain: revoked retention is not yet elapsed.
+                assert await worker.scalar(select(func.count()).select_from(AnalyzerSession))==2
+        finally:
+            await engine.dispose()
     integrated(check)

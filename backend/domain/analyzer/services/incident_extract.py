@@ -153,12 +153,11 @@ _FAMILY_NEXT_EVIDENCE: Dict[str, List[str]] = {
     "vmware": [
         "VM vmware.log",
         "ESXi hostd.log",
-        "Datastore file listing (.vmdk / .ctk.vmdk state)",
     ],
     "windows_event": [
         "Full Event Viewer export (.evtx) around the failure time",
     ],
-    "fortinet": ["Full FortiGate log segment with session close codes"],
+    "fortinet": ["Complete FortiGate event fields and product/version context"],
     "cisco_asa": ["Full ASA syslog segment with connection teardown lines"],
     "linux_syslog": ["journalctl segment for the affected service"],
     "json": ["Complete structured event payload"],
@@ -322,11 +321,15 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
 
     evidence = [rec.raw_text[:300] for rec in failures[:10]]
 
-    unknowns: List[str] = [
-        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
-        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
-        "Whether the file was locked, corrupt, moved, renamed, or absent",
-    ]
+    unknowns: List[str] = []
+    if failures or warnings:
+        unknowns.append("Physical root cause is not established by these signals alone")
+    ctk_failure = any(_CTK_UNLINK_FAILED.search(r.raw_text) or
+                      "could not delete change tracking file" in r.raw_text.lower() for r in failures)
+    if ctk_failure:
+        unknowns.append("Cause of the observed change-tracking deletion failure is unknown")
+        if not _SESSION_FAILED_RE.search(signal_text):
+            unknowns.append("Final backup/job outcome is not present in this evidence")
     domains = {timestamp_domain(r.timestamp_raw, r.timestamp_kind)
                for r in failures + warnings if r.timestamp_key is not None}
     if len(domains) > 1:
@@ -356,8 +359,15 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
         raw_paths.extend(extract_observed_paths(ln))
 
     observed_paths = sorted(set(raw_paths))[:3]
+    if not observed_paths and any('required file was not found' in r.raw_text.lower() for r in failures):
+        unknowns.append("The missing filename/path is not supplied by the failure record")
 
-    next_evidence = list(_FAMILY_NEXT_EVIDENCE.get(source_family or "", _GENERIC_NEXT_EVIDENCE))
+    next_evidence = list(_FAMILY_NEXT_EVIDENCE.get(source_family or "", _GENERIC_NEXT_EVIDENCE)) if failures or warnings else []
+    if ctk_failure:
+        next_evidence += ["Read-only datastore file listing for the observed CTK operation",
+                          "Explicit final backup/job status and VMware product/version"]
+    if source_family == 'fortinet' and records and all(_is_successful_fortinet_configuration(r.raw_text) for r in records if r.raw_text.strip()):
+        next_evidence = ["Configuration audit fields cfgpath/cfgattr, actor, device context and FortiOS version if audit detail is required"]
 
     return {
         "firstMeaningfulFailure": first,
