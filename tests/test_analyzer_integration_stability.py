@@ -250,3 +250,51 @@ def test_analysis_search_subject_is_task_local_and_required():
         assert analysis_search_owner.get() is None
         assert await Provider().search(DB(), 'synthetic', 10) == []
     asyncio.run(check())
+
+
+@pytest.mark.parametrize("files, expected", [
+    ([("a.log", "2026-10-26T00:00:00Z CTK_CTKUNLINK result:2620"), ("b.log", "Job session 'other' has been completed, status: 'Success'")], "not correlated"),
+    ([("a.log", "2026-10-26T00:00:00Z CTK_CTKUNLINK result:2620\nJob session 'A' has been completed, status: 'Failed'\nJob session 'B' has been completed, status: 'Success'")], "Multiple session"),
+    ([("a.log", "2026-10-26T00:00:00Z CTK_CTKUNLINK result:2620\nJob session 'A' has been completed, status:\n'Success'")], "not present"),
+    ([("a.log", "2026-10-26T00:00:00Z CTK_CTKUNLINK result:2620\nJob session 'A' has been completed, status: 'Success'")], "Link between"),
+])
+def test_terminal_counterexamples_preserve_scope_uncertainty(files, expected):
+    from backend.domain.analyzer.services.incident_extract import incident_from_records
+    incident = incident_from_records(build_evidence_records(files), "vmware")
+    assert any(expected in item for item in incident["unknowns"]), incident["unknowns"]
+    assert incident["firstMeaningfulFailure"] == "2026-10-26T00:00:00Z CTK_CTKUNLINK result:2620"
+    assert "corrupt" not in " ".join(incident["unknowns"]).lower()
+
+
+def test_bare_ctk_signature_is_not_a_numeric_configuration_setting():
+    from backend.domain.analyzer.services.incident_extract import extract_incident
+    result = extract_incident("CTK_CTKUNLINK result:2620", "vmware")
+    assert result["firstMeaningfulFailure"] == "CTK_CTKUNLINK result:2620"
+
+
+@pytest.mark.parametrize("status", ["Success","Failed","Warning"])
+def test_terminal_candidate_keeps_observed_status_separate_from_cause(status):
+    from backend.domain.analyzer.services.incident_extract import extract_incident
+    text="2026-10-25T23:59:59Z CTK_CTKUNLINK result:2620\n"+f"2026-10-26T00:00:00Z Job session 'A' has been completed, status: '{status}'"
+    result=extract_incident(text,'vmware')
+    assert not any('not present' in item for item in result['unknowns'])
+    assert any('Link between' in item for item in result['unknowns'])
+    assert any('root cause' in item.lower() for item in result['unknowns'])
+
+
+def test_secure_websocket_real_asgi_handshake_denies_spoofed_headers(monkeypatch):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from starlette.websockets import WebSocketDisconnect
+    from backend.domain.telemetry import ws_controller
+    monkeypatch.setattr(ws_controller.settings,'AUTH_MODE','secure')
+    app=FastAPI(); app.include_router(ws_controller.ws_router)
+    before=list(ws_controller.manager.active_connections)
+    with TestClient(app) as client:
+        with pytest.raises(WebSocketDisconnect) as exc:
+            with client.websocket_connect('/api/v1/ws/dashboard?token=forged',headers={
+                'Origin':'https://untrusted.invalid','X-Client-Cert-Fingerprint':'a'*64,
+                'Authorization':'Bearer forged','Cookie':'eims_session=forged'}):
+                pytest.fail('Secure broadcast connection accepted')
+        assert exc.value.code==1008
+    assert ws_controller.manager.active_connections==before

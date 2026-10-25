@@ -166,7 +166,7 @@ _FAMILY_NEXT_EVIDENCE: Dict[str, List[str]] = {
 
 def _is_veeam_config_line(line: str) -> bool:
     """Return True if the line is a Veeam configuration/scheduler setting."""
-    return any(rx.search(line) for rx in _VEEAM_CONFIG_SUPPRESS)
+    return not _CTK_UNLINK_FAILED.search(line) and any(rx.search(line) for rx in _VEEAM_CONFIG_SUPPRESS)
 
 
 def _is_successful_fortinet_configuration(line: str) -> bool:
@@ -327,11 +327,23 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
                       "could not delete change tracking file" in r.raw_text.lower() for r in failures)
     if ctk_failure:
         unknowns.append("Cause of the observed change-tracking deletion failure is unknown")
-        explicit_outcome = re.search(
-            r"(?:task|job)\s+session\b.*?has\s+been\s+completed\s*,?\s*status\s*:\s*['\"]?(?:failed|success|succeeded|warning)\b",
-            '\n'.join(r.raw_text for r in records), re.I)
-        if not explicit_outcome:
+        # Match each physical record separately: a truncated status cannot borrow
+        # a value from the next line, nor can another file close this incident.
+        outcome_pattern = re.compile(
+            r"(task|job)[ \t]+session[ \t]+(['\"])([^'\"]+)\2[ \t]+has[ \t]+been[ \t]+completed"
+            r"[ \t]*,?[ \t]*status[ \t]*:[ \t]*['\"]?(failed|success|succeeded|warning)\b", re.I)
+        outcomes = [(r, outcome_pattern.search(r.raw_text)) for r in records]
+        outcomes = [(r, m) for r, m in outcomes if m]
+        if not outcomes:
             unknowns.append("Final backup/job outcome is not present in this evidence")
+        else:
+            failure_sources = {r.source_file for r in failures if _CTK_UNLINK_FAILED.search(r.raw_text)
+                               or "could not delete change tracking file" in r.raw_text.lower()}
+            if any(r.source_file not in failure_sources for r, m in outcomes):
+                unknowns.append("Outcome in another source is not correlated with this failure")
+            if len({(m.group(1).lower(), m.group(3)) for r, m in outcomes}) > 1:
+                unknowns.append("Multiple session outcomes are present; no single incident-wide final status is established")
+            unknowns.append("Link between the observed CTK failure and a completed session is not established by status alone")
     domains = {timestamp_domain(r.timestamp_raw, r.timestamp_kind)
                for r in failures + warnings if r.timestamp_key is not None}
     if len(domains) > 1:
