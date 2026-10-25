@@ -587,3 +587,61 @@ def test_actual_auth_migration_reconnect_and_concurrent_maintenance(integrated):
         finally:
             await engine.dispose()
     integrated(check)
+
+
+@pytest.mark.parametrize("state, expected", [("revoked",401),("expired",401),("demoted",403)])
+def test_shared_api_rechecks_admin_session_before_reads_and_customer_writes(integrated, state, expected):
+    async def check(client, session, calls):
+        headers=bearer('synthetic-admin')
+        created=await client.post('/api/v1/evaluations/sessions',headers=headers,
+            json={'title':'SYNTHETIC_SCOPED','customer_name':'synthetic-private'})
+        assert created.status_code==201
+        sid=created.json()['session_id']
+        if state=='demoted':
+            user=(await session.execute(select(User).where(User.username=='synthetic-admin'))).scalar_one()
+            user.role='user'
+        else:
+            row=await session.get(AnalyzerSession,session_security.digest('synthetic-session-synthetic-admin'))
+            if state=='revoked': row.revoked_at=datetime.now(timezone.utc)
+            else: row.expires_at=datetime.now(timezone.utc)-timedelta(minutes=1)
+        await session.commit()
+        for path in ['/api/v1/assets','/api/v1/telemetry/winlogs','/api/v1/timeline',
+                     f'/api/v1/evaluations/sessions/{sid}',f'/api/v1/evaluations/sessions/{sid}/responses']:
+            response=await client.get(path,headers=headers)
+            assert response.status_code==expected,(path,response.text)
+            assert 'synthetic-private' not in response.text
+        response=await client.post(f'/api/v1/evaluations/sessions/{sid}/evaluate',headers=headers,
+            json={'responder_name':'synthetic-only','rating_scores':[{'question_id':'q1','score':5}]})
+        assert response.status_code==expected,response.text
+        assert await session.scalar(select(func.count()).select_from(ServiceEvaluation).where(ServiceEvaluation.session_id==sid))==0
+    integrated(check)
+
+
+def test_full_migration_lineage_from_empty_isolated_schema(integrated):
+    import uuid
+    from sqlalchemy import text, inspect
+    from alembic.config import Config
+    from alembic import command
+    async def check(client, session, calls):
+        schema='eims_full_lineage_'+uuid.uuid4().hex
+        engine=create_async_engine(dedicated_url(os.environ['EIMS_TEST_DATABASE_URL']))
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(f'CREATE SCHEMA {schema}'))
+                extension_schema=await conn.scalar(text("SELECT n.nspname FROM pg_extension e JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='vector'"))
+                suffix=(', '+conn.dialect.identifier_preparer.quote(extension_schema)) if extension_schema else ''
+                await conn.execute(text(f'SET LOCAL search_path TO {schema}{suffix}'))
+                def migrate(c):
+                    assert inspect(c).get_table_names(schema=schema)==[]
+                    config=Config(); config.set_main_option('script_location','migrations')
+                    config.attributes['connection']=c
+                    config.attributes['version_table_schema']=schema
+                    command.upgrade(config,'head')
+                    assert c.scalar(text(f'SELECT version_num FROM {schema}.alembic_version'))=='e1a202610250'
+                    assert {'users','analysis_history','analyzer_sessions','analyzer_login_windows',
+                            'infrastructure_assets','service_sessions','service_evaluations'}.issubset(
+                                set(inspect(c).get_table_names(schema=schema)))
+                await conn.run_sync(migrate)
+        finally:
+            await engine.dispose()
+    integrated(check)
