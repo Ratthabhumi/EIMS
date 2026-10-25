@@ -20,6 +20,7 @@ from backend.domain.evaluation.models import ServiceSession, ServiceEvaluation
 from backend.domain.analyzer.models.user import User
 from backend.domain.analyzer.models.history import AnalysisHistory
 from backend.domain.analyzer.models.vector import VectorKnowledge
+from backend.domain.analyzer.models.session import AnalyzerSession, LoginWindow
 
 config = context.config
 

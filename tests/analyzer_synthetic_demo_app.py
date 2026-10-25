@@ -17,6 +17,7 @@ from backend.api.routers.analyzer import analyze, history, auth as auth_api, sta
 from backend.domain.analyzer import auth
 from backend.domain.analyzer.models.history import AnalysisHistory
 from backend.domain.analyzer.models.user import User
+from backend.domain.analyzer.models.session import AnalyzerSession, LoginWindow
 from sqlalchemy import select
 from backend.domain.analyzer.services import summary, vector_db
 from backend.domain.analyzer.services.vendor_knowledge import vendor_reference_results
@@ -54,13 +55,13 @@ vector_db.add_solution = no_export
 feedback.add_solution = no_export
 
 
-def test_token(username, role='user'):
+def test_token(username, role='user', session_id=None):
     # Real issuance with a short TTL for one synthetic expiry control only.
     previous = auth.TOKEN_EXPIRE_MINUTES
     try:
         if username == 'synthetic-expiry':
             auth.TOKEN_EXPIRE_MINUTES = 0.05
-        return auth.create_access_token(username, role)
+        return auth.create_access_token(username, role, session_id=session_id)
     finally:
         auth.TOKEN_EXPIRE_MINUTES = previous
 auth_api.create_access_token = test_token
@@ -71,6 +72,8 @@ async def lifespan(app):
     async with engine.begin() as conn:
         await conn.run_sync(lambda c: AnalysisHistory.__table__.create(c, checkfirst=True))
         await conn.run_sync(lambda c: User.__table__.create(c, checkfirst=True))
+        await conn.run_sync(lambda c: AnalyzerSession.__table__.create(c, checkfirst=True))
+        await conn.run_sync(lambda c: LoginWindow.__table__.create(c, checkfirst=True))
     async with sessions() as session:
         for name in ['synthetic-browser-review', 'synthetic-browser-other', 'synthetic-expiry']:
             if not (await session.execute(select(User).where(User.username == name))).scalars().first():

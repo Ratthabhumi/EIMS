@@ -24,6 +24,13 @@ class GlobalSearchService:
     def __init__(self, registry: SearchProviderRegistry) -> None:
         self._registry = registry
 
+    def restricted_to(self, names: set[str]) -> 'GlobalSearchService':
+        registry = SearchProviderRegistry()
+        for provider in self._registry:
+            if provider.name in names:
+                registry.register(provider)
+        return GlobalSearchService(registry)
+
     async def global_search(
         self,
         db: AsyncSession,

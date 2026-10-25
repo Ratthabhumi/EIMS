@@ -102,6 +102,30 @@ def test_privacy_policy_preserves_forensic_identifiers_and_marks_controls(monkey
     assert item.sourceContext == [] and item.sourceContextOrigin == 'withheld_by_policy'
 
 
+@pytest.mark.parametrize('source', [
+    '{"outer":{"password":"SYNTHETIC_SECRET"},"ip":"192.0.2.4"}',
+    'url=https://example.invalid/?password=SYNTHETIC_SECRET&ip=192.0.2.4',
+    'password="SYNTHETIC_SECRET\nSECOND_SECRET"\nip=192.0.2.4',
+    'password="SYNTHETIC_SECRET\r\nSECOND_SECRET"\r\nip=192.0.2.4',
+    'authorization: bAsIc SYNTHETIC_SECRET\nip=192.0.2.4',
+    'password='+('SYNTHETIC_SECRET'*10000)+' ip=192.0.2.4',
+], ids=['nested-json', 'query', 'multiline-lf', 'multiline-crlf', 'basic', 'long-line'])
+def test_additional_credential_formats_preserve_correlation_and_line_coordinates(source):
+    from backend.domain.analyzer.services.evidence_privacy import protect_log_text
+    safe, policy = protect_log_text(source)
+    assert 'SYNTHETIC_SECRET' not in safe and 'SECOND_SECRET' not in safe
+    assert '192.0.2.4' in safe
+    assert safe.count('\n') == source.count('\n')
+    assert safe.count('\r') == source.count('\r')
+    assert policy['policyVersion'] == 'credential_masking_v2'
+
+
+def test_unknown_secret_formats_are_explicitly_outside_masking_contract():
+    from backend.domain.analyzer.services.evidence_privacy import protect_log_text
+    source = 'unknownopaque=SYNTHETIC_OPAQUE user=synthetic-user path=C:\\synthetic\\log ไทย'
+    assert protect_log_text(source)[0] == source  # no full-DLP claim
+
+
 def test_secure_mode_never_reads_or_publishes_unowned_history_vectors(monkeypatch):
     import asyncio
     from backend.domain.analyzer.services import vector_db

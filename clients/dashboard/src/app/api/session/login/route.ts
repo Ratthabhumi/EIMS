@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { boundedBody, cookieOptions, reply, sameOrigin, SESSION_COOKIE, upstream } from '@/lib/session-proxy';
+import { loginGate } from '@/lib/login-gate';
 
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return reply({ detail: 'Cross-origin request rejected' }, 403);
@@ -8,10 +9,13 @@ export async function POST(req: NextRequest) {
     if (typeof body.username !== 'string' || typeof body.password !== 'string'
       || !body.username.trim() || !body.password || body.username.length > 256 || body.password.length > 4096)
       return reply({ detail: 'Enter username and password' }, 400);
+    const retry = loginGate.reserve(body.username);
+    if (retry) { const r = reply({ detail: 'Too many login attempts; retry later' }, 429); r.headers.set('Retry-After',String(retry)); return r; }
     const response = await upstream('/api/v1/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: body.username, password: body.password }),
     });
+    if (response.status === 429) { const r = reply({ detail: 'Too many login attempts; retry later' },429); r.headers.set('Retry-After',response.headers.get('retry-after') || '60'); return r; }
     if (!response.ok) return reply({ detail: response.status === 401 ? 'Invalid username or password' : 'Login unavailable' }, response.status === 401 ? 401 : 502);
     const data = await response.json();
     const token = data.access_token;

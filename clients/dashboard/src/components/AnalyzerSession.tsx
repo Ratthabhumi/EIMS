@@ -19,14 +19,18 @@ export default function AnalyzerSession() {
   useEffect(() => {
     refresh();
     const timer = setInterval(refresh, 15000);
-    return () => clearInterval(timer);
+    const onPageShow = () => { refresh(); };
+    window.addEventListener('pageshow', onPageShow);
+    return () => { clearInterval(timer); window.removeEventListener('pageshow', onPageShow); };
   }, []);
   return <section className="bg-eims-surface border border-eims-border rounded-lg p-4 mb-4" aria-label="Analyzer session">
     {session ? <div className="flex flex-wrap items-center gap-3">
       <span>{session.mode === 'demo' ? 'Demo — shared identity / ใช้ตัวตนร่วมกัน' : `Signed in: ${session.username}`}</span>
       {session.mode !== 'demo' && <button className="underline" onClick={async () => {
-        const r = await fetch('/api/session/logout', { method: 'POST' });
-        if (r.ok) window.location.reload(); else setError('Logout failed');
+        try {
+          const r = await fetch('/api/session/logout', { method: 'POST' });
+          if (r.ok) window.location.reload(); else setError('Logout unavailable; retry / กรุณาลองออกจากระบบอีกครั้ง');
+        } catch { setError('Logout unavailable; retry / กรุณาลองออกจากระบบอีกครั้ง'); }
       }}>Sign out / ออกจากระบบ</button>}
     </div> : <form className="flex flex-wrap gap-3 items-end" onSubmit={async event => {
       event.preventDefault(); setBusy(true); setError('');

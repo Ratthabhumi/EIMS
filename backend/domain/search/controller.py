@@ -9,10 +9,11 @@ Source-Available All Rights Reserved Policy
 from dataclasses import asdict
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.domain.analyzer.auth import get_current_user
+from backend.domain.analyzer.auth import get_current_user, get_user_role
+from backend.core.config import settings
 from backend.domain.asset_registry.schemas import PaginationMetadata
 from backend.domain.search.providers import (
     AnalysisSearchProvider,
@@ -80,6 +81,13 @@ async def global_search(
     Executes relevance-ranked cross-domain search and wraps the page slice
     within the canonical Core Law 5 Section 6.1 collection wrapper.
     """
+    # Other domain providers have no per-user ownership contract. Keep those
+    # organization-wide results admin-only in secure mode, including type=None.
+    if settings.AUTH_MODE.lower() == 'secure' and await get_user_role(_user, db) != 'admin':
+        allowed = {'analysis', 'navigation'}
+        if search_type is not None and search_type not in allowed:
+            raise HTTPException(403, detail='Admin access required for organization-wide search')
+        service = service.restricted_to(allowed)
     token = analysis_search_owner.set(_user)
     try:
         results, total_records = await service.global_search(

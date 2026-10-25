@@ -36,6 +36,9 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), _: s
     existing = (await db.execute(select(User).filter(User.username == user.username))).scalars().first()
     if existing:
         raise HTTPException(status_code=400, detail="Username already exists")
+    retained = (await db.execute(select(AnalysisHistory.id).where(AnalysisHistory.username == user.username).limit(1))).scalar_one_or_none()
+    if retained is not None:
+        raise HTTPException(status_code=409, detail="Username has retained History; choose a new username")
 
     new_user = User(username=user.username, password=hash_password(user.password), role=user.role)
     db.add(new_user)
@@ -53,7 +56,7 @@ async def delete_user(user_id: int, db: AsyncSession = Depends(get_db), current_
     if user.username == current_admin:
         raise HTTPException(status_code=400, detail="Cannot delete yourself")
 
-    db.delete(user)
+    await db.delete(user)
     await db.commit()
     return {"status": "success", "message": "User deleted"}
 

@@ -7,7 +7,7 @@ import os
 import re
 
 _CREDENTIAL = re.compile(
-    r'''(?i)(\b(?:password|passwd|pwd|api[_-]?key|access[_-]?token|refresh[_-]?token|session[_-]?token|client[_-]?secret|secret|token)\b["']?\s*[:=]\s*)("(?:\\.|[^"\\\r\n])*"|'(?:\\.|[^'\\\r\n])*'|[^\s,;"']+)'''
+    r'''(?i)(\b(?:password|passwd|pwd|api[_-]?key|access[_-]?token|refresh[_-]?token|session[_-]?token|client[_-]?secret|secret|token)\b["']?\s*[:=]\s*)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;&"']+)'''
 )
 _BEARER = re.compile(r'(?i)(\b(?:Bearer|Basic)\s+)[A-Za-z0-9._~+/=-]+')
 _CONTROL = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]')
@@ -17,11 +17,13 @@ def protect_log_text(text):
     def mask(match):
         value = match[2]
         quote = value[0] if value[0] in {'"', "'"} else ''
-        return match[1] + quote + '[REDACTED]' + quote
+        # Preserve physical line coordinates even for quoted multiline values.
+        breaks = ''.join(re.findall(r'\r\n|\r|\n', value))
+        return match[1] + quote + '[REDACTED]' + breaks + quote
     text, count = _CREDENTIAL.subn(mask, text or '')
     text, bearer = _BEARER.subn(lambda m: m[1] + '[REDACTED]', text)
     text, controls = _CONTROL.subn('\ufffd', text)
-    return text, {'policyVersion':'credential_masking_v1', 'credentialsRedacted':count + bearer,
+    return text, {'policyVersion':'credential_masking_v2', 'credentialsRedacted':count + bearer,
                   'controlCharactersReplaced':controls,
                   'contextRetention':'none' if os.environ.get('EIMS_EVIDENCE_CONTEXT') == 'none' else 'bounded'}
 

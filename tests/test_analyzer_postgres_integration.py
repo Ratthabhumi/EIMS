@@ -20,6 +20,8 @@ from backend.api.routers.analyzer import analyze, history, auth as auth_api, sta
 from backend.domain.analyzer import auth
 from backend.domain.analyzer.models.history import AnalysisHistory
 from backend.domain.analyzer.models.user import User
+from backend.domain.analyzer.models.session import AnalyzerSession, LoginWindow
+from backend.domain.analyzer.services import session_security
 from backend.domain.analyzer.services import summary, vector_db
 from backend.domain.analyzer.services.vendor_knowledge import vendor_reference_results
 from tools.demo_analyzer_investigation import hero_inputs
@@ -57,6 +59,7 @@ def integrated(monkeypatch):
     monkeypatch.setattr(auth.settings, 'ADMIN_TOKEN', 'synthetic-test-admin-token-only')
     monkeypatch.setattr(auth, 'SECRET_KEY', TEST_KEY)
     monkeypatch.setattr(auth, 'ALGORITHM', 'HS256')
+    monkeypatch.setattr(session_security, 'THROTTLE_NAMESPACE', 'pytest-isolated')
     calls = {'export_attempts': 0}
     async def no_export(*a, **kw):
         calls['export_attempts'] += 1
@@ -78,12 +81,20 @@ def integrated(monkeypatch):
             async with engine.begin() as conn:
                 await conn.run_sync(lambda c: AnalysisHistory.__table__.create(c, checkfirst=True))
                 await conn.run_sync(lambda c: User.__table__.create(c, checkfirst=True))
+                await conn.run_sync(lambda c: AnalyzerSession.__table__.create(c, checkfirst=True))
+                await conn.run_sync(lambda c: LoginWindow.__table__.create(c, checkfirst=True))
             async with engine.connect() as conn:
                 outer = await conn.begin()
                 session = AsyncSession(bind=conn, expire_on_commit=False, join_transaction_mode='create_savepoint')
                 before = await conn.scalar(select(func.count()).select_from(AnalysisHistory))
                 for username, role in [('synthetic-owner', 'user'), ('synthetic-other', 'user'), ('synthetic-admin', 'admin')]:
-                    session.add(User(username=username, role=role, password=auth.hash_password(TEST_PASSWORD)))
+                    account = User(username=username, role=role, password=auth.hash_password(TEST_PASSWORD))
+                    session.add(account)
+                    await session.flush()
+                    now = datetime.now(timezone.utc)
+                    session.add(AnalyzerSession(id=session_security.digest('synthetic-session-'+username), user_id=account.id,
+                        username=username, credential_version=session_security.digest(account.password),
+                        created_at=now, last_seen=now, expires_at=now+timedelta(minutes=10)))
                 await session.flush()
                 app = FastAPI()
                 app.include_router(analyze.router, prefix='/analyze')
@@ -111,8 +122,120 @@ def integrated(monkeypatch):
 
 
 def bearer(name='synthetic-owner', **claims):
-    payload = {'sub': name, 'exp': datetime.now(timezone.utc) + timedelta(minutes=5), **claims}
+    payload = {'sub': name, 'sid':'synthetic-session-'+name, 'exp': datetime.now(timezone.utc) + timedelta(minutes=5), **claims}
     return {'Authorization': 'Bearer ' + jwt.encode(payload, TEST_KEY, algorithm='HS256')}
+
+
+def test_login_logout_revokes_copied_token_only(integrated):
+    async def check(client, session, calls):
+        async def login():
+            r = await client.post('/auth/login', json={'username':'synthetic-owner', 'password':TEST_PASSWORD})
+            assert r.status_code == 200, r.text
+            return {'Authorization':'Bearer '+r.json()['access_token']}
+        first, second = await login(), await login()
+        assert first != second
+        assert (await client.get('/auth/session', headers=first)).status_code == 200
+        assert (await client.post('/auth/logout', headers=first)).status_code == 200
+        assert (await client.get('/history/', headers=first)).status_code == 401
+        assert (await client.get('/history/', headers=second)).status_code == 200
+        payload = jwt.decode(first['Authorization'][7:], TEST_KEY, algorithms=['HS256'])
+        row = await session.get(AnalyzerSession, session_security.digest(payload['sid']))
+        assert row.revoked_at is not None
+        assert row.id != payload['sid']
+    integrated(check)
+
+
+@pytest.mark.parametrize('reason', ['idle', 'absolute', 'password', 'account_id', 'sidless'])
+def test_session_invalidated_by_lifecycle_boundaries(integrated, reason):
+    async def check(client, session, calls):
+        row = await session.get(AnalyzerSession, session_security.digest('synthetic-session-synthetic-owner'))
+        if reason == 'idle':
+            row.last_seen = datetime.now(timezone.utc)-timedelta(seconds=session_security.IDLE_SECONDS+1)
+        elif reason == 'absolute':
+            row.expires_at = datetime.now(timezone.utc)-timedelta(seconds=1)
+        elif reason == 'password':
+            user = (await session.execute(select(User).where(User.username=='synthetic-owner'))).scalar_one()
+            user.password = auth.hash_password('synthetic-new-password')
+        elif reason == 'account_id':
+            row.user_id += 100000
+        await session.commit()
+        headers = bearer(sid=None) if reason == 'sidless' else bearer()
+        assert (await client.get('/history/', headers=headers)).status_code == 401
+    integrated(check)
+
+
+def test_background_probe_does_not_extend_idle_but_activity_does(integrated):
+    async def check(client, session, calls):
+        key = session_security.digest('synthetic-session-synthetic-owner')
+        row = await session.get(AnalyzerSession, key)
+        old = datetime.now(timezone.utc)-timedelta(seconds=60)
+        row.last_seen = old
+        await session.commit()
+        assert (await client.get('/auth/session', headers=bearer())).status_code == 200
+        await session.refresh(row)
+        assert row.last_seen == old
+        assert (await client.get('/history/', headers=bearer())).status_code == 200
+        await session.refresh(row)
+        assert row.last_seen > old
+    integrated(check)
+
+
+def test_login_throttle_persists_failed_attempts_and_recovers(integrated):
+    async def check(client, session, calls):
+        data = {'username':'synthetic-owner', 'password':'wrong-synthetic-only'}
+        missing = await client.post('/auth/login', json={**data,'username':'synthetic-nonexistent'})
+        for _ in range(session_security.ACCOUNT_LIMIT):
+            denied = await client.post('/auth/login', json=data)
+            assert denied.status_code == 401
+            assert denied.json() == missing.json()
+        limited = await client.post('/auth/login', json={**data,'password':TEST_PASSWORD})
+        assert limited.status_code == 429
+        assert 1 <= int(limited.headers['retry-after']) <= 61
+        key = session_security.digest(session_security.THROTTLE_NAMESPACE+':account:synthetic-owner')
+        window = await session.get(LoginWindow, key)
+        assert window.attempts == session_security.ACCOUNT_LIMIT+1
+        window.started_at = datetime.now(timezone.utc)-timedelta(seconds=61)
+        await session.commit()
+        recovered = await client.post('/auth/login', json={**data,'password':TEST_PASSWORD})
+        assert recovered.status_code == 200
+    integrated(check)
+
+
+def test_deleted_account_cannot_inherit_retained_history(integrated):
+    async def check(client, session, calls):
+        account = (await session.execute(select(User).where(User.username=='synthetic-owner'))).scalar_one()
+        session.add(AnalysisHistory(username=account.username,event_id='synthetic',provider='synthetic',
+                                    solution_summary={},event_metadata={},search_results=[]))
+        await session.commit()
+        assert (await client.delete(f'/admin/users/{account.id}', headers=bearer('synthetic-admin'))).status_code == 200
+        assert (await client.get('/history/', headers=bearer())).status_code == 401
+        r = await client.post('/admin/users', headers=bearer('synthetic-admin'), json={
+            'username':'synthetic-owner','password':TEST_PASSWORD})
+        assert r.status_code == 409
+        assert (await session.execute(select(User).where(User.username=='synthetic-owner'))).scalar_one_or_none() is None
+    integrated(check)
+
+
+def test_orgwide_search_requires_current_admin_including_unfiltered_query(integrated, monkeypatch):
+    from backend.domain.search.providers.evaluation_provider import EvaluationSearchProvider
+    from backend.domain.search.provider import SearchResult
+    calls_to_private = []
+    async def private(self, **kw):
+        calls_to_private.append(True)
+        return [SearchResult(type='evaluation',id='synthetic',title='SYNTHETIC_PRIVATE_ORG',
+            subtitle='synthetic only',url='/evaluations/admin/synthetic',timestamp=None,relevance=1.0)]
+    monkeypatch.setattr(EvaluationSearchProvider, 'search', private)
+    async def check(client, session, calls):
+        query = '/global/api/v1/search?q=SYNTHETIC_PRIVATE_ORG'
+        denied = await client.get(query+'&type=evaluation', headers=bearer())
+        assert denied.status_code == 403
+        unfiltered = await client.get(query, headers=bearer())
+        assert unfiltered.status_code == 200 and 'SYNTHETIC_PRIVATE_ORG' not in unfiltered.text
+        assert calls_to_private == []
+        permitted = await client.get(query+'&type=evaluation', headers=bearer('synthetic-admin'))
+        assert permitted.status_code == 200 and 'SYNTHETIC_PRIVATE_ORG' in permitted.text
+        assert calls_to_private == [True]
+    integrated(check)
 
 
 def test_real_postgres_upload_commit_reopen_and_ownership(integrated):
