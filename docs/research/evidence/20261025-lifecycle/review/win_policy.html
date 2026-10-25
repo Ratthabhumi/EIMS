@@ -1,0 +1,114 @@
+<!doctype html><html lang='en'><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<meta http-equiv='Content-Security-Policy' content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>EIMS isolated investigation</title><style>body{font:16px/1.6 system-ui;max-width:1050px;margin:32px auto;padding:0 20px;color:#172033;background:#f6f8fb}section,details{background:white;padding:18px;margin:16px 0;border:1px solid #cbd5e1;border-radius:8px}summary{cursor:pointer;font-weight:600}pre{overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}mark{background:#fff0ac}small{color:#526174}.warning{border-left:5px solid #dc8a16;padding-left:12px}a{color:#1455ac}</style>
+<section><h2>อ่านต้นฉบับก่อนดูข้อเสนอ AI</h2><p>ยังเป็น DRAFT ไม่มี human review</p><h3>cases/win_policy/input.txt</h3><pre>1 | Log Name: System
+2 | Source: Microsoft-Windows-GroupPolicy
+3 | Event ID: 1129
+4 | Level: Error
+5 | Description: Group Policy could not contact a domain controller; network connectivity failed.</pre></section><p>Prediction hash: d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892</p><h1 id='finding'>EIMS: win_policy</h1>
+<p class='warning'>Synthetic DRAFT. Offline isolated demo; no human accuracy certification, operational History database, live vector store or external model.</p>
+<section><h2>Native investigation</h2><p>Event ID 1129 from Microsoft-Windows-GroupPolicy is a Windows event log entry.</p>
+<p>Correlation: single file; association does not prove causation.</p>
+<p>Explicit terminal outcome: UNKNOWN</p></section>
+<details><summary>UNCERTAIN / RCA_OVERVIEW: Event ID 1129 from Microsoft-Windows-GroupPolicy is a Windows event log entry.</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<h3>cases/win_policy/input.txt:5</h3>
+<pre>
+   3 | Event ID: 1129
+
+   4 | Level: Error
+
+<mark>   5 | Description: Group Policy could not contact a domain controller; network connectivity failed.</mark>
+
+</pre>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>DIRECTLY_OBSERVED / FAILURE_DESCRIPTION: Description: Group Policy could not contact a domain controller; network connectivity failed.</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<h3>cases/win_policy/input.txt:5</h3>
+<pre>
+   3 | Event ID: 1129
+
+   4 | Level: Error
+
+<mark>   5 | Description: Group Policy could not contact a domain controller; network connectivity failed.</mark>
+
+</pre>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>DIRECTLY_OBSERVED / EVENT_IDENTITY: Event ID: 1129</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<h3>cases/win_policy/input.txt:3</h3>
+<pre>
+   1 | Log Name: System
+
+   2 | Source: Microsoft-Windows-GroupPolicy
+
+<mark>   3 | Event ID: 1129</mark>
+
+   4 | Level: Error
+
+   5 | Description: Group Policy could not contact a domain controller; network connectivity failed.
+
+</pre>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>DIRECTLY_OBSERVED / SEVERITY: Level: Error</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<h3>cases/win_policy/input.txt:4</h3>
+<pre>
+   2 | Source: Microsoft-Windows-GroupPolicy
+
+   3 | Event ID: 1129
+
+<mark>   4 | Level: Error</mark>
+
+   5 | Description: Group Policy could not contact a domain controller; network connectivity failed.
+
+</pre>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>HYPOTHESIS / POSSIBLE_CAUSE: The Microsoft-Windows-GroupPolicy process crashed or encountered an unexpected service error.</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>HYPOTHESIS / POSSIBLE_CAUSE: Insufficient system permissions or corrupted system/component configuration files.</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>HYPOTHESIS / POSSIBLE_CAUSE: System resource depletion (CPU / Memory / Disk I/O) during operation execution.</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / RECOMMENDATION: Review full event details in Event Viewer</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / RECOMMENDATION: Search this Event ID on Microsoft Learn for official guidance</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / RECOMMENDATION: Follow the reference links below and restart if required</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / UNKNOWN: Some signals have no parseable timestamp; their chronology is unverified</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / UNKNOWN: Exact missing filename (unless a file path appears verbatim in the evidence above)</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / UNKNOWN: Exact CTK/VMDK file that could not be deleted (unless named verbatim above)</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / UNKNOWN: Whether the file was locked, corrupt, moved, renamed, or absent</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / EVIDENCE_COLLECTION: Full Event Viewer export (.evtx) around the failure time</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<section id='history'><h2>Isolated History reconstruction</h2>
+<p>JSON snapshot reload matches native response: True</p>
+<p>This uses an isolated serialized memory record. It is not a PostgreSQL persistence or installed-dashboard/USB certification.</p></section></html>

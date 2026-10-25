@@ -1,5 +1,9 @@
 # Secure Analyzer checkpoint — 25 October 2026
 
+Historical checkpoint at 16a8c869. Session revocation, throttling and fresh review
+hashes are updated in [SESSION_LIFECYCLE_GATE_20261025.md](SESSION_LIFECYCLE_GATE_20261025.md).
+Browser/HTTPS acceptance remains NOT_TESTED; older results below are preserved.
+
 ## Status and Git boundary
 
 Continues verified PR #4 head 443676bf38af12c209091bd2838de0a0e3b27710

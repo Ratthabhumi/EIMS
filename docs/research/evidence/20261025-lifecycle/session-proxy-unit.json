@@ -1,0 +1,78 @@
+{
+  "boundary": "Next handlers with synthetic upstream; no auth certification",
+  "tests": [
+    {
+      "name": "login token remains HttpOnly Secure SameSite Strict and out of JSON",
+      "status": "PASS"
+    },
+    {
+      "name": "login CSRF rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "logout CSRF rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "missing/conflicting origin rejected; forwarded host cannot replace pinned origin",
+      "status": "PASS"
+    },
+    {
+      "name": "API mutation CSRF rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "proxy uses cookie-only identity, strips browser headers and prevents redirects",
+      "status": "PASS"
+    },
+    {
+      "name": "raw token-issuing login path not exposed through generic proxy",
+      "status": "PASS"
+    },
+    {
+      "name": "encoded separators cannot bypass token endpoint restriction",
+      "status": "PASS"
+    },
+    {
+      "name": "upstream server error details withheld",
+      "status": "PASS"
+    },
+    {
+      "name": "401 expires stale session",
+      "status": "PASS"
+    },
+    {
+      "name": "failed revocation retains cookie and asks for retry",
+      "status": "PASS"
+    },
+    {
+      "name": "successful backend revocation clears cookie with no-store response",
+      "status": "PASS"
+    },
+    {
+      "name": "stream body bound enforced",
+      "status": "PASS"
+    },
+    {
+      "name": "insecure cookie opt-in restricted to explicit loopback HTTP",
+      "status": "PASS"
+    },
+    {
+      "name": "bounded login window recovers without permanent account lockout",
+      "status": "PASS"
+    },
+    {
+      "name": "parallel BFF attempts cap actual upstream requests",
+      "status": "PASS"
+    },
+    {
+      "name": "actual src/app/analyzer/page.tsx PDF template escapes injection that reproduced in PR4",
+      "status": "PASS"
+    },
+    {
+      "name": "actual src/components/AnalyzerHistoryList.tsx PDF template escapes injection that reproduced in PR4",
+      "status": "PASS"
+    }
+  ],
+  "passed": 18
+}

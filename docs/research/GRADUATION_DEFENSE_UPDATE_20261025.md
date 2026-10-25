@@ -3,6 +3,16 @@
 This measured-results supplement does not overwrite the frozen academic report.
 It is a working defense packet, not a claim that scientific evaluation is complete.
 
+Latest engineering source: `77603388de96324fc5dbf56e1de2cdc192cde747`.
+Chapter 3: PostgreSQL-backed revocation, idle/absolute expiry and login throttling
+now implemented; organization-wide search is admin-only in Secure Mode.
+Chapter 4: 251 Python passes, 1 Windows skip; 18 handler checks; 6 real HTTP/PG
+handler checks. Fresh full DEV snapshot retains identical semantics/claims 12/12,
+but privacy policyVersion changes prediction hashes. Human-reviewed denominator
+is still zero. Chapter 5: HTTPS browser, deployed migration, retention and broader
+domain permission acceptance remain gates. See SESSION_LIFECYCLE_GATE_20261025.md
+for evidence boundaries and the refreshed three-case Human Review Packet.
+
 ## Chapter 2: scope and related work
 
 Position EIMS as offline-capable multi-vendor infrastructure-log investigation

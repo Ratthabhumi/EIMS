@@ -45,3 +45,22 @@ Model training/download, production vector index, dashboard redesign,
 large-scale benchmark และ vendor integration ใหม่. ใช้เวลากับ evidence,
 human reference quality และ isolated regression ก่อนเพิ่มขนาดระบบ.
 ผล Research เป็น candidate จนตรวจ source/tests จริง และไม่ใช่ human review แทนเจ้าของงาน.
+
+## รอบ session/privacy — คำถามแคบที่ยังต้อง Research
+
+Code source 77603388 เพิ่ม PostgreSQL revocation, idle/absolute expiry,
+fixed-window throttle และ admin gate สำหรับ organization-wide search แล้ว.
+ไม่ต้อง Research framework ใหม่หรือสั่ง train/model benchmark.
+
+ให้ ChatGPT Research ส่ง primary source + ข้อจำกัด + test ที่ทำได้ สำหรับ:
+
+1. Retention ของ expired/revoked sessions และ hashed login windows ใน self-hosted
+   university demo: เก็บนานเท่าไรและสิทธิ์ผู้ดูแลอย่างไร โดยไม่ลบ History.
+2. Trusted Next.js 16 reverse proxy: TLS/Host/Origin trust และ browser back-cache
+   หลัง logout; แยกสิ่งที่ต้องทดสอบ browser จริงจากสิ่งที่ handler tests พิสูจน์ได้.
+3. Minimal privacy threat model: unknown/encoded/multiline secrets, ข้อมูลผู้ใช้ที่
+   ต้องเก็บเพื่อ correlation และ admin access ข้ามเจ้าของ. Regex ไม่ใช่ DLP.
+
+ห้ามเสนอคำสั่งหลบ policy ที่ปฏิเสธ Dashboard startup. ดูผลทดสอบจริงที่
+SESSION_LIFECYCLE_GATE_20261025.md และ review packet ใหม่ใน
+evidence/20261025-lifecycle/review/README.md. Claims ยังไม่มี human review.

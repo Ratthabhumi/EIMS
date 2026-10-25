@@ -69,6 +69,14 @@ operational PostgreSQL persistence, authentication parity or model execution.
 
 ## Human review packet
 
+Update at source 77603388: session invalidation/throttling and cross-domain secure
+search admin gate implemented; new credential policy preserves multiline/query
+coordinates. 251 Python passes, 18 handler checks, 6 real HTTP/PG handler checks.
+Full DEV rerun: semantics/claims unchanged 12/12, policy-version hashes changed.
+Use current [review hashes](evidence/20261025-lifecycle/review/README.md).
+Trusted HTTPS browser, deployment-wide permissions, retention and human scientific
+validation remain incomplete. M2/M3 and broad new integrations remain deferred.
+
 Start with [the Thai DEV adjudication packet](ANALYZER_DEV_ADJUDICATION_20261025.md):
 fort_config, esxi_tracker, win_policy. It explains what each synthetic log states,
 the proposed fields and exact supporting lines, uncertainty and requested human
