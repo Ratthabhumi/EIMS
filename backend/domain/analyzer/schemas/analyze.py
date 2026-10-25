@@ -45,6 +45,12 @@ class IncidentAssessment(BaseModel):
     nextEvidence: List[str] = Field(default_factory=list)
 
 
+class EvidenceContextLine(BaseModel):
+    lineNumber: int
+    text: str
+    truncated: bool = False
+
+
 class EvidenceItem(BaseModel):
     """One observed evidence line with file provenance.
 
@@ -58,6 +64,9 @@ class EvidenceItem(BaseModel):
     message: str = ""
     signature: str = ""
     observedPath: str = ""
+    sourceContext: List[EvidenceContextLine] = Field(default_factory=list)
+    # A bounded snapshot of decoded/extracted source, never reconstructed History.
+    sourceContextOrigin: str = "unavailable"
 
 
 class SolutionSummary(BaseModel):

@@ -32,7 +32,7 @@ async def get_all_history(
     _user: str = Depends(get_current_user),
     asset_id: Optional[str] = None,
 ):
-    stmt = select(AnalysisHistory)
+    stmt = select(AnalysisHistory).where(AnalysisHistory.username == _user)
     if asset_id:
         from sqlalchemy import cast
         from sqlalchemy.dialects.postgresql import JSONB as PGJSONB
@@ -99,7 +99,9 @@ async def delete_history(
     db: AsyncSession = Depends(get_db),
     _user: str = Depends(get_current_user),
 ):
-    record = (await db.execute(select(AnalysisHistory).filter(AnalysisHistory.id == history_id))).scalars().first()
+    record = (await db.execute(select(AnalysisHistory).filter(
+        AnalysisHistory.id == history_id, AnalysisHistory.username == _user,
+    ))).scalars().first()
     if not record:
         raise HTTPException(status_code=404, detail="History record not found")
         
@@ -116,7 +118,9 @@ async def submit_feedback(
     user: str = Depends(get_current_user),
 ):
     """Update feedback score in history and synchronizes score in Vector Knowledge DB."""
-    record = (await db.execute(select(AnalysisHistory).filter(AnalysisHistory.id == history_id))).scalars().first()
+    record = (await db.execute(select(AnalysisHistory).filter(
+        AnalysisHistory.id == history_id, AnalysisHistory.username == user,
+    ))).scalars().first()
     if not record:
         raise HTTPException(status_code=404, detail="History record not found")
         
@@ -155,7 +159,9 @@ async def get_history_stats(
     db: AsyncSession = Depends(get_db),
     _user: str = Depends(get_current_user),
 ):
-    history_records = (await db.execute(select(AnalysisHistory).order_by(AnalysisHistory.created_at.asc()))).scalars().all()
+    history_records = (await db.execute(select(AnalysisHistory).where(
+        AnalysisHistory.username == _user,
+    ).order_by(AnalysisHistory.created_at.asc()))).scalars().all()
     
     total_logs = len(history_records)
     critical_errors = 0

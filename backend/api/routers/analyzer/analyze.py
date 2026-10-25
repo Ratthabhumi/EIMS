@@ -134,7 +134,10 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
             pass
 
     # .txt, .log, and any other plaintext files
-    text = content.decode("utf-8", errors="ignore")
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise ValueError("Text must be valid UTF-8.") from None
     return text, f"Uploaded file: {filename}"
 
 
@@ -234,6 +237,7 @@ async def submit_analysis(
     # Evidence-first attachment: deterministic incident sketch fills fields
     # the synthesis path did not provide (curated vendor paths already do).
     incident = incident_from_records(source_records, metadata.sourceFamily or "")
+    solution.evidenceItems = [EvidenceItem(**item) for item in build_evidence_items([], records=source_records)]
     if not solution.evidence and incident.get("evidence"):
         solution.evidence = [str(x) for x in incident["evidence"][:8]]
     if not solution.nextEvidence and incident.get("nextEvidence"):
@@ -442,7 +446,7 @@ async def submit_bundle(
     if not solution.confidence and primary_meta.sourceFamily in ("veeam_vbr", "vmware"):
         solution.confidence = "medium"
     try:
-        items = build_evidence_items(per_file)
+        items = build_evidence_items(per_file, records=bundle_records)
         solution.evidenceItems = [EvidenceItem(**item) for item in items]
     except Exception:
         pass
@@ -562,6 +566,9 @@ async def followup_question(
             h = await db.get(AnalysisHistory, body.historyId)
         except Exception:
             h = None
+        if h is None or h.username != _user:
+            # Do not fall back to caller-supplied context for an inaccessible ID.
+            raise HTTPException(status_code=404, detail="History record not found")
         if h is not None:
             em = (h.event_metadata or {}) if isinstance(h.event_metadata, dict) else {}
             sol_dict = (h.solution_summary or {}) if isinstance(h.solution_summary, dict) else {}

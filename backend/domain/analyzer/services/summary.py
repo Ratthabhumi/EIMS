@@ -550,12 +550,12 @@ def _fallback_vendor_causes(family: str, who: str, language: str) -> List[str]:
     """Honest fallback causes: do not invent storage/file/snapshot conditions."""
     if language == "th":
         return [
-            f"จากหลักฐานที่มี ยืนยันได้เพียงว่า session/job ของ {who or family} ล้มเหลว "
-            "แต่ยังไม่พบข้อความ root-cause ที่เฉพาะเจาะจงเพียงพอ",
+            "ยังไม่พบหลักฐานเพียงพอที่จะยืนยันสาเหตุของปัญหา "
+            "ให้ตรวจข้อความผิดพลาดและผลลัพธ์สุดท้ายของ session/job เพิ่มเติม",
         ]
     return [
-        f"The supplied evidence confirms that the {who or family} session/job failed, "
-        "but does not yet contain a sufficiently specific root-cause signature.",
+        "The supplied evidence does not establish a specific root cause. "
+        "Collect diagnostic records and the explicit final session/job outcome.",
     ]
 
 
