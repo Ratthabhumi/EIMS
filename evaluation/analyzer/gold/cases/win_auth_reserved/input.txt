@@ -1,0 +1,5 @@
+Log Name: Security
+Source: Microsoft-Windows-Security-Auditing
+Event ID: 4625
+Level: Information
+Description: An account failed to log on in the synthetic laboratory.

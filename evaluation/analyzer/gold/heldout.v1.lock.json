@@ -1,0 +1,7 @@
+{
+  "win_auth_reserved": "19844eced14db1d8bbafa55209807097715f70e5a856f94060a01a2b7e849fcd",
+  "veeam_outcome_reserved": "0fae2054f13aef677bc7dcfdf2ad2e29a507346e1eb562a9c903f0f1bda2a412",
+  "esxi_missing_reserved": "add292441e5d2b7ebb0430f60971ed7174cd0e7bc87c06f41aa88aa60d8ecf03",
+  "fort_deny_reserved": "a49d880309fb31daf3f475c05a9cf0e58bf0fb24fc19fb04d3e080471b2f4f5d",
+  "unknown_truncated_reserved": "3b28287f1e6cc32c37c29a4c67f4fa4a9dd040f7b952bb3a3610f76c47e57a93"
+}

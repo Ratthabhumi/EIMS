@@ -78,3 +78,7 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 test-results/
+
+# Initial local evaluation prototypes; immutable versioned v1 runs are separate.
+evaluation/analyzer/results/20261025-original-m0-draft/
+evaluation/analyzer/results/20261025-original-m1-draft/

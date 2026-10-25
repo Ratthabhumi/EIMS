@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["claims", "citations"],
+  "properties": {
+    "claims": {"type": "array", "items": {"$ref": "#/$defs/review"}},
+    "citations": {"type": "array", "items": {"allOf": [
+      {"$ref": "#/$defs/review"}, {"required": ["file", "line"]}
+    ]}}
+  },
+  "$defs": {
+    "review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "prediction_sha256", "item_id", "text", "supported", "reviewer_id", "rationale"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "prediction_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "item_id": {"type": "string", "minLength": 1},
+        "text": {"type": "string", "minLength": 1},
+        "supported": {"type": ["boolean", "null"]},
+        "reviewer_id": {"type": "string", "minLength": 1},
+        "rationale": {"type": "string", "minLength": 1},
+        "file": {"type": "string", "minLength": 1},
+        "line": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}
