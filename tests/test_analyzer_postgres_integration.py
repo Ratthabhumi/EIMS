@@ -509,11 +509,10 @@ def test_actual_auth_migration_reconnect_and_concurrent_maintenance(integrated):
     No downgrade/drop: generated test-only auth rows remain for inspection. The
     operational URL cannot pass dedicated_url. The old application data is not used.
     """
-    import importlib
     import uuid
     from sqlalchemy import text, inspect
-    from alembic.migration import MigrationContext
-    from alembic.operations import Operations
+    from alembic.config import Config
+    from alembic import command
     from backend.domain.analyzer.services.session_maintenance import cleanup_auth_records
     async def check(unused_client, unused_session, calls):
         url=dedicated_url(os.environ['EIMS_TEST_DATABASE_URL'])
@@ -527,10 +526,12 @@ def test_actual_auth_migration_reconnect_and_concurrent_maintenance(integrated):
                 await conn.run_sync(lambda c: AnalysisHistory.__table__.create(c))
                 def migrate(c):
                     assert not inspect(c).has_table('analyzer_sessions',schema=schema)
-                    context=MigrationContext.configure(c)
-                    revision=importlib.import_module('migrations.versions.e1a202610250_revocable_analyzer_sessions')
-                    with Operations.context(context):
-                        revision.upgrade()
+                    config=Config()
+                    config.set_main_option('script_location','migrations')
+                    config.attributes['connection']=c
+                    command.stamp(config,'8a2b4d6f9c1e')
+                    command.upgrade(config,'head')
+                    assert c.scalar(text('SELECT version_num FROM alembic_version'))=='e1a202610250'
                     assert {i['name'] for i in inspect(c).get_indexes('analyzer_sessions',schema=schema)} == {
                         'ix_analyzer_sessions_user_id','ix_analyzer_sessions_expires_at'}
                     assert inspect(c).has_table('analyzer_login_windows',schema=schema)
