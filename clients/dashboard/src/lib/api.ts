@@ -3,7 +3,7 @@ const API_BASE =
 
 export function apiUrl(path: string): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
-  return `${API_BASE}${normalized}`;
+  return `/api/eims${normalized}`;
 }
 
 export async function fetchWithTimeout(

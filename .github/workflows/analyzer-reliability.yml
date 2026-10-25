@@ -24,6 +24,9 @@ jobs:
       - name: Hermetic analyzer reliability tests (no DB, no network)
         run: python -m pytest tests/test_analyzer_reliability.py tests/test_analyzer_evaluation.py tests/test_analyzer_investigation.py tests/test_analyzer_integration_stability.py -q --junitxml=test-results/analyzer-hermetic.xml
 
+      - name: Native synthetic counterexamples (not Gold accuracy)
+        run: python tools/run_analyzer_counterexamples.py --output test-results/counterexamples
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -69,6 +72,8 @@ jobs:
         working-directory: clients/dashboard
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
@@ -84,3 +89,7 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Session route and PDF injection regressions
+        working-directory: .
+        run: node tools/test_session_proxy.cjs

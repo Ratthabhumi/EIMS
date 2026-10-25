@@ -1,0 +1,1561 @@
+{
+  "schema_version": "2.0",
+  "judgments": [
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "overview",
+      "text": "Veeam Backup & Replication: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "causes-0",
+      "text": "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "steps-0",
+      "text": "Preserve the complete original log and record the event sequence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "steps-1",
+      "text": "Search the primary error line in Veeam Help Center",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "steps-2",
+      "text": "Follow the references below; avoid destructive actions before preserving evidence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "limitations-0",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "limitations-1",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "limitations-2",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "nextEvidence-0",
+      "text": "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "nextEvidence-1",
+      "text": "Veeam Job session log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "nextEvidence-2",
+      "text": "Agent/component log from the relevant Veeam component",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+      "claim_id": "nextEvidence-3",
+      "text": "vmware.log / hostd.log when a VMware operation is implicated",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "overview",
+      "text": "Veeam Backup & Replication: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "causes-0",
+      "text": "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "steps-0",
+      "text": "Preserve the complete original log and record the event sequence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "steps-1",
+      "text": "Search the primary error line in Veeam Help Center",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "steps-2",
+      "text": "Follow the references below; avoid destructive actions before preserving evidence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "limitations-0",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "limitations-1",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "limitations-2",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "nextEvidence-0",
+      "text": "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "nextEvidence-1",
+      "text": "Veeam Job session log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "nextEvidence-2",
+      "text": "Agent/component log from the relevant Veeam component",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+      "claim_id": "nextEvidence-3",
+      "text": "vmware.log / hostd.log when a VMware operation is implicated",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "overview",
+      "text": "VMware vSphere/ESXi: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "causes-0",
+      "text": "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "steps-0",
+      "text": "Preserve the complete original log and record the event sequence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "steps-1",
+      "text": "Search the primary error line in Broadcom Support",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "steps-2",
+      "text": "Follow the references below; avoid destructive actions before preserving evidence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "limitations-0",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "limitations-1",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "limitations-2",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "nextEvidence-0",
+      "text": "VM vmware.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "nextEvidence-1",
+      "text": "ESXi hostd.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+      "claim_id": "nextEvidence-2",
+      "text": "Datastore file listing (.vmdk / .ctk.vmdk state)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "overview",
+      "text": "VMware could not delete a change-tracking (.ctk) file. Result 2620 was recorded in the evidence. A CTK_CTKUNLINK operation result was recorded in the evidence.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [
+        {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 1,
+          "evidence_type": "RCA_OVERVIEW"
+        },
+        {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 2,
+          "evidence_type": "RCA_OVERVIEW"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "observed-0",
+      "text": "2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 1,
+          "evidence_type": "FAILURE_DESCRIPTION"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "observed-1",
+      "text": "2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 2,
+          "evidence_type": "TECHNICAL_FAILURE"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "causes-0",
+      "text": "CTK file missing, state-mismatched, or corrupt (locking is NOT proven)",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "causes-1",
+      "text": "Stale snapshot cleanup from a previous operation, or datastore inconsistency",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "steps-0",
+      "text": "Check the related .ctk.vmdk files in a datastore listing",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "steps-1",
+      "text": "Inspect vmware.log and hostd.log around the failure time",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "steps-2",
+      "text": "Refer to official Broadcom material: Article 418256 (CTK) — verify each article’s scope before applying",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "limitations-0",
+      "text": "Do NOT claim the file is locked unless lock evidence exists",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "nextEvidence-0",
+      "text": "VM vmware.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "nextEvidence-1",
+      "text": "ESXi hostd.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+      "claim_id": "nextEvidence-2",
+      "text": "Datastore file listing (.vmdk / .ctk.vmdk state)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "claim_id": "overview",
+      "text": "Fortinet FortiGate: diagnostic 0000000013.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "claim_id": "causes-0",
+      "text": "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "claim_id": "steps-0",
+      "text": "Preserve the complete original log and record the event sequence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "claim_id": "steps-1",
+      "text": "Search the primary error line in Fortinet Docs",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "claim_id": "steps-2",
+      "text": "Follow the references below; avoid destructive actions before preserving evidence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "claim_id": "limitations-0",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "claim_id": "limitations-1",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "claim_id": "limitations-2",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+      "claim_id": "nextEvidence-0",
+      "text": "Full FortiGate log segment with session close codes",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "claim_id": "overview",
+      "text": "Fortinet FortiGate: diagnostic 0100044547.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "claim_id": "causes-0",
+      "text": "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "claim_id": "steps-0",
+      "text": "Preserve the complete original log and record the event sequence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "claim_id": "steps-1",
+      "text": "Search the primary error line in Fortinet Docs",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "claim_id": "steps-2",
+      "text": "Follow the references below; avoid destructive actions before preserving evidence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "claim_id": "limitations-0",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "claim_id": "limitations-1",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "claim_id": "limitations-2",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+      "claim_id": "nextEvidence-0",
+      "text": "Full FortiGate log segment with session close codes",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "claim_id": "overview",
+      "text": "JSON structured log diagnostic record (json).",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "claim_id": "causes-0",
+      "text": "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "claim_id": "steps-0",
+      "text": "Preserve the complete original log and record the event sequence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "claim_id": "steps-1",
+      "text": "Search the primary error line in the vendor documentation",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "claim_id": "steps-2",
+      "text": "Follow the references below; avoid destructive actions before preserving evidence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "claim_id": "limitations-0",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "claim_id": "limitations-1",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "claim_id": "limitations-2",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+      "claim_id": "nextEvidence-0",
+      "text": "Complete structured event payload",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "overview",
+      "text": "This log format has an unidentified source (unknown source), so no cause can be concluded yet. Please identify the emitting product.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "causes-0",
+      "text": "The product/system that emitted this log is still unknown",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "causes-1",
+      "text": "The text does not match known Windows Event, Veeam, VMware, Fortinet, Cisco, or Linux syslog shapes",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "steps-0",
+      "text": "Identify which software or appliance produced this log file and re-submit with the product name",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "steps-1",
+      "text": "Preserve the complete original file instead of excerpts",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "steps-2",
+      "text": "Search the vendor documentation with the primary error line",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "limitations-0",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "limitations-1",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "limitations-2",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+      "claim_id": "nextEvidence-0",
+      "text": "Original file plus a note about which product emitted it",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "overview",
+      "text": "Veeam Backup & Replication: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "causes-0",
+      "text": "The supplied evidence does not establish a specific root cause. Collect diagnostic records and the explicit final session/job outcome.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "steps-0",
+      "text": "Preserve the complete original log and record the event sequence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "steps-1",
+      "text": "Search the primary error line in Veeam Help Center",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "steps-2",
+      "text": "Follow the references below; avoid destructive actions before preserving evidence",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "limitations-0",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "limitations-1",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "limitations-2",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "nextEvidence-0",
+      "text": "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "nextEvidence-1",
+      "text": "Veeam Job session log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "nextEvidence-2",
+      "text": "Agent/component log from the relevant Veeam component",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+      "claim_id": "nextEvidence-3",
+      "text": "vmware.log / hostd.log when a VMware operation is implicated",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "overview",
+      "text": "VMware could not delete a change-tracking (.ctk) file.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [
+        {
+          "file": "cases/veeam_tracker/input.txt",
+          "line": 2,
+          "evidence_type": "RCA_OVERVIEW"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "observed-0",
+      "text": "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/veeam_tracker/input.txt",
+          "line": 2,
+          "evidence_type": "FAILURE_DESCRIPTION"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "causes-0",
+      "text": "CTK file missing, state-mismatched, or corrupt (locking is NOT proven)",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "causes-1",
+      "text": "Stale snapshot cleanup from a previous operation, or datastore inconsistency",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "steps-0",
+      "text": "Check the related .ctk.vmdk files in a datastore listing",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "steps-1",
+      "text": "Inspect vmware.log and hostd.log around the failure time",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "steps-2",
+      "text": "Refer to official Broadcom material: Article 418256 (CTK) — verify each article’s scope before applying",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "limitations-0",
+      "text": "Do NOT claim the file is locked unless lock evidence exists",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "nextEvidence-0",
+      "text": "VM vmware.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "nextEvidence-1",
+      "text": "ESXi hostd.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+      "claim_id": "nextEvidence-2",
+      "text": "Datastore file listing (.vmdk / .ctk.vmdk state)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "overview",
+      "text": "Event ID 6005 from EventLog is a Windows event log entry.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "metadata-0-3",
+      "text": "Event ID: 6005",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_boot/input.txt",
+          "line": 3,
+          "evidence_type": "EVENT_IDENTITY"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "metadata-0-4",
+      "text": "Level: Information",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_boot/input.txt",
+          "line": 4,
+          "evidence_type": "SEVERITY"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "causes-0",
+      "text": "The EventLog process crashed or encountered an unexpected service error.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "causes-1",
+      "text": "Insufficient system permissions or corrupted system/component configuration files.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "causes-2",
+      "text": "System resource depletion (CPU / Memory / Disk I/O) during operation execution.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "steps-0",
+      "text": "Review full event details in Event Viewer",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "steps-1",
+      "text": "Search this Event ID on Microsoft Learn for official guidance",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "steps-2",
+      "text": "Follow the reference links below and restart if required",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "limitations-0",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "limitations-1",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "limitations-2",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+      "claim_id": "nextEvidence-0",
+      "text": "Full Event Viewer export (.evtx) around the failure time",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "overview",
+      "text": "Event ID 1129 from Microsoft-Windows-GroupPolicy is a Windows event log entry.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [
+        {
+          "file": "cases/win_policy/input.txt",
+          "line": 5,
+          "evidence_type": "RCA_OVERVIEW"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "observed-0",
+      "text": "Description: Group Policy could not contact a domain controller; network connectivity failed.",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_policy/input.txt",
+          "line": 5,
+          "evidence_type": "FAILURE_DESCRIPTION"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "metadata-0-3",
+      "text": "Event ID: 1129",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_policy/input.txt",
+          "line": 3,
+          "evidence_type": "EVENT_IDENTITY"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "metadata-0-4",
+      "text": "Level: Error",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_policy/input.txt",
+          "line": 4,
+          "evidence_type": "SEVERITY"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "causes-0",
+      "text": "The Microsoft-Windows-GroupPolicy process crashed or encountered an unexpected service error.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "causes-1",
+      "text": "Insufficient system permissions or corrupted system/component configuration files.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "causes-2",
+      "text": "System resource depletion (CPU / Memory / Disk I/O) during operation execution.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "steps-0",
+      "text": "Review full event details in Event Viewer",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "steps-1",
+      "text": "Search this Event ID on Microsoft Learn for official guidance",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "steps-2",
+      "text": "Follow the reference links below and restart if required",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "limitations-0",
+      "text": "Some signals have no parseable timestamp; their chronology is unverified",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "limitations-1",
+      "text": "Exact missing filename (unless a file path appears verbatim in the evidence above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "limitations-2",
+      "text": "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "limitations-3",
+      "text": "Whether the file was locked, corrupt, moved, renamed, or absent",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+      "claim_id": "nextEvidence-0",
+      "text": "Full Event Viewer export (.evtx) around the failure time",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    }
+  ]
+}

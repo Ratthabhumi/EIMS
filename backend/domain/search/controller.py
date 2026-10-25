@@ -9,10 +9,11 @@ Source-Available All Rights Reserved Policy
 from dataclasses import asdict
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.domain.analyzer.auth import get_current_user
+from backend.domain.analyzer.auth import get_current_user, get_user_role
+from backend.core.config import settings
 from backend.domain.asset_registry.schemas import PaginationMetadata
 from backend.domain.search.providers import (
     AnalysisSearchProvider,
@@ -28,6 +29,7 @@ from backend.domain.search.providers import (
 from backend.domain.search.registry import SearchProviderRegistry
 from backend.domain.search.schemas import SearchResponse, SearchResultSchema
 from backend.domain.search.service import GlobalSearchService
+from backend.domain.search.providers.analysis_provider import analysis_search_owner
 from backend.infrastructure.database import get_db_session
 
 # Core Law 5 Section 5.2 strict adherence: No trailing slashes in route declarations
@@ -79,13 +81,20 @@ async def global_search(
     Executes relevance-ranked cross-domain search and wraps the page slice
     within the canonical Core Law 5 Section 6.1 collection wrapper.
     """
-    results, total_records = await service.global_search(
-        db=db,
-        query=q,
-        search_type=search_type,
-        page=page,
-        limit=limit,
-    )
+    # Other domain providers have no per-user ownership contract. Keep those
+    # organization-wide results admin-only in secure mode, including type=None.
+    if settings.AUTH_MODE.lower() == 'secure' and await get_user_role(_user, db) != 'admin':
+        allowed = {'analysis', 'navigation'}
+        if search_type is not None and search_type not in allowed:
+            raise HTTPException(403, detail='Admin access required for organization-wide search')
+        service = service.restricted_to(allowed)
+    token = analysis_search_owner.set(_user)
+    try:
+        results, total_records = await service.global_search(
+            db=db, query=q, search_type=search_type, page=page, limit=limit,
+        )
+    finally:
+        analysis_search_owner.reset(token)
     serialized_data = [SearchResultSchema(**asdict(result)) for result in results]
     pagination_block = PaginationMetadata(
         total_records=total_records,

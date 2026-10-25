@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from backend.core.config import settings
@@ -71,14 +71,20 @@ def _resolve_admin_password() -> str:
     raise RuntimeError("EIMS_ADMIN_PASSWORD must be set outside the development tier.")
 
 
-def create_access_token(username: str, role: str = "user") -> str:
+def create_access_token(username: str, role: str = "user", session_id: str | None = None) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
     payload = {"sub": username, "role": role, "exp": expire}
+    if session_id:
+        payload['sid'] = session_id
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
 from backend.infrastructure.database import get_db_session
 from backend.domain.analyzer.models.user import User
+from sqlalchemy.ext.asyncio import AsyncSession
+from backend.domain.analyzer.services.session_security import validate_session
+
+_DUMMY_HASH = hash_password('non-account-public-timing-control')
 
 
 def _normalize_case(username: str) -> str:
@@ -86,11 +92,20 @@ def _normalize_case(username: str) -> str:
     return "admin" if username.lower() == "admin" else username
 
 
-async def verify_credentials(username: str, password: str) -> str | None:
+async def verify_credentials(username: str, password: str, session: AsyncSession | None = None) -> str | None:
     """Validates credentials against the hashed users table (auto-upgrades legacy plaintext rows)."""
-    async for db in get_db_session():
+    async def sessions():
+        if session is not None:
+            yield session
+        else:
+            async for db in get_db_session():
+                yield db
+    async for db in sessions():
         try:
             user = (await db.execute(select(User).filter(User.username == _normalize_case(username)))).scalars().first()
+            if user is None:
+                verify_password(password, _DUMMY_HASH)
+                return None
             if user and verify_password(password, user.password or ""):
                 if not user.password.startswith("pbkdf2_sha256"):
                     user.password = hash_password(password)
@@ -102,9 +117,15 @@ async def verify_credentials(username: str, password: str) -> str | None:
             return None
 
 
-async def get_user_role(username: str) -> str:
+async def get_user_role(username: str, session: AsyncSession | None = None) -> str:
     """Returns the stored role for a username, defaulting to the safe 'user' role."""
-    async for db in get_db_session():
+    async def sessions():
+        if session is not None:
+            yield session
+        else:
+            async for db in get_db_session():
+                yield db
+    async for db in sessions():
         try:
             user = (await db.execute(select(User).filter(User.username == _normalize_case(username)))).scalars().first()
             if user:
@@ -133,26 +154,19 @@ async def seed_users():
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: AsyncSession = Depends(get_db_session),
 ) -> str:
     """Resolves the authenticated username from a bearer JWT.
 
     In DEMO mode: returns "demo" identity when no token provided (no login required).
     In SECURE mode: requires valid JWT, raises 401 if missing/invalid.
     """
-    # Demo mode: allow unauthenticated access with a special identity
-    if settings.AUTH_MODE.lower() == "demo":
-        if not credentials or not credentials.credentials:
-            return "demo"
-        try:
-            payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-            username = payload.get("sub")
-            return username if username is not None else "demo"
-        except Exception:
-            return "demo"
-
-    # Secure mode: require valid authentication
+    demo = settings.AUTH_MODE.lower() == 'demo'
     if not credentials or not credentials.credentials:
+        if demo:
+            return 'demo'
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
     if secrets.compare_digest(credentials.credentials, settings.ADMIN_TOKEN):
         return "admin"
@@ -161,17 +175,26 @@ async def get_current_user(
         username = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        user = (await db.execute(select(User).where(User.username == username))).scalars().first()
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        sid = payload.get('sid')
+        if not isinstance(sid, str) or not 16 <= len(sid) <= 128:
+            raise HTTPException(401, detail='Invalid token')
+        await validate_session(db, sid, user, touch=not request.url.path.endswith('/auth/session'))
         return username
     except Exception:
+        if demo:
+            return 'demo'
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
-async def require_admin(username: str = Depends(get_current_user)) -> str:
+async def require_admin(username: str = Depends(get_current_user), db: AsyncSession = Depends(get_db_session)) -> str:
     """Requires an authenticated admin user (JWT with role='admin'); otherwise 403."""
     # Demo identity cannot be admin
     if username in ("guest", "demo"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
-    role = await get_user_role(username)
+    role = await get_user_role(username, db)
     if role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return username
@@ -189,7 +212,9 @@ async def verify_admin_token(
 
 
 async def require_admin_or_token(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: AsyncSession = Depends(get_db_session),
 ) -> str:
     """Admin-scoped gate accepting either a valid admin JWT or the configured admin bearer token.
 
@@ -208,15 +233,9 @@ async def require_admin_or_token(
 
     # 2. Validate JWT with admin role
     try:
-        payload = jwt.decode(raw_token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        role = payload.get("role")
-        if not username:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        if role != "admin":
-            db_role = await get_user_role(username)
-            if db_role != "admin":
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+        username = await get_current_user(request, credentials, db)
+        if await get_user_role(username, db) != "admin":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
         return username
     except jwt.PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

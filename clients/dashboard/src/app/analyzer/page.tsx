@@ -1,5 +1,6 @@
 "use client";
 
+import { escapeReportData } from '@/lib/report-data';
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Terminal, Upload, Play, Search, Save, FileText, Settings2, ShieldAlert, ArrowLeft, Download, History, X, Database } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -7,6 +8,7 @@ import Link from "next/link";
 import AnalyzerDashboard from "@/components/AnalyzerDashboard";
 import AnalyzerHistoryList from "@/components/AnalyzerHistoryList";
 import AnalysisResultDetail from "@/components/AnalysisResultDetail";
+import AnalyzerSession from "@/components/AnalyzerSession";
 import SystemStatusCard from "@/components/SystemStatusCard";
 import { apiUrl } from "@/lib/api";
 
@@ -248,7 +250,8 @@ export default function AnalyzerPage() {
   };
 
   const downloadPDF = async () => {
-    if (!result) return;
+    const safeResult = escapeReportData(result);
+    if (!safeResult) return;
     const toastId = toast.loading("Generating PDF...");
     try {
       const { default: jsPDF } = await import("jspdf");
@@ -258,25 +261,25 @@ export default function AnalyzerPage() {
       const container = document.createElement("div");
       container.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:794px;padding:40px;background:#fff;font-family:Arial,sans-serif;font-size:13px;color:#242321;line-height:1.6;";
 
-      const steps = result.solutionSummary?.steps || [];
-      const causes = result.solutionSummary?.causes || [];
-      const refs = result.searchResults || [];
-      const meta = result.eventMetadata || {};
-      const evList: string[] = result.solutionSummary?.evidence || [];
-      const unknowns: string[] = result.solutionSummary?.limitations || [];
-      const nextEv: string[] = result.solutionSummary?.nextEvidence || [];
-      const conf: string = result.solutionSummary?.confidence || "";
+      const steps = safeResult.solutionSummary?.steps || [];
+      const causes = safeResult.solutionSummary?.causes || [];
+      const refs = safeResult.searchResults || [];
+      const meta = safeResult.eventMetadata || {};
+      const evList: string[] = safeResult.solutionSummary?.evidence || [];
+      const unknowns: string[] = safeResult.solutionSummary?.limitations || [];
+      const nextEv: string[] = safeResult.solutionSummary?.nextEvidence || [];
+      const conf: string = safeResult.solutionSummary?.confidence || "";
       const diagCode: string = meta.diagnosticCode || "";
       const product: string = meta.product || "";
       const titleLine = diagCode
-        ? `${product || result.provider || "Diagnostic"} — ${diagCode}`
-        : `Event ID: ${result.eventId || "Unknown"}`;
+        ? `${product || safeResult.provider || "Diagnostic"} — ${diagCode}`
+        : `Event ID: ${safeResult.eventId || "Unknown"}`;
 
       container.innerHTML = `
         <h1 style="font-size:20px;font-weight:700;border-bottom:2px solid #68735C;padding-bottom:8px;margin-bottom:12px;">
           Diagnostic Report — ${titleLine}
         </h1>
-        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${result.provider || "Unknown"}</strong> &nbsp;|&nbsp; Generated: ${new Date().toLocaleString()}</p>
+        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${safeResult.provider || "Unknown"}</strong> &nbsp;|&nbsp; Generated: ${new Date().toLocaleString()}</p>
 
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Event Metadata</h2>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
@@ -288,7 +291,7 @@ export default function AnalyzerPage() {
         </div>
 
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Summary</h2>
-        <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${result.solutionSummary?.overview || result.aiSummary || "No summary available."}</div>
+        <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${safeResult.solutionSummary?.overview || safeResult.aiSummary || "No summary available."}</div>
 
         ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">${diagCode ? "Likely Causes / Assessment" : "Root Causes"}</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
 
@@ -331,7 +334,7 @@ export default function AnalyzerPage() {
         y += pageH;
       }
 
-      pdf.save(`Diagnostic_Report_${result.eventId || "Unknown"}.pdf`);
+      pdf.save(`Diagnostic_Report_${safeResult.eventId || "Unknown"}.pdf`);
       toast.success("PDF downloaded!", { id: toastId });
     } catch (err) {
       console.error(err);
@@ -357,6 +360,7 @@ export default function AnalyzerPage() {
         {/* No View Dashboard button needed anymore */}
       </header>
 
+      <AnalyzerSession />
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
 
         {/* LEFT SIDEBAR (col 1 on xl) */}

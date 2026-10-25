@@ -25,11 +25,12 @@ from backend.core.exceptions import ResourceNotFoundException
 from backend.core.logger import get_logger
 from backend.domain.asset_registry.models import OCRRegistrationRecord
 from backend.infrastructure.object_store import object_storage
+from backend.domain.analyzer.auth import require_admin_or_token
 
 logger = get_logger("eims.api.asset_registry")
 
 # Notice: Core Law 5 Section 5.2 prohibits trailing slashes in endpoint declarations
-asset_router = APIRouter(prefix="/api/v1/assets", tags=["Asset Registry Administration"])
+asset_router = APIRouter(prefix="/api/v1/assets", tags=["Asset Registry Administration"], dependencies=[Depends(require_admin_or_token)])
 
 
 async def get_asset_repository(

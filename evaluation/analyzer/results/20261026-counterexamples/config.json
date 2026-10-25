@@ -1,0 +1,8 @@
+{
+  "source_sha": "4fc7c69c3028dadfeb3c2df26dc7a8c1a233353b",
+  "candidate_sha256": "0e654aa867c9c1fd4ea2bb62e2139cf75b258eba00730dcd9db0c372cbe1a8b8",
+  "count": 8,
+  "status": "PASS",
+  "human_judgments": 0,
+  "scope": "synthetic candidates; real offline routes, local KB, memory History; no accuracy score"
+}

@@ -1029,7 +1029,11 @@ def test_cbt_entry_names_no_esa_article_without_environment():
     blob = " ".join(summary.steps)
     assert "442155" not in blob, f"CBT steps must not cite vSAN ESA article without vSAN+ESA evidence: {blob!r}"
     assert "411756" not in blob, f"CBT steps must not cite vVOLs article without vVOL evidence: {blob!r}"
-    assert "418256" in blob
+    # Official 418256 concerns invalid/opening CTK or lock symptoms, not bare deletion.
+    assert "418256" not in blob
+    applicable = get_vendor_summary('VMWARE-CBT-DELETE-FAILED', 'en',
+                                   'Could not open change tracking file: Change tracking invalid or disk in use')
+    assert '418256' in ' '.join(applicable.steps)
     gated = get_vendor_summary(
         "VMWARE-CBT-DELETE-FAILED",
         "en",
@@ -1056,7 +1060,7 @@ def test_cbt_minimal_names_no_unobserved_signatures():
     assert "442155" not in blob
     assert "411756" not in blob
     assert "Failed to lock the file" not in blob
-    assert summary.evidence == ["Could not delete change tracking file"]
+    assert summary.evidence == [_CBT_MINIMAL_TEXT.strip()]
 
 
 def test_cbt_rich_surfaces_observed_signatures_only():

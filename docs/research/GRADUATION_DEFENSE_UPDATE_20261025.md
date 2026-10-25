@@ -1,7 +1,37 @@
+## Current checkpoint — 26 October 2026 publication
+
+This update supersedes historical status below; historical measurements remain intact.
+Implementation source: `348f892719cc0e839cd2813d344d26e672c883fd`.
+See [grounded diagnosis report](GROUNDED_DIAGNOSIS_CHECKPOINT_20261025.md) and
+[next execution instructions](NEXT_EXECUTION_PROMPT_20261026.md).
+
+- Implemented vendor-grounded Fortinet configuration identity, Windows 1129 symptom-only summary,
+  CTK cause abstention and narrower KB applicability; removed cross-vendor default assumptions.
+- Local regression: 273 passed, 1 Windows skip, including 31 dedicated PostgreSQL tests.
+  Actual Alembic upgrade was rehearsed from a minimal parent schema; full historical chain and
+  operational migration remain untested. Bounded cleanup, rollback and concurrency verified.
+- Direct organization APIs now require admin/service authorization in Secure Mode;
+  customer evaluation forms are also restricted, ingestion requires service authorization,
+  and secure WebSocket streaming is disabled pending an authenticated transport.
+- Controlled DEV: 12 DRAFT, zero execution errors, 77 claims, zero human judgments.
+  Narrative changed 12/12; typed v2 fields unchanged 12/12. Claim reduction from 135 is not accuracy.
+- HTTPS browser acceptance, independent human validation, institutional retention and deployment
+  acceptance remain open. M2/M3 remain NOT_RUN. Existing review packets are historical.
+
 # EIMS — Chapter 2–5 update and defense outline (25 October 2026)
 
 This measured-results supplement does not overwrite the frozen academic report.
 It is a working defense packet, not a claim that scientific evaluation is complete.
+
+Latest engineering source: `77603388de96324fc5dbf56e1de2cdc192cde747`.
+Chapter 3: PostgreSQL-backed revocation, idle/absolute expiry and login throttling
+now implemented; organization-wide search is admin-only in Secure Mode.
+Chapter 4: 251 Python passes, 1 Windows skip; 18 handler checks; 6 real HTTP/PG
+handler checks. Fresh full DEV snapshot retains identical semantics/claims 12/12,
+but privacy policyVersion changes prediction hashes. Human-reviewed denominator
+is still zero. Chapter 5: HTTPS browser, deployed migration, retention and broader
+domain permission acceptance remain gates. See SESSION_LIFECYCLE_GATE_20261025.md
+for evidence boundaries and the refreshed three-case Human Review Packet.
 
 ## Chapter 2: scope and related work
 

@@ -1,0 +1,124 @@
+[
+  {
+    "case_id": "bundle_related",
+    "old_hash": "593a4b589d7519c8d0a24a3a7c3fa1b56b5301b5f5aea5a28f72ec2f353a0c84",
+    "new_hash": "b706eb76cdad521a99116cb610a630ed5c0c18c540dd608b47fb20e8431d9dfd",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/files/b.txt/policyVersion",
+      "/eventMetadata/attributes/evidencePrivacy/files/a.txt/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "bundle_unrelated",
+    "old_hash": "95c603a2e22677da1f10fd59b5c328f799eec80d4dd4494facf9828f580b8381",
+    "new_hash": "5a45f7000150b4dbfa9f865c98d895053b1fec7538f2982a6047b4ee0a9914da",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/files/b.txt/policyVersion",
+      "/eventMetadata/attributes/evidencePrivacy/files/a.txt/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "esxi_heartbeat",
+    "old_hash": "153def40eb748ba7eea7e427306110f48bd7cac985c55501ca4ff54f066ff522",
+    "new_hash": "f7a2d35933daefa93bd447f3af596f2a19b753ec2f595744e45a7de7bd82688d",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "esxi_tracker",
+    "old_hash": "b8851229ca3933f5fd98cb5a2027a5cbb3c5c40feb0610336821b5904be3eafe",
+    "new_hash": "cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "fort_accept",
+    "old_hash": "4a217db056b972fea9daa2429b424a5e76c4cdc718d639b486472e468fe2d5d4",
+    "new_hash": "856087c99af673a132ea08b6955cfacb5f9bc7ed3457dad6d1e5b8a7d03c0cba",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "fort_config",
+    "old_hash": "1a4860702225dce055b62b6eedfbb73158fb7424e14cee33382aec91a302f091",
+    "new_hash": "578e66cf80856ddf8e31482d3d90bf5caa4389ecadb17e18b752f3706caf1bd6",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "json_info",
+    "old_hash": "c05a9bfdd75874e8fb71a09b4f49f7f4ef5a73d738475fc950a395fa012504c1",
+    "new_hash": "07ea6b80601c7b84badb14d7497007f81b6da05cc7b59c8aa37fc080e138fe4a",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "noise_filename",
+    "old_hash": "d7eca41be4adae73e1492ab34330bf44fce554da84c78e54dd382ab52219f848",
+    "new_hash": "fc42f445c6c69c63a1feacdceb8e8d1e069a03e5e1a7fdbe263a54a1b85a6799",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "veeam_options",
+    "old_hash": "3ff4506536c382f409de3bafe26a2fbeac17a3a375b5bed39a979bb9e75c1b63",
+    "new_hash": "8297fdcadf161a20bb86e698f5563bab3ccc8e2fee7e8130bb99bf422fdf73df",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "veeam_tracker",
+    "old_hash": "ed13b8ee63b225268b875435d9fd4dabeb42dec5fda38ef3ddad8cfbd2a5c866",
+    "new_hash": "49d59b3831c34eca534d89481ff032b96a29d39709c30005c1b9f46f542a7631",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "win_boot",
+    "old_hash": "599ab4c2c9904b97ff1af9a0971790478893f6f9a1bbe8940d968c89fc1744d4",
+    "new_hash": "5f6e32c208a807d10be470af9cbeba3c224a4ab702379a4842c61b178f439ae7",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  },
+  {
+    "case_id": "win_policy",
+    "old_hash": "de017e4a7e7e1b0159dd18f6b3668b96be0fd3405dcd8e3980b0e8b7f8187e10",
+    "new_hash": "d5c9af968e4cb326e0df55c18da791b6827d3760fd59154d0bbc542ab31f4892",
+    "native_changed_paths": [
+      "/eventMetadata/attributes/evidencePrivacy/policyVersion"
+    ],
+    "semantics_v2_unchanged": true,
+    "claims_unchanged": true
+  }
+]

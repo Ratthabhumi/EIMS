@@ -19,7 +19,7 @@ async def get_stats(
     from datetime import datetime, timedelta
     from collections import Counter
 
-    records = (await db.execute(select(AnalysisHistory))).scalars().all()
+    records = (await db.execute(select(AnalysisHistory).where(AnalysisHistory.username == _user))).scalars().all()
     total = len(records)
     critical = 0
     total_time = 0.0
@@ -87,7 +87,7 @@ async def get_correlations(
     from datetime import datetime, timedelta
     from collections import Counter, defaultdict
 
-    records = (await db.execute(select(AnalysisHistory).order_by(AnalysisHistory.created_at))).scalars().all()
+    records = (await db.execute(select(AnalysisHistory).where(AnalysisHistory.username == _user).order_by(AnalysisHistory.created_at))).scalars().all()
 
     # --- 1. Frequency: top repeated event IDs ---
     freq_counter = Counter()

@@ -1,0 +1,65 @@
+{
+  "status": "DRAFT",
+  "origin": "AI-generated regression candidates",
+  "reviewer": null,
+  "membership": "NOT_IN_DEV_OR_HELDOUT",
+  "cases": [
+    {
+      "case_id": "unrelated_bundle",
+      "files": {
+        "a.log": "2026-10-26T00:00:00Z CTK_CTKUNLINK result:2620",
+        "b.log": "Job session 'other' has been completed, status: 'Success'"
+      },
+      "expected_uncertainty": "not correlated"
+    },
+    {
+      "case_id": "multiple_sessions",
+      "files": {
+        "a.log": "2026-10-26T00:00:00Z CTK_CTKUNLINK result:2620\nJob session 'A' has been completed, status: 'Failed'\nJob session 'B' has been completed, status: 'Success'"
+      },
+      "expected_uncertainty": "Multiple session"
+    },
+    {
+      "case_id": "truncated_status",
+      "files": {
+        "a.log": "2026-10-26T00:00:00Z CTK_CTKUNLINK result:2620\nJob session 'A' has been completed, status:\n'Success'"
+      },
+      "expected_uncertainty": "not present"
+    },
+    {
+      "case_id": "observed_success_unlinked",
+      "files": {
+        "a.log": "2026-10-26T00:00:00Z CTK_CTKUNLINK result:2620\nJob session 'A' has been completed, status: 'Success'"
+      },
+      "expected_uncertainty": "Link between"
+    },
+    {
+      "case_id": "midnight_success",
+      "files": {
+        "a.log": "2026-10-25T23:59:59Z CTK_CTKUNLINK result:2620\n2026-10-26T00:00:00Z Job session 'A' has been completed, status: 'Success'"
+      },
+      "expected_uncertainty": "Link between"
+    },
+    {
+      "case_id": "midnight_failed",
+      "files": {
+        "a.log": "2026-10-25T23:59:59Z CTK_CTKUNLINK result:2620\n2026-10-26T00:00:00Z Job session 'A' has been completed, status: 'Failed'"
+      },
+      "expected_uncertainty": "Link between"
+    },
+    {
+      "case_id": "midnight_warning",
+      "files": {
+        "a.log": "2026-10-25T23:59:59Z CTK_CTKUNLINK result:2620\n2026-10-26T00:00:00Z Job session 'A' has been completed, status: 'Warning'"
+      },
+      "expected_uncertainty": "Link between"
+    },
+    {
+      "case_id": "bare_ctk",
+      "files": {
+        "a.log": "CTK_CTKUNLINK result:2620"
+      },
+      "expected_uncertainty": "not present"
+    }
+  ]
+}

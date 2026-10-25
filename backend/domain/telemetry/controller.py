@@ -24,11 +24,12 @@ from backend.domain.telemetry.schemas import (
 from backend.domain.telemetry.security import verify_mtls_fingerprint
 from backend.infrastructure.cache import AsynchronousCacheManager, get_cache_manager
 from backend.infrastructure.object_store import object_storage
+from backend.domain.analyzer.auth import require_admin_or_token
 
 logger = get_logger("eims.api.telemetry")
 
 # Core Law 5 Section 5.2 strict adherence: No trailing slashes in route declarations
-telemetry_router = APIRouter(prefix="/api/v1/telemetry", tags=["Telemetry Collector & Agent Ingestion"])
+telemetry_router = APIRouter(prefix="/api/v1/telemetry", tags=["Telemetry Collector & Agent Ingestion"], dependencies=[Depends(require_admin_or_token)])
 
 
 async def get_telemetry_broker(
@@ -85,7 +86,7 @@ async def ingest_windows_event_log(
 )
 async def upload_windows_evtx(
     file: UploadFile = File(..., description="Raw binary .evtx file"),
-    x_client_cert_fingerprint: str = Header(..., description="mTLS Client Certificate SHA-256 Fingerprint"),
+    x_client_cert_fingerprint: str = Depends(verify_mtls_fingerprint),
     broker: AbstractTelemetryBroker = Depends(get_telemetry_broker)
 ) -> dict:
     """

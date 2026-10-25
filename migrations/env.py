@@ -20,6 +20,7 @@ from backend.domain.evaluation.models import ServiceSession, ServiceEvaluation
 from backend.domain.analyzer.models.user import User
 from backend.domain.analyzer.models.history import AnalysisHistory
 from backend.domain.analyzer.models.vector import VectorKnowledge
+from backend.domain.analyzer.models.session import AnalyzerSession, LoginWindow
 
 config = context.config
 
@@ -57,6 +58,7 @@ def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
+        version_table_schema=config.attributes.get('version_table_schema'),
         compare_type=True,
         compare_server_default=True,
     )
@@ -84,7 +86,13 @@ async def run_async_migrations() -> None:
 
 def run_migrations_online() -> None:
     """Enters asyncio execution loops when running in interactive online mode."""
-    asyncio.run(run_async_migrations())
+    # An explicit caller-owned connection supports isolated migration rehearsal
+    # without opening an application-configured database connection.
+    connection = config.attributes.get('connection')
+    if connection is not None:
+        do_run_migrations(connection)
+    else:
+        asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():

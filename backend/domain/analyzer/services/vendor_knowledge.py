@@ -71,9 +71,10 @@ VENDOR_ARTICLES: List[VendorArticle] = [
         title="Virtual machine backups fail due to locked files even if the VM is moved to other ESXi hosts in the cluster",
         url="https://knowledge.broadcom.com/external/article/418256",
         applies_to=["VMWARE-CBT-DELETE-FAILED"],
-        # Supports CTK missing/corrupt/mismatch assessment.  Locking is NEVER
-        # claimed by EIMS unless lock evidence exists (see entry text).
-        requires_any=("lock", "cbt", "change tracking", "change-tracking", "backup", "ctk", "missing", "corrupt", "mismatch"),
+        # Article concerns failed opening/invalid CTK and explicit lock symptoms;
+        # bare deletion result 2620 does not establish these prerequisites.
+        requires_all=("change tracking",),
+        requires_any=("could not open change tracking file", "change tracking invalid", "failed to lock the file"),
     ),
     VendorArticle(
         article_id="442155",
@@ -322,7 +323,7 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
         # line alone, so result codes / unlink ops / lock / environment facts
         # are stated ONLY when the evidence contains them.
         _ev = (evidence_text or "").lower()
-        _sig2620 = re.search(r"result\s*:?\s*2620", _ev) is not None
+        _sig2620 = re.search(r"\bresult\s*[:=]?\s*2620\b", _ev) is not None
         _sigunlink = "ctk_ctkunlink" in _ev
         _overview_extra_en = ""
         _overview_extra_th = ""
@@ -333,8 +334,8 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
             _overview_extra_en += " A CTK_CTKUNLINK operation result was recorded in the evidence."
             _overview_extra_th += " พบผลการทำงาน CTK_CTKUNLINK ในหลักฐานที่ให้มา"
         # Name only the Broadcom articles whose environment gates the
-        # evidence satisfies.  418256 (CTK) passes whenever this code's
-        # own trigger text is present; 442155 needs vSAN + ESA, 411756
+        # evidence satisfies.  418256 needs invalid/opening CTK or lock
+        # symptoms; 442155 needs vSAN + ESA, 411756
         # needs vVOLs — never cite them without that environment evidence.
         _articles = []
         if _article_allowed("418256", code, evidence_text):
@@ -373,13 +374,8 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
             ),
             causes=[
                 _th_en(
-                    "ไฟล์ CTK หาย ไม่ตรงสถานะ หรือเสียหาย (ยังไม่พิสูจน์ว่าเป็นการ lock)",
-                    "CTK file missing, state-mismatched, or corrupt (locking is NOT proven)",
-                    lang,
-                ),
-                _th_en(
-                    "Snapshot cleanup ค้างจาก operation ก่อนหน้า หรือ datastore ไม่สอดคล้อง",
-                    "Stale snapshot cleanup from a previous operation, or datastore inconsistency",
+                    "ยังไม่ทราบสาเหตุจริง (UNKNOWN); ผลการลบ change-tracking file ไม่สำเร็จเพียงอย่างเดียวไม่ยืนยันต้นเหตุ",
+                    "Physical root cause is UNKNOWN; an unsuccessful change-tracking deletion alone does not establish its cause",
                     lang,
                 ),
             ],
@@ -400,7 +396,9 @@ def _vendor_entry(code: str, language: str, evidence_text: str = "") -> Optional
                     lang,
                 ),
             ],
-            evidence=["Could not delete change tracking file"],
+            evidence=[line for line in evidence_text.splitlines() if
+                      'could not delete change tracking file' in line.lower() or
+                      re.search(r'\bCTK_CTKUNLINK\b.*\bresult\s*[:=]?\s*2620\b',line,re.I)][:4],
             confidence="medium",
             limitations=[
                 _th_en(

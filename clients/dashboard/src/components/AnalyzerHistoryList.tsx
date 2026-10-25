@@ -1,3 +1,4 @@
+import { escapeReportData } from '@/lib/report-data';
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Search, Trash2, Code, FileImage, FileText, X, Download, ShieldAlert } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -417,31 +418,32 @@ export default function AnalyzerHistoryList({
   };
 
   const downloadPDF = async (item: any) => {
-    if (!item) return;
+    const safeItem = escapeReportData(item);
+    if (!safeItem) return;
     const toastId = toast.loading("Generating PDF...");
     try {
       const { default: jsPDF } = await import("jspdf");
       const { default: html2canvas } = await import("html2canvas");
 
-      const isInc = String(item.eventId).toUpperCase().startsWith("AINC-");
-      const friendly = friendlyLabel(item, catalogMap);
+      const isInc = String(safeItem.eventId).toUpperCase().startsWith("AINC-");
+      const friendly = friendlyLabel(safeItem, catalogMap);
       const container = document.createElement("div");
       container.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:794px;padding:40px;background:#fff;font-family:Arial,sans-serif;font-size:13px;color:#242321;line-height:1.6;";
 
-      const steps = item.solutionSummary?.steps || [];
-      const causes = item.solutionSummary?.causes || [];
-      const refs = item.searchResults || [];
-      const meta = item.eventMetadata || {};
-      const evList: string[] = item.solutionSummary?.evidence || [];
-      const unknowns: string[] = item.solutionSummary?.limitations || [];
-      const nextEv: string[] = item.solutionSummary?.nextEvidence || [];
-      const conf: string = item.solutionSummary?.confidence || "";
+      const steps = safeItem.solutionSummary?.steps || [];
+      const causes = safeItem.solutionSummary?.causes || [];
+      const refs = safeItem.searchResults || [];
+      const meta = safeItem.eventMetadata || {};
+      const evList: string[] = safeItem.solutionSummary?.evidence || [];
+      const unknowns: string[] = safeItem.solutionSummary?.limitations || [];
+      const nextEv: string[] = safeItem.solutionSummary?.nextEvidence || [];
+      const conf: string = safeItem.solutionSummary?.confidence || "";
 
       container.innerHTML = `
         <h1 style="font-size:20px;font-weight:700;border-bottom:2px solid #68735C;padding-bottom:8px;margin-bottom:12px;">
-          Diagnostic Report — ${isInc ? "Suspicious Authentication Activity" : friendly.title} (${item.eventId || "Unknown"})
+          Diagnostic Report — ${isInc ? "Suspicious Authentication Activity" : friendly.title} (${safeItem.eventId || "Unknown"})
         </h1>
-        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${isInc ? "Security / Authentication" : (item.provider || "Unknown")}</strong> &nbsp;|&nbsp; Generated: ${new Date(item.created_at || Date.now()).toLocaleString()}</p>
+        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${isInc ? "Security / Authentication" : (safeItem.provider || "Unknown")}</strong> &nbsp;|&nbsp; Generated: ${new Date(safeItem.created_at || Date.now()).toLocaleString()}</p>
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Event Metadata</h2>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
           <div><span style="color:#716E66;font-size:11px;">Level</span><br/><strong>${meta.level || "Error"}</strong></div>
@@ -451,7 +453,7 @@ export default function AnalyzerHistoryList({
           ${meta.faultingApp ? `<div style="grid-column:1/-1"><span style="color:#716E66;font-size:11px;">Faulting App</span><br/><strong style="color:#dc2626;">${meta.faultingApp}</strong></div>` : ""}
         </div>
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Summary</h2>
-        <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${item.solutionSummary?.overview || item.aiSummary || "No summary available."}</div>
+        <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${safeItem.solutionSummary?.overview || safeItem.aiSummary || "No summary available."}</div>
         ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Root Causes / Context</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Resolution Steps</h2>
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
@@ -490,7 +492,7 @@ export default function AnalyzerHistoryList({
         y += pageH;
       }
 
-      pdf.save(`Diagnostic_Report_${item.eventId || "Unknown"}.pdf`);
+      pdf.save(`Diagnostic_Report_${safeItem.eventId || "Unknown"}.pdf`);
       toast.success("PDF downloaded!", { id: toastId });
     } catch (err) {
       console.error(err);

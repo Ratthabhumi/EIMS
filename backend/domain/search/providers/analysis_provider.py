@@ -11,6 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.domain.analyzer.models.history import AnalysisHistory
 from backend.domain.search.provider import SearchProvider, SearchResult
+from contextvars import ContextVar
+
+# Request-task local: never mutate the globally registered provider per user.
+analysis_search_owner: ContextVar[str | None] = ContextVar('analysis_search_owner', default=None)
 
 
 class AnalysisSearchProvider(SearchProvider):
@@ -23,8 +27,12 @@ class AnalysisSearchProvider(SearchProvider):
     name = "analysis"
 
     async def search(self, db: AsyncSession, query: str, limit: int) -> list[SearchResult]:
+        if analysis_search_owner.get() is None:
+            return []
         try:
-            return await self._search_vector(db, query, limit)
+            # Missing optional FTS column must not poison the caller transaction.
+            async with db.begin_nested():
+                return await self._search_vector(db, query, limit)
         except Exception:
             return await self._fallback_ilike(db, query, limit)
 
@@ -35,18 +43,21 @@ class AnalysisSearchProvider(SearchProvider):
                 id, event_id, provider, parse_method, description, ai_summary, created_at,
                 ts_rank(search_vector, plainto_tsquery('english', :q)) AS rank
             FROM analysis_history
-            WHERE search_vector @@ plainto_tsquery('english', :q)
+            WHERE username = :owner AND search_vector @@ plainto_tsquery('english', :q)
             ORDER BY rank DESC
             LIMIT :limit
             """
         )
-        rows = (await db.execute(stmt, {"q": query, "limit": limit})).mappings().all()
+        rows = (await db.execute(stmt, {"q": query, "limit": limit, "owner": analysis_search_owner.get()})).mappings().all()
         return [self._to_result(row, relevance=max(0.0, min(float(row["rank"] or 0.0), 1.0))) for row in rows]
 
     async def _fallback_ilike(self, db: AsyncSession, query: str, limit: int) -> list[SearchResult]:
+        if analysis_search_owner.get() is None:
+            return []
         pattern = f"%{query}%"
         stmt = (
             select(AnalysisHistory)
+            .where(AnalysisHistory.username == analysis_search_owner.get())
             .where(
                 or_(
                     AnalysisHistory.event_id == query,

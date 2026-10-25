@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.domain.analyzer.auth import get_current_user
+from backend.domain.analyzer.auth import get_current_user, require_admin_or_token
 from backend.domain.asset_registry.schemas import PaginationMetadata
 from backend.domain.telemetry.models import TelemetryMetric, WindowsEventLog
 from backend.domain.telemetry.schemas import (
@@ -26,7 +26,7 @@ from backend.domain.telemetry.schemas import (
 from backend.infrastructure.database import get_db_session
 
 # Core Law 5 Section 5.2 strict adherence: No trailing slashes in route declarations
-telemetry_query_router = APIRouter(prefix="/api/v1/telemetry", tags=["Telemetry Query Interfaces"])
+telemetry_query_router = APIRouter(prefix="/api/v1/telemetry", tags=["Telemetry Query Interfaces"], dependencies=[Depends(require_admin_or_token)])
 
 
 @telemetry_query_router.get(

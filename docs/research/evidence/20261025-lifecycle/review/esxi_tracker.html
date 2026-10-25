@@ -1,0 +1,86 @@
+<!doctype html><html lang='en'><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<meta http-equiv='Content-Security-Policy' content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>EIMS isolated investigation</title><style>body{font:16px/1.6 system-ui;max-width:1050px;margin:32px auto;padding:0 20px;color:#172033;background:#f6f8fb}section,details{background:white;padding:18px;margin:16px 0;border:1px solid #cbd5e1;border-radius:8px}summary{cursor:pointer;font-weight:600}pre{overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}mark{background:#fff0ac}small{color:#526174}.warning{border-left:5px solid #dc8a16;padding-left:12px}a{color:#1455ac}</style>
+<section><h2>อ่านต้นฉบับก่อนดูข้อเสนอ AI</h2><p>ยังเป็น DRAFT ไม่มี human review</p><h3>cases/esxi_tracker/input.txt</h3><pre>1 | 2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk
+2 | 2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620</pre></section><p>Prediction hash: cec0d7c7f665deecb5979c928fdf14467657a2f84d8feacc36021e84f27184e2</p><h1 id='finding'>EIMS: esxi_tracker</h1>
+<p class='warning'>Synthetic DRAFT. Offline isolated demo; no human accuracy certification, operational History database, live vector store or external model.</p>
+<section><h2>Native investigation</h2><p>VMware could not delete a change-tracking (.ctk) file. Result 2620 was recorded in the evidence. A CTK_CTKUNLINK operation result was recorded in the evidence.</p>
+<p>Correlation: single file; association does not prove causation.</p>
+<p>Explicit terminal outcome: UNKNOWN</p></section>
+<details><summary>UNCERTAIN / RCA_OVERVIEW: VMware could not delete a change-tracking (.ctk) file. Result 2620 was recorded in the evidence. A CTK_CTKUNLINK operation result was recorded in the evidence.</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<h3>cases/esxi_tracker/input.txt:1</h3>
+<pre>
+<mark>   1 | 2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk</mark>
+
+   2 | 2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620
+
+</pre>
+<h3>cases/esxi_tracker/input.txt:2</h3>
+<pre>
+   1 | 2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk
+
+<mark>   2 | 2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620</mark>
+
+</pre>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>DIRECTLY_OBSERVED / FAILURE_DESCRIPTION: 2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<h3>cases/esxi_tracker/input.txt:1</h3>
+<pre>
+<mark>   1 | 2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk</mark>
+
+   2 | 2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620
+
+</pre>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>DIRECTLY_OBSERVED / TECHNICAL_FAILURE: 2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<h3>cases/esxi_tracker/input.txt:2</h3>
+<pre>
+   1 | 2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk
+
+<mark>   2 | 2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620</mark>
+
+</pre>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>HYPOTHESIS / POSSIBLE_CAUSE: CTK file missing, state-mismatched, or corrupt (locking is NOT proven)</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>HYPOTHESIS / POSSIBLE_CAUSE: Stale snapshot cleanup from a previous operation, or datastore inconsistency</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / RECOMMENDATION: Check the related .ctk.vmdk files in a datastore listing</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / RECOMMENDATION: Inspect vmware.log and hostd.log around the failure time</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / RECOMMENDATION: Refer to official Broadcom material: Article 418256 (CTK) â€” verify each articleâ€™s scope before applying</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / UNKNOWN: Do NOT claim the file is locked unless lock evidence exists</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / EVIDENCE_COLLECTION: VM vmware.log</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / EVIDENCE_COLLECTION: ESXi hostd.log</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<details><summary>UNCERTAIN / EVIDENCE_COLLECTION: Datastore file listing (.vmdk / .ctk.vmdk state)</summary>
+<p>Semantic support: NOT REVIEWED. Possible causes remain hypotheses.</p>
+<p>No exact supporting source reference supplied for this claim.</p>
+<a href='#finding'>Back to finding</a></details>
+<section id='history'><h2>Isolated History reconstruction</h2>
+<p>JSON snapshot reload matches native response: True</p>
+<p>This uses an isolated serialized memory record. It is not a PostgreSQL persistence or installed-dashboard/USB certification.</p></section></html>

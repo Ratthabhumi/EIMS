@@ -1,3 +1,35 @@
+## 26 October continuation — current delta
+
+See [continuation evidence and permission matrix](CONTINUATION_20261026.md).
+Terminal-scope uncertainty and bare CTK detection fixed; 286 local tests passed,
+1 skipped, including 35 PostgreSQL tests. Eight separate synthetic candidates
+passed native offline routes and memory History reconstruction. Full migration
+lineage from an empty isolated schema now passes; operational migration remains NOT_RUN.
+Frozen DEV hashes unchanged 12/12 (77 claims, zero human judgments); reuse current review packet.
+Secure shared APIs remain admin/service-only and WebSocket remains denied; no approved
+customer/tenant grant model or trusted browser runtime is invented. Research below is historical
+unless listed as outstanding in the continuation report.
+
+## Current checkpoint — 26 October 2026 publication
+
+This update supersedes historical status below; historical measurements remain intact.
+Implementation source: `348f892719cc0e839cd2813d344d26e672c883fd`.
+See [grounded diagnosis report](GROUNDED_DIAGNOSIS_CHECKPOINT_20261025.md) and
+[next execution instructions](NEXT_EXECUTION_PROMPT_20261026.md).
+
+- Implemented vendor-grounded Fortinet configuration identity, Windows 1129 symptom-only summary,
+  CTK cause abstention and narrower KB applicability; removed cross-vendor default assumptions.
+- Local regression: 273 passed, 1 Windows skip, including 31 dedicated PostgreSQL tests.
+  Actual Alembic upgrade was rehearsed from a minimal parent schema; full historical chain and
+  operational migration remain untested. Bounded cleanup, rollback and concurrency verified.
+- Direct organization APIs now require admin/service authorization in Secure Mode;
+  customer evaluation forms are also restricted, ingestion requires service authorization,
+  and secure WebSocket streaming is disabled pending an authenticated transport.
+- Controlled DEV: 12 DRAFT, zero execution errors, 77 claims, zero human judgments.
+  Narrative changed 12/12; typed v2 fields unchanged 12/12. Claim reduction from 135 is not accuracy.
+- HTTPS browser acceptance, independent human validation, institutional retention and deployment
+  acceptance remain open. M2/M3 remain NOT_RUN. Existing review packets are historical.
+
 # Research to implementation and experimental boundary — 2026-10-25
 
 All 12 DEV annotations remain DRAFT. The five HELDOUT cases remain reserved.
@@ -68,6 +100,14 @@ This demonstration never claims real USB import, installed Dashboard integration
 operational PostgreSQL persistence, authentication parity or model execution.
 
 ## Human review packet
+
+Update at source 77603388: session invalidation/throttling and cross-domain secure
+search admin gate implemented; new credential policy preserves multiline/query
+coordinates. 251 Python passes, 18 handler checks, 6 real HTTP/PG handler checks.
+Full DEV rerun: semantics/claims unchanged 12/12, policy-version hashes changed.
+Use current [review hashes](evidence/20261025-lifecycle/review/README.md).
+Trusted HTTPS browser, deployment-wide permissions, retention and human scientific
+validation remain incomplete. M2/M3 and broad new integrations remain deferred.
 
 Start with [the Thai DEV adjudication packet](ANALYZER_DEV_ADJUDICATION_20261025.md):
 fort_config, esxi_tracker, win_policy. It explains what each synthetic log states,

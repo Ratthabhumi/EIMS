@@ -148,18 +148,16 @@ _FAMILY_NEXT_EVIDENCE: Dict[str, List[str]] = {
         "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
         "Veeam Job session log",
         "Agent/component log from the relevant Veeam component",
-        "vmware.log / hostd.log when a VMware operation is implicated",
     ],
     "vmware": [
         "VM vmware.log",
         "ESXi hostd.log",
-        "Datastore file listing (.vmdk / .ctk.vmdk state)",
     ],
     "windows_event": [
         "Full Event Viewer export (.evtx) around the failure time",
     ],
-    "fortinet": ["Full FortiGate log segment with session close codes"],
-    "cisco_asa": ["Full ASA syslog segment with connection teardown lines"],
+    "fortinet": ["Complete FortiGate event fields and product/version context"],
+    "cisco_asa": ["Full ASA event fields and product/version context"],
     "linux_syslog": ["journalctl segment for the affected service"],
     "json": ["Complete structured event payload"],
     "unknown_text": ["Original file plus a note about which product emitted it"],
@@ -168,7 +166,7 @@ _FAMILY_NEXT_EVIDENCE: Dict[str, List[str]] = {
 
 def _is_veeam_config_line(line: str) -> bool:
     """Return True if the line is a Veeam configuration/scheduler setting."""
-    return any(rx.search(line) for rx in _VEEAM_CONFIG_SUPPRESS)
+    return not _CTK_UNLINK_FAILED.search(line) and any(rx.search(line) for rx in _VEEAM_CONFIG_SUPPRESS)
 
 
 def _is_successful_fortinet_configuration(line: str) -> bool:
@@ -322,11 +320,30 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
 
     evidence = [rec.raw_text[:300] for rec in failures[:10]]
 
-    unknowns: List[str] = [
-        "Exact missing filename (unless a file path appears verbatim in the evidence above)",
-        "Exact CTK/VMDK file that could not be deleted (unless named verbatim above)",
-        "Whether the file was locked, corrupt, moved, renamed, or absent",
-    ]
+    unknowns: List[str] = []
+    if failures or warnings:
+        unknowns.append("Physical root cause is not established by these signals alone")
+    ctk_failure = any(_CTK_UNLINK_FAILED.search(r.raw_text) or
+                      "could not delete change tracking file" in r.raw_text.lower() for r in failures)
+    if ctk_failure:
+        unknowns.append("Cause of the observed change-tracking deletion failure is unknown")
+        # Match each physical record separately: a truncated status cannot borrow
+        # a value from the next line, nor can another file close this incident.
+        outcome_pattern = re.compile(
+            r"(task|job)[ \t]+session[ \t]+(['\"])([^'\"]+)\2[ \t]+has[ \t]+been[ \t]+completed"
+            r"[ \t]*,?[ \t]*status[ \t]*:[ \t]*['\"]?(failed|success|succeeded|warning)\b", re.I)
+        outcomes = [(r, outcome_pattern.search(r.raw_text)) for r in records]
+        outcomes = [(r, m) for r, m in outcomes if m]
+        if not outcomes:
+            unknowns.append("Final backup/job outcome is not present in this evidence")
+        else:
+            failure_sources = {r.source_file for r in failures if _CTK_UNLINK_FAILED.search(r.raw_text)
+                               or "could not delete change tracking file" in r.raw_text.lower()}
+            if any(r.source_file not in failure_sources for r, m in outcomes):
+                unknowns.append("Outcome in another source is not correlated with this failure")
+            if len({(m.group(1).lower(), m.group(3)) for r, m in outcomes}) > 1:
+                unknowns.append("Multiple session outcomes are present; no single incident-wide final status is established")
+            unknowns.append("Link between the observed CTK failure and a completed session is not established by status alone")
     domains = {timestamp_domain(r.timestamp_raw, r.timestamp_kind)
                for r in failures + warnings if r.timestamp_key is not None}
     if len(domains) > 1:
@@ -356,8 +373,17 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
         raw_paths.extend(extract_observed_paths(ln))
 
     observed_paths = sorted(set(raw_paths))[:3]
+    if not observed_paths and any('required file was not found' in r.raw_text.lower() for r in failures):
+        unknowns.append("The missing filename/path is not supplied by the failure record")
 
-    next_evidence = list(_FAMILY_NEXT_EVIDENCE.get(source_family or "", _GENERIC_NEXT_EVIDENCE))
+    next_evidence = list(_FAMILY_NEXT_EVIDENCE.get(source_family or "", _GENERIC_NEXT_EVIDENCE)) if failures or warnings else []
+    if ctk_failure:
+        next_evidence += ["Read-only datastore file listing for the observed CTK operation",
+                          "Explicit final backup/job status and VMware product/version"]
+        if source_family != 'vmware':
+            next_evidence += ['VM vmware.log and ESXi hostd.log for the observed CTK operation']
+    if source_family == 'fortinet' and records and all(_is_successful_fortinet_configuration(r.raw_text) for r in records if r.raw_text.strip()):
+        next_evidence = ["Configuration audit fields cfgpath/cfgattr, actor, device context and FortiOS version if audit detail is required"]
 
     return {
         "firstMeaningfulFailure": first,

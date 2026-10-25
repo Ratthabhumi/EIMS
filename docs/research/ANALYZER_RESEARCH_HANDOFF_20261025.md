@@ -1,3 +1,37 @@
+## 26 October continuation — current delta
+
+See [continuation evidence and permission matrix](CONTINUATION_20261026.md).
+Terminal-scope uncertainty and bare CTK detection fixed; 286 local tests passed,
+1 skipped, including 35 PostgreSQL tests. Eight separate synthetic candidates
+passed native offline routes and memory History reconstruction. Full migration
+lineage from an empty isolated schema now passes; operational migration remains NOT_RUN.
+Frozen DEV hashes unchanged 12/12 (77 claims, zero human judgments); reuse current review packet.
+Secure shared APIs remain admin/service-only and WebSocket remains denied; no approved
+customer/tenant grant model or trusted browser runtime is invented. Research below is historical
+unless listed as outstanding in the continuation report.
+
+## Research handoff update — 26 October 2026
+
+The three vendor investigations below have now informed production code and regression tests:
+Fortinet configuration identity, CTK symptom/cause separation with KB gates, and Windows 1129
+symptom-only diagnosis. Do not repeat broad research on those resolved questions.
+See GROUNDED_DIAGNOSIS_CHECKPOINT_20261025.md for source URLs and measured limits.
+
+Remaining targeted research, only when it changes an implementation decision:
+1. Trusted HTTPS/reverse proxy and installed Next.js browser session behavior: cookie scope,
+   Origin/Host trust, logout/back-cache and multiple-worker throttling. Deliver official sources,
+   version applicability and executable negative tests; research cannot replace actual browser QA.
+2. Minimal owner/service/admin permission design for shared organization endpoints, customer
+   forms and WebSocket. Compare least-privilege options; preserve closed defaults until tested.
+3. Institutional session/audit retention: distinguish a proposed policy from an approved one.
+   There is no approved universal seven-day period. Keep Analysis History outside auth cleanup.
+4. Independent claim adjudication with small denominators, disagreement and abstention;
+   AI-generated candidates and regression-derived examples must not become independent HELDOUT.
+
+Return decision / source URL / applicability / uncertainty / smallest test / cost.
+Defer model training, new vendors, broad competitor surveys and large infrastructure until
+reviewed evidence demonstrates a specific benefit. Older questions below are historical.
+
 # Research handoff for ChatGPT — 25 ตุลาคม 2026
 
 ## สถานะที่ยืนยันแล้ว
@@ -45,3 +79,22 @@ Model training/download, production vector index, dashboard redesign,
 large-scale benchmark และ vendor integration ใหม่. ใช้เวลากับ evidence,
 human reference quality และ isolated regression ก่อนเพิ่มขนาดระบบ.
 ผล Research เป็น candidate จนตรวจ source/tests จริง และไม่ใช่ human review แทนเจ้าของงาน.
+
+## รอบ session/privacy — คำถามแคบที่ยังต้อง Research
+
+Code source 77603388 เพิ่ม PostgreSQL revocation, idle/absolute expiry,
+fixed-window throttle และ admin gate สำหรับ organization-wide search แล้ว.
+ไม่ต้อง Research framework ใหม่หรือสั่ง train/model benchmark.
+
+ให้ ChatGPT Research ส่ง primary source + ข้อจำกัด + test ที่ทำได้ สำหรับ:
+
+1. Retention ของ expired/revoked sessions และ hashed login windows ใน self-hosted
+   university demo: เก็บนานเท่าไรและสิทธิ์ผู้ดูแลอย่างไร โดยไม่ลบ History.
+2. Trusted Next.js 16 reverse proxy: TLS/Host/Origin trust และ browser back-cache
+   หลัง logout; แยกสิ่งที่ต้องทดสอบ browser จริงจากสิ่งที่ handler tests พิสูจน์ได้.
+3. Minimal privacy threat model: unknown/encoded/multiline secrets, ข้อมูลผู้ใช้ที่
+   ต้องเก็บเพื่อ correlation และ admin access ข้ามเจ้าของ. Regex ไม่ใช่ DLP.
+
+ห้ามเสนอคำสั่งหลบ policy ที่ปฏิเสธ Dashboard startup. ดูผลทดสอบจริงที่
+SESSION_LIFECYCLE_GATE_20261025.md และ review packet ใหม่ใน
+evidence/20261025-lifecycle/review/README.md. Claims ยังไม่มี human review.

@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="1.277" timestamp="2026-10-26T05:36:59.220870+07:00" hostname="Mew"><testcase classname="tests.test_analyzer_postgres_integration" name="test_full_migration_lineage_from_empty_isolated_schema" time="1.072" /></testsuite></testsuites>
