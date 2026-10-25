@@ -1,0 +1,47 @@
+# Research handoff for ChatGPT — 25 ตุลาคม 2026
+
+## สถานะที่ยืนยันแล้ว
+
+EIMS มี evaluation v1 เดิมและ semantics v2 แยกกัน, synthetic DEV 12 เคส
+ยัง DRAFT ทั้งหมด, HELDOUT 5 เคสยังปิดไว้ ไม่มี human-reviewed accuracy.
+Offline full investigation เรียก production logic จริง แต่ใช้ memory History,
+local deterministic KB และปิด network/RAG/vector export. M2/M3 ยัง NOT_RUN.
+แก้ production แยก PR สำหรับ shared summary object, unsupported Failed outcome,
+CTK 2620 และ successful Fortinet config suppression. รายละเอียดอยู่ใน
+ANALYZER_IMPLEMENTATION_MATRIX_V2_20261025.md และ PR แก้ correctness.
+
+## งาน Research ที่ส่งต่อได้
+
+ใช้ข้อมูลสังเคราะห์และเอกสารทางการเท่านั้น ไม่ต้องขอ customer logs.
+ส่งกลับเป็นตาราง claim / primary source URL / version applicability /
+ข้อความหลักฐานสั้น / สิ่งที่อนุมานไม่ได้ / test candidate / ความคุ้มค่า.
+ไม่เปลี่ยน DRAFT เป็น REVIEWED และไม่ปรับคำตอบย้อนหลังเพื่อให้คะแนนดีขึ้น.
+
+1. **Fortinet configuration events**: ตรวจความต่าง 0100044546/47,
+   format/version, successful edit กับ failed edit และคำว่า error ในชื่อ setting.
+   ยืนยันว่ากฎ suppression แคบปัจจุบันมีข้อจำกัดอะไร พร้อม negative controls.
+2. **VMware CTK 2620**: แยกความหมาย error code จากสาเหตุเฉพาะ vSAN/ESXi
+   และ explicit final job outcome. ห้ามนำ fix เฉพาะ environment มาใช้ทั่วไป.
+   เสนอเงื่อนไข KB applicability และหลักฐานขั้นต่ำก่อนเสนอ remediation.
+3. **Windows Group Policy 1129**: แยก Event ID / severity / description /
+   network symptom / physical RCA. ตรวจชื่อ failure taxonomy ที่เหมาะสม;
+   DNS, NIC, firewall ยังเป็น hypothesis จนมีหลักฐานเพิ่ม.
+4. **วิธีประเมิน**: เสนอ protocol human adjudication และ claim-level grounding
+   ที่รายงาน denominator, uncertainty, abstention, inter-rater disagreement,
+   และ case leakage; แยก synthetic DEV agreement จาก external validity.
+   ให้แบบที่ทำได้จริงภายในเวลาที่เหลือ ไม่เสนอ infrastructure ขนาดใหญ่.
+
+## Primary sources ที่ตรวจแล้วและข้อจำกัด
+
+- Microsoft: https://learn.microsoft.com/en-us/troubleshoot/windows-server/group-policy/applying-group-policy-troubleshooting-guidance
+- Broadcom 442155: https://knowledge.broadcom.com/external/article/442155/snapshot-usage-on-esa-cluster-is-very-hi.html
+  ยืนยัน CTK/2620 ในบทความเฉพาะ vSAN; ไม่พิสูจน์ root cause ของ synthetic ESXi.
+- Fortinet staff: https://community.fortinet.com/fortigate-3/technical-tip-difference-between-logid-0100044547-and-logid-0100044546-which-are-generated-when-configuration-is-changed-in-the-fortigate-203472
+  หน้าคู่มือ log-id ที่เคยลองเข้าตรงตอบ 403; version applicability ยังต้องตรวจ.
+
+## สิ่งที่ควรตัดออกจากรอบนี้
+
+Model training/download, production vector index, dashboard redesign,
+large-scale benchmark และ vendor integration ใหม่. ใช้เวลากับ evidence,
+human reference quality และ isolated regression ก่อนเพิ่มขนาดระบบ.
+ผล Research เป็น candidate จนตรวจ source/tests จริง และไม่ใช่ human review แทนเจ้าของงาน.

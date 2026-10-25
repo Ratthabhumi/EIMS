@@ -1,0 +1,2 @@
+2026-10-25T10:00:01Z Er(02) vmx - VMware DISKLIB-CTK: Could not delete change tracking file fileName='/vmfs/volumes/demo/demo.vmdk'
+2026-10-25T10:00:03Z Er(02) vmx - CTK_CTKUNLINK result:2620
