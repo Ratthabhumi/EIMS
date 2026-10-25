@@ -27,7 +27,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: analyzer-hermetic-${{ github.sha }}
+          name: analyzer-hermetic-${{ github.event.pull_request.head.sha || github.sha }}
           path: test-results/analyzer-hermetic.xml
           retention-days: 30
 
@@ -58,7 +58,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: analyzer-postgres-${{ github.sha }}
+          name: analyzer-postgres-${{ github.event.pull_request.head.sha || github.sha }}
           path: test-results/postgres-integration.xml
           retention-days: 30
 
