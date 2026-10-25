@@ -1,3 +1,15 @@
+## 26 October continuation — current delta
+
+See [continuation evidence and permission matrix](CONTINUATION_20261026.md).
+Terminal-scope uncertainty and bare CTK detection fixed; 286 local tests passed,
+1 skipped, including 35 PostgreSQL tests. Eight separate synthetic candidates
+passed native offline routes and memory History reconstruction. Full migration
+lineage from an empty isolated schema now passes; operational migration remains NOT_RUN.
+Frozen DEV hashes unchanged 12/12 (77 claims, zero human judgments); reuse current review packet.
+Secure shared APIs remain admin/service-only and WebSocket remains denied; no approved
+customer/tenant grant model or trusted browser runtime is invented. Research below is historical
+unless listed as outstanding in the continuation report.
+
 ## Research handoff update — 26 October 2026
 
 The three vendor investigations below have now informed production code and regression tests:
