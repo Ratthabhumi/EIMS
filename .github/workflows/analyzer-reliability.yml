@@ -22,7 +22,45 @@ jobs:
           pip install pytest
 
       - name: Hermetic analyzer reliability tests (no DB, no network)
-        run: python -m pytest tests/test_analyzer_reliability.py tests/test_analyzer_evaluation.py tests/test_analyzer_investigation.py -q
+        run: python -m pytest tests/test_analyzer_reliability.py tests/test_analyzer_evaluation.py tests/test_analyzer_investigation.py tests/test_analyzer_integration_stability.py -q --junitxml=test-results/analyzer-hermetic.xml
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: analyzer-hermetic-${{ github.event.pull_request.head.sha || github.sha }}
+          path: test-results/analyzer-hermetic.xml
+          retention-days: 30
+
+  analyzer-postgres-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: eims_test
+          POSTGRES_PASSWORD: eims_synthetic_only
+          POSTGRES_DB: eims_integration_test
+        ports: ["55439:5432"]
+        options: >-
+          --health-cmd "pg_isready -U eims_test -d eims_integration_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      EIMS_TEST_DATABASE_URL: postgresql+asyncpg://eims_test:eims_synthetic_only@127.0.0.1:55439/eims_integration_test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install evaluation dependencies
+        run: pip install -r requirements-evaluation.txt pytest
+      - name: Real PostgreSQL and secure JWT tests, synthetic DB only
+        run: python -m pytest tests/test_analyzer_postgres_integration.py -q --junitxml=test-results/postgres-integration.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: analyzer-postgres-${{ github.event.pull_request.head.sha || github.sha }}
+          path: test-results/postgres-integration.xml
+          retention-days: 30
 
   dashboard-typecheck-build:
     runs-on: ubuntu-latest

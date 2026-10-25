@@ -1,4 +1,5 @@
 import React from 'react';
+import EvidenceSourceReview from './EvidenceSourceReview';
 import { apiUrl } from '../lib/api';
 import {
   AlertCircle,
@@ -459,6 +460,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
                 <span className="block text-eims-text-muted mt-0.5">
                   {item.sourceFile}{item.lineNumber ? `:${item.lineNumber}` : ""}{item.timestamp ? ` · ${item.timestamp}` : ""}{item.observedPath ? ` · ${item.observedPath}` : ""}
                 </span>
+                <EvidenceSourceReview item={item} isEn={isEn} />
               </li>
             ))}
           </ul>

@@ -257,8 +257,13 @@ def validate_bundle(files: List[Tuple[str, bytes]]) -> List[Tuple[str, bytes]]:
         )
     total = 0
     cleaned: List[Tuple[str, bytes]] = []
+    names = set()
     for name, content in files:
         base = safe_basename(name)
+        identity = base.casefold()
+        if identity in names:
+            raise ValueError("Duplicate source filenames are ambiguous; use distinct filenames.")
+        names.add(identity)
         ext = extension_of(base)
         if ext not in ALLOWED_EXTENSIONS:
             raise ValueError(
@@ -501,11 +506,39 @@ def summarize_file_evidence(
 
 def build_evidence_items(
     files: List[BundleFileEvidence],
+    *, records=None,
 ) -> List[Dict[str, object]]:
     """Failure-relevant lines with file provenance (line numbers 1-based)."""
     from backend.domain.analyzer.services.incident_extract import (
-        _CTK_UNLINK_FAILED, _is_successful_fortinet_configuration,
+        _CTK_UNLINK_FAILED, _is_successful_fortinet_configuration, _is_noise, _signal_strength,
     )
+    if records is not None:
+        # Use original coordinates retained by the canonical compaction budget.
+        # Neighbours absent from that budget stay absent; never invent context.
+        by_source = {(r.source_file, r.line_number): r for r in records}
+        selected = []
+        counts = {}
+        for r in records:
+            if _is_noise(r.raw_text) or _signal_strength(r.raw_text) < 2:
+                continue
+            count = counts.get(r.source_file, 0)
+            if count >= MAX_EVIDENCE_ITEMS_PER_FILE:
+                continue
+            if len(selected) >= MAX_EVIDENCE_ITEMS_TOTAL:
+                break
+            counts[r.source_file] = count + 1
+            context = []
+            for n in range(max(1, r.line_number - 1), r.line_number + 2):
+                row = by_source.get((r.source_file, n))
+                if row is not None:
+                    context.append({"lineNumber": n, "text": row.raw_text[:500],
+                                    "truncated": len(row.raw_text) > 500})
+            selected.append({"sourceFile": r.source_file, "lineNumber": r.line_number,
+                             "timestamp": r.timestamp_raw, "message": r.raw_text.strip()[:500],
+                             "signature": ", ".join(r.signatures),
+                             "observedPath": next(iter(r.observed_paths), ""),
+                             "sourceContext": context, "sourceContextOrigin": "extracted_source_excerpt"})
+        return selected
     items: List[Dict[str, object]] = []
     for entry in files:
         count = 0
