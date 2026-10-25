@@ -127,3 +127,79 @@ Verify actual Dashboard upload → evidence → reload → reopen against the is
 HTTP/PostgreSQL harness, then document its differences from installed EIMS.
 Owner reviews three priority cases when available. Freeze a reviewed protocol
 before heldout evaluation; never retune after observing heldout scores.
+
+## Executed checkpoint results
+
+Frozen Analyzer/evaluator source: **ee8cb7c9e9497960fdc7aea02f7e23eb88a6792d**.
+PR: https://github.com/Ratthabhumi/EIMS/pull/4 (base PR #3). New final report and
+artifact commits do not change Analyzer behavior. Final-head CI is linked in
+the PR description; the source checkpoint's three jobs passed in
+https://github.com/Ratthabhumi/EIMS/actions/runs/40151271893 .
+
+| Verification | Actual result | Boundary |
+|---|---|---|
+| Combined five-file regression | **217 passed, 1 skipped**, 6 warnings, 6.66 seconds | Existing Windows symlink privilege skip; dependency and utcnow deprecations remain visible |
+| Dedicated PostgreSQL/JWT suite | **12 passed**, no skips | Synthetic real DB, savepoint rollback, no auth dependency override |
+| Full native evaluation | 12 DRAFT, 0 reviewed/heldout, 0 errors | Same evaluator/annotation hashes as controlled-after; no Gold accuracy |
+| Native citation coordinates | 4 TP / 0 FP / 0 FN | Precision 4/4, recall 4/4 against DRAFT, not semantic support |
+| Claim grounding | 135 emitted, 0 reviewed | Semantic support / unsupported rate remain null |
+| Dashboard local build | Passed compile, TypeScript and 12 routes | Clean local dependency install after rejected external junction |
+| Real Dashboard HTTP upload | Passed two-file upload, MEDIUM association, source expansion | Synthetic JWT supplied by browser test context, real verification on isolated API |
+| History after page reload | Passed fresh request and exact stored summary equality | Independent API request/session, actual PostgreSQL commit; browser rows retained |
+| Browser evidence usability | Enter-key expansion, back focus, highlighted source, dark/light passed | Actual production component/page in isolated build, not a mock response |
+| Browser/network errors | 0 page exceptions, 0 external requests | Four /api/v1/health HTTP 404 responses: harness omits operational health; no green health claim |
+
+Screenshots were visually inspected: bounded context wraps, exact line is visible
+and highlighted in both themes. Published synthetic-only images and machine-readable
+browser summary are under [evidence/20261025-dashboard](evidence/20261025-dashboard/).
+Local XML remains under ignored test-results; CI retains JUnit for 30 days.
+
+Important installed-system gap: this Dashboard currently has no verified secure
+login/token propagation workflow. Browser automation supplies a valid synthetic
+bearer header; that proves real JWT verification, not a completed human login UI.
+Without that header, the secure test API correctly returns 401. The original
+installed app/authentication and operational PostgreSQL remain unchanged and are
+not certified by this test. An actual user acceptance run after authorized
+integration/deployment remains a distinct milestone.
+
+## Reproduce without operational services
+
+Prerequisites: existing Docker image pgvector/pgvector:pg16; Python environment
+with requirements-evaluation.txt and pytest; Node dashboard dependencies; Edge
+and Playwright for optional browser QA. No model download or new vendor service.
+Use a new dedicated container or reuse only the labelled test container. Never
+substitute operational URL settings. Synthetic test credentials are public fixtures.
+
+```powershell
+$env:EIMS_TEST_DATABASE_URL='postgresql+asyncpg://eims_test:eims_synthetic_only@127.0.0.1:55439/eims_integration_test'
+python -m pytest tests/test_analyzer_reliability.py tests/test_analyzer_evaluation.py tests/test_analyzer_investigation.py tests/test_analyzer_integration_stability.py tests/test_analyzer_postgres_integration.py -q
+python -m uvicorn tests.analyzer_synthetic_demo_app:app --host 127.0.0.1 --port 8019
+```
+
+In the dashboard directory, build with NEXT_PUBLIC_EIMS_API_URL set to
+http://127.0.0.1:8019, then start with `npm run start -- --hostname 127.0.0.1
+--port 3009`. The browser verifier runs from repository root:
+`node tools/verify_dashboard_integration.cjs`; EIMS_PLAYWRIGHT_MODULE may identify
+an existing Playwright installation. It uses installed Edge without downloading a
+browser, restricts page requests to the two loopback ports, uploads only the
+existing synthetic hero and saves reports to test-results. Its valid bearer token
+is a public synthetic test fixture, never a production credential.
+
+Do not run the PostgreSQL rollback suite concurrently with browser writes into
+the same test database: its global before/after row-count assertion assumes no
+other writer. No original Docker service was stopped or modified. Test container
+and its synthetic browser History are retained separately; no operational rows
+or generated installed History were deleted.
+
+## Research application delta
+
+| Principle from prior research | Newly implemented / validated | Still missing |
+|---|---|---|
+| Findings must trace to source | Actual Dashboard expands persisted bounded normalized evidence; History roundtrip | Complete original file retention is deliberately absent; legacy context may be unavailable |
+| Repeatable rule tests | Concurrency, config, outcome and citation regressions plus real PostgreSQL CI | Independently reviewed positive/negative cohort |
+| Identity is not causal proof | Generic cause fallback no longer asserts unsupported job failure | Windows taxonomy and environment-specific KB applicability need primary-source research/review |
+| Metadata preserves source identity | Sanitized filename collisions rejected before provenance mapping | Installed secure login/user workflow and release acceptance |
+
+No additional vendor claim was researched or asserted this round. Send the
+existing bounded Research handoff to ChatGPT; implementation work does not
+pretend to replace independent human adjudication.

@@ -1,0 +1,37 @@
+const {chromium}=require(process.env.EIMS_PLAYWRIGHT_MODULE || 'playwright');
+const crypto=require('crypto');const fs=require('fs');
+fs.mkdirSync('test-results',{recursive:true});
+const enc=x=>Buffer.from(JSON.stringify(x)).toString('base64url');
+const unsigned=enc({alg:'HS256',typ:'JWT'})+'.'+enc({sub:'synthetic-browser-review',exp:Math.floor(Date.now()/1000)+1800});
+const token=unsigned+'.'+crypto.createHmac('sha256','synthetic-integration-signing-key-only-20261025').update(unsigned).digest('base64url');
+(async()=>{
+ const browser=await chromium.launch({channel:'msedge',headless:true,args:['--disable-background-networking','--no-first-run']});
+ const context=await browser.newContext({viewport:{width:1400,height:1000},extraHTTPHeaders:{Authorization:'Bearer '+token}});
+ let blocked=0;const errors=[];const failed=[];
+ await context.route('**/*',r=>{let u=new URL(r.request().url());if(['localhost','127.0.0.1'].includes(u.hostname)&&['3009','8019'].includes(u.port))return r.continue();blocked++;return r.abort()});
+ const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)failed.push({path:new URL(r.url()).pathname,status:r.status()})});
+ await page.goto('http://localhost:3009/analyzer');await page.getByRole('button',{name:'Evidence Bundle',exact:true}).click();
+ for(const select of await page.locator('select').all())if(await select.locator('option[value="en"]').count())await select.selectOption('en');
+ const root=require('path').resolve('evaluation/analyzer/results/20261025-controlled-demo-after')+'/';
+ await page.locator('input[type=file][multiple]').setInputFiles([root+'a-veeam.txt',root+'b-vmware.txt']);
+ const responsePromise=page.waitForResponse(r=>r.url().endsWith('/api/v1/analyze/bundle')&&r.request().method()==='POST');
+ await page.getByRole('button',{name:'Analyze Log',exact:true}).click();const response=await responsePromise;if(response.status()!=200)throw Error(await response.text());
+ const result=await response.json();fs.writeFileSync('test-results/browser-created-result.json',JSON.stringify(result));
+ const summary=page.locator('details summary').first();await summary.waitFor();await summary.focus();await page.keyboard.press('Enter');
+ if(!await page.locator('details').first().evaluate(e=>e.open))throw Error('Keyboard expansion failed');
+ if(!await page.locator('mark').first().isVisible())throw Error('No highlighted source');
+ await page.screenshot({path:'test-results/dashboard-evidence-light.png',fullPage:false});
+ await page.getByRole('button',{name:'Back to finding',exact:true}).first().click();
+ if(await page.locator('details').first().evaluate(e=>e.open))throw Error('Back did not close'); if(!await summary.evaluate(el=>document.activeElement===el))throw Error('Focus did not return');
+ await page.reload();const record=page.getByText('Analyzed Log',{exact:true}).first();await record.waitFor();await record.click();
+ await page.locator('details summary').first().waitFor();await page.locator('details summary').first().click();
+ if(!await page.locator('mark').first().isVisible())throw Error('History source context absent');
+ await page.evaluate(()=>document.documentElement.classList.add('dark'));
+ await page.screenshot({path:'test-results/dashboard-evidence-dark-history.png',fullPage:false});
+ const history=await context.request.get('http://127.0.0.1:8019/api/v1/history/');const rows=await history.json();
+ const stored=rows.find(r=>r.id===result.historyId);if(JSON.stringify(stored.solutionSummary)!==JSON.stringify(result.solutionSummary))throw Error('Stored source mismatch');
+ if(errors.length)throw Error(errors.join(';'));
+ fs.writeFileSync('test-results/dashboard-browser-report.json',JSON.stringify({historyId:result.historyId,upload:true,keyboardExpansion:true,sourceHighlight:true,backFocus:true,reloadReopen:true,persistedSummaryEquality:true,darkLightScreenshots:true,blockedExternalRequests:blocked,pageErrors:errors,otherHttpFailures:failed},null,2));
+ console.log(fs.readFileSync('test-results/dashboard-browser-report.json','utf8'));await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});
+

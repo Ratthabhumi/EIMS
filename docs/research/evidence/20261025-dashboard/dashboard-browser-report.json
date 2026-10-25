@@ -1,0 +1,30 @@
+{
+  "historyId": 15,
+  "upload": true,
+  "keyboardExpansion": true,
+  "sourceHighlight": true,
+  "backFocus": true,
+  "reloadReopen": true,
+  "persistedSummaryEquality": true,
+  "darkLightScreenshots": true,
+  "blockedExternalRequests": 0,
+  "pageErrors": [],
+  "otherHttpFailures": [
+    {
+      "path": "/api/v1/health",
+      "status": 404
+    },
+    {
+      "path": "/api/v1/health",
+      "status": 404
+    },
+    {
+      "path": "/api/v1/health",
+      "status": 404
+    },
+    {
+      "path": "/api/v1/health",
+      "status": 404
+    }
+  ]
+}
