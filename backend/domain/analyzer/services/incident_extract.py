@@ -148,7 +148,6 @@ _FAMILY_NEXT_EVIDENCE: Dict[str, List[str]] = {
         "Veeam Task log (Export Logs from %ProgramData%\\Veeam\\Backup)",
         "Veeam Job session log",
         "Agent/component log from the relevant Veeam component",
-        "vmware.log / hostd.log when a VMware operation is implicated",
     ],
     "vmware": [
         "VM vmware.log",
@@ -158,7 +157,7 @@ _FAMILY_NEXT_EVIDENCE: Dict[str, List[str]] = {
         "Full Event Viewer export (.evtx) around the failure time",
     ],
     "fortinet": ["Complete FortiGate event fields and product/version context"],
-    "cisco_asa": ["Full ASA syslog segment with connection teardown lines"],
+    "cisco_asa": ["Full ASA event fields and product/version context"],
     "linux_syslog": ["journalctl segment for the affected service"],
     "json": ["Complete structured event payload"],
     "unknown_text": ["Original file plus a note about which product emitted it"],
@@ -328,7 +327,10 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
                       "could not delete change tracking file" in r.raw_text.lower() for r in failures)
     if ctk_failure:
         unknowns.append("Cause of the observed change-tracking deletion failure is unknown")
-        if not _SESSION_FAILED_RE.search(signal_text):
+        explicit_outcome = re.search(
+            r"(?:task|job)\s+session\b.*?has\s+been\s+completed\s*,?\s*status\s*:\s*['\"]?(?:failed|success|succeeded|warning)\b",
+            '\n'.join(r.raw_text for r in records), re.I)
+        if not explicit_outcome:
             unknowns.append("Final backup/job outcome is not present in this evidence")
     domains = {timestamp_domain(r.timestamp_raw, r.timestamp_kind)
                for r in failures + warnings if r.timestamp_key is not None}
@@ -366,6 +368,8 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
     if ctk_failure:
         next_evidence += ["Read-only datastore file listing for the observed CTK operation",
                           "Explicit final backup/job status and VMware product/version"]
+        if source_family != 'vmware':
+            next_evidence += ['VM vmware.log and ESXi hostd.log for the observed CTK operation']
     if source_family == 'fortinet' and records and all(_is_successful_fortinet_configuration(r.raw_text) for r in records if r.raw_text.strip()):
         next_evidence = ["Configuration audit fields cfgpath/cfgattr, actor, device context and FortiOS version if audit detail is required"]
 

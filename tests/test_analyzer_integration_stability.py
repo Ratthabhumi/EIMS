@@ -201,6 +201,14 @@ def test_windows_identity_does_not_invent_a_missing_connectivity_message():
     assert observed_event_summary('1129','Unrelated','windows_event','domain controller connectivity failed','en') is None
 
 
+@pytest.mark.parametrize('outcome',['Success','Failed','Warning'])
+def test_explicit_outcome_is_not_described_as_missing_after_ctk_failure(outcome):
+    from backend.domain.analyzer.services.incident_extract import extract_incident
+    text='2026-10-25T10:00:00Z CTK_CTKUNLINK result:2620\n'+f"2026-10-25T10:02:00Z Job session 'synthetic' has been completed, status: '{outcome}'"
+    result=extract_incident(text,'veeam_vbr')
+    assert not any('outcome is not present' in item for item in result['unknowns'])
+
+
 def test_secure_mode_never_reads_or_publishes_unowned_history_vectors(monkeypatch):
     import asyncio
     from backend.domain.analyzer.services import vector_db
