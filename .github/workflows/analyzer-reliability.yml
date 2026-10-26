@@ -93,3 +93,21 @@ jobs:
       - name: Session route and PDF injection regressions
         working-directory: .
         run: node tools/test_session_proxy.cjs
+
+  telemetry-reliability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install reliability test dependencies
+        run: pip install -r requirements-evaluation.txt pytest
+      - name: Hermetic telemetry broker and worker fault injection
+        run: python -m pytest tests/test_telemetry_fail_closed.py tests/test_telemetry_broker.py tests/test_telemetry_worker.py -q --junitxml=test-results/telemetry-reliability.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: telemetry-reliability-${{ github.event.pull_request.head.sha || github.sha }}
+          path: test-results/telemetry-reliability.xml
+          retention-days: 30
