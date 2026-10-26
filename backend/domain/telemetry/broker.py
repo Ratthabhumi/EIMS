@@ -10,6 +10,8 @@ from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from typing import Any
 
+from fastapi import HTTPException, status
+
 from backend.core.logger import get_logger
 from backend.domain.telemetry.schemas import (
     AgentHeartbeatRequest,
@@ -78,12 +80,19 @@ class RedisTelemetryStreamBroker(AbstractTelemetryBroker):
                 )
                 logger.debug(f"Telemetry stream ingestion accepted: sequence ID={stream_id}")
                 return StreamIngestionResponse(status="accepted", stream_job_id=str(stream_id))
-            except Exception as e:
-                logger.error(f"Redis Stream XADD Failure on '{TELEMETRY_STREAM_KEY}': {e}. Transitioning to degraded fallback buffer.")
+            except Exception:
+                logger.exception("Redis Stream XADD failed; ingestion was not confirmed")
+        else:
+            logger.error("Redis Stream client unavailable; ingestion was not attempted")
 
-        # Degraded fallback response when Redis connection pipe is disconnected or running offline in integration tests
-        fallback_id = f"fallback-{int(datetime.now(UTC).timestamp() * 1000)}-0"
-        return StreamIngestionResponse(status="accepted", stream_job_id=fallback_id)
+        # Never fabricate an accepted job ID when Redis did not confirm a write.
+        # The client may safely retry, but a network timeout after XADD may have
+        # persisted the event; idempotency remains a separate delivery concern.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Telemetry ingestion temporarily unavailable",
+            headers={"Retry-After": "5"},
+        )
 
     async def publish_heartbeat(self, payload: AgentHeartbeatRequest, cert_fingerprint: str) -> StreamIngestionResponse:
         return await self._publish_to_stream("heartbeat", payload.model_dump_json(), cert_fingerprint)
