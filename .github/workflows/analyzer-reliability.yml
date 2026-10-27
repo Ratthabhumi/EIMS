@@ -111,5 +111,7 @@ jobs:
         if: always()
         with:
           name: telemetry-reliability-${{ github.event.pull_request.head.sha || github.sha }}
-          path: |\n            test-results/telemetry-reliability.xml\n            test-results/compose-security.json
+          path: |
+            test-results/telemetry-reliability.xml
+            test-results/compose-security.json
           retention-days: 30
