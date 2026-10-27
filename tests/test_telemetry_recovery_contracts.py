@@ -74,7 +74,13 @@ async def test_restart_after_sql_commit_before_ack_does_not_duplicate(monkeypatc
 
     before_crash = _consumer(broker, fingerprint, message)
     before_crash._persist_batch = AsyncMock(side_effect=persist)
-    assert await before_crash.process_batch() == 1
+    before_crash._ack_and_trim = AsyncMock(
+        side_effect=RuntimeError("synthetic crash after SQL commit")
+    )
+    with pytest.raises(RuntimeError, match="synthetic crash after SQL commit"):
+        await before_crash.process_batch()
+    assert len(persisted_ids) == 1
+    assert before_crash._last_id == "0-0"
 
     # Fresh worker has no durable cursor; same Redis entry is replayed.
     after_restart = _consumer(broker, fingerprint, message)
