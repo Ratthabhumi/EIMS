@@ -93,3 +93,29 @@ Source references:
 ## Graduation project scope
 
 The Analyzer and Human Gold evaluation remain the primary academic work. Redis safety issues should be addressed via focused regression PRs without replacing the EIMS stack or deploying a new cloud. No Gold annotations or research baselines are modified here.
+
+## Continuation — 2026-10-27 (source audit, no deployment)
+
+### New isolated verification
+
+- `tests/test_telemetry_recovery_contracts.py` adds one synthetic SQL-rollback/restart test and two `xfail(strict=True)` contracts: replay after SQL commit before ACK, and ACK failure swallowed by the current worker. **Expected failures are unresolved risks, not green reliability guarantees.** A strict XPASS should break CI and prompt review.
+- `tools/audit_compose_security.py` adds a deterministic, secret-redacted static report. `--mode dev` returns success with findings, so it does not break the existing development stack; `--mode secure` fails on high-severity findings for a future approved profile. `tests/test_compose_security_audit.py` covers actual dev risk signatures, a synthetic safe pattern, and no secret-value leakage.
+- The existing telemetry CI job runs these hermetic tests and emits `test-results/compose-security.json`. This is a **static inventory**, not a Docker vulnerability scan or deployment verification.
+- Previously verified PR #6 RED→GREEN run at `2ed4bb5e6fc7b312c389477ceb9e481398a7d848`: https://github.com/Ratthabhumi/EIMS/actions/runs/40263364146 (4/4 jobs). Subsequent changes require their own exact-head CI check.
+
+### Additional source-level integration risk
+
+**R5 — EVTX binary upload queueing (high, NOT runtime tested).** `backend/domain/telemetry/controller.py::upload_windows_evtx` writes a file to MinIO, then accesses `broker.cache_manager.redis.lpush(...)`. `RedisTelemetryStreamBroker` defines `self._cache`, not `cache_manager`; `StubTelemetryStreamBroker` does not expose this property either. This appears to raise `AttributeError` after object upload rather than returning a queued task ID. Even after correcting the property, object-store write plus Redis queue write are not atomic: failed queueing can leave orphaned objects. This needs a separate test-first, fail-closed upload contract; do not claim physical EVTX ingestion passes.
+
+### Observability configuration detail
+
+`deployments/observability/prometheus.yml` scrapes `host.docker.internal:8000` for FastAPI and `localhost:9090` for Prometheus. The former hostname is environment-dependent and no runtime target-UP evidence exists. `backend/main.py` exposes `/metrics`, but no EIMS Loki shipper or Grafana datasource/dashboard provisioning was demonstrated in the inspected deployment configuration. Declaring three images in Compose is not end-to-end observability.
+
+### Delivery semantics gate before production
+
+1. Decide the explicit service-level guarantee (at-least-once with SQL deduplication is a pragmatic default) and define whether each accepted event survives crash, restart, and retention.
+2. Use a synthetic Redis/PostgreSQL CI service to test `XREADGROUP` + pending reclaim (`XAUTOCLAIM` or equivalent), with a stable stream ID persisted under a unique constraint in the SQL transaction. Test both crash windows and concurrent workers.
+3. Make poison-message policy explicit (retry count, DLQ, alerting, operator replay); do not silently `XTRIM` unprocessed entries.
+4. Measure backlog, pending-age, trim loss, queue errors, Redis persistence lag, and SQL commit/ACK order before approving a secure profile.
+
+**Authorization boundary:** all new checks here operate on repository text and synthetic CI only. No production data, running Docker, network equipment, physical USB, secret rotation, or cloud changes.
