@@ -1,0 +1,67 @@
+"""Hermetic static Compose audit tests; no Docker daemon or service access."""
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import yaml
+
+from tools.audit_compose_security import audit_compose
+
+ROOT = Path(__file__).resolve().parents[1]
+DEV_COMPOSE = ROOT / "docker-compose.yml"
+SCANNER = ROOT / "tools" / "audit_compose_security.py"
+
+
+def test_current_dev_compose_has_explicit_security_findings():
+    document = yaml.safe_load(DEV_COMPOSE.read_text(encoding="utf-8"))
+    findings = audit_compose(document)
+    rules = {item["rule"] for item in findings}
+    assert {
+        "NON_LOOPBACK_PORT",
+        "INLINE_SECRET",
+        "IMAGE_UNPINNED",
+        "PUBLIC_OBJECT_BUCKET",
+        "REDIS_AUTH_UNVERIFIED",
+    }.issubset(rules)
+    assert any(f["service"] == "minio_setup" and f["rule"] == "PUBLIC_OBJECT_BUCKET" for f in findings)
+    assert any(f["service"] == "redis_cache" and f["rule"] == "REDIS_AUTH_UNVERIFIED" for f in findings)
+
+
+def test_secure_pattern_with_loopback_and_external_secrets_is_not_flagged():
+    safe = yaml.safe_load("""
+services:
+  postgres_db:
+    image: pgvector/pgvector:pg16
+    ports: ["127.0.0.1:5432:5432"]
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+  redis_cache:
+    image: redis:7-alpine
+    command: ["redis-server", "--aclfile", "/run/secrets/redis.acl"]
+  minio_setup:
+    image: minio/mc:RELEASE.2026-01-01T00-00-00Z
+    entrypoint: "mc mb eims_local/private-bucket --ignore-existing"
+""")
+    assert audit_compose(safe) == []
+
+
+def test_secure_mode_fails_closed_without_leaking_values(tmp_path):
+    compose = tmp_path / "unsafe.yml"
+    compose.write_text("""
+services:
+  redis_cache:
+    image: redis:latest
+    ports: ["6379:6379"]
+    environment:
+      REDIS_PASSWORD: "do-not-print-this-value"
+""", encoding="utf-8")
+    cmd = [sys.executable, str(SCANNER), "--compose", str(compose)]
+    dev = subprocess.run(cmd + ["--mode", "dev"], capture_output=True, text=True, check=False)
+    secure = subprocess.run(cmd + ["--mode", "secure"], capture_output=True, text=True, check=False)
+    assert dev.returncode == 0
+    assert secure.returncode == 1
+    report = json.loads(secure.stdout)
+    assert report["finding_count"] >= 3
+    assert "do-not-print-this-value" not in secure.stdout
+    assert "do-not-print-this-value" not in secure.stderr
