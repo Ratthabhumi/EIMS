@@ -104,7 +104,7 @@ jobs:
       - name: Install reliability test dependencies
         run: pip install -r requirements-evaluation.txt pytest
       - name: Hermetic telemetry recovery and Compose security contracts
-        run: python -m pytest tests/test_telemetry_fail_closed.py tests/test_telemetry_broker.py tests/test_telemetry_worker.py tests/test_telemetry_recovery_contracts.py tests/test_compose_security_audit.py tests/test_evtx_queue_fail_closed.py -q -rx --junitxml=test-results/telemetry-reliability.xml
+        run: python -m pytest tests/test_telemetry_fail_closed.py tests/test_telemetry_broker.py tests/test_telemetry_worker.py tests/test_telemetry_recovery_contracts.py tests/test_compose_security_audit.py tests/test_evtx_queue_fail_closed.py tests/test_evtx_worker_fault_contracts.py -q -rx --junitxml=test-results/telemetry-reliability.xml
       - name: Read-only development Compose security inventory
         run: python tools/audit_compose_security.py --mode dev --output test-results/compose-security.json > /dev/null
       - uses: actions/upload-artifact@v4
