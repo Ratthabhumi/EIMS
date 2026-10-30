@@ -65,3 +65,81 @@ services:
     assert report["finding_count"] >= 3
     assert "do-not-print-this-value" not in secure.stdout
     assert "do-not-print-this-value" not in secure.stderr
+
+
+def test_host_network_privileged_and_docker_socket_are_high_risk():
+    """No published ports are required for host networking or daemon access."""
+    compose = yaml.safe_load("""
+services:
+  unsafe:
+    image: busybox:1.36
+    network_mode: host
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+""")
+    findings = audit_compose(compose)
+    rules = {f["rule"] for f in findings}
+    assert {"HOST_NETWORK", "PRIVILEGED_CONTAINER", "DOCKER_SOCKET_MOUNT"}.issubset(rules)
+    assert all(f["severity"] == "high" for f in findings)
+
+
+def test_long_syntax_docker_socket_and_host_pid_are_detected():
+    compose = yaml.safe_load("""
+services:
+  unsafe:
+    image: busybox:1.36
+    pid: host
+    volumes:
+      - type: bind
+        source: /run/docker.sock
+        target: /tmp/engine.sock
+        read_only: true
+""")
+    assert {"HOST_PID", "DOCKER_SOCKET_MOUNT"}.issubset(
+        {f["rule"] for f in audit_compose(compose)}
+    )
+
+
+def test_unresolved_include_and_extends_fail_closed_without_echoing_paths(tmp_path):
+    marker = "synthetic-secret-filename-not-to-print"
+    compose = tmp_path / "indirect.yml"
+    compose.write_text(f"""
+include:
+  - {marker}.yml
+services:
+  inherited:
+    image: busybox:1.36
+    extends:
+      file: {marker}-base.yml
+      service: parent
+""", encoding="utf-8")
+    findings = audit_compose(yaml.safe_load(compose.read_text(encoding="utf-8")))
+    assert {"UNRESOLVED_INCLUDE", "UNRESOLVED_EXTENDS"}.issubset(
+        {f["rule"] for f in findings}
+    )
+    cmd = [sys.executable, str(SCANNER), "--compose", str(compose), "--mode", "secure"]
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    assert result.returncode == 1
+    assert marker not in result.stdout
+    assert marker not in result.stderr
+
+
+def test_ordinary_named_volume_and_bridge_network_are_not_false_positives():
+    safe = yaml.safe_load("""
+services:
+  ordinary:
+    image: busybox:1.36
+    network_mode: bridge
+    privileged: false
+    volumes:
+      - app_data:/var/lib/app
+      - ./config:/etc/app:ro
+      - type: volume
+        source: app_cache
+        target: /cache
+volumes:
+  app_data: {}
+  app_cache: {}
+""")
+    assert audit_compose(safe) == []
