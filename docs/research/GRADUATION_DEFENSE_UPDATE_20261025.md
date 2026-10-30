@@ -1,3 +1,13 @@
+## Graduation delivery — 30 October 2026
+
+Current scope/experiment boundaries and owner tasks:
+[GRADUATION_DELIVERY_20261030.md](GRADUATION_DELIVERY_20261030.md).
+Core Analyzer frozen; tenancy/WSS/new model work deferred. Priority review packet hashes
+verified unchanged; supplementary nine-case packet added. No human decisions invented.
+Populated synthetic parent-upgrade test added; local run skipped because DB is stopped.
+Use delivery PR exact-head CI for its executed result. Prior test counts below are historical.
+No trusted browser listener available; operator runbook replaces repeated startup attempts.
+
 ## Current checkpoint — 26 October 2026 publication
 
 This update supersedes historical status below; historical measurements remain intact.

@@ -1,0 +1,13 @@
+{
+  "status": "PASS_HASH_BINDING_ONLY",
+  "prediction_snapshot": "20261026-terminal-scope-full",
+  "priority_packet_hashes": {
+    "esxi_tracker": "08293285d5963efc5e1ec92fe9ef8f20b66a0b493997fa1e92ca4b8a94d8297f",
+    "fort_config": "5d62582aac1a705c564407b857c7fe88c09a18a837a26afd27c49624c40ec00f",
+    "win_policy": "5a047c3db1b5286fd0eea387a798756b8fad762cc6db16bee4dfab3270fdf075"
+  },
+  "human_judgments": 0,
+  "reviewed_cases": 0,
+  "draft_cases": 12,
+  "claims": 77
+}
