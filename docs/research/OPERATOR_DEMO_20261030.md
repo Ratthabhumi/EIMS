@@ -1,3 +1,17 @@
+## Runtime/RC update — 31 ตุลาคม 2026
+
+Release source/fixtures/dependencies: `RELEASE_CANDIDATE_20261031.json`; final CI อ้างอิง PR #10 body. Harness ต้องระบุ EIMS_TEST_BROWSER_BASE_URL เป็น HTTPS origin ที่ได้รับอนุญาตและ certificate trusted เท่านั้น ไม่มี default URL และไม่รับ EIMS_TEST_IGNORE_TLS_ERRORS=1. เตรียม Playwright/Edge ก่อน execute; config/syntax checks ไม่ต้องมี browser. Test replay ใช้ cookie ที่ real login ออกให้เฉพาะ HTTP negative probe; ไม่ใส่ JWT ใน browser storage. ห้ามส่ง cookie/token เป็นหลักฐาน. Browser ยังคง BLOCKED_NOT_TESTED จนรันจริง.
+
+คำสั่งรับ human review บน **working copy** เท่านั้น หลังคนตรวจจริง (replace ACTUAL_ALIAS):
+
+```powershell
+Copy-Item -LiteralPath evaluation/analyzer/gold -Destination test-results/review-working-copy-UNIQUE -Recurse
+python tools/review_analyzer_case.py --manifest test-results/review-working-copy-UNIQUE/manifest.v1.json --annotations-v2 test-results/review-working-copy-UNIQUE/manifest.v2.dev-draft.json --case-id fort_config --reviewer-id ACTUAL_ALIAS --confirm-human-review
+python tools/eval_analyzer.py --manifest test-results/review-working-copy-UNIQUE/manifest.v1.json --annotations-v2 test-results/review-working-copy-UNIQUE/manifest.v2.dev-draft.json --mode full_investigation --split dev --grounding-reviews ACTUAL_JUDGMENTS.json --output test-results/reviewed-pilot-UNIQUE
+```
+
+เลือก destination ใหม่ที่ยังไม่มี; ตรวจ/แก้ label สำเนาตามคำตัดสินจริงก่อนบันทึก. ทำซ้ำคำสั่ง review เฉพาะเคสที่ตรวจแล้ว (esxi_tracker/win_policy); judgments ต้องตรง cohort/hash และใช้ queue schema เดิม. เก็บเวลา/คำยืนยันจริงแยก provenance. ไม่รันคำสั่งเหล่านี้แทนคนหรือปรับ DRAFT ต้นฉบับ.
+
 ## เพิ่ม negative control สำหรับเดโมรอบล่าสุด
 
 ใช้ `evaluation/analyzer/gold/cases/esxi_heartbeat/` หรือ bundle_related จาก frozen manifest. คำตอบต้องไม่สั่งค้น primary error line: ไม่พบ failure ในข้อมูลที่ให้มา ไม่ได้ยืนยันระบบทั้งหมดปกติ และต้องมี completion record ของ session ที่เกี่ยวข้องก่อนยืนยันผลจบ. เปิด History แล้วข้อความต้องตรงกัน. หากยังไม่มี approved HTTPS runtime ให้แสดง offline snapshot พร้อมบอกขอบเขต ไม่อ้างว่า UI ผ่าน. ผลใหม่อยู่ `20261030-recommendation-full_investigation`; priority 3 packet ใช้เดิม, อีก 8 เคสใช้ delta packet.
@@ -57,8 +71,7 @@ node tools/verify_secure_dashboard.cjs
 Script ใช้ actual login ของ named synthetic users; ไม่ใส่ bearer ให้ browser เอง.
 เก็บ `test-results/secure-browser-acceptance.json` และ light/dark screenshots.
 Script ครอบคลุม bundle, cookie, History reload, second user, logout และ expiry;
-ยังต้องตรวจ **Windows raw-text UI, copied cookie replay หลัง logout, back navigation**
-เพิ่มเติมด้วยตนเองก่อนประกาศครบ required flow. อย่าส่ง cookie/token กลับมาในรายงาน.
+harness รอบ 31 ต.ค. เพิ่ม copied-cookie replay หลัง logout, back/forward/reload และพิกัด source แล้ว แต่ยังไม่ได้ execute บน runtime จริง; **Windows raw-text UI** ยังต้องตรวจเพิ่มเติมด้วยตนเองก่อนประกาศครบ required flow. อย่าส่ง cookie/token กลับมาในรายงาน.
 หาก prerequisite ขาด ให้หยุดและส่ง error ที่ปกปิดข้อมูลสำคัญ ไม่ลองเปลี่ยน policy.
 
 ## สคริปต์เดโม 5 นาที

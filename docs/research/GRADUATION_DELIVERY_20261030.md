@@ -1,3 +1,31 @@
+## Release Candidate Closure — 31 ตุลาคม 2026
+
+Starting HEAD `70c9c5ef940a84477c3b52f554059852642406aa`. Implementation source และ dependency/fixture hashes: [RELEASE_CANDIDATE_20261031.json](RELEASE_CANDIDATE_20261031.json). Final publication HEAD, CI run และ tested synthetic checkout บันทึกใน [PR #10](https://github.com/Ratthabhumi/EIMS/pull/10) หลัง CI เสร็จ; baseline CI ใน manifest ไม่ใช่ผลของ harness ใหม่.
+
+ไม่มี production defect ใหม่ที่ reproduce จาก integration audit จึงไม่เปลี่ยน Analyzer/auth/UI/DB หรือสร้าง snapshot ใหม่. เปลี่ยนเฉพาะ browser acceptance harness และ CI: require explicit HTTPS origin, ปฏิเสธ credentials/path/query/TLS bypass, เพิ่ม cookie replay ที่ได้จาก real login หลัง logout, protected API, back/forward/reload และ exact source coordinates. ตรวจ config แบบ offline 5 invalid + 1 valid, syntax PASS, BFF/PDF 18 PASS; **ไม่ได้ execute browser assertions**. Import harness เดิมล้มเหลวเพราะบังคับโหลด Playwright แม้ต้องการตรวจ config; แยก import-safe config ออกจาก runtime แล้ว. ไม่อ้างเป็น reproduced application vulnerability.
+
+| Flow / invariant | Implementation | Existing test / boundary | Gap / outcome |
+|---|---|---|---|
+| Login / revoked session / logout | auth.py, session_security.py, AnalyzerSession.tsx | test_login_logout_revokes_copied_token_only; test_session_invalidated_by_lifecycle_boundaries; test_session_proxy.cjs | Real PostgreSQL/ASGI + synthetic BFF handlers covered; browser replay/navigation prepared only |
+| Upload size/count/source | analyze.py, parser/evidence services | test_invalid_bundle_is_rejected_without_persistence; bundle limits/source classification tests | Existing coverage reused |
+| Fortinet/CTK/1129, no-failure and unrelated bundles | observed_summary.py, summary.py, incident_extract.py | test_full_pipeline_really_runs_route_synthesis_and_memory_history; test_no_failure_recommendations_and_reopened_history; reliability/counterexample suite | Native route with offline dependencies; no new output change |
+| API serialization and hypotheses/UNKNOWN | analyze.py, schemas/analyze.py | test_full_route_parity_against_isolated_fastapi_transport | Native ↔ isolated ASGI parity; not browser |
+| Evidence/viewer/legacy data | evidence.py, EvidenceSourceReview.tsx | test_source_inspector_bounds_escapes_and_reports_missing_history_source; PostgreSQL bundle/legacy test | React escaped text/native details; keyboard/theme visually NOT_TESTED here |
+| PostgreSQL commit/reopen and file identity | history.py | test_real_postgres_upload_commit_reopen_and_ownership; test_real_postgres_bundle_history_and_legacy_fields; test_no_failure_postgres_history_reopen | API JSON and saved structured/narrative fields covered; browser reload prepared |
+| Alternate-user access / search / feedback / exports | auth/history/search/obsidian routes | ownership, owner-scoped feedback/search, shared route negative tests; export admin dependency | Deny-by-default preserved; no full tenant claims |
+| Redaction and PDF rendering | privacy services, AnalyzerHistoryList/page PDF templates | test_sensitive_credentials_are_not_returned_or_persisted; 18 BFF/PDF checks | Stored response and escaped template covered; physical/export deployment NOT_TESTED |
+| Scientific reviewed-only binding | existing runner/grounding/review CLI | test_existing_review_pipeline_end_to_end_test_only and stale/duplicate/empty assertion tests | Synthetic temporary review only, real reviewed count still 0 |
+
+Freeze verification (UTF-8 decoding explicit): manifest/input/annotation/scorer/runner/grounding/investigation hashes match snapshot config; recomputed 12 prediction hashes (exclude only prediction_sha256/timing_seconds), regenerated in-memory claim queue equals 60 saved proposals; priority 3 and delta 8 hashes present in packets. No HELDOUT execution/tuning. M0/M1/Full snapshots remain unchanged. 12 DEV DRAFT, 5 HELDOUT reserved, 60 claims, 0 genuine cases/claims reviewed; accuracy, semantic support precision and unsupported-claim rate NOT_MEASURED.
+
+Local full hermetic: 281 PASS, 1 Windows symlink privilege SKIP, 2 dependency deprecation warnings. Final-head CI runs Python/PostgreSQL, counterexamples and frontend checks. No dedicated local test DB or forbidden runtime was started.
+
+GitHub refresh: #2/#3/#4/#5/#10 MERGEABLE with no review decision; main protection returned 404 Branch not protected, rulesets empty. These do not authorize merge. Technical sequence: #2→main; retarget #3→main and recheck diff/CI; repeat #4, #5, #10. Preserve original refs, inspect changed base and review before each merge. Infra #6–#9 stays separate; four recovery XFAILs remain outside this closure. No schema change here. Before operational rollback, operator must verify backup/config/source compatibility; never automatically downgrade/reset/delete History. Python requirements use ranges: manifest records local versions plus frontend lock, not identical CI/deployment environments.
+
+Owner-only: authentic review of fort_config/esxi_tracker/win_policy; approved trusted HTTPS Dashboard+BFF + isolated synthetic backend/DB/accounts; merge approval after gates; separate operational/USB authorization if that scope is wanted. Existing offline demo is the fallback, not installed-system acceptance. No new vendor research question arose; ChatGPT research conclusions remain implemented with tests, independent diagnostic quality still unmeasured.
+
+Next milestone: submit three genuine reviewed cases with exact hashes, rationale and claim judgments; validated reviewed-only denominator >0 with per-class support. This pilot does not establish broad accuracy. Browser must independently execute login/upload/source/reload/reopen/ownership/logout/replay/navigation/expiry before acceptance can pass.
+
 ## รอบแก้ Recommendation — 30 ตุลาคม 2026
 
 เริ่มจาก `7edecfc4be8fa0a31b42e569cf461b77d5c75311`; production fix อยู่ที่ `a3cf8eb2823dbb61847b45c344d047574cba2c23` บน PR #10.

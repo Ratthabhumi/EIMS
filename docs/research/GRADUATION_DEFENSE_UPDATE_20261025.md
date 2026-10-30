@@ -1,3 +1,7 @@
+## RC closure 31 October
+
+Integration audit reuses existing route/serialization/PostgreSQL/BFF/PDF tests. New browser harness assertions are prepared, not executed acceptance. Production and all scientific snapshots unchanged: 12 DRAFT, 60 claims, zero genuine reviews. See RELEASE_CANDIDATE_20261031.json and the compact integration matrix in GRADUATION_DELIVERY_20261030.md. Engineering verification cannot substitute for diagnostic validation or installed deployment acceptance; previous examiner answers remain applicable.
+
 ## Evidence update — 30 October: no-failure recommendations
 
 ถาม: ระบบยังแนะนำแก้ error ที่ไม่มีหรือไม่? พบจริงใน fallback และมี 10 failing-before regressions; แก้ด้วย signal policy เดิม ให้แนะนำเก็บบริบทแทนโดยไม่ยืนยันสุขภาพระบบหรือผลจบงาน. Full DEV เปลี่ยน 8/12, emitted claims 60, human-reviewed 0. จำนวน claims ที่ลดลงไม่ใช่หลักฐาน accuracy. บท 4 ด้าน diagnostic validity ยัง INCOMPLETE; engineering, human validation และ installed acceptance แยกกัน. ดู GRADUATION_DELIVERY_20261030.md และ versioned snapshot ใหม่.
