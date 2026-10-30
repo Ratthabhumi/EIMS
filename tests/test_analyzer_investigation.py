@@ -216,3 +216,100 @@ def test_literal_signature_maps_only_unique_exact_source_span():
     assert r["message"] == line and line[r["span_start"]:r["span_end"]] == r["quoted_excerpt"]
     _, refs, missing = make_claims(response, {**files, "b.txt": files["a.txt"]})
     assert not refs and missing[0]["reason"] == "SOURCE_LINE_AMBIGUOUS_OR_UNAVAILABLE"
+
+
+@pytest.mark.parametrize("mutation", ['blank_reviewer','blank_rationale','padded_ai','category','remove_citation','alter_citation'])
+def test_grounding_rejects_modified_proposal_and_empty_human_assertions(mutation):
+    c, files=source('esxi_tracker')
+    p=predict_full(c,files);p['prediction_sha256']=runner.digest(p)
+    queue=grounding.review_queue([p])
+    row=next(r for r in queue['judgments'] if r['evidence'])
+    row.update(support_judgment='SUPPORTED',reviewer='human-fixture-only',rationale='Synthetic test only, never Gold')
+    if mutation=='blank_reviewer': row['reviewer']='  '
+    elif mutation=='blank_rationale': row['rationale']='  '
+    elif mutation=='padded_ai': row['reviewer']='  AI-test'
+    elif mutation=='category': row['claim_category']='HYPOTHESIS' if row['claim_category']!='HYPOTHESIS' else 'UNCERTAIN'
+    elif mutation=='remove_citation': row['evidence']=[]
+    else: row['evidence'][0]['line']=2 if row['evidence'][0]['line']==1 else 1
+    with pytest.raises(ValueError):
+        grounding.validate_reviews(queue,[p],{c['case_id']:files})
+
+
+@pytest.mark.parametrize('reviewer', ['   ', '  AI-proposal', ' Codex-agent'])
+@pytest.mark.parametrize('protocol', ['v1','v2'])
+def test_annotation_review_receipts_reject_blank_or_disguised_ai(tmp_path, reviewer, protocol):
+    from tests.test_analyzer_evaluation import copied_manifest
+    manifest,doc=copied_manifest(tmp_path)
+    c=next(c for c in doc['cases'] if c['case_id']=='esxi_tracker')
+    if protocol=='v2':
+        import hashlib
+        v2=json.loads(V2.read_text(encoding='utf-8'))
+        v2['source_manifest_sha256']=hashlib.sha256(manifest.read_bytes()).hexdigest()
+        row=next(x for x in v2['cases'] if x['case_id']=='esxi_tracker')
+        row.update(review_status='REVIEWED',reviewer_id=reviewer,reviewed_annotation_sha256=semantics_v2.review_digest(row))
+        path=manifest.parent/V2.name;path.write_text(json.dumps(v2),encoding='utf-8')
+        with pytest.raises(ValueError,match='human assertion'):
+            semantics_v2.load_annotations(path,manifest,doc['cases'])
+        return
+    c.update(review_status='REVIEWED',reviewer_id=reviewer,reviewed_annotation_sha256=runner.annotation_digest(c))
+    manifest.write_text(json.dumps(doc),encoding='utf-8')
+    with pytest.raises(ValueError,match='human reviewer'):
+        runner.load_manifest(manifest)
+
+
+def test_existing_review_pipeline_end_to_end_test_only(tmp_path, monkeypatch):
+    """Artificial judgments exist only in tmp_path, never in the real Gold set."""
+    from tests.test_analyzer_evaluation import copied_manifest
+    original={p:p.read_bytes() for p in MANIFEST.parent.rglob('*') if p.is_file()}
+    manifest,doc=copied_manifest(tmp_path)
+    monkeypatch.setattr(runner,'REPO',tmp_path)
+    monkeypatch.setattr(runner,'git',lambda *args:'fixture-sha')
+    (tmp_path/'tests').mkdir()
+    (tmp_path/'tests/test_analyzer_reliability.py').write_text('# synthetic review test only')
+    c=next(c for c in doc['cases'] if c['case_id']=='esxi_tracker')
+    # Human correction is simulated only to check preservation and receipt binding.
+    c['truth']['notes']='Synthetic reviewer correction retained, not an actual Gold judgment'
+    c.update(review_status='REVIEWED',reviewer_id='human-fixture-only',
+             reviewed_annotation_sha256=runner.annotation_digest(c))
+    manifest.write_text(json.dumps(doc),encoding='utf-8')
+    out=tmp_path/'evaluation/analyzer/results/proposal'
+    initial=runner.run(manifest,'full_investigation','dev',out,repeats=1,warmups=0)
+    assert initial['composition']=={'reviewed_executed':1,'draft_executed':0,'heldout_executed':0}
+    assert initial['source']['accuracy']['numerator']==1
+    assert initial['source']['accuracy']['denominator']==1
+    predictions=[json.loads(line) for line in (out/'predictions.jsonl').read_text(encoding='utf-8').splitlines()]
+    queue=grounding.review_queue(predictions)
+    assert grounding.score_grounding(queue,predictions)['semantic_support_precision']['value'] is None
+    judgments=deepcopy(queue);judgments['judgments']=judgments['judgments'][:3]
+    for r,value in zip(judgments['judgments'],['SUPPORTED','UNSUPPORTED','UNCERTAIN']):
+        r.update(support_judgment=value,reviewer='human-fixture-only',rationale='Artificial test-only semantic judgment; citation validity alone is insufficient')
+    _,payloads=runner.load_manifest(manifest)
+    grounding.validate_reviews(judgments,predictions,payloads)
+    review=tmp_path/'judgments.json';review.write_text(json.dumps(judgments),encoding='utf-8')
+    measured=runner.run(manifest,'full_investigation','dev',tmp_path/'evaluation/analyzer/results/reviewed',
+                        repeats=1,warmups=0,grounding_reviews=review)
+    g=measured['grounding']
+    assert g['semantic_support_precision']['numerator']==1
+    assert g['semantic_support_precision']['denominator']==2
+    assert g['unsupported_claim_rate']['value']==0.5
+    assert g['uncertain_judgments']==1
+    assert g['review_coverage']['denominator']==len(predictions[0]['claims'])
+    missing=deepcopy(judgments);missing['judgments'].pop(1)
+    grounding.validate_reviews(missing,predictions,payloads)
+    assert grounding.score_grounding(missing,predictions)['reviewed_binary_judgments']==1
+    conflict=deepcopy(judgments);conflict['judgments'].append(deepcopy(conflict['judgments'][0]))
+    conflict['judgments'][-1]['support_judgment']='UNSUPPORTED'
+    with pytest.raises(ValueError,match='duplicate'):
+        grounding.validate_reviews(conflict,predictions,payloads)
+    stale=deepcopy(judgments);stale['judgments'][0]['prediction_sha256']='0'*64
+    with pytest.raises(ValueError,match='stale'):
+        grounding.validate_reviews(stale,predictions,payloads)
+    unknown=deepcopy(judgments);unknown['judgments'][0]['claim_id']='nonexistent'
+    with pytest.raises(ValueError,match='emitted claim'):
+        grounding.validate_reviews(unknown,predictions,payloads)
+    assert json.loads(manifest.read_text(encoding='utf-8'))['cases']==doc['cases']
+    input_path=manifest.parent/c['files'][0]['path']
+    input_path.write_text('altered synthetic input',encoding='utf-8')
+    with pytest.raises(ValueError,match='SHA-256'):
+        runner.load_manifest(manifest)
+    assert all(p.read_bytes()==raw for p,raw in original.items())

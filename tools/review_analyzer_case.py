@@ -22,7 +22,7 @@ def main():
         v2, cases = load_annotations(args.annotations_v2, args.manifest.resolve(), doc["cases"])
         if args.case_id not in cases:
             p.error("unknown v2 DEV case")
-        if not args.reviewer_id.strip() or args.reviewer_id.lower().startswith(("ai", "codex")):
+        if not args.reviewer_id.strip() or args.reviewer_id.strip().lower().startswith(("ai", "codex")):
             p.error("an actual human reviewer assertion is required")
         c = cases[args.case_id]
         c.update(review_status="REVIEWED", reviewer_id=args.reviewer_id,
@@ -33,7 +33,7 @@ def main():
     matches = [c for c in doc["cases"] if c["case_id"] == args.case_id]
     if not matches:
         p.error("unknown case")
-    if not args.reviewer_id.strip() or args.reviewer_id.lower().startswith(("ai", "codex")):
+    if not args.reviewer_id.strip() or args.reviewer_id.strip().lower().startswith(("ai", "codex")):
         p.error("reviewer must identify an actual human; confirmation is a recorded assertion, not authentication")
     c = matches[0]
     c.update(review_status="REVIEWED", reviewer_id=args.reviewer_id,
