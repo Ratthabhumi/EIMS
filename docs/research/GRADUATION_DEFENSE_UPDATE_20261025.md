@@ -1,3 +1,7 @@
+## Evidence update — 30 October: no-failure recommendations
+
+ถาม: ระบบยังแนะนำแก้ error ที่ไม่มีหรือไม่? พบจริงใน fallback และมี 10 failing-before regressions; แก้ด้วย signal policy เดิม ให้แนะนำเก็บบริบทแทนโดยไม่ยืนยันสุขภาพระบบหรือผลจบงาน. Full DEV เปลี่ยน 8/12, emitted claims 60, human-reviewed 0. จำนวน claims ที่ลดลงไม่ใช่หลักฐาน accuracy. บท 4 ด้าน diagnostic validity ยัง INCOMPLETE; engineering, human validation และ installed acceptance แยกกัน. ดู GRADUATION_DELIVERY_20261030.md และ versioned snapshot ใหม่.
+
 ## Graduation delivery — 30 October 2026
 
 Current scope/experiment boundaries and owner tasks:

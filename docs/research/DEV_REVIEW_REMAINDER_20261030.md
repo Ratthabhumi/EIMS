@@ -1,3 +1,5 @@
+> Update 30 October: ข้อเสนอของ 8 เคสถูกแทนด้วย [Recommendation delta](DEV_REVIEW_RECOMMENDATION_DELTA_20261030.md). Source/labels ด้านล่างคงเดิม แต่ใช้ hash/claims จาก delta สำหรับเคสที่ระบุ. veeam_tracker ไม่เปลี่ยน. ทั้งหมดยัง DRAFT.
+
 # DEV Review — อีก 9 เคส (DRAFT)
 
 ใช้คู่กับ packet สามเคสเดิม ไม่ใช่ผลคนตรวจ. ทุก decision ยังว่าง.

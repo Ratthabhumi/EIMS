@@ -1,3 +1,7 @@
+## Update 2026-10-30: recommendations follow observed evidence
+
+Implemented in summary.py: no-signal fallback abstains from error search and causal hypotheses; reuses production signal policy. Thai/English, native single/bundle, deterministic History regression added. New 12-case Full snapshot has 60 NOT_REVIEWED claims; 8 hashes changed, priority 3 unchanged. M0/M1 unchanged. Evidence: `evidence/20261030-recommendation/comparison.json`. Research-derived behavior is implemented; diagnostic validity still requires authentic human adjudication. Browser runtime and deployment remain untested.
+
 ## Review-validator correction — 30 October 2026
 
 Applied and tested: immutable emitted category/citation binding; nonblank human assertions;

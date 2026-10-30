@@ -731,4 +731,3 @@ def test_no_failure_postgres_history_reopen(integrated, language, cid):
         assert rows[0]['aiSummary'] == saved['aiSummary']
         assert (await client.get('/history/', headers=bearer('synthetic-other'))).json() == []
     integrated(check)
-

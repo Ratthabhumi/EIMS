@@ -1,0 +1,202 @@
+{
+  "modes": {
+    "rule_only": {
+      "bundle_related": {
+        "old": "a515b33b667f24d01a10bf18318e0cb2e57e944e81b8baa6710df9ea4f30e97b",
+        "new": "a515b33b667f24d01a10bf18318e0cb2e57e944e81b8baa6710df9ea4f30e97b",
+        "changed": false
+      },
+      "bundle_unrelated": {
+        "old": "6f9c2fb014adcb3413ed574e2a1d7e8bdd34533918953ba0913fc1a590d172d6",
+        "new": "6f9c2fb014adcb3413ed574e2a1d7e8bdd34533918953ba0913fc1a590d172d6",
+        "changed": false
+      },
+      "esxi_heartbeat": {
+        "old": "88d342fba33affe71d41d6bf36e6f55069442a5cc6480f7749277c0851de99d4",
+        "new": "88d342fba33affe71d41d6bf36e6f55069442a5cc6480f7749277c0851de99d4",
+        "changed": false
+      },
+      "esxi_tracker": {
+        "old": "2002a9b18fc8c1c730505f186dff7e70bc3635f11abc1f496f7fc26624a05396",
+        "new": "2002a9b18fc8c1c730505f186dff7e70bc3635f11abc1f496f7fc26624a05396",
+        "changed": false
+      },
+      "fort_accept": {
+        "old": "531d95e33e75182993768ab766e87877533b148c7ab834607ff1e0bdd043e3fa",
+        "new": "531d95e33e75182993768ab766e87877533b148c7ab834607ff1e0bdd043e3fa",
+        "changed": false
+      },
+      "fort_config": {
+        "old": "42c9fe4f27644a36aa999663cfa461c8e87c133db710d93a55b702fd5a3fb5c5",
+        "new": "42c9fe4f27644a36aa999663cfa461c8e87c133db710d93a55b702fd5a3fb5c5",
+        "changed": false
+      },
+      "json_info": {
+        "old": "98826eaf1bf16042154ca15a3c6e65d3662caf304e0cc526bd9f7a152fb46778",
+        "new": "98826eaf1bf16042154ca15a3c6e65d3662caf304e0cc526bd9f7a152fb46778",
+        "changed": false
+      },
+      "noise_filename": {
+        "old": "8064e42d06521458e370e889360c8f1aa9bccc13becc41d84aced6e491306c8c",
+        "new": "8064e42d06521458e370e889360c8f1aa9bccc13becc41d84aced6e491306c8c",
+        "changed": false
+      },
+      "veeam_options": {
+        "old": "6c5b2a74e18ec1df29b85ad7c9119f0a2cf3d530eebf71bfdb8d3f16ea640571",
+        "new": "6c5b2a74e18ec1df29b85ad7c9119f0a2cf3d530eebf71bfdb8d3f16ea640571",
+        "changed": false
+      },
+      "veeam_tracker": {
+        "old": "fcee676c7a66ca45114ac17b948e0e41bd7154d9b7ba20340e137b2558c0e259",
+        "new": "fcee676c7a66ca45114ac17b948e0e41bd7154d9b7ba20340e137b2558c0e259",
+        "changed": false
+      },
+      "win_boot": {
+        "old": "d70b7a2a6eebef9d55f9c575f80c7a2fd42f1d3c363ac1a2fe1fa1d7e6d7508f",
+        "new": "d70b7a2a6eebef9d55f9c575f80c7a2fd42f1d3c363ac1a2fe1fa1d7e6d7508f",
+        "changed": false
+      },
+      "win_policy": {
+        "old": "a280aff1bede2b952897a098f61a3dabfc254d9c05a28a4bf744a9ea0275e7f7",
+        "new": "a280aff1bede2b952897a098f61a3dabfc254d9c05a28a4bf744a9ea0275e7f7",
+        "changed": false
+      }
+    },
+    "rule_kb": {
+      "bundle_related": {
+        "old": "c7a14d7b4bce0c718d65d1b721ee5df4620d31f8e90a62293605733b019502be",
+        "new": "c7a14d7b4bce0c718d65d1b721ee5df4620d31f8e90a62293605733b019502be",
+        "changed": false
+      },
+      "bundle_unrelated": {
+        "old": "123fa1baff393ab050f61ac614b7cc90fbf54a59309ee7720a6a2cebc1c2e99e",
+        "new": "123fa1baff393ab050f61ac614b7cc90fbf54a59309ee7720a6a2cebc1c2e99e",
+        "changed": false
+      },
+      "esxi_heartbeat": {
+        "old": "7cfc6881be155963971bd3f83271e5b7058bb7fb973dcb5db3a0a1339bd670ed",
+        "new": "7cfc6881be155963971bd3f83271e5b7058bb7fb973dcb5db3a0a1339bd670ed",
+        "changed": false
+      },
+      "esxi_tracker": {
+        "old": "2e9ffdbff06c5c7878b07782d9d2336b6d27e9f388549d609dc225ce72102609",
+        "new": "2e9ffdbff06c5c7878b07782d9d2336b6d27e9f388549d609dc225ce72102609",
+        "changed": false
+      },
+      "fort_accept": {
+        "old": "1efa5c22771f2e6f20806c8b1ce85e801678374faa788e348eab6eba2fd06c6f",
+        "new": "1efa5c22771f2e6f20806c8b1ce85e801678374faa788e348eab6eba2fd06c6f",
+        "changed": false
+      },
+      "fort_config": {
+        "old": "91eef882b9d0b9dc1d595288dff86086710d3579cfab2d94bfa80649122d091d",
+        "new": "91eef882b9d0b9dc1d595288dff86086710d3579cfab2d94bfa80649122d091d",
+        "changed": false
+      },
+      "json_info": {
+        "old": "6fa178a0e57f9adf01f176052c2dc60bc973417b547e0dc3df8ebbcee9b59305",
+        "new": "6fa178a0e57f9adf01f176052c2dc60bc973417b547e0dc3df8ebbcee9b59305",
+        "changed": false
+      },
+      "noise_filename": {
+        "old": "f3bdfe7991b7e870bef8595c9e2be3eb4916078d73cfbc397d1653ab38341503",
+        "new": "f3bdfe7991b7e870bef8595c9e2be3eb4916078d73cfbc397d1653ab38341503",
+        "changed": false
+      },
+      "veeam_options": {
+        "old": "8fbad7fb080501a2f6e9ed63e31e7faae62494834dbc1eb045abea86b9f899aa",
+        "new": "8fbad7fb080501a2f6e9ed63e31e7faae62494834dbc1eb045abea86b9f899aa",
+        "changed": false
+      },
+      "veeam_tracker": {
+        "old": "ce1fb9911074df5da871f5fb63e1a2217a91bbdb02bd1c9138a897e2ef8d14a3",
+        "new": "ce1fb9911074df5da871f5fb63e1a2217a91bbdb02bd1c9138a897e2ef8d14a3",
+        "changed": false
+      },
+      "win_boot": {
+        "old": "0c17e86588c4225ae174b255d0b14bf6720a94d9732a9de98a33e01eed87611b",
+        "new": "0c17e86588c4225ae174b255d0b14bf6720a94d9732a9de98a33e01eed87611b",
+        "changed": false
+      },
+      "win_policy": {
+        "old": "7567f17fe3383253c2e7c63cfafe1f896360e2a455eaaf157f0036f91a1065b0",
+        "new": "7567f17fe3383253c2e7c63cfafe1f896360e2a455eaaf157f0036f91a1065b0",
+        "changed": false
+      }
+    },
+    "full_investigation": {
+      "bundle_related": {
+        "old": "bfce2e5f6c9855e0c3caa604fe205908a6410db728ab52dab8fde47428165291",
+        "new": "5209f94aabf1dcca1b1c81b44e3bb1552c22909eddfe7596a56725ee3ee3ce3c",
+        "changed": true
+      },
+      "bundle_unrelated": {
+        "old": "f6d071b0499f6f826e10b7b6bc1089e2238470eb78027d9c92d611fe0f9d35ca",
+        "new": "7d1c425e330cd5f746dc8923c7bfec3c056278b6cfb26918f7eb3f6856d1bd13",
+        "changed": true
+      },
+      "esxi_heartbeat": {
+        "old": "a137e3bd0471b66edff9942aa7a2268cd61d6ebb62714881b5d636fa17fea5d3",
+        "new": "8e8a7e9ea0bf74a212ea0fe59d521f25d002720526bf28f7b90ff002f76231a3",
+        "changed": true
+      },
+      "esxi_tracker": {
+        "old": "08293285d5963efc5e1ec92fe9ef8f20b66a0b493997fa1e92ca4b8a94d8297f",
+        "new": "08293285d5963efc5e1ec92fe9ef8f20b66a0b493997fa1e92ca4b8a94d8297f",
+        "changed": false
+      },
+      "fort_accept": {
+        "old": "0546e2befd552149e6cdb27d5aaef2d2637aea1233a82f128687af53e86d213d",
+        "new": "de2c678c5265e26a865af46c1f682f02e5c7bea775e961599b702208ff14cfa1",
+        "changed": true
+      },
+      "fort_config": {
+        "old": "5d62582aac1a705c564407b857c7fe88c09a18a837a26afd27c49624c40ec00f",
+        "new": "5d62582aac1a705c564407b857c7fe88c09a18a837a26afd27c49624c40ec00f",
+        "changed": false
+      },
+      "json_info": {
+        "old": "a99530c66f6010a5262ba0105ced4dc5a2ced52d2b920bd6bf2cd39db17f2aae",
+        "new": "478b28f5baceed60e66af72b3c38cecc5907c7c2c4229b23b866cfd40f326702",
+        "changed": true
+      },
+      "noise_filename": {
+        "old": "745e6a5869f9451f4a59cf4643a65b720830bdef63dffaff8cc65984444d41cb",
+        "new": "663b1fbd7e8f04f5fbc8f4e8d7bade8c808d29c00a220fa8b753d7920b597a5c",
+        "changed": true
+      },
+      "veeam_options": {
+        "old": "dce96b66d5d4910ee1ad689dd7e461adfbe82708c8c596b1b180c88df94e0790",
+        "new": "69dc97a2e9b20dd5ef950000c2990e1c8e86a539a9f11802809642284cfc37f0",
+        "changed": true
+      },
+      "veeam_tracker": {
+        "old": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+        "new": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+        "changed": false
+      },
+      "win_boot": {
+        "old": "dbb7282b1602fd775b220e12764a0ad12272c6ec844bc9b573c2f646c916f568",
+        "new": "3315d4cce3c42e9ef35a000f215a690c091dcc5b02412cfcb8b44e29551822d0",
+        "changed": true
+      },
+      "win_policy": {
+        "old": "5a047c3db1b5286fd0eea387a798756b8fad762cc6db16bee4dfab3270fdf075",
+        "new": "5a047c3db1b5286fd0eea387a798756b8fad762cc6db16bee4dfab3270fdf075",
+        "changed": false
+      }
+    }
+  },
+  "changed_full_cases": [
+    "bundle_related",
+    "bundle_unrelated",
+    "esxi_heartbeat",
+    "fort_accept",
+    "json_info",
+    "noise_filename",
+    "veeam_options",
+    "win_boot"
+  ],
+  "human_reviewed": 0,
+  "claims": 60
+}

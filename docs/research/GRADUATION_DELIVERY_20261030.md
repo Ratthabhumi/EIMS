@@ -1,3 +1,22 @@
+## รอบแก้ Recommendation — 30 ตุลาคม 2026
+
+เริ่มจาก `7edecfc4be8fa0a31b42e569cf461b77d5c75311`; production fix อยู่ที่ `a3cf8eb2823dbb61847b45c344d047574cba2c23` บน PR #10.
+
+- ยืนยัน regression ก่อนแก้ 10 FAIL: bundle_related/esxi_heartbeat และ negative controls; fallback เคยให้ค้น primary error line ทั้งที่ไม่มี observed failure.
+- `summary.py` ใช้ signal/noise policy เดิมจาก incident extraction ก่อน fallback/web/RAG; เมื่อไม่มี signal ให้ไม่มี causes, ไม่แนะนำค้น error, ระบุข้อจำกัดผลจบ session ทั้งไทย/อังกฤษ. เก็บ observed-event/curated/vendor semantics เดิมไว้. Warning ยังไป investigation path เดิม; ไม่ตีความ warning เป็น success.
+- หลังแก้ local hermetic 281 PASS, 1 SKIP (Windows symlink privilege), 2 dependency deprecation warnings. Counterexamples 8/8 PASS. CI บน final HEAD เป็นหลักฐาน Linux/PostgreSQL/frontend แยกต่างหาก ดู PR checks; ไม่ใช้ผล HEAD เก่าแทน.
+- เพิ่ม PostgreSQL roundtrip ไทย/อังกฤษ × single/bundle 4 เคส ตรวจ structured summary, aiSummary หลัง fresh SELECT และอีก user มองไม่เห็น. รันด้วย synthetic CI database เท่านั้น.
+- Evidence viewer ตรวจ source: React text escaping, native details/summary, keyboard focus return, source provenance/redaction/legacy states. ไม่มี frontend defect ใหม่ที่ reproduce จึงไม่เปลี่ยน UI. Build/typecheck ไม่ใช่ browser acceptance.
+- Clean-source M0/M1/Full ใหม่อยู่ `evaluation/analyzer/results/20261030-recommendation-*`: 12 DEV ต่อโหมด, 0 errors, 0 reviewed, 0 HELDOUT. M0/M1 prediction hashes เดิม; Full เปลี่ยน 8/12, claims 77 → 60. เป็นการเปลี่ยนข้อความ ไม่ใช่คะแนนคุณภาพที่ดีขึ้น.
+- input/manifest/annotation/scorer/runner hashes อยู่ config ทุก run; old snapshots และ DRAFT labels ไม่เปลี่ยน. Full snapshots เก็บทั้งคำตอบและ History ที่เปิดซ้ำ พร้อม execution trace. ไม่เปรียบเทียบ latency ข้าม execution boundary.
+- priority packet fort_config/esxi_tracker/win_policy hashes ไม่เปลี่ยน. 8 เคสที่เปลี่ยนใช้ [delta packet](DEV_REVIEW_RECOMMENDATION_DELTA_20261030.md) คู่กับ source/labels เดิม; ห้ามใช้ claims/hash เก่าสำหรับคำตอบใหม่.
+- [before/after tests และ per-case hash comparison](evidence/20261030-recommendation/) เป็นหลักฐาน regression; ไม่ใช่ human accuracy.
+- Research ที่ให้มา: Fortinet config, CTK technical failure/physical cause unknown, Windows 1129 symptom rules คงเดิมและ regression ผ่าน. ใช้หลัก evidence-limited recommendations โดยไม่เพิ่ม taxonomy/model. ไม่มีคำถาม vendor ใหม่ที่ต้อง Research; independent review/generalization ยังรอคนตาม handoff เดิม.
+- Scope/security: ไม่แตะ auth, migration, operational DB, Gold, HELDOUT, infrastructure PR #6–#9 หรือ main. Infrastructure recovery 4 XFAIL ไม่ได้แก้/ทดสอบในรอบนี้.
+- Browser: ไม่พบ approved listener 3009/3449; BROWSER_HTTPS = BLOCKED_NOT_TESTED เพราะยังไม่มี authorized runtime หลังข้อจำกัดเดิม. USB/production NOT_TESTED. ไม่เริ่ม listener แทนหรือเปลี่ยน cookies.
+- Owner: review priority 3 เคสจริง; เตรียม approved HTTPS synthetic runtime ตาม Operator; อนุมัติ merge เมื่อพร้อม. Merge order #2 → #3 → #4 → #5 → #10 ต้อง retarget/recheck CI ทุกฐานที่เปลี่ยน; #6–#9 แยกสาย. ไม่ merge ในรอบนี้.
+- Next milestone: reviewed-only denominator >0 พร้อม claim judgments ที่ผูก hash และ browser acceptance actual login/upload/reload/reopen/logout-replay ผ่านบน runtime ที่อนุญาต. SCIENTIFIC_REVIEW_PENDING; installed acceptance ยังไม่ผ่าน.
+
 ## Scientific review integrity closure — 30 October 2026
 
 Source `a2707b55fb1bc867feb3f55cc1156cc042058a45` continues PR #10 from `78ee60a`.

@@ -1,6 +1,6 @@
 {
   "status": "PASS_HASH_BINDING_ONLY",
-  "prediction_snapshot": "20261026-terminal-scope-full",
+  "prediction_snapshot": "20261030-recommendation-full_investigation",
   "priority_packet_hashes": {
     "esxi_tracker": "08293285d5963efc5e1ec92fe9ef8f20b66a0b493997fa1e92ca4b8a94d8297f",
     "fort_config": "5d62582aac1a705c564407b857c7fe88c09a18a837a26afd27c49624c40ec00f",
@@ -9,5 +9,16 @@
   "human_judgments": 0,
   "reviewed_cases": 0,
   "draft_cases": 12,
-  "claims": 77
+  "claims": 60,
+  "changed_cases": [
+    "bundle_related",
+    "bundle_unrelated",
+    "esxi_heartbeat",
+    "fort_accept",
+    "json_info",
+    "noise_filename",
+    "veeam_options",
+    "win_boot"
+  ],
+  "changed_case_packet": "DEV_REVIEW_RECOMMENDATION_DELTA_20261030.md"
 }

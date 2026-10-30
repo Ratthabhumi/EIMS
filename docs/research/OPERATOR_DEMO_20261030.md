@@ -1,10 +1,13 @@
+## เพิ่ม negative control สำหรับเดโมรอบล่าสุด
+
+ใช้ `evaluation/analyzer/gold/cases/esxi_heartbeat/` หรือ bundle_related จาก frozen manifest. คำตอบต้องไม่สั่งค้น primary error line: ไม่พบ failure ในข้อมูลที่ให้มา ไม่ได้ยืนยันระบบทั้งหมดปกติ และต้องมี completion record ของ session ที่เกี่ยวข้องก่อนยืนยันผลจบ. เปิด History แล้วข้อความต้องตรงกัน. หากยังไม่มี approved HTTPS runtime ให้แสดง offline snapshot พร้อมบอกขอบเขต ไม่อ้างว่า UI ผ่าน. ผลใหม่อยู่ `20261030-recommendation-full_investigation`; priority 3 packet ใช้เดิม, อีก 8 เคสใช้ delta packet.
+
 # EIMS — Operator และ Demo
 
 ## ก่อนเริ่ม
 
 ใช้ source PR #5 `f777e9c` หรือ delivery PR SHA ที่ CI ผ่านและตรวจ diff แล้ว.
-ห้ามใช้ main แทนโดยไม่ตรวจ เพราะ main ยังไม่มี stack นี้. Core production code
-ของ delivery branch ไม่เปลี่ยนจาก #5; เพิ่มเพียง test และเอกสาร.
+ห้ามใช้ main แทนโดยไม่ตรวจ เพราะ main ยังไม่มี stack นี้. Delivery branch เพิ่ม evidence-aware recommendation fix หลัง #5; ใช้ PR #10 HEAD ที่ CI ผ่านเท่านั้นสำหรับ negative control ใหม่.
 Fixture frozen: `evaluation/analyzer/gold/cases/{fort_config,esxi_tracker,win_policy}/`
 และ bundle `evaluation/analyzer/results/20261025-controlled-demo-after/{a-veeam,b-vmware}.txt`.
 ไฟล์ synthetic เท่านั้น. อย่านำข้อมูลลูกค้าเข้าการเดโม/ภาพสำรอง.
