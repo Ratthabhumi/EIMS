@@ -313,3 +313,41 @@ def test_existing_review_pipeline_end_to_end_test_only(tmp_path, monkeypatch):
     with pytest.raises(ValueError,match='SHA-256'):
         runner.load_manifest(manifest)
     assert all(p.read_bytes()==raw for p,raw in original.items())
+
+@pytest.mark.parametrize('cid', ['bundle_related', 'esxi_heartbeat', 'bundle_unrelated', 'veeam_options', 'json_info', 'noise_filename', 'fort_accept', 'win_boot'])
+def test_no_failure_recommendations_and_reopened_history(cid):
+    c, files = source(cid)
+    p = predict_full(c, files)
+    summary = p['native_response']['solutionSummary']
+    assert 'primary error line' not in ' '.join(summary['steps']).lower()
+    assert 'no failure observed' in summary['overview'].lower()
+    assert p['isolated_history_roundtrip']
+    assert summary == p['reopened_isolated_history']['solutionSummary']
+    assert p == predict_full(c, files)
+
+@pytest.mark.parametrize('language', ['th', 'en'])
+def test_informational_summary_ignores_unrelated_failure_snippets(language):
+    import asyncio
+    from backend.domain.analyzer.services.summary import build_summary
+    with asyncio.Runner() as loop, runner.offline_guard():
+        s = loop.run(build_summary('VMWARE-UNKNOWN', 'VMware',
+            'Restart the server because the disk is corrupt.', [], language,
+            source_family='vmware', evidence_text='2026-10-20T04:00:00Z info hostd: heartbeat idle'))
+    assert ('ไม่พบความล้มเหลว' if language == 'th' else 'No failure observed') in s.overview
+    assert s.causes == []
+    assert not any('error' in step.lower() for step in s.steps)
+
+@pytest.mark.parametrize('language', ['th', 'en'])
+@pytest.mark.parametrize('text,code', [
+    ('CTK_CTKUNLINK result:2620', 'VMWARE-CTK-2620'),
+    ("Task session 'synthetic' has been completed, status: 'Failed'", 'VEEAM-SESSION-FAILED'),
+])
+def test_failure_investigation_not_suppressed(language, text, code):
+    import asyncio
+    from backend.domain.analyzer.services.summary import build_summary
+    with asyncio.Runner() as loop, runner.offline_guard():
+        s = loop.run(build_summary(code, 'VMware' if code.startswith('VMWARE') else 'Veeam', '', [], language,
+            source_family='vmware' if code.startswith('VMWARE') else 'veeam_vbr', diagnostic_code=code, evidence_text=text))
+    assert s.steps and s.causes
+    assert 'No failure observed' not in s.overview
+    assert 'ไม่พบความล้มเหลว' not in s.overview

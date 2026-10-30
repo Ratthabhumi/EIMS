@@ -706,3 +706,29 @@ def test_populated_parent_upgrade_preserves_history_ownership_and_sessions(integ
         finally:
             await engine.dispose()
     integrated(check)
+
+@pytest.mark.parametrize('language', ['th', 'en'])
+@pytest.mark.parametrize('cid', ['bundle_related', 'esxi_heartbeat'])
+def test_no_failure_postgres_history_reopen(integrated, language, cid):
+    from evaluation.analyzer import runner
+    doc, payloads = runner.load_manifest(runner.REPO / 'evaluation/analyzer/gold/manifest.v1.json')
+    files = payloads[cid]
+    async def check(client, session, calls):
+        uploads = [(name.rsplit('/', 1)[-1], raw, 'text/plain') for name, (raw, _) in files.items()]
+        if len(uploads) > 1:
+            response = await client.post('/analyze/bundle', headers=bearer(), data={'language': language},
+                                         files=[('files', f) for f in uploads])
+        else:
+            response = await client.post('/analyze/', headers=bearer(), data={'language': language}, files={'file': uploads[0]})
+        assert response.status_code == 200, response.text
+        saved = response.json()
+        expected = 'ไม่พบความล้มเหลว' if language == 'th' else 'No failure observed'
+        assert expected in saved['solutionSummary']['overview']
+        assert saved['solutionSummary']['causes'] == []
+        session.expunge_all()
+        rows = (await client.get('/history/', headers=bearer())).json()
+        assert rows[0]['solutionSummary'] == saved['solutionSummary']
+        assert rows[0]['aiSummary'] == saved['aiSummary']
+        assert (await client.get('/history/', headers=bearer('synthetic-other'))).json() == []
+    integrated(check)
+
