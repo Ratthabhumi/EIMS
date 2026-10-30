@@ -17,6 +17,20 @@ import yaml
 SECRET_KEY = re.compile(r"(?:PASSWORD|SECRET|TOKEN|API_KEY|AUTH_PASS)", re.I)
 INLINE_DB_CREDENTIAL = re.compile(r"://[^:/\s]+:[^@/\s]+@")
 LOOPBACK = {"127.0.0.1", "::1", "localhost"}
+DOCKER_DAEMON_SOCKETS = {"/var/run/docker.sock", "/run/docker.sock"}
+
+
+def _mounts_docker_socket(volume: Any) -> bool:
+    """Inspect the source only; never include mount strings in findings."""
+    if isinstance(volume, dict):
+        return (
+            str(volume.get("type", "bind")) == "bind"
+            and str(volume.get("source", "")) in DOCKER_DAEMON_SOCKETS
+        )
+    if isinstance(volume, str):
+        return volume.split(":", 1)[0] in DOCKER_DAEMON_SOCKETS
+    return False
+
 
 
 def _environment(service: dict[str, Any]) -> dict[str, str]:
@@ -55,9 +69,30 @@ def audit_compose(document: dict[str, Any]) -> list[dict[str, str]]:
             "severity": severity, "detail": detail,
         })
 
+    # This scanner does not resolve Compose includes or inherited service files.
+    # Fail closed rather than certifying only the visible fragment as secure.
+    if document.get("include"):
+        add("<compose>", "UNRESOLVED_INCLUDE", "high",
+            "External Compose includes are not resolved by this static audit")
+
     for name, service in sorted(document["services"].items()):
         if not isinstance(service, dict):
             continue
+        if service.get("extends"):
+            add(name, "UNRESOLVED_EXTENDS", "high",
+                "Inherited Compose service configuration is not resolved")
+        if str(service.get("network_mode", "")).strip().lower() == "host":
+            add(name, "HOST_NETWORK", "high",
+                "Service shares the host network namespace even without ports")
+        if service.get("privileged") is True:
+            add(name, "PRIVILEGED_CONTAINER", "high",
+                "Container requests unrestricted privileged mode")
+        if str(service.get("pid", "")).strip().lower() == "host":
+            add(name, "HOST_PID", "high",
+                "Service shares the host PID namespace")
+        if any(_mounts_docker_socket(v) for v in (service.get("volumes") or [])):
+            add(name, "DOCKER_SOCKET_MOUNT", "high",
+                "Service mounts the Docker daemon control socket")
         image = str(service.get("image") or "")
         if image and "@sha256:" not in image and (
             image.endswith(":latest") or (":" not in image.rsplit("/", 1)[-1])
