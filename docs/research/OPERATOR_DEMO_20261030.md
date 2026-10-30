@@ -85,3 +85,33 @@ Script ครอบคลุม bundle, cookie, History reload, second user, log
 Recovery: เก็บ evidence และ schema ไว้ ตรวจ revision/config/backup กับ operator;
 ไม่ downgrade/drop volume/reset History อัตโนมัติ. Production migration และ USB install
 ต้องมีแผน/authorization ของ environment นั้นแยกจาก CI.
+
+
+## วิธีส่ง Human Review จริง — ใช้ packet เดิม
+
+1. อ่านบรรทัดต้นฉบับก่อนข้อเสนอ AI. Event ID เป็นตัวระบุเหตุการณ์ ไม่ใช่ physical RCA.
+2. แยก observed failure / explicit final outcome / hypothesis / proven cause / KB applicability.
+   Citation ที่ชี้บรรทัดถูกไม่ได้แปลว่าประโยคนั้นสนับสนุนข้อสรุปจริง.
+3. ส่ง case ID, prediction hash, field/claim ID, ACCEPT/CORRECT/UNRESOLVED,
+   เหตุผลพร้อมบรรทัด, reviewer alias จริง และเวลาที่ตรวจพร้อม timezone.
+4. Claim judgment ใน schema ใช้ SUPPORTED / UNSUPPORTED / UNCERTAIN;
+   UNRESOLVED แปลงเป็น UNCERTAIN ไม่ใช่ SUPPORTED. ถ้าคำตอบ AI ผิด ให้เก็บ claim
+   เดิมไว้และเขียนคำแก้ใน rationale; อย่าแก้ text/category/evidence ของ emitted claim.
+5. เก็บข้อความยืนยันจริงพร้อมเวลาเป็น provenance แยกจาก schema JSON ที่ไม่รองรับ
+   reviewed_at. CLI เป็นการบันทึกคำยืนยัน ไม่ตรวจพิสูจน์ตัวตนผู้ตรวจ.
+6. ก่อนแก้ annotation ให้สร้าง working copy ของ corpus พร้อม schemas และ inputs;
+   เก็บ original DRAFT ไว้. แก้เฉพาะ DEV ที่คนตรวจแล้ว; ห้ามส่ง HELDOUT เข้า tuning.
+7. ใช้ tools/review_analyzer_case.py กับ --manifest และ --annotations-v2 ของสำเนา
+   พร้อม --case-id, --reviewer-id และ --confirm-human-review หลังมีคำยืนยันจริงเท่านั้น.
+   v2 review ไม่ทำให้ v1 กลายเป็น REVIEWED อัตโนมัติ. คำสั่งนี้เขียนไฟล์ จึงห้ามชี้ original.
+8. ใช้ tools/eval_analyzer.py --mode full_investigation --split dev --manifest <copy>/manifest.v1.json
+   --annotations-v2 <copy>/manifest.v2.dev-draft.json --grounding-reviews <actual-judgments.json>
+   --output <new-output-directory> โดยไม่ใส่ --include-draft.
+   Grounding JSON ใช้ schema_version 2.0 กับ judgments ที่คัดจาก queue เดิมเฉพาะ cohort;
+   เติมเฉพาะ support_judgment/reviewer/rationale. Unknown IDs, stale hashes และ duplicates
+   ถูกปฏิเสธ. เก็บ records ต้นฉบับ ไม่รวมคำตัดสินขัดแย้งด้วยการเขียนทับเงียบ ๆ.
+9. รายงานค่าจาก semantics_v2.reviewed แยกจาก legacy v1 และ claim grounding;
+   ค่า undefined/denominator 0 ต้องคง null. Pilot สามเคสไม่ใช่ general accuracy.
+
+ถ้าไม่สะดวกแก้ JSON ส่งคำตัดสินตามข้อ 3 มาได้ แล้วจึงบันทึกตาม protocol โดยรักษา
+คำแก้ของคุณ ไม่ต้องสร้าง reviewer alias หรือกด REVIEWED ให้เคสที่ยังไม่ได้ตรวจ.

@@ -1,3 +1,48 @@
+## Scientific review integrity closure — 30 October 2026
+
+Source `a2707b55fb1bc867feb3f55cc1156cc042058a45` continues PR #10 from `78ee60a`.
+No production Analyzer/Auth/History, infrastructure-audit, scorer formula or Gold changes.
+Six new regressions failed before correction: blank reviewer, blank rationale, padded AI
+alias, modified claim category, removed citation and substituted in-range citation.
+Validators now reject these; review corrections belong in rationale/annotation copies,
+not silently rewritten emitted claims. Whitespace handling is consistent across v1/v2
+receipts, legacy manual reviews and the existing review CLI.
+
+One hermetic integration test runs the existing pipeline on temporary copies only:
+actual prediction → synthetic review receipt → reviewed-only cohort (1 case, 0 DRAFT,
+0 HELDOUT) → support 1/2, unsupported 1/2, unresolved 1 → stale hash/unknown claim/
+conflicting duplicate rejection → removed judgment lowers coverage → modified source
+hash rejection → original corpus unchanged. Artificial test judgments are not Gold.
+Alias checks are validation of an assertion, not authentication of a human reviewer.
+
+Local relevant suite: **267 passed, 1 skipped** (Windows symlink privilege), 2 warnings.
+[Before/after JUnit and mode comparison](evidence/20261030-review-integrity/).
+PostgreSQL/full browser are not rerun locally; required CI supplies isolated PostgreSQL.
+Final head/check-out SHA and CI artifacts are recorded in PR #10, not inferred from old CI.
+
+M0 rule_only, M1 rule_kb and native full investigation ran 12 DEV each at the same clean
+source/input/annotation/scorer controls, zero errors. M0 invokes no KB; M1 and full invoke
+KB for 12 cases. Full includes synthesis and memory History, so latency boundaries differ.
+No superiority or accuracy claim. Full prediction hashes unchanged 12/12, still 77 claims,
+0 human judgments. Existing priority and nine-case packets remain current; no duplicates.
+Snapshots: `evaluation/analyzer/results/20261030-review-integrity-{rule_only,rule_kb,full_investigation}`.
+Current scorer formulas unchanged; validator/runner code hashes changed explicitly.
+
+Scientific Chapter 4 status: **INCOMPLETE** until authentic reviews. Citation coordinates
+and semantic support are separate metrics; UNCERTAIN excludes a claim from the binary
+support denominator and must remain visible. Missing judgments reduce coverage rather
+than become supported. Annotation review and claim review are distinct decisions.
+Legacy v1 manual free-text item identifiers are not structured v2 claim IDs; use the v2
+claim queue for claim-level adjudication. Do not mix these protocols as one denominator.
+
+PR #10 still targets #5; audit #9 remains `90324cf` and is not included. GitHub returned
+"Branch not protected" for main protection and no repository rulesets; this does not
+supply owner merge authorization. No merge performed. Local audit ref is unavailable;
+no combined-tree test is claimed. Existing remote file inventories remain the handoff.
+No approved browser listener on 3009/3449; do not retry equivalent prohibited startup.
+Status: **ENGINEERING_READY within covered CI contracts / SCIENTIFIC_REVIEW_PENDING /
+BROWSER_ACCEPTANCE_BLOCKED** only when final CI is green. No installed-release certification.
+
 # EIMS — ชุดส่งจบ 30 ตุลาคม 2026
 
 ## A–C. ขอบเขตและสถานะ

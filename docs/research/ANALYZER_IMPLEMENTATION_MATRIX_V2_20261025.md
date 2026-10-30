@@ -1,3 +1,11 @@
+## Review-validator correction — 30 October 2026
+
+Applied and tested: immutable emitted category/citation binding; nonblank human assertions;
+one temporary-data end-to-end reviewed-only scoring test. No actual human judgments.
+See GRADUATION_DELIVERY_20261030.md for six reproduced failures and mode comparison.
+Research handoff remains narrow: independent reviewer disagreement, small-sample validity,
+and session-to-outcome evidence. No new vendor/model or infrastructure work required.
+
 ## Graduation delivery — 30 October 2026
 
 Current scope/experiment boundaries and owner tasks:

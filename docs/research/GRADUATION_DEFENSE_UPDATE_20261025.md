@@ -157,3 +157,30 @@ fallback material; it is not evidence that an unexecuted live workflow passed.
 | How is confidential data protected in this work? | Synthetic-only fixtures/test DB; no customer log export or operational DB access. |
 | Why no complete RAG/LLM benchmark? | No validated isolated model/index experiment; optional components are declared NOT_RUN. |
 | Can the live system reproduce this? | Isolated real HTTP/DB/Dashboard checks are reported precisely; installed EIMS/USB are not inferred from them. |
+
+
+## Examiner answers — review integrity checkpoint 30 October 2026
+
+- มากกว่า keyword search อย่างไร: มี parser/source identity, structured evidence coordinates,
+  chronology, bounded correlation, vendor KB gates และ saved investigation; ไม่อ้างเข้าใจทุก log.
+- Event ID กับ RCA: ID ระบุชนิดเหตุการณ์ ส่วน RCA ต้องมีหลักฐานเชิงเหตุที่เฉพาะกว่า.
+- Failure แต่ outcome UNKNOWN: operation อาจล้มเหลว แต่ไม่มี final session record หรือผูก session ไม่ได้.
+- ป้องกัน RCA แต่งขึ้น: จำกัด vendor context, unknown/abstention และ counterexamples;
+  ยังต้อง human adjudication จึงจะวัด semantic correctness.
+- Citation ถูกหรือไม่: ตรวจ file/line/span กับต้นฉบับ; semantic support ต้องคนตัดสินแยก.
+- Tests พิสูจน์อะไร: contracts ของกรณีที่ทดสอบ รวม migration/auth/ownership ไม่ใช่ Accuracy.
+- ทำไม DRAFT ไม่ใช่ accuracy: labels ยังเป็นข้อเสนอ AI ไม่ใช่ reference ที่ตรวจอิสระ.
+- ทำไมกัน HELDOUT: ป้องกันปรับกฎตามชุดที่ใช้สรุปผลสุดท้าย; ยังไม่ได้รันชุดนั้น.
+- ข้อจำกัด synthetic: รูปแบบ/สถานการณ์แคบและ selection bias; ไม่แทนข้อมูลภาคสนาม.
+- ทำไมไม่ใช้ LLM ทุกจุด: เริ่มจากวิธีที่ตรวจซ้ำและผูกหลักฐานได้; M2/M3 ยัง NOT_RUN.
+- เทียบ SIEM: ยืมหลักการ structured findings/evidence ไม่ได้พิสูจน์เหนือกว่า commercial tools.
+- History ownership: server กรองตาม authenticated username และตรวจ session/current role;
+  tests negative cross-user ไม่ใช่การรับรอง IAM ทุกระบบ.
+- PostgreSQL ทดสอบอะไร: isolated persistence, ownership, session revoke และ empty/populated
+  synthetic migration. Reconnect ไม่ใช่ OS restart หรือ production migration.
+- Physical infrastructure: USB/installed HTTPS ยัง NOT_TESTED; Redis/EVTX audit แยกสาย.
+- ทำซ้ำอย่างไร: source SHA + frozen inputs/config/scorer hashes + existing CLI + CI artifacts;
+  แยก stage-only, full offline, HTTP/DB และ browser timing อย่างชัดเจน.
+
+Chapter 4 scientific results remain INCOMPLETE: actual reviewed cases/claims = 0.
+Review pipeline test uses artificial temporary judgments to prove denominators, not scientific quality.
