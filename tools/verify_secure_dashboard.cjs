@@ -1,14 +1,21 @@
 // Prepared acceptance test; no injected JWT or Authorization header.
 // Requires the actual Dashboard+BFF and isolated login/DB harness to be running.
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
-const {chromium}=require(process.env.EIMS_PLAYWRIGHT_MODULE||'playwright');
-const base=process.env.EIMS_TEST_BROWSER_BASE_URL||'https://localhost:3449';
+function runtimeConfig(env){
+ const url=new URL(env.EIMS_TEST_BROWSER_BASE_URL);
+ assert(url.protocol==='https:'&&!url.username&&!url.password&&url.pathname==='/'&&!url.search&&!url.hash,
+  'Supply an explicitly approved HTTPS origin without credentials/path/query');
+ assert(env.EIMS_TEST_IGNORE_TLS_ERRORS!=='1','TLS verification bypass is forbidden');
+ return {base:url.origin,options:{viewport:{width:1400,height:1000},ignoreHTTPSErrors:false}};
+}
+module.exports={runtimeConfig};
 const password='synthetic-test-password-only';
-(async()=>{
+if(require.main===module)(async()=>{
  let browser;const report={status:'FAIL',boundary:'Actual browser login, no injected bearer',checks:[]};
  try{
+  const {base,options}=runtimeConfig(process.env);
+  const {chromium,request}=require(process.env.EIMS_PLAYWRIGHT_MODULE||'playwright');
   browser=await chromium.launch({channel:'msedge',headless:true});
-  const options={viewport:{width:1400,height:1000},ignoreHTTPSErrors:process.env.EIMS_TEST_IGNORE_TLS_ERRORS==='1'};
   const owner=await browser.newContext(options),other=await browser.newContext(options);
   let bearerRequests=0;owner.on('request',r=>{if(r.headers().authorization)bearerRequests++});
   async function signIn(context,username){
@@ -32,6 +39,13 @@ const password='synthetic-test-password-only';
   await page.locator('input[type=file][multiple]').setInputFiles([path.join(root,'a-veeam.txt'),path.join(root,'b-vmware.txt')]);
   const upload=page.waitForResponse(r=>r.url().includes('/api/eims/api/v1/analyze/bundle')&&r.request().method()==='POST');
   await page.getByRole('button',{name:'Analyze Log',exact:true}).click();const r=await upload;assert.equal(r.status(),200);const saved=await r.json();
+  const evidence=saved.solutionSummary.evidenceItems;
+  assert(evidence.length>0);
+  for(const item of evidence){
+   assert(['a-veeam.txt','b-vmware.txt'].includes(item.sourceFile));
+   const lines=fs.readFileSync(path.join(root,item.sourceFile),'utf8').split(/\r?\n/);
+   assert.equal(item.message,lines[item.lineNumber-1].trim().slice(0,500));
+  }
   const summary=page.locator('details summary').first();await summary.waitFor();await summary.focus();await page.keyboard.press('Enter');
   assert(await page.locator('mark').first().isVisible());
   fs.mkdirSync('test-results',{recursive:true});await page.screenshot({path:'test-results/secure-source-light.png'});
@@ -43,8 +57,26 @@ const password='synthetic-test-password-only';
   const otherPage=await signIn(other,'synthetic-browser-other');await otherPage.getByText('Signed in: synthetic-browser-other',{exact:true}).waitFor();
   const otherRows=await (await other.request.get(base+'/api/eims/api/v1/history')).json();assert(!otherRows.some(x=>x.id===saved.historyId));
   const forbidden=await otherPage.evaluate(async id=>(await fetch('/api/eims/api/v1/analyze/followup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({historyId:id,question:'What is observed?',language:'en'})})).status,saved.historyId);assert.equal(forbidden,404);report.checks.push('Second actual-login user cannot list or follow up owner History');
-  await page.reload();await page.getByRole('button',{name:'Sign out / ออกจากระบบ',exact:true}).click();
+  // Two authenticated history entries make back/forward a real navigation test.
+  await page.goto(base+'/analyzer?acceptance=before-logout');
+  await page.goto(base+'/analyzer?acceptance=logout');
+  await page.getByRole('button',{name:'Sign out / ออกจากระบบ',exact:true}).click();
   await page.getByLabel('Username / ชื่อผู้ใช้').waitFor();assert.equal((await owner.request.get(base+'/api/eims/api/v1/history')).status(),401);report.checks.push('Logout clears session and protected access fails');
+  // Replay only the cookie issued by the real login, via an isolated HTTP
+  // client. Never inject tokens into browser storage or log cookie contents.
+  const replay=await request.newContext({ignoreHTTPSErrors:false,extraHTTPHeaders:{Cookie:`${cookie.name}=${cookie.value}`}});
+  try{
+   for(const endpoint of ['/api/eims/api/v1/auth/session','/api/eims/api/v1/history'])
+    assert.equal((await replay.get(base+endpoint,{maxRedirects:0})).status(),401);
+  }finally{await replay.dispose()}
+  report.checks.push('Real login-issued cookie rejected after server logout');
+  for(const navigate of [()=>page.goBack(),()=>page.goForward(),()=>page.reload()]){
+   await navigate();await page.getByLabel('Username / ชื่อผู้ใช้').waitFor();
+   assert.equal(await page.getByText('Signed in: synthetic-browser-review',{exact:true}).count(),0);
+   assert.equal(await page.locator('details summary').count(),0);
+   assert.equal((await owner.request.get(base+'/api/eims/api/v1/history')).status(),401);
+  }
+  report.checks.push('Back/forward/reload after logout: no retained evidence UI and protected API denied');
   const expiry=await browser.newContext(options);const short=await signIn(expiry,'synthetic-expiry');await new Promise(r=>setTimeout(r,3500));await short.reload();
   await short.getByLabel('Username / ชื่อผู้ใช้').waitFor();assert.equal((await expiry.request.get(base+'/api/eims/api/v1/history')).status(),401);
   await short.close();const again=await signIn(expiry,'synthetic-expiry');await again.close();report.checks.push('Real login-issued expiry and reauthentication');

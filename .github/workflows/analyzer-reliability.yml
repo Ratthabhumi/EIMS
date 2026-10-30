@@ -92,4 +92,7 @@ jobs:
 
       - name: Session route and PDF injection regressions
         working-directory: .
-        run: node tools/test_session_proxy.cjs
+        run: |
+          node tools/test_session_proxy.cjs
+          node tools/test_browser_acceptance_config.cjs
+          node --check tools/verify_secure_dashboard.cjs
