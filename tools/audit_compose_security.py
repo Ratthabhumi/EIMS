@@ -87,9 +87,39 @@ def audit_compose(document: dict[str, Any]) -> list[dict[str, str]]:
         if service.get("privileged") is True:
             add(name, "PRIVILEGED_CONTAINER", "high",
                 "Container requests unrestricted privileged mode")
-        if str(service.get("pid", "")).strip().lower() == "host":
+        pid_mode = str(service.get("pid", "")).strip().lower()
+        if pid_mode == "host":
             add(name, "HOST_PID", "high",
                 "Service shares the host PID namespace")
+        if pid_mode.startswith(("service:", "container:")):
+            add(name, "INDIRECT_PID_NAMESPACE", "high",
+                "Inherited PID namespace requires a resolved trust-boundary review")
+        network_mode = str(service.get("network_mode", "")).strip().lower()
+        if network_mode.startswith(("service:", "container:")):
+            add(name, "INDIRECT_NETWORK_NAMESPACE", "high",
+                "Shared network namespace requires a resolved trust-boundary review")
+        if str(service.get("userns_mode", "")).strip().lower() == "host":
+            add(name, "HOST_USER_NAMESPACE", "high",
+                "Service disables user-namespace isolation from the host")
+        if str(service.get("ipc", "")).strip().lower() == "host":
+            add(name, "HOST_IPC", "high",
+                "Service shares the host IPC namespace")
+        capabilities = service.get("cap_add") or []
+        if isinstance(capabilities, str):
+            capabilities = [capabilities]
+        if capabilities:
+            add(name, "ADDED_LINUX_CAPABILITIES", "high",
+                "Service requests additional Linux capabilities; review required")
+        security_options = service.get("security_opt") or []
+        if isinstance(security_options, str):
+            security_options = [security_options]
+        if any(re.fullmatch(r"(?:seccomp|apparmor)[:=]unconfined|label[:=]disable",
+                            str(option).strip().lower()) for option in security_options):
+            add(name, "DISABLED_SECURITY_PROFILE", "high",
+                "Service disables a container confinement policy")
+        if service.get("devices") or service.get("device_cgroup_rules"):
+            add(name, "HOST_DEVICE_ACCESS", "high",
+                "Service requests host device access; manual review required")
         if any(_mounts_docker_socket(v) for v in (service.get("volumes") or [])):
             add(name, "DOCKER_SOCKET_MOUNT", "high",
                 "Service mounts the Docker daemon control socket")
