@@ -1,3 +1,7 @@
+## 1 November evidence delta
+
+Three source-backed discrepancies corrected: Windows symptom classification, VMware prefix severity and Fortinet observation provenance. New Full DEV has 61 emitted claims, zero human reviews. Event identity, technical failure, causal proof and session completion remain separate. Cite new priority source/snapshot/packet; previous source-pinned engineering counts are historical. Chapter 4 diagnostic quality remains INCOMPLETE, and DOCX/PDF/PPTX remain STALE_PENDING_REBUILD.
+
 ## RC closure 31 October
 
 Integration audit reuses existing route/serialization/PostgreSQL/BFF/PDF tests. New browser harness assertions are prepared, not executed acceptance. Production and all scientific snapshots unchanged: 12 DRAFT, 60 claims, zero genuine reviews. See RELEASE_CANDIDATE_20261031.json and the compact integration matrix in GRADUATION_DELIVERY_20261030.md. Engineering verification cannot substitute for diagnostic validation or installed deployment acceptance; previous examiner answers remain applicable.

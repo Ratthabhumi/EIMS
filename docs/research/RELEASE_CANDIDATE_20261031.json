@@ -1,16 +1,14 @@
 {
-  "date": "2026-10-31",
+  "date": "2026-11-01",
   "status": "ENGINEERING_RC_WITH_EXTERNAL_GATES",
-  "source_commit": "acf024f6466e8bc84c52b107486d74d4a0aafd6d",
-  "production_source_unchanged_from": "70c9c5ef940a84477c3b52f554059852642406aa",
-  "snapshot": "evaluation/analyzer/results/20261030-recommendation-full_investigation",
-  "snapshot_source": "a3cf8eb2823dbb61847b45c344d047574cba2c23",
-  "snapshot_reused_reason": "No production/evaluation output changes; digest and review bindings verified, no regeneration",
+  "source_commit": "a7b52915dcc38de2618c8588546bb556fb31bac0",
+  "snapshot": "evaluation/analyzer/results/20261101-priority-full_investigation",
+  "snapshot_source": "a7b52915dcc38de2618c8588546bb556fb31bac0",
   "ci": {
     "baseline_run": "https://github.com/Ratthabhumi/EIMS/actions/runs/41024144184",
     "baseline_pr_head": "70c9c5ef940a84477c3b52f554059852642406aa",
     "baseline_tested_checkout": "cf1e41477067e10e98b5882859ca72376e82c92e",
-    "final_publication_ci": "See exact publication HEAD/run/checkout recorded in PR #10 body; baseline does not certify new harness"
+    "final_publication_ci": "See PR #10 exact final HEAD/run/checkout; prior baseline CI is historical"
   },
   "fixtures": {
     "win_policy": {
@@ -66,7 +64,10 @@
     "evaluation/analyzer/results/20261030-recommendation-full_investigation/claim_grounding_queue.json": "a7ecf198cb5e59262146f7fa6c32e4d42d055fe3d3ad0cf18312e752bd30baaa",
     "requirements.txt": "6fe4b9d4853740a1b2a0ff59426364e41628232f27b50081aa8ba2b1176c1d54",
     "requirements-evaluation.txt": "b0f1a0ef1326a4e68bd75b7bea127a40e8d3c3b2e0434250abb60e71d13b3223",
-    "clients/dashboard/package-lock.json": "65be4662eb9be28ad76071bb6980270d7f3190185dcd8605485ddb6b64417824"
+    "clients/dashboard/package-lock.json": "65be4662eb9be28ad76071bb6980270d7f3190185dcd8605485ddb6b64417824",
+    "evaluation/analyzer/results/20261101-priority-full_investigation/config.json": "f3bc9e3bab5bd1610835cdcabe4e4f925bd0482f99039ec8370b598981dad92c",
+    "evaluation/analyzer/results/20261101-priority-full_investigation/predictions.jsonl": "f906dd96515fb534a6992496e3a67440e9cb65ae3a1807e83469b34b34f99ca0",
+    "evaluation/analyzer/results/20261101-priority-full_investigation/claim_grounding_queue.json": "be36b11bccfeeb3bb4b078e736170a4b1c057a6c4c280e7e57e37d47c045a61a"
   },
   "dependencies": {
     "local_python": "3.14.3",
@@ -95,18 +96,19 @@
     "heldout_reserved": 5,
     "human_reviewed_cases": 0,
     "human_reviewed_claims": 0,
-    "claims": 60,
+    "claims": 61,
     "prediction_digests": "12/12 PASS",
-    "review_queue": "60/60 exact emitted claim bindings",
-    "priority_packet": "3/3 hash compatible",
+    "review_queue": "61 emitted claims; no human judgments",
+    "priority_packet": "3/3 updated hash bindings; old packet stale for new output",
     "changed_packet": "8/8 hash compatible",
     "local_hermetic": {
-      "passed": 281,
+      "passed": 298,
       "skipped": 1,
       "warnings": 2
     },
     "handler_checks": 18,
-    "browser_config": "5 rejected inputs + valid HTTPS PASS; syntax PASS; browser NOT_EXECUTED"
+    "browser_config": "5 rejected inputs + valid HTTPS PASS; syntax PASS; browser NOT_EXECUTED",
+    "priority_packet_status": "3 replaced; old hashes retained as historical"
   },
   "pending": [
     "SCIENTIFIC_REVIEW_PENDING",
@@ -165,5 +167,6 @@
     "pr": 11,
     "sha": "e47cd72dc2ea0a1455bdf1a847b21abf795dbce2",
     "included_in_core": false
-  }
+  },
+  "previous_source_commit": "acf024f6466e8bc84c52b107486d74d4a0aafd6d"
 }

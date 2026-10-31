@@ -1,0 +1,759 @@
+{
+  "schema_version": "2.0",
+  "judgments": [
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "5209f94aabf1dcca1b1c81b44e3bb1552c22909eddfe7596a56725ee3ee3ce3c",
+      "claim_id": "overview",
+      "text": "No failure observed in the supplied records. This does not establish overall system health.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "5209f94aabf1dcca1b1c81b44e3bb1552c22909eddfe7596a56725ee3ee3ce3c",
+      "claim_id": "steps-0",
+      "text": "If further verification is needed, collect the event sequence, the relevant session's completion record and emitting product context.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_related",
+      "prediction_sha256": "5209f94aabf1dcca1b1c81b44e3bb1552c22909eddfe7596a56725ee3ee3ce3c",
+      "claim_id": "limitations-0",
+      "text": "The relevant job outcome cannot be established without a completion record associated with that session; success in another session does not establish this job's outcome.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "7d1c425e330cd5f746dc8923c7bfec3c056278b6cfb26918f7eb3f6856d1bd13",
+      "claim_id": "overview",
+      "text": "No failure observed in the supplied records. This does not establish overall system health.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "7d1c425e330cd5f746dc8923c7bfec3c056278b6cfb26918f7eb3f6856d1bd13",
+      "claim_id": "steps-0",
+      "text": "If further verification is needed, collect the event sequence, the relevant session's completion record and emitting product context.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "bundle_unrelated",
+      "prediction_sha256": "7d1c425e330cd5f746dc8923c7bfec3c056278b6cfb26918f7eb3f6856d1bd13",
+      "claim_id": "limitations-0",
+      "text": "The relevant job outcome cannot be established without a completion record associated with that session; success in another session does not establish this job's outcome.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "8e8a7e9ea0bf74a212ea0fe59d521f25d002720526bf28f7b90ff002f76231a3",
+      "claim_id": "overview",
+      "text": "No failure observed in the supplied records. This does not establish overall system health.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "8e8a7e9ea0bf74a212ea0fe59d521f25d002720526bf28f7b90ff002f76231a3",
+      "claim_id": "steps-0",
+      "text": "If further verification is needed, collect the event sequence, the relevant session's completion record and emitting product context.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_heartbeat",
+      "prediction_sha256": "8e8a7e9ea0bf74a212ea0fe59d521f25d002720526bf28f7b90ff002f76231a3",
+      "claim_id": "limitations-0",
+      "text": "The relevant job outcome cannot be established without a completion record associated with that session; success in another session does not establish this job's outcome.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "overview",
+      "text": "VMware could not delete a change-tracking (.ctk) file. Result 2620 was recorded in the evidence. A CTK_CTKUNLINK operation result was recorded in the evidence.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [
+        {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 1,
+          "evidence_type": "RCA_OVERVIEW"
+        },
+        {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 2,
+          "evidence_type": "RCA_OVERVIEW"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "observed-0",
+      "text": "2026-10-20T06:08:11Z Er(02) vmx - DISKLIB-CTK: Could not delete change tracking file for synthetic-disk",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 1,
+          "evidence_type": "FAILURE_DESCRIPTION"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "observed-1",
+      "text": "2026-10-20T06:08:12Z Er(02) vmx - CTK_CTKUNLINK result:2620",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/esxi_tracker/input.txt",
+          "line": 2,
+          "evidence_type": "TECHNICAL_FAILURE"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "causes-0",
+      "text": "Physical root cause is UNKNOWN; an unsuccessful change-tracking deletion alone does not establish its cause",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "steps-0",
+      "text": "Check the related .ctk.vmdk files in a datastore listing",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "steps-1",
+      "text": "Inspect vmware.log and hostd.log around the failure time",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "steps-2",
+      "text": "Refer to official Broadcom VMware CBT troubleshooting documentation — verify scope before applying",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "limitations-0",
+      "text": "Do NOT claim the file is locked unless lock evidence exists",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "nextEvidence-0",
+      "text": "VM vmware.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "nextEvidence-1",
+      "text": "ESXi hostd.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "esxi_tracker",
+      "prediction_sha256": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+      "claim_id": "nextEvidence-2",
+      "text": "Datastore file listing (.vmdk / .ctk.vmdk state)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "de2c678c5265e26a865af46c1f682f02e5c7bea775e961599b702208ff14cfa1",
+      "claim_id": "overview",
+      "text": "No failure observed in the supplied records. This does not establish overall system health.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "de2c678c5265e26a865af46c1f682f02e5c7bea775e961599b702208ff14cfa1",
+      "claim_id": "steps-0",
+      "text": "If further verification is needed, collect the event sequence, the relevant session's completion record and emitting product context.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_accept",
+      "prediction_sha256": "de2c678c5265e26a865af46c1f682f02e5c7bea775e961599b702208ff14cfa1",
+      "claim_id": "limitations-0",
+      "text": "The relevant job outcome cannot be established without a completion record associated with that session; success in another session does not establish this job's outcome.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "3f98444886b4534c0e8e0199a1e15ee5620bdebcc97cbddf552e8f8e4a310168",
+      "claim_id": "overview",
+      "text": "FortiGate configuration event 0100044547: successful informational edit; no failure observed in the supplied records.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [
+        {
+          "file": "cases/fort_config/input.txt",
+          "line": 1,
+          "evidence_type": "RCA_OVERVIEW"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "3f98444886b4534c0e8e0199a1e15ee5620bdebcc97cbddf552e8f8e4a310168",
+      "claim_id": "observed-0",
+      "text": "date=2026-10-20 time=09:41:00 devname=\"FG-LAB\" logid=\"0100044547\" type=\"event\" subtype=\"system\" level=\"information\" action=\"edit\" msg=\"Configuration setting error-log-retention=7 updated successfully\"",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/fort_config/input.txt",
+          "line": 1,
+          "evidence_type": "INFORMATIONAL"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "3f98444886b4534c0e8e0199a1e15ee5620bdebcc97cbddf552e8f8e4a310168",
+      "claim_id": "steps-0",
+      "text": "For a configuration audit, obtain cfgpath/cfgattr, actor, original device context and FortiOS version.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "3f98444886b4534c0e8e0199a1e15ee5620bdebcc97cbddf552e8f8e4a310168",
+      "claim_id": "limitations-0",
+      "text": "The supplied fields do not validate a particular FortiOS format/version or the operational effect of the edit.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "fort_config",
+      "prediction_sha256": "3f98444886b4534c0e8e0199a1e15ee5620bdebcc97cbddf552e8f8e4a310168",
+      "claim_id": "nextEvidence-0",
+      "text": "Configuration audit fields cfgpath/cfgattr, actor, device context and FortiOS version if audit detail is required",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "478b28f5baceed60e66af72b3c38cecc5907c7c2c4229b23b866cfd40f326702",
+      "claim_id": "overview",
+      "text": "No failure observed in the supplied records. This does not establish overall system health.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "478b28f5baceed60e66af72b3c38cecc5907c7c2c4229b23b866cfd40f326702",
+      "claim_id": "steps-0",
+      "text": "If further verification is needed, collect the event sequence, the relevant session's completion record and emitting product context.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "json_info",
+      "prediction_sha256": "478b28f5baceed60e66af72b3c38cecc5907c7c2c4229b23b866cfd40f326702",
+      "claim_id": "limitations-0",
+      "text": "The relevant job outcome cannot be established without a completion record associated with that session; success in another session does not establish this job's outcome.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "663b1fbd7e8f04f5fbc8f4e8d7bade8c808d29c00a220fa8b753d7920b597a5c",
+      "claim_id": "overview",
+      "text": "No failure observed in the supplied records. This does not establish overall system health.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "663b1fbd7e8f04f5fbc8f4e8d7bade8c808d29c00a220fa8b753d7920b597a5c",
+      "claim_id": "steps-0",
+      "text": "If further verification is needed, collect the event sequence, the relevant session's completion record and emitting product context.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "noise_filename",
+      "prediction_sha256": "663b1fbd7e8f04f5fbc8f4e8d7bade8c808d29c00a220fa8b753d7920b597a5c",
+      "claim_id": "limitations-0",
+      "text": "The relevant job outcome cannot be established without a completion record associated with that session; success in another session does not establish this job's outcome.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "69dc97a2e9b20dd5ef950000c2990e1c8e86a539a9f11802809642284cfc37f0",
+      "claim_id": "overview",
+      "text": "No failure observed in the supplied records. This does not establish overall system health.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "69dc97a2e9b20dd5ef950000c2990e1c8e86a539a9f11802809642284cfc37f0",
+      "claim_id": "steps-0",
+      "text": "If further verification is needed, collect the event sequence, the relevant session's completion record and emitting product context.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_options",
+      "prediction_sha256": "69dc97a2e9b20dd5ef950000c2990e1c8e86a539a9f11802809642284cfc37f0",
+      "claim_id": "limitations-0",
+      "text": "The relevant job outcome cannot be established without a completion record associated with that session; success in another session does not establish this job's outcome.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "overview",
+      "text": "VMware could not delete a change-tracking (.ctk) file.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [
+        {
+          "file": "cases/veeam_tracker/input.txt",
+          "line": 2,
+          "evidence_type": "RCA_OVERVIEW"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "observed-0",
+      "text": "[2026-10-20 04:01:07] Error [CViSnapReplica] Could not delete change tracking file",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/veeam_tracker/input.txt",
+          "line": 2,
+          "evidence_type": "FAILURE_DESCRIPTION"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "causes-0",
+      "text": "Physical root cause is UNKNOWN; an unsuccessful change-tracking deletion alone does not establish its cause",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "steps-0",
+      "text": "Check the related .ctk.vmdk files in a datastore listing",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "steps-1",
+      "text": "Inspect vmware.log and hostd.log around the failure time",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "steps-2",
+      "text": "Refer to official Broadcom VMware CBT troubleshooting documentation — verify scope before applying",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "limitations-0",
+      "text": "Do NOT claim the file is locked unless lock evidence exists",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "nextEvidence-0",
+      "text": "VM vmware.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "nextEvidence-1",
+      "text": "ESXi hostd.log",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "veeam_tracker",
+      "prediction_sha256": "7020ec60ef49929770616bad9a9a450829b65f9ff26385c2eb9584bb1f57c7da",
+      "claim_id": "nextEvidence-2",
+      "text": "Datastore file listing (.vmdk / .ctk.vmdk state)",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "3315d4cce3c42e9ef35a000f215a690c091dcc5b02412cfcb8b44e29551822d0",
+      "claim_id": "overview",
+      "text": "No failure observed in the supplied records. This does not establish overall system health.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "3315d4cce3c42e9ef35a000f215a690c091dcc5b02412cfcb8b44e29551822d0",
+      "claim_id": "metadata-0-3",
+      "text": "Event ID: 6005",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_boot/input.txt",
+          "line": 3,
+          "evidence_type": "EVENT_IDENTITY"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "3315d4cce3c42e9ef35a000f215a690c091dcc5b02412cfcb8b44e29551822d0",
+      "claim_id": "metadata-0-4",
+      "text": "Level: Information",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_boot/input.txt",
+          "line": 4,
+          "evidence_type": "SEVERITY"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "3315d4cce3c42e9ef35a000f215a690c091dcc5b02412cfcb8b44e29551822d0",
+      "claim_id": "steps-0",
+      "text": "If further verification is needed, collect the event sequence, the relevant session's completion record and emitting product context.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_boot",
+      "prediction_sha256": "3315d4cce3c42e9ef35a000f215a690c091dcc5b02412cfcb8b44e29551822d0",
+      "claim_id": "limitations-0",
+      "text": "The relevant job outcome cannot be established without a completion record associated with that session; success in another session does not establish this job's outcome.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66",
+      "claim_id": "overview",
+      "text": "Group Policy Event 1129 reports failure to contact a Domain Controller.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [
+        {
+          "file": "cases/win_policy/input.txt",
+          "line": 5,
+          "evidence_type": "RCA_OVERVIEW"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66",
+      "claim_id": "observed-0",
+      "text": "Description: Group Policy could not contact a domain controller; network connectivity failed.",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_policy/input.txt",
+          "line": 5,
+          "evidence_type": "FAILURE_DESCRIPTION"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66",
+      "claim_id": "metadata-0-3",
+      "text": "Event ID: 1129",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_policy/input.txt",
+          "line": 3,
+          "evidence_type": "EVENT_IDENTITY"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66",
+      "claim_id": "metadata-0-4",
+      "text": "Level: Error",
+      "claim_category": "DIRECTLY_OBSERVED",
+      "evidence": [
+        {
+          "file": "cases/win_policy/input.txt",
+          "line": 4,
+          "evidence_type": "SEVERITY"
+        }
+      ],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66",
+      "claim_id": "causes-0",
+      "text": "Actual root cause is UNKNOWN; this event does not establish which DNS, LDAP or network component caused the symptom.",
+      "claim_category": "HYPOTHESIS",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66",
+      "claim_id": "steps-0",
+      "text": "Collect System and GroupPolicy Operational events with ActivityID and timestamps.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66",
+      "claim_id": "steps-1",
+      "text": "Check DNS/DC connectivity and contemporaneous network diagnostics to distinguish hypotheses; determine whether this occurred during startup.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66",
+      "claim_id": "limitations-0",
+      "text": "Transient startup/network readiness and physical causes are unconfirmed; obtain evidence before changing configuration.",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    },
+    {
+      "case_id": "win_policy",
+      "prediction_sha256": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66",
+      "claim_id": "nextEvidence-0",
+      "text": "Full Event Viewer export (.evtx) around the failure time",
+      "claim_category": "UNCERTAIN",
+      "evidence": [],
+      "support_judgment": "NOT_REVIEWED",
+      "reviewer": null,
+      "rationale": null
+    }
+  ]
+}

@@ -1,3 +1,7 @@
+## Priority demo/review update — 1 November
+
+Use source a7b5291 or its CI-verified publication descendant for the new priority behavior. VMware CTK should display Error/isCritical=true; Fortinet configuration observation should expose input.txt:1 with saved source context; Windows 1129 should retain event identity and report the connectivity symptom category while physical cause/job outcome remain unknown. Current priority review: DEV_REVIEW_PRIORITY_DELTA_20261101.md. Snapshot: 20261101-priority-full_investigation, 61 claims, 0 reviewed. Old priority packet is historical; other case hashes remain compatible. Browser runtime is still blocked/not executed; offline snapshots are not UI certification.
+
 ## Runtime/RC update — 31 ตุลาคม 2026
 
 Release source/fixtures/dependencies: `RELEASE_CANDIDATE_20261031.json`; final CI อ้างอิง PR #10 body. Harness ต้องระบุ EIMS_TEST_BROWSER_BASE_URL เป็น HTTPS origin ที่ได้รับอนุญาตและ certificate trusted เท่านั้น ไม่มี default URL และไม่รับ EIMS_TEST_IGNORE_TLS_ERRORS=1. เตรียม Playwright/Edge ก่อน execute; config/syntax checks ไม่ต้องมี browser. Test replay ใช้ cookie ที่ real login ออกให้เฉพาะ HTTP negative probe; ไม่ใส่ JWT ใน browser storage. ห้ามส่ง cookie/token เป็นหลักฐาน. Browser ยังคง BLOCKED_NOT_TESTED จนรันจริง.

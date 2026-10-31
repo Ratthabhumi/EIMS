@@ -1,3 +1,29 @@
+## Targeted Analyzer corrections — 1 November 2026
+
+Start `19df042cdb736c991bd37a1f25e521c92bce3955`; implementation `a7b52915dcc38de2618c8588546bb556fb31bac0`. Publication HEAD/final CI/tested synthetic checkout are recorded in PR #10 after completion.
+
+| Finding | Root cause / bounded correction | Before → after |
+|---|---|---|
+| Windows 1129 | parser lacked canonical diagnosticCode; exact GroupPolicy provider + explicit event field + supported DC-connectivity message now set the symptom category; observed_summary shares the symptom predicate | UNCLASSIFIED_FAILURE → WINDOWS-GROUP-POLICY-CONNECTIVITY; event ID remains 1129, physical RCA UNKNOWN, explicit outcome null |
+| VMware | lexical severity missed timestamped Er(02); VMware-only prefix extraction recognizes Er(02), Wa(03), In(05) at record start | Information/false → Error/true for esxi_tracker; CTK technical failure/RCA boundaries unchanged |
+| Fortinet | canonical build_evidence_items(records=...) selected only failures and dropped successful configuration observations | native sourceFile/line 1 + retained source context; overview gets coordinate references; new observed-0 INFORMATIONAL claim. Recommendations/limitations still have no direct citations |
+
+Vmware mixed-level policy is now explicitly maximum observed level across records (Error > Warning > Information); valid prefix controls that record, legacy unprefixed lines retain lexical fallback. Filename and embedded Er/Wa tokens are not prefix signals. Veeam suppression unchanged. This is coverage of supported literal formats, not vendor-version certification. No external research performed; broader prefix/version variants remain out of scope until authoritative examples are supplied.
+
+Fortinet citation does not make a configuration event a failure. Incident signal/noise definitions are unchanged; files-only legacy evidence selector remains failure-only, native routes use canonical source records. Overview stays UNCERTAIN and human support NOT_REVIEWED. Coordinates prove provenance, not overall health or causal correctness. Existing duplicate-basename rejection and privacy/source-context tests remain in force.
+
+**RED:** 3 targeted native/full regressions failed at the starting source (missing category, wrong level, absent citation). **GREEN:** local full hermetic 298 PASS, 1 SKIP (Windows symlink privilege), 2 dependency warnings. Added six real PostgreSQL cases (three priorities × Thai/English), testing serialized metadata/summary/aiSummary after fresh SELECT and another user's denial; executed by synthetic CI. Extended isolated FastAPI parity to all three priorities. Existing BFF/PDF/build/USB and 8 counterexamples run in final CI, not live browser acceptance. See [before/after and per-case hashes](evidence/20261101-priority/).
+
+**Protocol decision:** semantics_v2.py, scoring.py, manifests, labels and heldout lock are byte-unchanged. v2 already projects failure_type from canonical diagnosticCode; fixing production metadata changes predictions, not the definition/scoring contract. Full instrumentation now assigns the already-defined INFORMATIONAL evidence role to the emitted configuration observation; source/config hashes track adapter change. No silent replacement of historical scores or claim judgments.
+
+Clean-source M0/M1/Full snapshots: `evaluation/analyzer/results/20261101-priority-{rule_only,rule_kb,full_investigation}`. Each executes 12 DRAFT DEV, zero errors, zero HELDOUT, zero human reviews. M0/M1 changed esxi_tracker and win_policy; Full changed those plus fort_config. Full claims 60 → 61. Root cause UNKNOWN and terminal outcome null retained in all three. Source/manifest/input/annotation/scorer/runner/adapter hashes retained. This is no diagnostic accuracy claim; reviewed-only metrics remain undefined.
+
+**Review action:** priority packet hashes are stale for new predictions. Use [new source-first Thai priority delta](DEV_REVIEW_PRIORITY_DELTA_20261101.md), with current binding in REVIEW_BINDING_20261030.json. Previous priority hashes preserved in previous_binding. Other nine Full predictions unchanged, including prior recommendation delta's eight cases. No genuine judgments exist to transfer. Read raw logs first, then record actual case/claim decisions, alias, timestamp and rationale.
+
+**Boundaries:** no auth/database architecture changes, operational DB, USB devices, service startup, main merge or infra PR modifications. HTTPS remains BLOCKED_NOT_TESTED because prior startup was rejected by policy and no approved runtime is available; no workaround. Physical USB/production NOT_TESTED. Infrastructure recovery XFAILs remain separate. Academic binaries remain STALE_PENDING_REBUILD; prior source-pinned reports describe earlier revisions and must incorporate this delta when rebuilding.
+
+Owner next steps: review the three new priority proposals; provide approved trusted HTTPS synthetic runtime; rebuild/visually approve academic files; approve core merge after gates. No new model/vendor expansion or research project required.
+
 ## Release Candidate Closure — 31 ตุลาคม 2026
 
 Starting HEAD `70c9c5ef940a84477c3b52f554059852642406aa`. Implementation source และ dependency/fixture hashes: [RELEASE_CANDIDATE_20261031.json](RELEASE_CANDIDATE_20261031.json). Final publication HEAD, CI run และ tested synthetic checkout บันทึกใน [PR #10](https://github.com/Ratthabhumi/EIMS/pull/10) หลัง CI เสร็จ; baseline CI ใน manifest ไม่ใช่ผลของ harness ใหม่.

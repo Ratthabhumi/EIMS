@@ -1,3 +1,7 @@
+## 1 November production-to-evaluation alignment
+
+Windows 1129 symptom category now comes from canonical parser metadata; VMware explicit prefixes feed level/isCritical; Fortinet native informational source citation reaches Full claim queue and History. v2 projection/scorer unchanged; new source a7b5291 snapshot 20261101-priority-full_investigation (61 claims, 0 reviews). Old priority packet hashes are stale: use DEV_REVIEW_PRIORITY_DELTA_20261101.md. Vendor conclusions remain conservative; independent diagnostic validation and browser acceptance still absent.
+
 ## Update 2026-10-30: recommendations follow observed evidence
 
 Implemented in summary.py: no-signal fallback abstains from error search and causal hypotheses; reuses production signal policy. Thai/English, native single/bundle, deterministic History regression added. New 12-case Full snapshot has 60 NOT_REVIEWED claims; 8 hashes changed, priority 3 unchanged. M0/M1 unchanged. Evidence: `evidence/20261030-recommendation/comparison.json`. Research-derived behavior is implemented; diagnostic validity still requires authentic human adjudication. Browser runtime and deployment remain untested.

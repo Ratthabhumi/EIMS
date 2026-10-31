@@ -1,3 +1,5 @@
+> Update 1 Nov 2026: fort_config/esxi_tracker/win_policy changed. Use docs/research/DEV_REVIEW_PRIORITY_DELTA_20261101.md for current priority claims/hashes; this historical packet remains valid only for its original snapshot. Other unchanged case hashes remain compatible. No human review has been recorded.
+
 # ส่วนปรับปรุง Review Packet: คำแนะนำเมื่อไม่พบ failure
 
 สถานะทุกเคสยังเป็น DRAFT ไม่มีคน review ใช้คู่กับ source lines/labels ใน DEV_REVIEW_REMAINDER_20261030.md
