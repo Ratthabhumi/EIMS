@@ -274,3 +274,15 @@ def test_case_exception_is_recorded_and_included_in_denominator(tmp_path, monkey
     assert m["exploratory_draft_only"]["error_count"] == 12
     assert m["exploratory_draft_only"]["source"]["accuracy"]["denominator"] == 12
     assert len((output / "errors.csv").read_text().splitlines()) == 13
+
+
+@pytest.mark.parametrize('field,value',[('reviewer_id','  '),('reviewer_id',' AI-proposal'),('rationale','  ')])
+def test_legacy_manual_review_requires_nonblank_human_assertion(tmp_path,field,value):
+    _,prediction=fixture()
+    prediction.update(prediction_sha256='a'*64,incident={'first':'synthetic failure'})
+    row={'case_id':'x','prediction_sha256':'a'*64,'item_id':'c1','text':'synthetic failure',
+         'supported':False,'reviewer_id':'human-fixture-only','rationale':'Artificial test only'}
+    row[field]=value
+    path=tmp_path/'review.json';path.write_text(json.dumps({'claims':[row],'citations':[]}),encoding='utf-8')
+    with pytest.raises(ValueError,match='human reviewer'):
+        runner.load_manual_reviews(path,[prediction])

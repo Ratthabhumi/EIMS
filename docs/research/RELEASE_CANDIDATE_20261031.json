@@ -1,0 +1,172 @@
+{
+  "date": "2026-11-01",
+  "status": "ENGINEERING_RC_WITH_EXTERNAL_GATES",
+  "source_commit": "a7b52915dcc38de2618c8588546bb556fb31bac0",
+  "snapshot": "evaluation/analyzer/results/20261101-priority-full_investigation",
+  "snapshot_source": "a7b52915dcc38de2618c8588546bb556fb31bac0",
+  "ci": {
+    "baseline_run": "https://github.com/Ratthabhumi/EIMS/actions/runs/41024144184",
+    "baseline_pr_head": "70c9c5ef940a84477c3b52f554059852642406aa",
+    "baseline_tested_checkout": "cf1e41477067e10e98b5882859ca72376e82c92e",
+    "final_publication_ci": "See PR #10 exact final HEAD/run/checkout; prior baseline CI is historical"
+  },
+  "fixtures": {
+    "win_policy": {
+      "cases/win_policy/input.txt": "b61c82af78664356855ad74be9d8c08d5386cdc3403a49c9ecd86005d771ce1c"
+    },
+    "win_boot": {
+      "cases/win_boot/input.txt": "37ffe791b6c87e4e97388be91e9ecf776eb4c6c35b50dcd6410c017645d57606"
+    },
+    "veeam_tracker": {
+      "cases/veeam_tracker/input.txt": "3ce25544fb7f6bbdd3508d8f08d520c39fc4f193f0d70df00214ab0cab778a22"
+    },
+    "veeam_options": {
+      "cases/veeam_options/input.txt": "26cef224d3fd50df89d9cce841d298eb04104103ca52391f2be61f10b91dcabf"
+    },
+    "esxi_tracker": {
+      "cases/esxi_tracker/input.txt": "63e13fb8990d50218fb88cb12ce0ad88f20e7c1fb8b887b31708bea8850c4ed1"
+    },
+    "esxi_heartbeat": {
+      "cases/esxi_heartbeat/input.txt": "7e0fbb3722f77833994ee8de5ff125bb0a7cf40e64125d00f5c3df18d44e5e33"
+    },
+    "fort_accept": {
+      "cases/fort_accept/input.txt": "a9c73d285e3e7db65a0fd3ed7b22553582c80f3963d7ddf70f7c839a8aa1f45b"
+    },
+    "fort_config": {
+      "cases/fort_config/input.txt": "896227e964a6f31240705f9852d6e7cc6b124c7da6a1e29084ef9a54649a443e"
+    },
+    "noise_filename": {
+      "cases/noise_filename/veeam_windows.txt": "aecc0127dde63d225373769879413cced28a83924ee3995215d09c99ed9a0bf8"
+    },
+    "json_info": {
+      "cases/json_info/input.txt": "bea43ed654fd60fec2c0dca60645e2ed09fcda9874eb1760de95971371a6f4f9"
+    },
+    "bundle_related": {
+      "cases/bundle_related/a.txt": "657bc92b3fa4d62e161e9217e22815b2c2ba68a5d048494e3f6e11f28967b2c0",
+      "cases/bundle_related/b.txt": "aad4044f2ae152253d4dcfa78c1e376e6ff90f32fc576d22766dffd477b94fee"
+    },
+    "bundle_unrelated": {
+      "cases/bundle_unrelated/a.txt": "00ad10f28fac5cae5713e8d562aa0281889f942dcbc730d0bf17fdaf3863e96d",
+      "cases/bundle_unrelated/b.txt": "8e83aede3e4bbfd740e196d2b4f6aa665fd3f5d39d09304b187881d72f7dbc21"
+    }
+  },
+  "demo_order": [
+    "fort_config",
+    "esxi_tracker",
+    "win_policy",
+    "esxi_heartbeat",
+    "bundle_unrelated"
+  ],
+  "hashes": {
+    "evaluation/analyzer/gold/manifest.v1.json": "79ff3f15e5919441890ea2e6b873fbab23075f0043d9ca9babc44314631b367f",
+    "evaluation/analyzer/results/20261030-recommendation-full_investigation/config.json": "9bde147858c633191b7c693429656aa51f7af932c89748c5cae30a5821892ce1",
+    "evaluation/analyzer/results/20261030-recommendation-full_investigation/predictions.jsonl": "1d0217acba49afca59a2b8b362394b2545510dcca8feb79ed24570211abfeda5",
+    "evaluation/analyzer/results/20261030-recommendation-full_investigation/claim_grounding_queue.json": "a7ecf198cb5e59262146f7fa6c32e4d42d055fe3d3ad0cf18312e752bd30baaa",
+    "requirements.txt": "6fe4b9d4853740a1b2a0ff59426364e41628232f27b50081aa8ba2b1176c1d54",
+    "requirements-evaluation.txt": "b0f1a0ef1326a4e68bd75b7bea127a40e8d3c3b2e0434250abb60e71d13b3223",
+    "clients/dashboard/package-lock.json": "65be4662eb9be28ad76071bb6980270d7f3190185dcd8605485ddb6b64417824",
+    "evaluation/analyzer/results/20261101-priority-full_investigation/config.json": "f3bc9e3bab5bd1610835cdcabe4e4f925bd0482f99039ec8370b598981dad92c",
+    "evaluation/analyzer/results/20261101-priority-full_investigation/predictions.jsonl": "f906dd96515fb534a6992496e3a67440e9cb65ae3a1807e83469b34b34f99ca0",
+    "evaluation/analyzer/results/20261101-priority-full_investigation/claim_grounding_queue.json": "be36b11bccfeeb3bb4b078e736170a4b1c057a6c4c280e7e57e37d47c045a61a"
+  },
+  "dependencies": {
+    "local_python": "3.14.3",
+    "local_python_packages": {
+      "fastapi": "0.141.1",
+      "sqlalchemy": "2.0.52",
+      "asyncpg": "0.31.0",
+      "alembic": "1.19.1",
+      "pydantic": "2.13.4",
+      "pyjwt": "2.13.0",
+      "pytest": "9.1.1",
+      "jsonschema": "4.26.0"
+    },
+    "frontend_locked": {
+      "next": "16.3.0",
+      "react": "19.2.8",
+      "react-dom": "19.2.8",
+      "typescript": "5.9.3"
+    },
+    "ci_python": "3.12",
+    "ci_node": "20",
+    "limitation": "Python requirements are ranges; local versions are not claimed identical to CI or an installed deployment. Capture target pip freeze before deployment; no environment lock certified."
+  },
+  "verification": {
+    "dev_draft": 12,
+    "heldout_reserved": 5,
+    "human_reviewed_cases": 0,
+    "human_reviewed_claims": 0,
+    "claims": 61,
+    "prediction_digests": "12/12 PASS",
+    "review_queue": "61 emitted claims; no human judgments",
+    "priority_packet": "3/3 updated hash bindings; old packet stale for new output",
+    "changed_packet": "8/8 hash compatible",
+    "local_hermetic": {
+      "passed": 298,
+      "skipped": 1,
+      "warnings": 2
+    },
+    "handler_checks": 18,
+    "browser_config": "5 rejected inputs + valid HTTPS PASS; syntax PASS; browser NOT_EXECUTED",
+    "priority_packet_status": "3 replaced; old hashes retained as historical"
+  },
+  "pending": [
+    "SCIENTIFIC_REVIEW_PENDING",
+    "BROWSER_HTTPS_BLOCKED_NOT_TESTED",
+    "USB_NOT_TESTED",
+    "PRODUCTION_NOT_CERTIFIED",
+    "OWNER_MERGE_AUTHORIZATION"
+  ],
+  "rollback": "Preserve known source refs, approved configuration and backups. Revert harness commit for tooling rollback only; no automatic schema downgrade, volume deletion or History reset.",
+  "reproduction": "docs/research/OPERATOR_DEMO_20261030.md",
+  "project_wide_audit": "docs/research/PROJECT_WIDE_READINESS_20261031.md",
+  "academic_artifacts": {
+    "docs/report/final/EIMS_FINAL_COOP_REPORT_2026.docx": {
+      "status": "STALE_PENDING_REBUILD",
+      "sha256": "3b2550f8b4ee4b0a1ed6d940a690f452a7cf7bd811f5fe37573959d7e3436a6f",
+      "historical_editorial_baseline": "c38bef97a5f18e85d4338108cb18c48a57d7e1a4",
+      "current_visual_validation": false
+    },
+    "docs/report/final/EIMS_FINAL_COOP_REPORT_2026.pdf": {
+      "status": "STALE_PENDING_REBUILD",
+      "sha256": "98c057c4b728eaf1352a8eaa4b461ac03f8e69c5f37286f7cb854efa2894d2a3",
+      "historical_editorial_baseline": "c38bef97a5f18e85d4338108cb18c48a57d7e1a4",
+      "current_visual_validation": false
+    },
+    "docs/presentation/EIMS_COOP_PRESENTATION_2026.pptx": {
+      "status": "STALE_PENDING_REBUILD",
+      "sha256": "026eae931f87186f2401b88eb654e74238b50536b17c3c156d83e4995b9afcdf",
+      "historical_editorial_baseline": "c38bef97a5f18e85d4338108cb18c48a57d7e1a4",
+      "current_visual_validation": false
+    },
+    "docs/presentation/EIMS_COOP_PRESENTATION_2026.pdf": {
+      "status": "STALE_PENDING_REBUILD",
+      "sha256": "671930cc8b5aa1f53b0971f9b6265da12d287651e23a8e33a4ca2e9edbcaa073",
+      "historical_editorial_baseline": "c38bef97a5f18e85d4338108cb18c48a57d7e1a4",
+      "current_visual_validation": false
+    }
+  },
+  "bounded_module_audit": {
+    "passed": 46,
+    "failed_setup": 21,
+    "skipped": 0,
+    "boundary": "No-op lifespan; DB IO denied; uninitialized dependency blocks API acceptance"
+  },
+  "usb_isolated_audit": {
+    "before": {
+      "pass": 45,
+      "fail": 1
+    },
+    "after": {
+      "pass": 46,
+      "fail": 0
+    },
+    "physical_device_access": false
+  },
+  "infrastructure_tip_observed": {
+    "pr": 11,
+    "sha": "e47cd72dc2ea0a1455bdf1a847b21abf795dbce2",
+    "included_in_core": false
+  },
+  "previous_source_commit": "acf024f6466e8bc84c52b107486d74d4a0aafd6d"
+}

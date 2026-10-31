@@ -29,8 +29,14 @@ def validate_reviews(doc, predictions, payloads):
         seen.add(key)
         if r["claim_id"] not in claims or claims[r["claim_id"]]["text"] != r["text"]:
             raise ValueError("grounding review does not name an emitted claim")
+        claim = claims[r["claim_id"]]
+        expected_evidence = [{"file": e["file"], "line": e["line"], "evidence_type": claim["evidence_type"]}
+                             for e in claim["evidence"]]
+        if r["claim_category"] != claim["category"] or r["evidence"] != expected_evidence:
+            raise ValueError("grounding review altered emitted category or evidence; record corrections in rationale")
         if r["support_judgment"] != "NOT_REVIEWED" and (
-                not r["reviewer"] or r["reviewer"].lower().startswith(("ai", "codex")) or not r["rationale"]):
+                not (r["reviewer"] or "").strip() or r["reviewer"].strip().lower().startswith(("ai", "codex"))
+                or not (r["rationale"] or "").strip()):
             raise ValueError("human support judgment requires actual reviewer and rationale")
         for ref in r["evidence"]:
             files = payloads[r["case_id"]]

@@ -645,3 +645,117 @@ def test_full_migration_lineage_from_empty_isolated_schema(integrated):
         finally:
             await engine.dispose()
     integrated(check)
+
+
+def test_populated_parent_upgrade_preserves_history_ownership_and_sessions(integrated):
+    """Real parent revision and synthetic rows; no operational URL or reset."""
+    import uuid
+    from sqlalchemy import text
+    from alembic.config import Config
+    from alembic import command
+    async def check(unused_client, unused_session, calls):
+        schema='eims_populated_'+uuid.uuid4().hex
+        url=dedicated_url(os.environ['EIMS_TEST_DATABASE_URL'])
+        engine=create_async_engine(url)
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(f'CREATE SCHEMA {schema}'))
+                ext=await conn.scalar(text("SELECT n.nspname FROM pg_extension e JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='vector'"))
+                suffix=(', '+conn.dialect.identifier_preparer.quote(ext)) if ext else ''
+                await conn.execute(text(f'SET LOCAL search_path TO {schema}{suffix}'))
+                def migrate(c, target):
+                    config=Config(); config.set_main_option('script_location','migrations')
+                    config.attributes.update(connection=c,version_table_schema=schema)
+                    command.upgrade(config,target)
+                await conn.run_sync(lambda c:migrate(c,'8a2b4d6f9c1e'))
+                assert await conn.scalar(text(f'SELECT version_num FROM {schema}.alembic_version'))=='8a2b4d6f9c1e'
+                for name in ['synthetic-pre-owner','synthetic-pre-other']:
+                    await conn.execute(text('INSERT INTO users (username,password,role) VALUES (:u,:p,:r)'),
+                        {'u':name,'p':auth.hash_password(TEST_PASSWORD),'r':'user'})
+                    await conn.execute(text("INSERT INTO analysis_history (event_id,provider,username,description,solution_summary,search_results,created_at) VALUES ('1129','synthetic',:u,'SYNTHETIC ONLY',CAST(:s AS json),'[]',CURRENT_TIMESTAMP)"),
+                        {'u':name,'s':'{"overview":"synthetic retained evidence","evidence":["line 1"]}'})
+                before=(await conn.execute(text('SELECT row_to_json(h)::text FROM analysis_history h ORDER BY id'))).scalars().all()
+                await conn.run_sync(lambda c:migrate(c,'head'))
+                after=(await conn.execute(text('SELECT row_to_json(h)::text FROM analysis_history h ORDER BY id'))).scalars().all()
+                assert after==before
+                assert await conn.scalar(text(f'SELECT version_num FROM {schema}.alembic_version'))=='e1a202610250'
+        finally:
+            await engine.dispose()
+        def reconnect():
+            return create_async_engine(url,connect_args={'server_settings':{'search_path':schema}})
+        engine=reconnect()
+        try:
+            app=FastAPI();app.include_router(auth_api.router,prefix='/auth');app.include_router(history.router,prefix='/history')
+            async def db():
+                async with AsyncSession(engine,expire_on_commit=False) as s: yield s
+            app.dependency_overrides[auth_api.get_db_session]=db
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://synthetic-test') as client:
+                for name in ['synthetic-pre-owner','synthetic-pre-other']:
+                    login=await client.post('/auth/login',json={'username':name,'password':TEST_PASSWORD})
+                    assert login.status_code==200,login.text
+                    headers={'Authorization':'Bearer '+login.json()['access_token']}
+                    rows=await client.get('/history/',headers=headers)
+                    assert rows.status_code==200,rows.text
+                    assert len(rows.json())==1 and rows.json()[0]['username']==name
+                    await engine.dispose();engine=reconnect()
+                    assert (await client.get('/auth/session',headers=headers)).status_code==200
+                    assert (await client.post('/auth/logout',headers=headers)).status_code==200
+                    assert (await client.get('/auth/session',headers=headers)).status_code==401
+            async with engine.connect() as conn:
+                assert (await conn.execute(text('SELECT row_to_json(h)::text FROM analysis_history h ORDER BY id'))).scalars().all()==before
+        finally:
+            await engine.dispose()
+    integrated(check)
+
+@pytest.mark.parametrize('language', ['th', 'en'])
+@pytest.mark.parametrize('cid', ['bundle_related', 'esxi_heartbeat'])
+def test_no_failure_postgres_history_reopen(integrated, language, cid):
+    from evaluation.analyzer import runner
+    doc, payloads = runner.load_manifest(runner.REPO / 'evaluation/analyzer/gold/manifest.v1.json')
+    files = payloads[cid]
+    async def check(client, session, calls):
+        uploads = [(name.rsplit('/', 1)[-1], raw, 'text/plain') for name, (raw, _) in files.items()]
+        if len(uploads) > 1:
+            response = await client.post('/analyze/bundle', headers=bearer(), data={'language': language},
+                                         files=[('files', f) for f in uploads])
+        else:
+            response = await client.post('/analyze/', headers=bearer(), data={'language': language}, files={'file': uploads[0]})
+        assert response.status_code == 200, response.text
+        saved = response.json()
+        expected = 'ไม่พบความล้มเหลว' if language == 'th' else 'No failure observed'
+        assert expected in saved['solutionSummary']['overview']
+        assert saved['solutionSummary']['causes'] == []
+        session.expunge_all()
+        rows = (await client.get('/history/', headers=bearer())).json()
+        assert rows[0]['solutionSummary'] == saved['solutionSummary']
+        assert rows[0]['aiSummary'] == saved['aiSummary']
+        assert (await client.get('/history/', headers=bearer('synthetic-other'))).json() == []
+    integrated(check)
+
+@pytest.mark.parametrize('language',['th','en'])
+@pytest.mark.parametrize('cid',['win_policy','esxi_tracker','fort_config'])
+def test_priority_metadata_and_citation_postgres_roundtrip(integrated,language,cid):
+    from evaluation.analyzer import runner
+    _,payloads=runner.load_manifest(runner.REPO/'evaluation/analyzer/gold/manifest.v1.json')
+    raw=next(iter(payloads[cid].values()))[0]
+    async def check(client,session,calls):
+        response=await client.post('/analyze/',headers=bearer(),data={'language':language},files={'file':('input.txt',raw,'text/plain')})
+        assert response.status_code==200,response.text
+        saved=response.json();meta=saved['eventMetadata'];s=saved['solutionSummary']
+        if cid=='win_policy':
+            assert meta['diagnosticCode']=='WINDOWS-GROUP-POLICY-CONNECTIVITY'
+            assert 'UNKNOWN' in ' '.join(s['causes'])
+        elif cid=='esxi_tracker':
+            assert meta['level']=='Error' and meta['isCritical']
+            assert 'UNKNOWN' in ' '.join(s['causes'])
+        else:
+            assert not meta['isCritical'] and not s['causes']
+            item=s['evidenceItems'][0]
+            assert item['sourceFile']=='input.txt' and item['lineNumber']==1
+            assert item['message']==raw.decode().strip()
+        session.expunge_all()
+        rows=(await client.get('/history/',headers=bearer())).json()
+        assert rows[0]['solutionSummary']==s
+        assert rows[0]['eventMetadata']==meta and rows[0]['aiSummary']==saved['aiSummary']
+        assert (await client.get('/history/',headers=bearer('synthetic-other'))).json()==[]
+    integrated(check)

@@ -27,11 +27,16 @@ jobs:
       - name: Native synthetic counterexamples (not Gold accuracy)
         run: python tools/run_analyzer_counterexamples.py --output test-results/counterexamples
 
+      - name: Offline USB packaging and event parsing (no device access)
+        run: python -m pytest tools/tests/test_build_usb_package.py clients/usb_auditor/tests/test_event_logs.py clients/usb_auditor/tests/test_report_event_logs.py -q --junitxml=test-results/usb-isolated.xml
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: analyzer-hermetic-${{ github.event.pull_request.head.sha || github.sha }}
-          path: test-results/analyzer-hermetic.xml
+          path: |
+            test-results/analyzer-hermetic.xml
+            test-results/usb-isolated.xml
           retention-days: 30
 
   analyzer-postgres-integration:
@@ -92,4 +97,7 @@ jobs:
 
       - name: Session route and PDF injection regressions
         working-directory: .
-        run: node tools/test_session_proxy.cjs
+        run: |
+          node tools/test_session_proxy.cjs
+          node tools/test_browser_acceptance_config.cjs
+          node --check tools/verify_secure_dashboard.cjs

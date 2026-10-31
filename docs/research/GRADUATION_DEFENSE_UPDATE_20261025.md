@@ -1,3 +1,25 @@
+## 1 November evidence delta
+
+Three source-backed discrepancies corrected: Windows symptom classification, VMware prefix severity and Fortinet observation provenance. New Full DEV has 61 emitted claims, zero human reviews. Event identity, technical failure, causal proof and session completion remain separate. Cite new priority source/snapshot/packet; previous source-pinned engineering counts are historical. Chapter 4 diagnostic quality remains INCOMPLETE, and DOCX/PDF/PPTX remain STALE_PENDING_REBUILD.
+
+## RC closure 31 October
+
+Integration audit reuses existing route/serialization/PostgreSQL/BFF/PDF tests. New browser harness assertions are prepared, not executed acceptance. Production and all scientific snapshots unchanged: 12 DRAFT, 60 claims, zero genuine reviews. See RELEASE_CANDIDATE_20261031.json and the compact integration matrix in GRADUATION_DELIVERY_20261030.md. Engineering verification cannot substitute for diagnostic validation or installed deployment acceptance; previous examiner answers remain applicable.
+
+## Evidence update — 30 October: no-failure recommendations
+
+ถาม: ระบบยังแนะนำแก้ error ที่ไม่มีหรือไม่? พบจริงใน fallback และมี 10 failing-before regressions; แก้ด้วย signal policy เดิม ให้แนะนำเก็บบริบทแทนโดยไม่ยืนยันสุขภาพระบบหรือผลจบงาน. Full DEV เปลี่ยน 8/12, emitted claims 60, human-reviewed 0. จำนวน claims ที่ลดลงไม่ใช่หลักฐาน accuracy. บท 4 ด้าน diagnostic validity ยัง INCOMPLETE; engineering, human validation และ installed acceptance แยกกัน. ดู GRADUATION_DELIVERY_20261030.md และ versioned snapshot ใหม่.
+
+## Graduation delivery — 30 October 2026
+
+Current scope/experiment boundaries and owner tasks:
+[GRADUATION_DELIVERY_20261030.md](GRADUATION_DELIVERY_20261030.md).
+Core Analyzer frozen; tenancy/WSS/new model work deferred. Priority review packet hashes
+verified unchanged; supplementary nine-case packet added. No human decisions invented.
+Populated synthetic parent-upgrade test added; local run skipped because DB is stopped.
+Use delivery PR exact-head CI for its executed result. Prior test counts below are historical.
+No trusted browser listener available; operator runbook replaces repeated startup attempts.
+
 ## Current checkpoint — 26 October 2026 publication
 
 This update supersedes historical status below; historical measurements remain intact.
@@ -147,3 +169,30 @@ fallback material; it is not evidence that an unexecuted live workflow passed.
 | How is confidential data protected in this work? | Synthetic-only fixtures/test DB; no customer log export or operational DB access. |
 | Why no complete RAG/LLM benchmark? | No validated isolated model/index experiment; optional components are declared NOT_RUN. |
 | Can the live system reproduce this? | Isolated real HTTP/DB/Dashboard checks are reported precisely; installed EIMS/USB are not inferred from them. |
+
+
+## Examiner answers — review integrity checkpoint 30 October 2026
+
+- มากกว่า keyword search อย่างไร: มี parser/source identity, structured evidence coordinates,
+  chronology, bounded correlation, vendor KB gates และ saved investigation; ไม่อ้างเข้าใจทุก log.
+- Event ID กับ RCA: ID ระบุชนิดเหตุการณ์ ส่วน RCA ต้องมีหลักฐานเชิงเหตุที่เฉพาะกว่า.
+- Failure แต่ outcome UNKNOWN: operation อาจล้มเหลว แต่ไม่มี final session record หรือผูก session ไม่ได้.
+- ป้องกัน RCA แต่งขึ้น: จำกัด vendor context, unknown/abstention และ counterexamples;
+  ยังต้อง human adjudication จึงจะวัด semantic correctness.
+- Citation ถูกหรือไม่: ตรวจ file/line/span กับต้นฉบับ; semantic support ต้องคนตัดสินแยก.
+- Tests พิสูจน์อะไร: contracts ของกรณีที่ทดสอบ รวม migration/auth/ownership ไม่ใช่ Accuracy.
+- ทำไม DRAFT ไม่ใช่ accuracy: labels ยังเป็นข้อเสนอ AI ไม่ใช่ reference ที่ตรวจอิสระ.
+- ทำไมกัน HELDOUT: ป้องกันปรับกฎตามชุดที่ใช้สรุปผลสุดท้าย; ยังไม่ได้รันชุดนั้น.
+- ข้อจำกัด synthetic: รูปแบบ/สถานการณ์แคบและ selection bias; ไม่แทนข้อมูลภาคสนาม.
+- ทำไมไม่ใช้ LLM ทุกจุด: เริ่มจากวิธีที่ตรวจซ้ำและผูกหลักฐานได้; M2/M3 ยัง NOT_RUN.
+- เทียบ SIEM: ยืมหลักการ structured findings/evidence ไม่ได้พิสูจน์เหนือกว่า commercial tools.
+- History ownership: server กรองตาม authenticated username และตรวจ session/current role;
+  tests negative cross-user ไม่ใช่การรับรอง IAM ทุกระบบ.
+- PostgreSQL ทดสอบอะไร: isolated persistence, ownership, session revoke และ empty/populated
+  synthetic migration. Reconnect ไม่ใช่ OS restart หรือ production migration.
+- Physical infrastructure: USB/installed HTTPS ยัง NOT_TESTED; Redis/EVTX audit แยกสาย.
+- ทำซ้ำอย่างไร: source SHA + frozen inputs/config/scorer hashes + existing CLI + CI artifacts;
+  แยก stage-only, full offline, HTTP/DB และ browser timing อย่างชัดเจน.
+
+Chapter 4 scientific results remain INCOMPLETE: actual reviewed cases/claims = 0.
+Review pipeline test uses artificial temporary judgments to prove denominators, not scientific quality.

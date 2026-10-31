@@ -1,0 +1,31 @@
+{
+  "emitted_claims": 77,
+  "reviewed_binary_judgments": 0,
+  "uncertain_judgments": 0,
+  "semantic_support_precision": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "actual human claim-to-evidence support judgments only",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "unsupported_claim_rate": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "unsupported / binary judged material claims; not a keyword proxy",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "review_coverage": {
+    "value": 0.0,
+    "numerator": 0,
+    "denominator": 77,
+    "case_support": 12,
+    "policy": "human-judged subset / all emitted claim records",
+    "undefined": null
+  },
+  "failures": [],
+  "status": "NOT_MEASURED"
+}

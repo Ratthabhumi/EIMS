@@ -1,0 +1,40 @@
+{
+  "status": "PASS_HASH_BINDING_ONLY",
+  "prediction_snapshot": "20261101-priority-full_investigation",
+  "priority_packet_hashes": {
+    "fort_config": "3f98444886b4534c0e8e0199a1e15ee5620bdebcc97cbddf552e8f8e4a310168",
+    "esxi_tracker": "55cc2d558d45e79ad7ef7e5848b2bab37adf33fd4cbb1cb35eeeb13b1e252260",
+    "win_policy": "b324cc4ca9ecbce26320f29da962e574d8af11b7e8db131471bf9237d3151a66"
+  },
+  "human_judgments": 0,
+  "reviewed_cases": 0,
+  "draft_cases": 12,
+  "claims": 61,
+  "changed_cases": [
+    "bundle_related",
+    "bundle_unrelated",
+    "esxi_heartbeat",
+    "fort_accept",
+    "json_info",
+    "noise_filename",
+    "veeam_options",
+    "win_boot"
+  ],
+  "changed_case_packet": "DEV_REVIEW_RECOMMENDATION_DELTA_20261030.md",
+  "previous_binding": {
+    "snapshot": "20261030-recommendation-full_investigation",
+    "priority_packet_hashes": {
+      "esxi_tracker": "08293285d5963efc5e1ec92fe9ef8f20b66a0b493997fa1e92ca4b8a94d8297f",
+      "fort_config": "5d62582aac1a705c564407b857c7fe88c09a18a837a26afd27c49624c40ec00f",
+      "win_policy": "5a047c3db1b5286fd0eea387a798756b8fad762cc6db16bee4dfab3270fdf075"
+    },
+    "status": "STALE_FOR_CHANGED_PRIORITY_PREDICTIONS"
+  },
+  "priority_packet": "DEV_REVIEW_PRIORITY_DELTA_20261101.md",
+  "priority_packet_status": "CURRENT_DRAFT_PROPOSALS_ONLY",
+  "latest_changed_cases": [
+    "esxi_tracker",
+    "fort_config",
+    "win_policy"
+  ]
+}

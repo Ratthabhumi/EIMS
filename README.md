@@ -4,9 +4,9 @@
 [![Licensing Model](https://img.shields.io/badge/Model-Source--Available-E11D48.svg)](NOTICE)
 [![Canonical Release](https://img.shields.io/badge/Release-v0.3.0-0284C7.svg)](CHANGELOG.md)
 [![EDS Constitution](https://img.shields.io/badge/EDS%20Constitution-v1.0.0%20Approved-047857.svg)](docs/index.md)
-[![Build Status](https://img.shields.io/badge/Build-Graduation%20Hardening-1E40AF.svg)](CHANGELOG.md)
+[![Build Status](https://img.shields.io/badge/Build-RC%20External%20Gates-1E40AF.svg)](CHANGELOG.md)
 
-**EIMS (Enterprise Infrastructure Management System)** is an enterprise-grade platform engineered to centralize compute infrastructure discovery, hardware inventory tracking, automated optical character recognition (OCR) asset registration, continuous Windows log diagnostics, rules-based compliance auditing, and live operational visibility.
+**EIMS (Enterprise Infrastructure Management System)** is an academic prototype platform engineered to centralize compute infrastructure discovery, hardware inventory tracking, automated optical character recognition (OCR) asset registration, continuous Windows log diagnostics, rules-based compliance auditing, and live operational visibility.
 
 ---
 
@@ -33,7 +33,9 @@
 
 ## 🚧 Project Status
 
-The project is currently at canonical release **`v0.3.0`** (Graduation Hardening Complete). Core platform features and Phase 12 hardening are fully implemented.
+Historical release label: **v0.3.0**. Current graduation work is **Draft PR #10 — ENGINEERING_RC_WITH_EXTERNAL_GATES**, not merged into main. Next.js 16.3.0 / React 19.2.8. The 322 Python CI tests cover Analyzer and isolated secure PostgreSQL integration, not every EIMS module. Scientific review: 12 DRAFT DEV, 60 claims, 0 genuine reviews. Secure HTTPS, current physical USB and production acceptance remain unverified. See [project-wide readiness](docs/research/PROJECT_WIDE_READINESS_20261031.md).
+
+The sprint checkmarks and benchmarks below are historical implementation milestones, not current whole-system acceptance. Do not rerun legacy benchmarks against operational data.
 
 - **Sprint 0 – Documentation Foundation** ✅
 - **Sprint 1 – Engineering Specifications** ✅

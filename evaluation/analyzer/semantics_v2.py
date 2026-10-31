@@ -48,7 +48,7 @@ def load_annotations(path, source_manifest, source_cases):
             if not 1 <= ref["line"] <= ref.get("end_line", ref["line"]) <= len(lines):
                 raise ValueError("v2 evidence span out of bounds")
         if c["review_status"] == "REVIEWED" and (
-                not c.get("reviewer_id") or c["reviewer_id"].lower().startswith(("ai", "codex"))
+                not (c.get("reviewer_id") or "").strip() or c["reviewer_id"].strip().lower().startswith(("ai", "codex"))
                 or c.get("reviewed_annotation_sha256") != review_digest(c)):
             raise ValueError("v2 review needs an actual human assertion bound to current labels")
         found[cid] = c

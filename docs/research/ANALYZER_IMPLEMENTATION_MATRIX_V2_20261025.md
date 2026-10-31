@@ -1,3 +1,29 @@
+## 1 November production-to-evaluation alignment
+
+Windows 1129 symptom category now comes from canonical parser metadata; VMware explicit prefixes feed level/isCritical; Fortinet native informational source citation reaches Full claim queue and History. v2 projection/scorer unchanged; new source a7b5291 snapshot 20261101-priority-full_investigation (61 claims, 0 reviews). Old priority packet hashes are stale: use DEV_REVIEW_PRIORITY_DELTA_20261101.md. Vendor conclusions remain conservative; independent diagnostic validation and browser acceptance still absent.
+
+## Update 2026-10-30: recommendations follow observed evidence
+
+Implemented in summary.py: no-signal fallback abstains from error search and causal hypotheses; reuses production signal policy. Thai/English, native single/bundle, deterministic History regression added. New 12-case Full snapshot has 60 NOT_REVIEWED claims; 8 hashes changed, priority 3 unchanged. M0/M1 unchanged. Evidence: `evidence/20261030-recommendation/comparison.json`. Research-derived behavior is implemented; diagnostic validity still requires authentic human adjudication. Browser runtime and deployment remain untested.
+
+## Review-validator correction — 30 October 2026
+
+Applied and tested: immutable emitted category/citation binding; nonblank human assertions;
+one temporary-data end-to-end reviewed-only scoring test. No actual human judgments.
+See GRADUATION_DELIVERY_20261030.md for six reproduced failures and mode comparison.
+Research handoff remains narrow: independent reviewer disagreement, small-sample validity,
+and session-to-outcome evidence. No new vendor/model or infrastructure work required.
+
+## Graduation delivery — 30 October 2026
+
+Current scope/experiment boundaries and owner tasks:
+[GRADUATION_DELIVERY_20261030.md](GRADUATION_DELIVERY_20261030.md).
+Core Analyzer frozen; tenancy/WSS/new model work deferred. Priority review packet hashes
+verified unchanged; supplementary nine-case packet added. No human decisions invented.
+Populated synthetic parent-upgrade test added; local run skipped because DB is stopped.
+Use delivery PR exact-head CI for its executed result. Prior test counts below are historical.
+No trusted browser listener available; operator runbook replaces repeated startup attempts.
+
 ## 26 October continuation — current delta
 
 See [continuation evidence and permission matrix](CONTINUATION_20261026.md).

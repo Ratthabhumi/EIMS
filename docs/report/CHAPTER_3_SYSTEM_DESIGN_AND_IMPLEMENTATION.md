@@ -1,6 +1,14 @@
 # Chapter 3
 # System Design and Implementation
 
+## Current graduation revision and evidence boundary
+
+**Current source audit: 31 October 2026 — `acf024f6466e8bc84c52b107486d74d4a0aafd6d` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 322 Python tests in Analyzer/secure PostgreSQL suites, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 60, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+
+Current core workflow: authenticated browser → Next.js BFF (HttpOnly/Secure cookie) → FastAPI Analyzer → normalized source records/vendor rules/local knowledge → structured investigation → user-owned PostgreSQL History → saved source-context viewer. Server-side revocation and current user ownership apply to protected requests. No failure observed does not imply global health; CTK technical failure does not prove job failure or physical cause; Event 1129 identifies a DC-connectivity symptom. Fortinet configuration event identity alone is not failure. Unknown completion is not resolved by an unrelated session. Customer-scoped forms, general-user shared organizational APIs and authenticated WebSocket streaming are not certified live workflows. The wider platform design below is implemented/historical scope, not proof every path was accepted on this revision.
+
+## Historical prototype material (retained for provenance)
+
 This chapter explains the system requirements, design, and implementation of the Enterprise Infrastructure Management System (EIMS). It details the functional and non-functional requirements, presents the overall system architecture with structural diagrams, specifies the relational and vector data models, documents the portable collection utility, details the ingestion and AI-assisted analysis pipelines, and formalizes the validation and security governance frameworks.
 
 ## 3.1 Requirement Analysis

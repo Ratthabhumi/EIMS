@@ -172,7 +172,9 @@ def test_builder_never_formats_or_autoselects() -> None:
         assert dangerous not in ps1
     assert "Read-Host 'Select drive index'" in ps1
     assert "'YES'" in ps1
-    assert "$DriveLetter):\\EIMS_USB_Auditor" in ps1
+    assert '$DriveRoot = "$($DriveLetter):\\"' in ps1
+    assert "$Target    = Join-Path $DriveRoot 'EIMS_USB_Auditor'" in ps1
+    assert "$ExpectedTarget = Join-Path $DriveRoot 'EIMS_USB_Auditor'" in ps1
 
 
 def test_builder_wrappers_exist() -> None:
