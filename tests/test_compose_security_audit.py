@@ -143,3 +143,82 @@ volumes:
   app_cache: {}
 """)
     assert audit_compose(safe) == []
+
+
+def test_host_userns_ipc_and_device_access_are_high_risk():
+    """Host IPC/user namespaces and device pass-through bypass ordinary isolation."""
+    compose = yaml.safe_load("""
+services:
+  unsafe:
+    image: busybox:1.36
+    userns_mode: host
+    ipc: host
+    devices:
+      - /dev/null:/dev/example
+    device_cgroup_rules:
+      - "c 1:3 rwm"
+""")
+    findings = audit_compose(compose)
+    assert {"HOST_USER_NAMESPACE", "HOST_IPC", "HOST_DEVICE_ACCESS"}.issubset(
+        {f["rule"] for f in findings}
+    )
+    assert all(f["severity"] == "high" for f in findings)
+    assert "/dev/example" not in json.dumps(findings)
+
+
+def test_capability_and_unconfined_security_options_fail_secure_mode(tmp_path):
+    """No Docker daemon; synthetic profile must not pass the secure static gate."""
+    compose = tmp_path / "synthetic.yml"
+    compose.write_text("""
+services:
+  unsafe:
+    image: busybox:1.36
+    cap_add: [SYS_ADMIN]
+    security_opt:
+      - "seccomp:unconfined"
+      - "apparmor:unconfined"
+""", encoding="utf-8")
+    findings = audit_compose(yaml.safe_load(compose.read_text(encoding="utf-8")))
+    assert {"ADDED_LINUX_CAPABILITIES", "DISABLED_SECURITY_PROFILE"}.issubset(
+        {f["rule"] for f in findings}
+    )
+    result = subprocess.run(
+        [sys.executable, str(SCANNER), "--compose", str(compose), "--mode", "secure"],
+        capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 1
+    assert "SYS_ADMIN" not in result.stdout
+    assert "seccomp:unconfined" not in result.stdout
+
+
+def test_indirect_namespace_references_are_not_silently_certified():
+    """A service/container namespace reference is not equivalent to bridge isolation."""
+    compose = yaml.safe_load("""
+services:
+  parent:
+    image: busybox:1.36
+  child:
+    image: busybox:1.36
+    network_mode: "service:parent"
+    pid: "container:synthetic-other"
+""")
+    findings = audit_compose(compose)
+    assert {"INDIRECT_NETWORK_NAMESPACE", "INDIRECT_PID_NAMESPACE"}.issubset(
+        {f["rule"] for f in findings}
+    )
+    assert not any(f["service"] == "parent" for f in findings)
+
+
+def test_normal_namespace_and_confinement_settings_remain_unflagged():
+    compose = yaml.safe_load("""
+services:
+  ordinary:
+    image: busybox:1.36
+    network_mode: bridge
+    ipc: private
+    userns_mode: private
+    cap_drop: [ALL]
+    security_opt:
+      - "no-new-privileges:true"
+""")
+    assert audit_compose(compose) == []
