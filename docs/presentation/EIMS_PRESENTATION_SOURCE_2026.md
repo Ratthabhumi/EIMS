@@ -1,3 +1,7 @@
+**Current source audit: 31 October 2026 — `acf024f6466e8bc84c52b107486d74d4a0aafd6d` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 322 Python tests in Analyzer/secure PostgreSQL suites, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 60, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+
+**Rendered PPTX/PDF: STALE_PENDING_REBUILD. The source revision below has not been visually accepted as a rebuilt deck.**
+
 # EIMS Final Cooperative Education Presentation — Source Deck & Speaker Notes
 **Academic Year 2026 | International Program, Faculty of Engineering, KMITL & Kanematsu Electronics (Thailand)**
 **Author:** Ratthabhumi Peansukmanee (Student ID: 66011198)
@@ -48,17 +52,13 @@
 
 ---
 
-## Slide 4: Project Objectives (Core Engineering Scope)
-- **Canonical Objectives (Aligned with Chapter 1):**
-  - **OBJ-1: Centralized Asset Registry:** Establish central asset records anchored by cryptographic hardware composite fingerprints.
-  - **OBJ-2: Portable Disconnected Collection:** Implement a portable, read-only collection utility for disconnected Windows hosts requiring no persistent agent installation.
-  - **OBJ-3: Ingestion & Normalization Pipeline:** Ingest and normalize offline evidence payloads into schema-validated relational records.
-  - **OBJ-4: Sequential Deduplication:** Enforce application-level sequential SHA-256 deduplication and deterministic severity ranking upon ingestion.
-  - **OBJ-5: Assisted AI Analysis:** Deploy semantic embeddings and retrieval-augmented generation to provide assistive diagnostic context for prioritized events (bounded at most 10 per import).
-  - **OBJ-6: Centralized Investigation Dashboard:** Deliver a responsive web interface displaying endpoint profiles, compliance status, event logs, and assisted findings.
-  - **OBJ-7: Empirical System Validation:** Validate end-to-end data integrity from evidence ingestion to dashboard display across defined evaluation gates.
+## Slide 4: Current Graduation Objectives
+- Evidence-grounded multi-vendor investigation; separate event identity, observed failures, final outcomes and causal uncertainty.
+- Preserve source-file/line evidence and user-owned History.
+- Evaluate M0/M1/Full reproducibly with authentic reviewed-only judgments.
+- Retain portable Windows/asset ingestion as historical supporting work.
 - **Speaker Notes:**
-  > Here are the seven core objectives defined in Chapter 1. The prototype addresses these seven objectives, though validation depth differs by feature. Notice that we focus on bounded AI assistance, sequential deduplication, and traceable evidence metadata.
+  > The current objective is verifiable investigation, not adding more features or claiming a trained model.
 
 ---
 
@@ -69,7 +69,7 @@
 - **Relational & Vector Store:** PostgreSQL 16 + pgvector. ACID transactional relational entity store combined with 384-dimensional vector cosine distance search.
 - **Broker & Caching:** Redis 7 & MinIO Object Storage. In-memory caching and message queuing paired with S3-compatible object storage.
 - **AI Analysis Engine:** FastEmbed (`BAAI/bge-small-en-v1.5`) primary / SentenceTransformer (`all-MiniLM-L6-v2`) fallback. Bounded assistive analysis generating contextual diagnostic summaries with traceable metadata.
-- **Operator Dashboard:** Next.js 14 App Router + Tailwind CSS. Server/Client hybrid rendering dashboard presenting asset details, compliance status, event evidence, and AI findings.
+- **Operator Dashboard:** Next.js 16.3.0 / React 19.2.8 App Router + Tailwind CSS. Server/Client hybrid rendering dashboard presenting asset details, compliance status, event evidence, and AI findings.
 - **Speaker Notes:**
   > Here are the main technologies used in EIMS. The collection runtime uses an embedded CPython 3.14.3 distribution on USB. The backend uses FastAPI and PostgreSQL with pgvector, decoupled through Redis and MinIO, and served via a Next.js App Router interface. The embedding service initializes FastEmbed with BAAI/bge-small-en-v1.5, with SentenceTransformer all-MiniLM-L6-v2 as fallback.
 
@@ -87,7 +87,7 @@
 
 ---
 
-## Slide 7: Portable Offline Evidence Collection & Ingestion Sequence
+## Slide 7: Historical Prototype — Portable Offline Evidence Collection & Ingestion Sequence
 - **Visual:** Figure 3.3 Offline Collection Sequence Diagram.
 - **Collection Guarantees:**
   - Bundled Runtime: Runs from USB drive with embedded CPython 3.14.3 runtime; no persistent agent installation required.
@@ -99,7 +99,7 @@
 
 ---
 
-## Slide 8: Event Ingestion & Application-Level Deduplication
+## Slide 8: Historical Prototype — Event Ingestion & Application-Level Deduplication
 - **Four-Step Ingestion Pipeline:**
   1. *Validation:* Pydantic payload validation rejecting malformed schemas (HTTP 422).
   2. *Asset Lookup:* Resolve asset by cryptographic hardware composite fingerprint.
@@ -117,58 +117,41 @@
 
 ---
 
-## Slide 9: Bounded AI-assisted Investigation & Traceable Metadata
-- **Severity Prioritization & Bounded Workload:**
-  - *Ranking:* `Critical (Level 1) > Error (Level 2) > Warning (Level 3) > Information (Level 4)`
-  - *Bounding:* Evaluated workflow limits analysis to at most 10 selected new events. High-impact failures are triaged first, bounding processing overhead.
-- **Semantic Embeddings & Conditional Analysis:**
-  - *Model:* FastEmbed `BAAI/bge-small-en-v1.5` primary (384-d dense vectors) with SentenceTransformer `all-MiniLM-L6-v2` fallback.
-  - *Metric:* Cosine Distance via pgvector (`<=>` operator).
-  - *Flow:* Checks curated answers first, then retrieval, optional Gemini generation, and fallback.
-  - *AnalysisHistory:* Traceable metadata linking diagnostic advice to source event and asset records.
-  - *Assistive Role:* Accelerates human triage; does NOT act as autonomous root-cause authority or auto-remediator.
+## Slide 9: Current Investigation Workflow
+- Source identification → normalized records → vendor rules/local KB → evidence-linked summary → authenticated History.
+- Fortinet config edits are not automatically failures. CTK 2620 is technical failure, not proven physical cause. Windows 1129 is a DC-connectivity symptom.
+- No observed failure is not system-health certification; unrelated session success cannot resolve another failure.
+- M2/RAG and M3/LLM experiments: NOT_RUN.
 - **Speaker Notes:**
-  > Our analysis pipeline is bounded and conditional. Rather than feeding thousands of events to an LLM, the evaluated workflow limits analysis to at most 10 selected new events sorted by severity. The service checks curated solutions first, then uses FastEmbed or SentenceTransformer embeddings to retrieve playbook context, with optional generative expansion. Crucially, the AI provides assistive advice and does not take autonomous remediation actions.
+  > Distinguish the historical bounded RAG ingestion path from the current deterministic evaluation; citation coordinates alone do not establish semantic support.
 
 ---
 
-## Slide 10: Empirical Validation Strategy & Multi-Tier Gates
-- **Five Validation Layers:**
-  - Layer 1: Unit & Ingestion Tests — Sprint 13 test suite (`tests/test_sprint13_evidence_ingestion.py`): 37 reported passing hermetic tests with mocked database and analyzer; separate historical/live PostgreSQL checks.
-  - Layer 2: Frontend Compilation — Strict TypeScript verification (`tsc --noEmit`) and Next.js production build (`next build`) verifying zero type mismatches.
-  - Layer 3: Physical USB Execution — Executed portable package on an authorized Windows Server host verifying read-only WMI/CIM and event log extraction.
-  - Layer 4: Filtered API Verification — Queried backend endpoints (`GET /api/v1/history?asset_id=...`) verifying HTTP 200 and asset-scoped response payloads.
-  - Layer 5: Browser Runtime (A9 Gate) — End-to-end browser inspection validating concurrent rendering of 49 event evidence records and 10 AI findings.
+## Slide 10: Validation Layers and Current Gates
+- Engineering: Analyzer hermetic, synthetic PostgreSQL and BFF/frontend checks.
+- Scientific: 12 DEV DRAFT; 5 HELDOUT reserved; 0 genuine reviewed cases/claims.
+- Operational: secure HTTPS browser BLOCKED_NOT_TESTED; latest USB/production NOT_TESTED.
 - **Speaker Notes:**
-  > We validated EIMS across distinct layers. Layer 1 executes 37 hermetic unit and ingestion tests with mocked database and analyzer components. Layer 2 verifies frontend TypeScript builds. Layer 3 reflects physical USB execution on an authorized Windows Server host. Layer 4 verifies asset-scoped REST API responses, and Layer 5 conducts browser runtime verification under Gate A9.
+  > Each layer answers a different question. The current CI does not certify all project modules or a deployed system.
 
 ---
 
-## Slide 11: Empirical Results & Reported Field Metrics
-- **Top Metrics:**
-  - `37 / 0 / 4`: Sprint 13 Ingestion Test Suite (37 Passed, 0 Failed, 4 Warnings)
-  - `PASS`: Frontend TypeScript & Next.js Production Build
-  - `49 Events`: Persisted Evidence (34 System + 15 Application over 24h window)
-  - `10 Records`: AnalysisHistory Bounded Workload Path (10/10 Analyzed)
-- **Field Telemetry Breakdown:**
-  - Evaluated Host: Anonymized host alias `ASSET-01` representing enterprise Windows Server environment.
-  - Channel Distribution: 34 System channel events + 15 Application channel events.
-  - Temporal Window: Preceding 24 hours of operational activity extracted from `%SystemRoot%\System32\Winevt\Logs\`.
-  - Filtered API: `GET /api/v1/history?asset_id=...` returned HTTP 200 with exactly the 10 asset-linked triage records.
-  - Browser Gate A9: PASS — Verified simultaneous visibility of Event Evidence table and AI Findings inspection card. Placeholder "No AI findings yet" correctly not rendered.
+## Slide 11: Current Results and Separate Historical Evidence
+- Current baseline CI: 282 hermetic + 40 PostgreSQL = 322 PASS; counterexamples 8/8.
+- Full DEV: 60 claims; diagnostic accuracy/support precision/unsupported-claim rate NOT_MEASURED.
+- Historical September evidence: 49 Windows events (34 System, 15 Application), 10 AnalysisHistory findings, filtered API HTTP 200, A9 display PASS.
+- New bounded module audit: see PROJECT_WIDE_READINESS_20261031.md; setup failures must not be reported as passes.
 - **Speaker Notes:**
-  > Here are our reported results from Chapter 4. Sprint 13 passed with 37 tests. The field dataset contained 49 persisted Windows events across the System and Application channels. The analyzer triaged 10 prioritized events, matching our bounded workload cap. The filtered history API returned HTTP 200, and Gate A9 browser verification confirmed proper UI display.
+  > Historical A9 does not establish secure browser acceptance for October. Fewer claims do not demonstrate better accuracy.
 
 ---
 
-## Slide 12: Downstream Live Validation Workflow Trace
-- **Validation Pipeline:** `ASSET-01` -> `49 Events in DB` -> `Bounded Analyzer (Cap <= 10)` -> `10 AnalysisHistory Records` -> `HTTP 200 Filtered API` -> `A9 PASS UI Verification`
-- **Critical Distinction:**
-  - *Downstream Verification Scope:* The latest on-site verification confirmed downstream data integrity: persisted database rows, AnalysisHistory referential linkage, asset-scoped API filtering, and live Next.js UI rendering.
-  - *Historical Collection Separation:* Physical USB acquisition, elevated script execution, and raw JSON extraction were proven in earlier field trials and were intentionally NOT re-run during the final downstream gate.
-  - *Traceability & Auditability:* By maintaining this clear boundary, the report avoids false claims of full re-execution while demonstrating that persisted evidence correctly propagates to operator interfaces.
+## Slide 12: Reproducible Demo and Honest Fallback
+- Authorized live demo: login → Fortinet → CTK → Windows 1129 → informational negative control → unrelated bundle → inspect evidence → reopen History → ownership/logout checks.
+- Without approved HTTPS: use frozen offline results and label the boundary explicitly.
+- Preserve snapshot/source/prediction hashes; original DRAFT and HELDOUT remain unchanged.
 - **Speaker Notes:**
-  > Earlier field sessions covered USB collection and JSON generation. In the latest session, I checked the stored events, analysis history, filtered API response, and dashboard. I did not repeat USB collection in that session.
+  > Do not simulate a live acceptance result. Historical USB collection and historical downstream verification were different sessions, not a new end-to-end run.
 
 ---
 
@@ -195,32 +178,22 @@
 
 ---
 
-## Slide 14: Scoped Limitations & Future Engineering Roadmap
-- **Acknowledged Scoped Limitations:**
-  - Windows-First Focus: Portable collection utility currently targets Windows WMI/winevt subsystems; Linux/macOS collectors deferred.
-  - System & Application Scope: Scoped strictly to System and Application channels (default max 500 combined events).
-  - Sequential Dedup Only: Enforces application-level sequential protection; does not provide distributed database concurrency guarantees.
-  - Bounded Triage Capacity: Evaluated workflow limits analysis to at most 10 prioritized events per batch import.
-  - Assistive Role: AI suggests diagnoses; does not act as autonomous authority or apply automated patches.
-  - Academic Prototype: Prototype implementation; not a commercial SIEM or certified forensic suite.
-- **Future Engineering Roadmap (ROADMAP-aligned):**
-  - Cross-Endpoint Correlation: Investigate temporal clustering to detect infrastructure-wide event sequences.
-  - Database-Level Concurrency: Evaluate database-level constraints for concurrent ingestion safety.
-  - Infrastructure Scaling: Connection pooling and containerized deployment as operational needs expand.
-  - Directory Integration: Investigate enterprise single sign-on (SSO) integration with corporate Active Directory.
-  - Cross-Platform Collection: Study portable collector implementations for Linux systemd and macOS logging.
+## Slide 14: Remaining Acceptance Gates
+- Authentic priority-three human review with claim rationale and exact hashes.
+- Approved trusted HTTPS runtime and real browser acceptance.
+- Academic artifact rebuild and human visual/institutional review.
+- Owner-authorized core merge with fresh CI; no automatic infrastructure merge.
+- Defer new vendors/models/tenancy/cloud migration.
 - **Speaker Notes:**
-  > Every engineering project must have well-defined boundaries. EIMS focuses on Windows System and Application logs, uses sequential deduplication, and bounds AI triage to 10 events. It is an academic prototype baseline, not a full commercial SIEM. Our future roadmap outlines clear extensions: cross-endpoint correlation, concurrent database dedup, and multi-platform Linux/macOS support.
+  > Infrastructure now includes separate PR #11; recovery XFAILs remain outside graduation core certification.
 
 ---
 
-## Slide 15: Conclusion & Q&A
-- **Summary of Project Achievements:**
-  1. Centralized Infrastructure Governance: Unified asset tracking with immutable hardware composite fingerprints.
-  2. Air-Gapped Evidence Acquisition: Demonstrated non-destructive offline collection using embedded CPython 3.14.3 runtimes.
-  3. Deterministic Deduplication & Prioritization: Implemented sequential SHA-256 event fingerprinting and deterministic triage.
-  4. Bounded AI Assistance: Delivered RAG-assisted investigation linked to auditable AnalysisHistory records.
-  5. Validated Downstream Pipeline: Confirmed end-to-end data integrity across 49 field events, HTTP 200 API, and Gate A9.
-- **Closing Statement:** "Thank you. I welcome your questions."
+## Slide 15: Conclusion and Q&A
+- Delivered: evidence-grounded investigation, conservative uncertainty, owner-scoped History and reproducible engineering checks.
+- Preserved: historical portable collection and asset evidence.
+- Not yet established: diagnostic accuracy, secure live browser acceptance or installed production readiness.
 - **Speaker Notes:**
-  > In conclusion, EIMS demonstrates an integrated approach to centralized asset governance, portable offline evidence collection, and bounded AI-assisted investigation. The prototype addresses the seven project objectives within its defined scope. I would like to thank Kanematsu Electronics, my workplace supervisor Mr. Chalermpol, my academic advisor Asst. Prof. Dr. Phongsak, and the committee. Thank you. I welcome your questions.
+  > Our contribution is traceable engineering with explicit evidence boundaries. The next measurable step is genuine reviewed-only pilot data, not another feature count.
+
+---

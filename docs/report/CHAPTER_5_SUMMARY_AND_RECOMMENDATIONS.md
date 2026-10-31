@@ -1,6 +1,14 @@
 # Chapter 5
 # Summary and Recommendations
 
+## Current graduation revision and evidence boundary
+
+**Current source audit: 31 October 2026 — `acf024f6466e8bc84c52b107486d74d4a0aafd6d` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 322 Python tests in Analyzer/secure PostgreSQL suites, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 60, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+
+The release is ENGINEERING_RC_WITH_EXTERNAL_GATES, not a completed production deployment. Current contributions are vendor-aware deterministic investigation, source-linked evidence, conservative uncertainty, secure owner-scoped History, and reproducible evaluation/review tooling. The most important remaining experiment is authentic review of fort_config, esxi_tracker and win_policy, with claim judgments bound to exact prediction hashes. A three-case pilot supports workflow verification only, not broad accuracy. Next steps are approved HTTPS acceptance, source-aligned academic artifact rebuild and owner-authorized core merge (#2→#3→#4→#5→#10) with CI after retargeting. Infrastructure #6→#7→#8→#9→#11 stays separate; four recovery XFAIL contracts are not resolved by the core CI. New vendors, RAG/LLM, cloud migration and full tenancy are deferred. Earlier prototype conclusions below retain their historical scope only.
+
+## Historical prototype material (retained for provenance)
+
 This chapter summarizes the results, limitations, and lessons learned of the Enterprise Infrastructure Management System (EIMS) project. It evaluates the completed platform against the engineering objectives established in Chapter 1, consolidates key technical outcomes and validation evidence, analyzes engineering challenges and lessons learned, documents current system limitations, and outlines future architectural recommendations based on the project roadmap.
 
 ## 5.1 Project Summary

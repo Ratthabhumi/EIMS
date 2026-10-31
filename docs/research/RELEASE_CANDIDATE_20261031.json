@@ -1,7 +1,7 @@
 {
   "date": "2026-10-31",
   "status": "ENGINEERING_RC_WITH_EXTERNAL_GATES",
-  "source_commit": "69cd5cd8c6ab9494d2689e7f61b01bfa1d1381cf",
+  "source_commit": "acf024f6466e8bc84c52b107486d74d4a0aafd6d",
   "production_source_unchanged_from": "70c9c5ef940a84477c3b52f554059852642406aa",
   "snapshot": "evaluation/analyzer/results/20261030-recommendation-full_investigation",
   "snapshot_source": "a3cf8eb2823dbb61847b45c344d047574cba2c23",
@@ -116,5 +116,54 @@
     "OWNER_MERGE_AUTHORIZATION"
   ],
   "rollback": "Preserve known source refs, approved configuration and backups. Revert harness commit for tooling rollback only; no automatic schema downgrade, volume deletion or History reset.",
-  "reproduction": "docs/research/OPERATOR_DEMO_20261030.md"
+  "reproduction": "docs/research/OPERATOR_DEMO_20261030.md",
+  "project_wide_audit": "docs/research/PROJECT_WIDE_READINESS_20261031.md",
+  "academic_artifacts": {
+    "docs/report/final/EIMS_FINAL_COOP_REPORT_2026.docx": {
+      "status": "STALE_PENDING_REBUILD",
+      "sha256": "3b2550f8b4ee4b0a1ed6d940a690f452a7cf7bd811f5fe37573959d7e3436a6f",
+      "historical_editorial_baseline": "c38bef97a5f18e85d4338108cb18c48a57d7e1a4",
+      "current_visual_validation": false
+    },
+    "docs/report/final/EIMS_FINAL_COOP_REPORT_2026.pdf": {
+      "status": "STALE_PENDING_REBUILD",
+      "sha256": "98c057c4b728eaf1352a8eaa4b461ac03f8e69c5f37286f7cb854efa2894d2a3",
+      "historical_editorial_baseline": "c38bef97a5f18e85d4338108cb18c48a57d7e1a4",
+      "current_visual_validation": false
+    },
+    "docs/presentation/EIMS_COOP_PRESENTATION_2026.pptx": {
+      "status": "STALE_PENDING_REBUILD",
+      "sha256": "026eae931f87186f2401b88eb654e74238b50536b17c3c156d83e4995b9afcdf",
+      "historical_editorial_baseline": "c38bef97a5f18e85d4338108cb18c48a57d7e1a4",
+      "current_visual_validation": false
+    },
+    "docs/presentation/EIMS_COOP_PRESENTATION_2026.pdf": {
+      "status": "STALE_PENDING_REBUILD",
+      "sha256": "671930cc8b5aa1f53b0971f9b6265da12d287651e23a8e33a4ca2e9edbcaa073",
+      "historical_editorial_baseline": "c38bef97a5f18e85d4338108cb18c48a57d7e1a4",
+      "current_visual_validation": false
+    }
+  },
+  "bounded_module_audit": {
+    "passed": 46,
+    "failed_setup": 21,
+    "skipped": 0,
+    "boundary": "No-op lifespan; DB IO denied; uninitialized dependency blocks API acceptance"
+  },
+  "usb_isolated_audit": {
+    "before": {
+      "pass": 45,
+      "fail": 1
+    },
+    "after": {
+      "pass": 46,
+      "fail": 0
+    },
+    "physical_device_access": false
+  },
+  "infrastructure_tip_observed": {
+    "pr": 11,
+    "sha": "e47cd72dc2ea0a1455bdf1a847b21abf795dbce2",
+    "included_in_core": false
+  }
 }

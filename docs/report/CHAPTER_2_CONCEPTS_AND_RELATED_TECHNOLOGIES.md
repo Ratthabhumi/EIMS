@@ -1,6 +1,14 @@
 # Chapter 2
 # Concepts and Related Technologies
 
+## Current graduation revision and evidence boundary
+
+**Current source audit: 31 October 2026 — `acf024f6466e8bc84c52b107486d74d4a0aafd6d` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 322 Python tests in Analyzer/secure PostgreSQL suites, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 60, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+
+The verified dashboard dependency versions are Next.js 16.3.0 and React 19.2.8 (`clients/dashboard/package.json` and lockfile). Embeddings/RAG described below are architectural concepts and legacy capabilities, not the mechanism measured by the frozen M0/M1/Full experiments. M0 uses existing rule logic; M1 adds local vendor knowledge; Full executes actual route synthesis, evidence and in-memory History reconstruction with network/vector writes disabled. M2/RAG and M3/LLM remain NOT_RUN. Citation coordinate validity and semantic support are distinct; only genuine human judgments can establish the latter.
+
+## Historical prototype material (retained for provenance)
+
 The purpose of this chapter is to articulate the foundational engineering principles, theoretical concepts, and underlying software technologies required to understand the architecture, data processing models, and operational mechanisms of the Enterprise Infrastructure Management System (EIMS). As an engineering foundation, this chapter delineates generic industry principles and established technologies, setting the technical baseline prior to the detailed presentation of the EIMS implementation in Chapter 3.
 
 ## 2.1 Infrastructure Asset Management

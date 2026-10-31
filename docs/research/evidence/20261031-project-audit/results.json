@@ -1,0 +1,153 @@
+{
+  "project-audit-modules": {
+    "tests.test_state_machine": {
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "tests.test_orm_models": {
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "tests.test_sprint13_evidence_ingestion.TestNormalizeReportEvent": {
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "tests.test_sprint13_evidence_ingestion.TestComputeDedupKey": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "tests.test_sprint13_evidence_ingestion.TestMetadataAndPriority": {
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "tests.test_sprint13_evidence_ingestion.TestIngestReportEvents": {
+      "pass": 10,
+      "fail": 0,
+      "skip": 0
+    },
+    "tests.test_sprint13_evidence_ingestion.TestS13FinalGate": {
+      "pass": 9,
+      "fail": 0,
+      "skip": 0
+    },
+    "tests.test_api_controllers": {
+      "pass": 2,
+      "fail": 3,
+      "skip": 0
+    },
+    "tests.test_ocr_upload_pipeline": {
+      "pass": 0,
+      "fail": 2,
+      "skip": 0
+    },
+    "tests.test_global_search": {
+      "pass": 1,
+      "fail": 8,
+      "skip": 0
+    },
+    "tests.test_timeline": {
+      "pass": 0,
+      "fail": 8,
+      "skip": 0
+    }
+  },
+  "project-audit-usb": {
+    "tools.tests.test_build_usb_package": {
+      "pass": 15,
+      "fail": 1,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestClamp": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestTruncateMessage": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestBuildPowershellCommand": {
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestParseOccurrenceTime": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestParseEvents": {
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestCollectEventLogs": {
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestNoRecoveryKeys": {
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_report_event_logs.TestSaveReportEventLogs": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "project-audit-usb-after": {
+    "tools.tests.test_build_usb_package": {
+      "pass": 16,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestClamp": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestTruncateMessage": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestBuildPowershellCommand": {
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestParseOccurrenceTime": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestParseEvents": {
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestCollectEventLogs": {
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_event_logs.TestNoRecoveryKeys": {
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "clients.usb_auditor.tests.test_report_event_logs.TestSaveReportEventLogs": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}
