@@ -731,3 +731,31 @@ def test_no_failure_postgres_history_reopen(integrated, language, cid):
         assert rows[0]['aiSummary'] == saved['aiSummary']
         assert (await client.get('/history/', headers=bearer('synthetic-other'))).json() == []
     integrated(check)
+
+@pytest.mark.parametrize('language',['th','en'])
+@pytest.mark.parametrize('cid',['win_policy','esxi_tracker','fort_config'])
+def test_priority_metadata_and_citation_postgres_roundtrip(integrated,language,cid):
+    from evaluation.analyzer import runner
+    _,payloads=runner.load_manifest(runner.REPO/'evaluation/analyzer/gold/manifest.v1.json')
+    raw=next(iter(payloads[cid].values()))[0]
+    async def check(client,session,calls):
+        response=await client.post('/analyze/',headers=bearer(),data={'language':language},files={'file':('input.txt',raw,'text/plain')})
+        assert response.status_code==200,response.text
+        saved=response.json();meta=saved['eventMetadata'];s=saved['solutionSummary']
+        if cid=='win_policy':
+            assert meta['diagnosticCode']=='WINDOWS-GROUP-POLICY-CONNECTIVITY'
+            assert 'UNKNOWN' in ' '.join(s['causes'])
+        elif cid=='esxi_tracker':
+            assert meta['level']=='Error' and meta['isCritical']
+            assert 'UNKNOWN' in ' '.join(s['causes'])
+        else:
+            assert not meta['isCritical'] and not s['causes']
+            item=s['evidenceItems'][0]
+            assert item['sourceFile']=='input.txt' and item['lineNumber']==1
+            assert item['message']==raw.decode().strip()
+        session.expunge_all()
+        rows=(await client.get('/history/',headers=bearer())).json()
+        assert rows[0]['solutionSummary']==s
+        assert rows[0]['eventMetadata']==meta and rows[0]['aiSummary']==saved['aiSummary']
+        assert (await client.get('/history/',headers=bearer('synthetic-other'))).json()==[]
+    integrated(check)

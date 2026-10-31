@@ -98,14 +98,15 @@ def test_full_pipeline_really_runs_route_synthesis_and_memory_history(cid):
         assert all(c["category"] != "SUPPORTED_INFERENCE" for c in a["claims"])
 
 
-def test_full_route_parity_against_isolated_fastapi_transport(monkeypatch):
+@pytest.mark.parametrize('cid', ['esxi_tracker', 'win_policy', 'fort_config'])
+def test_full_route_parity_against_isolated_fastapi_transport(monkeypatch, cid):
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
     from backend.api.routers.analyzer import analyze as api
     from backend.domain.analyzer.services import vector_db, summary
     from backend.domain.analyzer.services.vendor_knowledge import vendor_reference_results
     from evaluation.analyzer.investigation import MemoryHistory
-    c, files = source("esxi_tracker")
+    c, files = source(cid)
     expected = predict_full(c, files)["native_response"]
     sink = MemoryHistory()
     app = FastAPI()
@@ -351,3 +352,79 @@ def test_failure_investigation_not_suppressed(language, text, code):
     assert s.steps and s.causes
     assert 'No failure observed' not in s.overview
     assert 'ไม่พบความล้มเหลว' not in s.overview
+
+@pytest.mark.parametrize('cid,field,expected', [
+    ('win_policy', 'diagnosticCode', 'WINDOWS-GROUP-POLICY-CONNECTIVITY'),
+    ('esxi_tracker', 'level', 'Error'),
+])
+def test_priority_canonical_metadata_regression(cid, field, expected):
+    c, files = source(cid)
+    result = predict_full(c, files)
+    assert result['native_response']['eventMetadata'][field] == expected
+    assert result['native_response']['eventMetadata'] == result['reopened_isolated_history']['eventMetadata']
+
+
+def test_fortinet_observation_has_native_source_provenance():
+    c, files = source('fort_config')
+    result = predict_full(c, files)
+    summary = result['native_response']['solutionSummary']
+    assert len(summary['evidenceItems']) == 1
+    item = summary['evidenceItems'][0]
+    assert item['sourceFile'] == 'input.txt' and item['lineNumber'] == 1
+    assert item['message'] == next(iter(files.values()))[1].strip()
+    assert summary == result['reopened_isolated_history']['solutionSummary']
+    overview = next(claim for claim in result['claims'] if claim['claim_id'] == 'overview')
+    assert overview['evidence'] and overview['category'] == 'UNCERTAIN'
+    assert all(not claim['evidence'] for claim in result['claims'] if claim['evidence_type'] in ('RECOMMENDATION', 'UNKNOWN'))
+
+@pytest.mark.parametrize('event,provider,message,expected', [
+ ('1129','Microsoft-Windows-GroupPolicy','Group Policy could not contact a domain controller; network connectivity failed.','WINDOWS-GROUP-POLICY-CONNECTIVITY'),
+ ('1129','Unknown','Group Policy could not contact a domain controller.',None),
+ ('1129','Microsoft-Windows-GroupPolicy','Additional details unavailable.',None),
+ ('6005','EventLog','The Event Log service was started.',None),
+ ('9999','OtherProvider','Operation failed.',None),
+ ('1129','OtherGroupPolicyPlugin','Could not contact a domain controller.',None),
+])
+def test_windows_symptom_category_requires_identity_and_message(event, provider, message, expected):
+    from backend.domain.analyzer.services.parser import parse_event_metadata
+    text=f'Log Name: System\nSource: {provider}\nEvent ID: {event}\nLevel: Error\nDescription: {message}\n'
+    assert parse_event_metadata(text).diagnosticCode == (expected or '')
+
+
+def test_unrelated_1129_mention_is_not_a_windows_diagnosis():
+    from backend.domain.analyzer.services.parser import parse_event_metadata
+    assert not parse_event_metadata('An unrelated note mentions 1129 and GroupPolicy.').diagnosticCode
+
+
+@pytest.mark.parametrize('prefix,level,critical', [('Er(02)','Error',True),('Wa(03)','Warning',False),('In(05)','Information',False)])
+def test_vmware_record_prefix_severity(prefix,level,critical):
+    from backend.domain.analyzer.services.vendor_parsers import parse_vmware
+    from backend.domain.analyzer.services.incident_extract import extract_incident
+    text=f'2026-10-20T06:08:11Z {prefix} vmx - heartbeat idle'
+    m=parse_vmware(text, 'Er(02)-failure.log')
+    assert (m.level,m.isCritical)==(level,critical)
+    # A warning or level marker alone is not a proven technical failure.
+    if level!='Error':
+        assert not extract_incident(text,'vmware')['firstMeaningfulFailure']
+
+
+def test_vmware_prefix_is_position_scoped_and_severity_is_maximum():
+    from backend.domain.analyzer.services.vendor_parsers import parse_vmware,parse_veeam
+    info='2026-10-20T06:08:11Z In(05) vmx - note contains Er(02) and Wa(03)'
+    error='2026-10-20T06:08:12Z Er(02) vmx - synthetic operation'
+    assert parse_vmware(info).level=='Information'
+    assert parse_vmware('vmx - arbitrary text Er(02)').level=='Information'
+    assert parse_vmware(info+'\n'+error).level==parse_vmware(error+'\n'+info).level=='Error'
+    assert parse_veeam('RetryFailedJob=true').level=='Information'
+
+
+def test_informational_citation_keeps_source_identity_without_failure_inference():
+    from backend.domain.analyzer.services.evidence import build_evidence_records
+    from backend.domain.analyzer.services.bundle import build_evidence_items
+    _,files=source('fort_config'); text=next(iter(files.values()))[1]
+    records=build_evidence_records([('config.txt',text),('other.txt','unrelated informational record')])
+    items=build_evidence_items([],records=records)
+    assert len(items)==1 and items[0]['sourceFile']=='config.txt'
+    assert items[0]['sourceContext'][0]['text']==text.strip()
+    assert build_evidence_items([],records=[])==[]
+    assert build_evidence_items([],records=build_evidence_records([('config.txt',text.replace('action="edit"','action="unknown"'))]))==[]

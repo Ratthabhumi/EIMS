@@ -377,8 +377,19 @@ def _merge_syslog(meta: EventMetadata, text: str, family: str) -> EventMetadata:
     return meta
 
 
+def windows_group_policy_connectivity(event_id: str, provider: str, text: str) -> bool:
+    """Classify the reported symptom, never its physical cause or job outcome."""
+    identity = provider.lower().replace('-', '').replace(' ', '')
+    message = (_field(text, r"(?m)^\s*Description\s*:\s*([^\r\n]+)") or text).lower()
+    return bool(
+        event_id == "1129" and identity in {"microsoftwindowsgrouppolicy", "grouppolicy"}
+        and 'domain controller' in message
+        and any(s in message for s in ('could not contact', 'lack of network connectivity', 'connectivity failed'))
+    )
+
+
 def _parse_windows(text: str) -> EventMetadata:
-    """Standard Windows Event Log field matching (unchanged behavior)."""
+    """Windows fields plus a narrowly supported Group Policy symptom category."""
     event_id = _field(text, r"Event\s*ID[:\s]+(\d+)", r'"id"[:\s]+(\d+)', r"'id'[:\s]+(\d+)")
     provider = _field(
         text,
@@ -417,4 +428,9 @@ def _parse_windows(text: str) -> EventMetadata:
         computer=computer,
         isCritical=is_critical_level(level),
         faultingApp=faulting_app,
+        diagnosticCode=("WINDOWS-GROUP-POLICY-CONNECTIVITY"
+                        if windows_group_policy_connectivity(event_id, provider, text)
+                        and re.search(r"(?im)^\s*Event\s*ID\s*:\s*1129\s*$", text)
+                        and re.search(r"(?im)^\s*(?:Source|Provider(?:\s+Name)?)\s*:", text)
+                        else ""),
     )
