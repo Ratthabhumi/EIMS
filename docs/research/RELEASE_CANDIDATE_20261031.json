@@ -8,7 +8,16 @@
     "baseline_run": "https://github.com/Ratthabhumi/EIMS/actions/runs/41024144184",
     "baseline_pr_head": "70c9c5ef940a84477c3b52f554059852642406aa",
     "baseline_tested_checkout": "cf1e41477067e10e98b5882859ca72376e82c92e",
-    "final_publication_ci": "See PR #10 exact final HEAD/run/checkout; prior baseline CI is historical"
+    "final_publication_ci": "See PR #10 exact final HEAD/run/checkout; prior baseline CI is historical",
+    "verified_baseline": {
+      "head": "2a0d9031297ac1063a0f327a8a76c455bb5da315",
+      "run": "https://github.com/Ratthabhumi/EIMS/actions/runs/41230498604",
+      "tested_checkout": "5cbabf5cfcac4e6dbc1342d96c2bda0140e3f4a2",
+      "hermetic": 299,
+      "postgres": 46,
+      "usb_isolated": 46,
+      "total": 391
+    }
   },
   "fixtures": {
     "win_policy": {
@@ -100,7 +109,7 @@
     "prediction_digests": "12/12 PASS",
     "review_queue": "61 emitted claims; no human judgments",
     "priority_packet": "3/3 updated hash bindings; old packet stale for new output",
-    "changed_packet": "8/8 hash compatible",
+    "changed_packet": "Historical recommendation delta; use latest priority packet for 3 changed predictions",
     "local_hermetic": {
       "passed": 298,
       "skipped": 1,
@@ -168,5 +177,20 @@
     "sha": "e47cd72dc2ea0a1455bdf1a847b21abf795dbce2",
     "included_in_core": false
   },
-  "previous_source_commit": "acf024f6466e8bc84c52b107486d74d4a0aafd6d"
+  "previous_source_commit": "acf024f6466e8bc84c52b107486d74d4a0aafd6d",
+  "verified_publication_baseline": "2a0d9031297ac1063a0f327a8a76c455bb5da315",
+  "delivery_verifier": "python tools/verify_graduation_delivery.py",
+  "hash_representation_note": "hashes retains historical Windows working-copy bytes. canonical_text_sha256 binds LF-normalized text for cross-platform verification. Fixture hashes remain exact raw bytes; prediction hashes remain semantic JSON digests. No frozen artifacts rewritten.",
+  "canonical_text_sha256": {
+    "evaluation/analyzer/gold/manifest.v1.json": "79ff3f15e5919441890ea2e6b873fbab23075f0043d9ca9babc44314631b367f",
+    "evaluation/analyzer/results/20261030-recommendation-full_investigation/config.json": "79a2881c8e5cfd9e20b1e6ff99ed9cdbf9b9d4e32bb6906b3da10c342af35129",
+    "evaluation/analyzer/results/20261030-recommendation-full_investigation/predictions.jsonl": "976827fe0f7c4bf12b12aba3d9568b8fb21f624c47ae46faf88f3ab4533c821a",
+    "evaluation/analyzer/results/20261030-recommendation-full_investigation/claim_grounding_queue.json": "b9556a747bd5657e721d5882cce7af185dadfc727e8d54ffae45d4c785cd542e",
+    "requirements.txt": "8c6a3ab09ff8fae4490cd93df86c96e9570484acf1b03806517940cf3a65ebc8",
+    "requirements-evaluation.txt": "d403931288279a6247379471d19fa7f0421948b664ce1f50159fb0500f7457ac",
+    "clients/dashboard/package-lock.json": "be8dcfbe8034d515a2b55654cf0778b6f1f57c2fbfdc261558f292d7a938f28b",
+    "evaluation/analyzer/results/20261101-priority-full_investigation/config.json": "f67cad2b190a145b66e355c4c94e6ff6518f9dc541aba66b74701535a09cad14",
+    "evaluation/analyzer/results/20261101-priority-full_investigation/predictions.jsonl": "e4dec2e93791ffcae11bc23ec7bc5a758444ff5e0aff9295d06c72531101aed0",
+    "evaluation/analyzer/results/20261101-priority-full_investigation/claim_grounding_queue.json": "4788867962241451ea33f15ea992983c5200afea717a73e3855c24cb72c44439"
+  }
 }

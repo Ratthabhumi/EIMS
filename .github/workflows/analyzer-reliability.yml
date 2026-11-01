@@ -27,6 +27,9 @@ jobs:
       - name: Native synthetic counterexamples (not Gold accuracy)
         run: python tools/run_analyzer_counterexamples.py --output test-results/counterexamples
 
+      - name: Frozen graduation provenance and offline demo (not runtime acceptance)
+        run: python tools/verify_graduation_delivery.py --demo-output test-results/graduation-demo
+
       - name: Offline USB packaging and event parsing (no device access)
         run: python -m pytest tools/tests/test_build_usb_package.py clients/usb_auditor/tests/test_event_logs.py clients/usb_auditor/tests/test_report_event_logs.py -q --junitxml=test-results/usb-isolated.xml
 

@@ -1,3 +1,7 @@
+## Integration update — 1 November 2026
+
+See [current delivery](GRADUATION_INTEGRATION_20261101.md): frozen provenance now checked in CI, academic sources reconciled to verified 2a0d903 baseline, offline demo reuses existing inspector. No new parser/research/architecture or scientific judgments. Vendor semantics and uncertainty are implemented; human support evaluation and authorized HTTPS acceptance remain pending. M2/M3 and infrastructure recovery stay deferred.
+
 ## Targeted Analyzer corrections — 1 November 2026
 
 Start `19df042cdb736c991bd37a1f25e521c92bce3955`; implementation `a7b52915dcc38de2618c8588546bb556fb31bac0`. Publication HEAD/final CI/tested synthetic checkout are recorded in PR #10 after completion.

@@ -1,3 +1,15 @@
+## Exact current assembly checklist — 1 November 2026
+
+Status: STALE_PENDING_REBUILD. No pandoc/LibreOffice executable is available on PATH in this run; no binary regeneration or visual validation is claimed. Preserve the four existing binary hashes in RELEASE_CANDIDATE_20261031.json.
+
+1. Use the verified publication baseline 2a0d903 (CI 41230498604, 391 tests) for Analyzer evidence; use the final PR #10 delivery HEAD for document/tooling sources. Record both; a document cannot contain its own eventual commit hash.
+2. Assemble current ABSTRACT_TH/EN and CHAPTER_1, CHAPTER_2_CONCEPTS_AND_RELATED_TECHNOLOGIES, CHAPTER_3, CHAPTER_4, CHAPTER_5 source files using the ordered table below. Retain historical material only under explicit historical headings, not as current abstract/results.
+3. Include 12 DRAFT DEV, 61 claims, 0 reviews, NOT_MEASURED accuracy; current snapshot 20261101-priority-full_investigation. Keep the 21 setup-blocked module tests and runtime gates visible. Refresh figures from sanitized approved artifacts only.
+4. Build the 15 slides from EIMS_PRESENTATION_SOURCE_2026.md, copying each slide's Speaker Notes. Apply the current rehearsal overlay; do not reuse old claims of live acceptance.
+5. Owner exports new report DOCX/PDF and deck PPTX/PDF to a NEW staging directory, not over historical files. Update Word TOC/page numbers, Thai fonts, captions, tables, citations and slide notes.
+6. Inspect every rendered page/slide for clipping, fonts, legibility, image provenance and numerical consistency. Verify historical/current labels and UNKNOWN wording. Record tool/version, source revision, hashes, page/slide counts and actual reviewer/date only after inspection.
+7. Publish staged binaries for review, then replace designated release artifacts only after owner approval; update manifest status/hashes. Do not label this checklist as a completed build.
+
 > **31 October 2026: historical artifact / STALE_PENDING_REBUILD.** The September editorial baseline is `c38bef97a5f18e85d4338108cb18c48a57d7e1a4`; historical field-run revisions are not newly verified. Use updated Chapter 1–5 and EIMS_PRESENTATION_SOURCE_2026.md for current claims. Rendered DOCX/PDF/PPTX and old rehearsal text do not include all October changes. A9/49 events/10 findings below are historical, not current secure browser acceptance. No binary was rebuilt or visually validated in this audit. Human institutional/content/figure review remains required.
 
 # EIMS Final Cooperative Education Report

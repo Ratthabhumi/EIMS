@@ -428,3 +428,20 @@ def test_informational_citation_keeps_source_identity_without_failure_inference(
     assert items[0]['sourceContext'][0]['text']==text.strip()
     assert build_evidence_items([],records=[])==[]
     assert build_evidence_items([],records=build_evidence_records([('config.txt',text.replace('action="edit"','action="unknown"'))]))==[]
+@pytest.mark.parametrize('mutation', ['digest', 'missing', 'duplicate'])
+def test_delivery_verifier_rejects_corrupted_frozen_predictions(mutation):
+    from tools.verify_graduation_delivery import verify_rows
+    from evaluation.analyzer.runner import digest
+    row = {'case_id': 'synthetic', 'status': 'OK', 'overview': 'observed only'}
+    row['prediction_sha256'] = digest(row)
+    verify_rows([row], {'synthetic'})
+    rows = [row]
+    if mutation == 'digest':
+        row['overview'] = 'unsupported alteration'
+    elif mutation == 'missing':
+        rows = []
+    else:
+        rows = [row, row]
+    with pytest.raises(ValueError):
+        verify_rows(rows, {'synthetic'})
+

@@ -1,4 +1,4 @@
-**Current source audit: 31 October 2026 — `acf024f6466e8bc84c52b107486d74d4a0aafd6d` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 322 Python tests in Analyzer/secure PostgreSQL suites, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 60, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+**Current source audit: 1 November 2026 — `2a0d9031297ac1063a0f327a8a76c455bb5da315` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 391 Python tests (299 Analyzer hermetic + 46 synthetic PostgreSQL + 46 USB isolated), run 41230498604, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 61, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
 
 **Rendered PPTX/PDF: STALE_PENDING_REBUILD. The source revision below has not been visually accepted as a rebuilt deck.**
 
@@ -137,8 +137,8 @@
 ---
 
 ## Slide 11: Current Results and Separate Historical Evidence
-- Current baseline CI: 282 hermetic + 40 PostgreSQL = 322 PASS; counterexamples 8/8.
-- Full DEV: 60 claims; diagnostic accuracy/support precision/unsupported-claim rate NOT_MEASURED.
+- Current baseline CI: 299 hermetic + 46 PostgreSQL + 46 USB isolated = 391 PASS; counterexamples 8/8.
+- Full DEV: 61 claims; diagnostic accuracy/support precision/unsupported-claim rate NOT_MEASURED.
 - Historical September evidence: 49 Windows events (34 System, 15 Application), 10 AnalysisHistory findings, filtered API HTTP 200, A9 display PASS.
 - New bounded module audit: see PROJECT_WIDE_READINESS_20261031.md; setup failures must not be reported as passes.
 - **Speaker Notes:**

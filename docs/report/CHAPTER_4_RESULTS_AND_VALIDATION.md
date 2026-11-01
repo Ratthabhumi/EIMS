@@ -3,19 +3,19 @@
 
 ## Current graduation revision and evidence boundary
 
-**Current source audit: 31 October 2026 — `acf024f6466e8bc84c52b107486d74d4a0aafd6d` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 322 Python tests in Analyzer/secure PostgreSQL suites, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 60, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+**Current source audit: 1 November 2026 — `2a0d9031297ac1063a0f327a8a76c455bb5da315` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 391 Python tests (299 Analyzer hermetic + 46 synthetic PostgreSQL + 46 USB isolated), run 41230498604, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 61, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
 
 ### Current October engineering and scientific results
 
 | Evidence layer | Current result | Limit |
 |---|---|---|
-| Analyzer hermetic + synthetic PostgreSQL CI | 282 + 40 = 322 PASS at source above, CI run 41104413703 | Does not cover all modules or a deployed system |
+| Analyzer hermetic + synthetic PostgreSQL CI | 299 + 46 + 46 = 391 PASS at source above, CI run 41230498604 | Does not cover all modules or a deployed system |
 | Counterexamples | 8/8 PASS | Synthetic regression, not accuracy |
-| Frozen M0/M1/Full | 12 DEV executions per mode; Full emits 60 claims | All DRAFT; 0 human-reviewed cases/claims |
+| Frozen M0/M1/Full | 12 DEV executions per mode; Full emits 61 claims | All DRAFT; 0 human-reviewed cases/claims |
 | Scientific metrics | Accuracy, semantic support precision and unsupported-claim rate NOT_MEASURED | Zero reviewed denominator; no generalization claim |
 | Secure HTTPS/USB/production | BLOCKED_NOT_TESTED / NOT_TESTED / NOT_CERTIFIED | Historical A9 is a different boundary |
 
-Current snapshot: `evaluation/analyzer/results/20261030-recommendation-full_investigation`; source/input/annotation/prediction hashes and review bindings preserved. New bounded project-wide smoke results are in `docs/research/PROJECT_WIDE_READINESS_20261031.md`; do not add their counts to the 322-test CI claim. Historical validation below was assembled on 29 September 2026 at editorial baseline `c38bef97a5f18e85d4338108cb18c48a57d7e1a4`; individual field-run SHAs/dates are not newly verified. 49 stored events, 10 findings and A9 PASS remain historical observations, not October Secure Mode acceptance.
+Current snapshot: `evaluation/analyzer/results/20261101-priority-full_investigation`; source/input/annotation/prediction hashes and review bindings preserved. New bounded project-wide smoke results are in `docs/research/PROJECT_WIDE_READINESS_20261031.md`; do not add their counts to the 391-test CI claim. Historical validation below was assembled on 29 September 2026 at editorial baseline `c38bef97a5f18e85d4338108cb18c48a57d7e1a4`; individual field-run SHAs/dates are not newly verified. 49 stored events, 10 findings and A9 PASS remain historical observations, not October Secure Mode acceptance.
 
 ## Historical prototype material (retained for provenance)
 

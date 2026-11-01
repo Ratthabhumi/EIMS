@@ -1,8 +1,8 @@
 # Current abstract revision — 31 October 2026
 
-**Current source audit: 31 October 2026 — `acf024f6466e8bc84c52b107486d74d4a0aafd6d` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 322 Python tests in Analyzer/secure PostgreSQL suites, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 60, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+**Current source audit: 1 November 2026 — `2a0d9031297ac1063a0f327a8a76c455bb5da315` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 391 Python tests (299 Analyzer hermetic + 46 synthetic PostgreSQL + 46 USB isolated), run 41230498604, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 61, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
 
-ระบบหลักรุ่นปัจจุบันวิเคราะห์ log หลายผู้ผลิตด้วยกฎและหลักฐาน แยกอาการจากสมมติฐานและสาเหตุที่ยังไม่ทราบ พร้อม History แยกเจ้าของ ผล M0/M1/Full ใช้ DEV 12 เคสที่ยังเป็น DRAFT และ Full มี 60 claims ที่ยังไม่มีคนตรวจ จึงยังวัด Accuracy ไม่ได้ ผลทดสอบวิศวกรรมไม่ใช่ผลรับรองคำวินิจฉัย ส่วน HTTPS browser และการติดตั้งจริงรุ่นล่าสุดยังไม่ผ่านการตรวจรับ บทคัดย่อเดิมด้านล่างเป็นหลักฐานรุ่นกันยายน ต้องไม่ใช้แทนบทคัดย่อปัจจุบันโดยละข้อความปรับปรุงนี้
+ระบบหลักรุ่นปัจจุบันวิเคราะห์ log หลายผู้ผลิตด้วยกฎและหลักฐาน แยกอาการจากสมมติฐานและสาเหตุที่ยังไม่ทราบ พร้อม History แยกเจ้าของ ผล M0/M1/Full ใช้ DEV 12 เคสที่ยังเป็น DRAFT และ Full มี 61 claims ที่ยังไม่มีคนตรวจ จึงยังวัด Accuracy ไม่ได้ ผลทดสอบวิศวกรรมไม่ใช่ผลรับรองคำวินิจฉัย ส่วน HTTPS browser และการติดตั้งจริงรุ่นล่าสุดยังไม่ผ่านการตรวจรับ บทคัดย่อเดิมด้านล่างเป็นหลักฐานรุ่นกันยายน ต้องไม่ใช้แทนบทคัดย่อปัจจุบันโดยละข้อความปรับปรุงนี้
 
 ## Historical September abstract
 

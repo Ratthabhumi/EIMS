@@ -3,7 +3,7 @@
 
 ## Current graduation revision and evidence boundary
 
-**Current source audit: 31 October 2026 — `acf024f6466e8bc84c52b107486d74d4a0aafd6d` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 322 Python tests in Analyzer/secure PostgreSQL suites, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 60, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+**Current source audit: 1 November 2026 — `2a0d9031297ac1063a0f327a8a76c455bb5da315` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 391 Python tests (299 Analyzer hermetic + 46 synthetic PostgreSQL + 46 USB isolated), run 41230498604, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 61, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
 
 The verified dashboard dependency versions are Next.js 16.3.0 and React 19.2.8 (`clients/dashboard/package.json` and lockfile). Embeddings/RAG described below are architectural concepts and legacy capabilities, not the mechanism measured by the frozen M0/M1/Full experiments. M0 uses existing rule logic; M1 adds local vendor knowledge; Full executes actual route synthesis, evidence and in-memory History reconstruction with network/vector writes disabled. M2/RAG and M3/LLM remain NOT_RUN. Citation coordinate validity and semantic support are distinct; only genuine human judgments can establish the latter.
 

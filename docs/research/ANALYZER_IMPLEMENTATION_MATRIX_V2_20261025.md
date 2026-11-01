@@ -1,3 +1,7 @@
+## Integration update — 1 November 2026
+
+See [current delivery](GRADUATION_INTEGRATION_20261101.md): frozen provenance now checked in CI, academic sources reconciled to verified 2a0d903 baseline, offline demo reuses existing inspector. No new parser/research/architecture or scientific judgments. Vendor semantics and uncertainty are implemented; human support evaluation and authorized HTTPS acceptance remain pending. M2/M3 and infrastructure recovery stay deferred.
+
 ## 1 November production-to-evaluation alignment
 
 Windows 1129 symptom category now comes from canonical parser metadata; VMware explicit prefixes feed level/isCritical; Fortinet native informational source citation reaches Full claim queue and History. v2 projection/scorer unchanged; new source a7b5291 snapshot 20261101-priority-full_investigation (61 claims, 0 reviews). Old priority packet hashes are stale: use DEV_REVIEW_PRIORITY_DELTA_20261101.md. Vendor conclusions remain conservative; independent diagnostic validation and browser acceptance still absent.

@@ -1,3 +1,7 @@
+## Reproducible offline fallback — 1 November
+
+Run `python tools/verify_graduation_delivery.py --demo-output test-results/offline-demo-UNIQUE` from the repository root. Requires the existing requirements-evaluation.txt environment; choose a new output directory. Open fort_config.html → esxi_tracker.html → win_policy.html → esxi_heartbeat.html → bundle_unrelated.html locally. The existing inspector renders frozen synthetic source context, facts, hypotheses and UNKNOWN outcomes; no server or network is needed. Input hashes: release manifest fixtures; prediction hashes: frozen JSONL. Expected coordinates: fort_config input.txt:1, esxi_tracker input.txt:1–2, win_policy input.txt:5 (failure) and :3 (event identity). On verification failure stop and retain output/error; do not regenerate frozen files or bypass hashes. Existing frozen JSON/priority packet is the fallback if HTML cannot be displayed. These are offline artifacts, not database/browser acceptance. Current source provenance is a7b5291, verified publication baseline 2a0d903.
+
 ## Priority demo/review update — 1 November
 
 Use source a7b5291 or its CI-verified publication descendant for the new priority behavior. VMware CTK should display Error/isCritical=true; Fortinet configuration observation should expose input.txt:1 with saved source context; Windows 1129 should retain event identity and report the connectivity symptom category while physical cause/job outcome remain unknown. Current priority review: DEV_REVIEW_PRIORITY_DELTA_20261101.md. Snapshot: 20261101-priority-full_investigation, 61 claims, 0 reviewed. Old priority packet is historical; other case hashes remain compatible. Browser runtime is still blocked/not executed; offline snapshots are not UI certification.
@@ -18,7 +22,7 @@ python tools/eval_analyzer.py --manifest test-results/review-working-copy-UNIQUE
 
 ## เพิ่ม negative control สำหรับเดโมรอบล่าสุด
 
-ใช้ `evaluation/analyzer/gold/cases/esxi_heartbeat/` หรือ bundle_related จาก frozen manifest. คำตอบต้องไม่สั่งค้น primary error line: ไม่พบ failure ในข้อมูลที่ให้มา ไม่ได้ยืนยันระบบทั้งหมดปกติ และต้องมี completion record ของ session ที่เกี่ยวข้องก่อนยืนยันผลจบ. เปิด History แล้วข้อความต้องตรงกัน. หากยังไม่มี approved HTTPS runtime ให้แสดง offline snapshot พร้อมบอกขอบเขต ไม่อ้างว่า UI ผ่าน. ผลใหม่อยู่ `20261030-recommendation-full_investigation`; priority 3 packet ใช้เดิม, อีก 8 เคสใช้ delta packet.
+ใช้ `evaluation/analyzer/gold/cases/esxi_heartbeat/` หรือ bundle_related จาก frozen manifest. คำตอบต้องไม่สั่งค้น primary error line: ไม่พบ failure ในข้อมูลที่ให้มา ไม่ได้ยืนยันระบบทั้งหมดปกติ และต้องมี completion record ของ session ที่เกี่ยวข้องก่อนยืนยันผลจบ. เปิด History แล้วข้อความต้องตรงกัน. หากยังไม่มี approved HTTPS runtime ให้แสดง offline snapshot พร้อมบอกขอบเขต ไม่อ้างว่า UI ผ่าน. ผลล่าสุดอยู่ `20261101-priority-full_investigation`; priority 3 เคสใช้ DEV_REVIEW_PRIORITY_DELTA_20261101.md; packet เก่าใช้ได้เฉพาะ predictions ที่ hash ไม่เปลี่ยน.
 
 # EIMS — Operator และ Demo
 

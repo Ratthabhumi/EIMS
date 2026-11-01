@@ -1,4 +1,8 @@
-# EIMS — Project-wide readiness audit / 31 October 2026
+## Current delivery update — 1 November 2026
+
+Verified baseline 2a0d903: CI 41230498604, tested checkout 5cbabf5, 299 hermetic + 46 PostgreSQL + 46 USB isolated = 391 PASS. Current frozen snapshot 20261101-priority-full_investigation has 12 DRAFT DEV / 61 claims / 0 reviews. The audit below is historical at acf024f; its 21 setup-blocked API tests remain unresolved, not converted into CI passes. See GRADUATION_INTEGRATION_20261101.md for current delivery and owner gates.
+
+# EIMS â€” Project-wide readiness audit / 31 October 2026
 
 Audited source: `acf024f6466e8bc84c52b107486d74d4a0aafd6d`, PR #10; main `bf634d9ddf86f44220ef961cf4be32988cfc5ee5`. Publication HEAD/CI/tested checkout are recorded in PR #10 after this audit. No main merge. This is a bounded delivery audit, not a new feature phase.
 
@@ -15,7 +19,7 @@ Audited source: `acf024f6466e8bc84c52b107486d74d4a0aafd6d`, PR #10; main `bf634d
 | Search | backend/domain/search; providers/filtering | test_global_search.py: 1 PASS/8 DB-setup failures; secure owner/search negatives covered in core PG suite | Earlier benchmark evidence is historical only | TESTED_IN_ISOLATION for security; general runtime NOT_TESTED |
 | Timeline | backend/domain/timeline; unified event service/UI | test_timeline.py: 8 DB-setup failures | Historical latency claims not rerun | IMPLEMENTED; RUNTIME_NOT_TESTED |
 | Service evaluations/customer forms | backend/api/routers/evaluations.py; backend/domain/evaluation | Existing core PG shared-route/current-role negative tests; no dedicated positive customer workflow suite found | No current acceptance evidence | IMPLEMENTED admin paths; customer-scoped workflow DEFERRED |
-| Telemetry/Redis/EVTX | backend/domain/telemetry; separate audit PR #6–#9 and new #11 | Not rerun on core; #11 e47cd72 CI 4/4 observed, not included in PR #10 | Historical collector/ingestion not crash-recovery proof | IMPLEMENTED; four recovery XFAIL contracts remain separate; runtime NOT_TESTED |
+| Telemetry/Redis/EVTX | backend/domain/telemetry; separate audit PR #6â€“#9 and new #11 | Not rerun on core; #11 e47cd72 CI 4/4 observed, not included in PR #10 | Historical collector/ingestion not crash-recovery proof | IMPLEMENTED; four recovery XFAIL contracts remain separate; runtime NOT_TESTED |
 | Monitoring | deployments/observability | Configuration inspected; no live metric/log pipeline test | None newly validated | IMPLEMENTED configuration; RUNTIME_NOT_TESTED |
 | Homelab/cloud/device integration | deployments/homelab, agent/collector code | No IaC apply, physical equipment or network actions | Historical docs only, not universal device support | IMPLEMENTED scaffolding; deployment/expansion DEFERRED |
 | Scientific evaluation | evaluation/analyzer; runner/scoring/grounding | Existing binding/review integrity suite; frozen 12 predictions/60 claims compatible | No real human review | TESTED_IN_ISOLATION; SCIENTIFIC_REVIEW_PENDING |
@@ -31,12 +35,12 @@ USB isolated tests: **45 PASS / 1 FAIL before**, **46 PASS / 0 FAIL after**. `te
 | Document | Outdated claim | Verified replacement / source | Human verification |
 |---|---|---|---|
 | README.md | Graduation Hardening Complete / enterprise-grade | Draft RC with external gates; historical sprint markers; current package versions at acf024f | Owner release designation |
-| Chapters 1–2 | RAG-centric objectives/theory read as current experiment | Current multi-vendor investigation objective; M0/M1/Full vs M2/M3 NOT_RUN; old theory retained historically | Advisor scope/methodology approval |
+| Chapters 1â€“2 | RAG-centric objectives/theory read as current experiment | Current multi-vendor investigation objective; M0/M1/Full vs M2/M3 NOT_RUN; old theory retained historically | Advisor scope/methodology approval |
 | Chapter 3 | Wider platform architecture read as accepted runtime | Current BFF/session/Analyzer/History workflow and access boundaries, Next 16.3.0/React 19.2.8 | Architecture figures and final layout |
 | Chapter 4 | 49 events/10 findings/A9 read as recent Secure Mode proof | Separate current 322-test CI/12 DRAFT/60 claims/0 reviews from September field results | Verify original field dates/source SHAs; independent Gold review |
 | Chapter 5 | Prototype conclusions imply project completion | ENGINEERING_RC_WITH_EXTERNAL_GATES and explicit operational/scientific gaps | Final conclusions after real review |
 | Abstracts TH/EN | Historical RAG/field validation only | Current abstract revision above retained historical abstract | Select/approve final submitted text |
-| Presentation source | Next.js 14, old experiment/demo conclusions | Slides 4/9–12/14–15 aligned to current core; stack Next16.3/React19.2.8; historical USB/ingestion retained | Rebuild and inspect all 15 slides |
+| Presentation source | Next.js 14, old experiment/demo conclusions | Slides 4/9â€“12/14â€“15 aligned to current core; stack Next16.3/React19.2.8; historical USB/ingestion retained | Rebuild and inspect all 15 slides |
 | Rehearsal/cue card/editorial/assembly manifest | Old QA/completion statements | Prominent historical/stale notice and current-source pointer | Rewrite speaking notes from revised slides, institutional details |
 | Existing DOCX/PDF/PPTX | Rendered September baseline | **STALE_PENDING_REBUILD**, binaries unchanged | Rebuild, inspect every page/slide/figure, approve before submission |
 
@@ -49,7 +53,7 @@ Binary regeneration was not attempted: no repository report/deck builder was fou
 - [ ] Owner supplies authentic fort_config/esxi_tracker/win_policy judgments (case/claim ID, hash, actual alias/time/rationale). 12 DEV DRAFT / 5 HELDOUT reserved / 0 genuine reviews remain; quality metrics undefined.
 - [ ] Owner provides approved trusted HTTPS Dashboard/BFF/backend + dedicated synthetic PostgreSQL/accounts; run existing verify_secure_dashboard.cjs. Prior startup was rejected as blocked by policy; no workaround attempted.
 - [ ] Rebuild DOCX/PDF/PPTX, visually inspect and obtain advisor/institutional verification. Do not submit stale binaries as current.
-- [ ] Merge only with owner approval: #2 into main, retarget/review/recheck CI on #3, then #4, #5, #10. Green mergeability is not approval. Separate #6→#7→#8→#9→#11 is not automatically included; main remains unchanged.
+- [ ] Merge only with owner approval: #2 into main, retarget/review/recheck CI on #3, then #4, #5, #10. Green mergeability is not approval. Separate #6â†’#7â†’#8â†’#9â†’#11 is not automatically included; main remains unchanged.
 - [ ] Decide USB/telemetry demonstration scope explicitly. Any current physical installation/runtime testing needs its own authorization and evidence. Preserve backups/source refs; no downgrade/reset/volume deletion or unsafe benchmarks.
 
 No new external research is needed to fix these documentary discrepancies. Highest-value next milestone: genuine three-case review plus hash-bound claim judgments, followed by reviewed-only pilot with explicit support counts; it is not broad multi-vendor accuracy. Final core CI and broader bounded audit remain separate evidence sets.

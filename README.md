@@ -33,7 +33,7 @@
 
 ## 🚧 Project Status
 
-Historical release label: **v0.3.0**. Current graduation work is **Draft PR #10 — ENGINEERING_RC_WITH_EXTERNAL_GATES**, not merged into main. Next.js 16.3.0 / React 19.2.8. The 322 Python CI tests cover Analyzer and isolated secure PostgreSQL integration, not every EIMS module. Scientific review: 12 DRAFT DEV, 60 claims, 0 genuine reviews. Secure HTTPS, current physical USB and production acceptance remain unverified. See [project-wide readiness](docs/research/PROJECT_WIDE_READINESS_20261031.md).
+Historical release label: **v0.3.0**. Current graduation work is **Draft PR #10 — ENGINEERING_RC_WITH_EXTERNAL_GATES**, not merged into main. Next.js 16.3.0 / React 19.2.8. The verified baseline 391 Python CI tests cover Analyzer, isolated secure PostgreSQL integration and offline USB helpers (run 41230498604), not every EIMS module. Scientific review: 12 DRAFT DEV, 61 claims, 0 genuine reviews. Secure HTTPS, current physical USB and production acceptance remain unverified. See [project-wide readiness](docs/research/PROJECT_WIDE_READINESS_20261031.md).
 
 The sprint checkmarks and benchmarks below are historical implementation milestones, not current whole-system acceptance. Do not rerun legacy benchmarks against operational data.
 
