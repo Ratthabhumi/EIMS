@@ -54,7 +54,7 @@ router = APIRouter()
 def _process_upload(content: bytes, filename: str, content_type: str | None) -> tuple[str, str]:
     lower_name = (filename or "").lower()
 
-    if content_type and content_type.startswith("image/"):
+    if (content_type and content_type.startswith("image/")) or lower_name.endswith((".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tif", ".tiff", ".webp")):
         try:
             from PIL import ImageEnhance, ImageFilter, ImageOps
             img = Image.open(io.BytesIO(content))
@@ -92,9 +92,17 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
         extracted, description = parse_evtx(content)
         return extracted, description
 
+    # Decode textual formats strictly before their parsers can discard bytes.
+    try:
+        decoded_text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise ValueError("Text must be valid UTF-8.") from None
+    if "\x00" in decoded_text:
+        raise ValueError("Binary content is not a UTF-8 log.")
+
     if lower_name.endswith(".xml"):
         try:
-            text = content.decode("utf-8", errors="ignore")
+            text = decoded_text
             # Try to format it as standard event text
             from backend.domain.analyzer.services.evtx_parser import _event_xml_to_text
             formatted_text = _event_xml_to_text(text)
@@ -107,7 +115,7 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
     if lower_name.endswith((".html", ".htm")):
         try:
             from backend.domain.analyzer.services.vendor_parsers import html_to_text
-            raw_html = content.decode("utf-8", errors="ignore")
+            raw_html = decoded_text
             extracted = html_to_text(raw_html)
             if not extracted.strip():
                 return raw_html, f"Uploaded HTML file (no text extracted): {filename}"
@@ -118,7 +126,7 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
     if lower_name.endswith(".csv"):
         try:
             import csv, io as _io
-            text_raw = content.decode("utf-8", errors="ignore")
+            text_raw = decoded_text
             reader = csv.DictReader(_io.StringIO(text_raw))
             rows = list(reader)
             if rows:

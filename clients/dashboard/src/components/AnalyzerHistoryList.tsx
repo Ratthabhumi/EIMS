@@ -376,21 +376,28 @@ export default function AnalyzerHistoryList({
     const isInc = String(item.eventId).toUpperCase().startsWith("AINC-");
     const friendly = friendlyLabel(item, catalogMap);
     let content = `# AI Diagnostic Report\n\n`;
-    content += `**Event ID:** ${item.eventId}\n`;
+    content += `**Event ID:** ${item.eventId || "Not provided"}\n`;
+    if (item.eventMetadata?.diagnosticCode) content += `**Diagnostic Code:** ${item.eventMetadata.diagnosticCode}\n`;
     content += `**Title:** ${isInc ? "Suspicious Authentication Activity" : friendly.title}\n`;
-    content += `**Provider:** ${isInc ? "Security / Authentication" : item.provider}\n`;
-    content += `**Date:** ${item.created_at ? new Date(item.created_at).toLocaleString() : new Date().toLocaleString()}\n\n`;
+    content += `**Provider:** ${isInc ? "Security / Authentication" : (item.provider || "Not provided")}\n`;
+    content += `**Saved:** ${item.created_at ? new Date(item.created_at).toLocaleString() : "Not provided"}\n\n`;
     if (item.aiSummary) content += `## AI Summary\n\n${item.aiSummary}\n\n`;
     if (item.solutionSummary) {
       content += `## Executive Summary\n${item.solutionSummary.overview || "N/A"}\n\n`;
-      content += `## Root Causes / Context\n`;
+      content += `## Possible Causes / Assessment\n`;
       (item.solutionSummary.causes || []).forEach((c: string) => { content += `- ${c}\n`; });
-      content += `\n## Resolution / Notes\n`;
+      content += `\n## Recommended Next Steps\n`;
       (item.solutionSummary.steps || []).forEach((s: string) => { content += `${s}\n`; });
       if (item.solutionSummary.evidence && item.solutionSummary.evidence.length > 0) {
         content += `\n## Observed Evidence\n`;
         item.solutionSummary.evidence.forEach((e: string) => { content += `- ${e}\n`; });
         if (item.solutionSummary.confidence) content += `\nConfidence: ${item.solutionSummary.confidence}\n`;
+      }
+      if (item.solutionSummary.evidenceItems?.length) {
+        content += `\n## Extracted Source Evidence\n`;
+        item.solutionSummary.evidenceItems.forEach((e: any) => {
+          content += `- ${e.sourceFile || "Not provided"}:${e.lineNumber ?? "Not provided"} — ${e.message || "Not provided"}\n`;
+        });
       }
       if (item.solutionSummary.limitations && item.solutionSummary.limitations.length > 0) {
         content += `\n## What Is Still Unknown\n`;
@@ -443,23 +450,25 @@ export default function AnalyzerHistoryList({
         <h1 style="font-size:20px;font-weight:700;border-bottom:2px solid #68735C;padding-bottom:8px;margin-bottom:12px;">
           Diagnostic Report — ${isInc ? "Suspicious Authentication Activity" : friendly.title} (${safeItem.eventId || "Unknown"})
         </h1>
-        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${isInc ? "Security / Authentication" : (safeItem.provider || "Unknown")}</strong> &nbsp;|&nbsp; Generated: ${new Date(safeItem.created_at || Date.now()).toLocaleString()}</p>
+        <p style="color:#716E66;margin-bottom:20px;">Provider: <strong>${isInc ? "Security / Authentication" : (safeItem.provider || "Unknown")}</strong> &nbsp;|&nbsp; Saved: ${safeItem.created_at ? new Date(safeItem.created_at).toLocaleString() : "Not provided"}</p>
+        ${meta.diagnosticCode ? `<p>Diagnostic Code: ${meta.diagnosticCode}</p>` : ""}
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Event Metadata</h2>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
-          <div><span style="color:#716E66;font-size:11px;">Level</span><br/><strong>${meta.level || "Error"}</strong></div>
-          <div><span style="color:#716E66;font-size:11px;">Log Name</span><br/><strong>${meta.logName || "Application"}</strong></div>
-          <div><span style="color:#716E66;font-size:11px;">Time</span><br/><strong>${meta.timestamp || "N/A"}</strong></div>
-          <div><span style="color:#716E66;font-size:11px;">Computer</span><br/><strong>${meta.computer || "Localhost"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Level</span><br/><strong>${meta.level || "Not provided"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Log Name</span><br/><strong>${meta.logName || "Not provided"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Time</span><br/><strong>${meta.timestamp || "Not provided"}</strong></div>
+          <div><span style="color:#716E66;font-size:11px;">Computer</span><br/><strong>${meta.computer || "Not provided"}</strong></div>
           ${meta.faultingApp ? `<div style="grid-column:1/-1"><span style="color:#716E66;font-size:11px;">Faulting App</span><br/><strong style="color:#dc2626;">${meta.faultingApp}</strong></div>` : ""}
         </div>
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Summary</h2>
         <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${safeItem.solutionSummary?.overview || safeItem.aiSummary || "No summary available."}</div>
-        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Root Causes / Context</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
-        <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Resolution Steps</h2>
+        ${causes.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Possible Causes / Assessment</h2><ul style="padding-left:20px;margin-bottom:12px;">${causes.map((c: string) => `<li style="margin-bottom:4px;">${c}</li>`).join("")}</ul>` : ""}
+        <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Recommended Next Steps</h2>
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
           ${steps.length > 0 ? `<ol style="padding-left:20px;margin:0;">${steps.map((s: string) => `<li style="margin-bottom:6px;">${s}</li>`).join("")}</ol>` : "<p>No specific steps provided.</p>"}
         </div>
         ${evList.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Observed Evidence${conf ? ` (confidence: ${conf})` : ""}</h2><ul style="padding-left:20px;margin-bottom:12px;">${evList.map((e: string) => `<li style="margin-bottom:4px;">${e}</li>`).join("")}</ul>` : ""}
+        ${safeItem.solutionSummary?.evidenceItems?.length ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Extracted Source Evidence</h2><ul>${safeItem.solutionSummary.evidenceItems.map((e: any) => `<li>${e.sourceFile || "Not provided"}:${e.lineNumber ?? "Not provided"} — ${e.message || "Not provided"}</li>`).join("")}</ul>` : ""}
         ${unknowns.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">What Is Still Unknown</h2><ul style="padding-left:20px;margin-bottom:12px;">${unknowns.map((u: string) => `<li style="margin-bottom:4px;">${u}</li>`).join("")}</ul>` : ""}
         ${nextEv.length > 0 ? `<h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Next Evidence to Collect</h2><ul style="padding-left:20px;margin-bottom:12px;">${nextEv.map((n: string) => `<li style="margin-bottom:4px;">${n}</li>`).join("")}</ul>` : ""}
         ${refs.length > 0 ? `

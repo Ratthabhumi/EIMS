@@ -800,3 +800,37 @@ def test_paste_text_and_attach_file_preserve_same_diagnosis(integrated,cid,langu
             assert row['solutionSummary']==result['solutionSummary']
         assert (await client.get('/history/',headers=bearer('synthetic-other'))).json()==[]
     integrated(check)
+
+
+@pytest.mark.parametrize('name,mime,raw', [
+    ('input.xml','application/xml',b'<Event>\xff</Event>'),
+    ('input.html','text/html',b'<p>\xff</p>'),
+    ('input.csv','text/csv',b'event,message\n1,\xff'),
+    ('input.log','text/plain',b'Event ID: 1129\x00binary'),
+    ('input.png','text/plain',b'Event ID: 1129'),
+])
+def test_single_upload_rejects_misidentified_content(integrated,name,mime,raw):
+    async def check(client,session,calls):
+        response=await client.post('/analyze/',headers=bearer(),files={'file':(name,raw,mime)})
+        assert response.status_code==400,response.text
+        assert (await client.get('/history/',headers=bearer())).json()==[]
+        assert calls['export_attempts']==0
+    integrated(check)
+
+
+def test_single_image_missing_ocr_is_error_without_history(integrated,monkeypatch):
+    import io
+    from PIL import Image
+    import pytesseract
+    def unavailable(*args,**kwargs):
+        raise pytesseract.TesseractNotFoundError()
+    monkeypatch.setattr(pytesseract,'image_to_string',unavailable)
+    stream=io.BytesIO()
+    Image.new('RGB',(1000,10),'white').save(stream,format='PNG')
+    async def check(client,session,calls):
+        response=await client.post('/analyze/',headers=bearer(),files={'file':('image.png',stream.getvalue(),'image/png')})
+        assert response.status_code==400,response.text
+        assert 'Tesseract' in response.json()['detail']
+        assert (await client.get('/history/',headers=bearer())).json()==[]
+        assert calls['export_attempts']==0
+    integrated(check)

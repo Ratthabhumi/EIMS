@@ -103,5 +103,6 @@ jobs:
         run: |
           node tools/test_session_proxy.cjs
           node tools/test_operator_render.cjs
+          node tools/test_analyzer_exports.cjs
           node tools/test_browser_acceptance_config.cjs
           node --check tools/verify_secure_dashboard.cjs
