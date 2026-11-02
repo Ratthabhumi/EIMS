@@ -1,0 +1,57 @@
+{
+  "status": "STAGED_ARTIFACTS_GENERATED_OWNER_REVIEW_PENDING",
+  "generator": {
+    "report": "bundled python-docx; tools/build_rc2_report.py",
+    "presentation": "bundled @oai/artifact-tool 2.8.106; tools/build_rc2_presentation.mjs",
+    "pdf": "Installed Microsoft Word 16.0 and PowerPoint COM; no system installation",
+    "renderer_blocker": "Packaged render_docx.py needs absent LibreOffice; used existing Word PDF export and bundled Poppler for staged QA."
+  },
+  "sources": {
+    "docs/report/ABSTRACT_TH.md": "6849a0a38823c29dfac9f905a49b9225d8a9aaffffcd753a1439642f110d7a11",
+    "docs/report/ABSTRACT_EN.md": "fd3bb0c799605b8d8bf3dff21bce06a33794b4c2b49c8965a4830df5ecc8a899",
+    "docs/report/ACKNOWLEDGMENTS.md": "f3f92b361c7efa962aa5488e5ad2a72ace8567fd46077f8bf2c5d0f0c4ce7047",
+    "docs/report/CHAPTER_1_INTRODUCTION.md": "364c1e2f3c4f90ee58b455976cb701d9edb9fcddc556b8fac48932a60f4bc067",
+    "docs/report/CHAPTER_2_CONCEPTS_AND_RELATED_TECHNOLOGIES.md": "a4546694a3ac342c2756d375b20307278994b803f0ee213ec2843e2b7d5938dd",
+    "docs/report/CHAPTER_3_SYSTEM_DESIGN_AND_IMPLEMENTATION.md": "3320f193546289375e4dcc311f41a9af04ca44d7dea0d1554a888ec53aece317",
+    "docs/report/CHAPTER_4_RESULTS_AND_VALIDATION.md": "8586987144553e17f8cb8b9511b0e7a749424f4431dc506a16cf75bb226b4f9c",
+    "docs/report/CHAPTER_5_SUMMARY_AND_RECOMMENDATIONS.md": "fe607a642fc7fe05c9f99668f9c86dc8f834de884a50af6193c746e67c4f9ccc",
+    "docs/report/REFERENCES.md": "a00100cf7e74d6ae3feb7bf8289f71a2ccab79eeb7f21dc8e9835460c6322e0b"
+  },
+  "historical_binaries_overwritten": false,
+  "source_baseline": "7335aa24f39dab9f2fa63690838e3f89d44e59bd",
+  "rc2_source": "Exact publication commit recorded in PR #10; this manifest is committed with the builders and UI change.",
+  "post_export_source_normalization": {
+    "docs/report/ABSTRACT_EN.md": {
+      "sha256": "364255f789d1509a86437db9518b2f5dfef132c8bba70a4f48b61abf751c74c6",
+      "change": "Removed UTF-8 BOM/trailing blank line after export; prose unchanged. sources retains exact build input hash."
+    }
+  },
+  "artifacts": {
+    "EIMS_RC2_PRESENTATION_STAGED.pdf": {
+      "sha256": "6e0c607eff0bfef002f2b21d56ce660caf22c2e2e7fa2d5640c7b0284b822ad0",
+      "bytes": 223321
+    },
+    "EIMS_RC2_PRESENTATION_STAGED.pptx": {
+      "sha256": "2ae554a305f04979d51ee2a630dde345647a83bb919c15c1e14b72264ae26b6d",
+      "bytes": 73339
+    },
+    "EIMS_RC2_REPORT_REVIEW.docx": {
+      "sha256": "e27d2498ae360ac673b93daa5f042fe079bc19fdc434c686e7d651b6175c71a3",
+      "bytes": 132273
+    },
+    "EIMS_RC2_REPORT_REVIEW.pdf": {
+      "sha256": "6f2a9e2520aeb89e13c0542e208f267ced26bd82c29a024ef0fa74d51296180a",
+      "bytes": 712256
+    }
+  },
+  "inspection": {
+    "report_pages": 70,
+    "report_status": "PARTIALLY_INSPECTED_NOT_FINAL",
+    "report_details": "First 71-page draft scanned in five contact sheets; removed title border and improved page breaks in 70-page review revision; final cover inspected at full size. Full-size all-page review remains owner work. Mermaid retained as code listings; historical figure placeholders and institutional forms still pending.",
+    "presentation_slides": 15,
+    "presentation_notes": 15,
+    "presentation_status": "PACKAGE_AND_LAYOUT_PASS_ALL_15_RENDERED_SLIDES_INSPECTED",
+    "presentation_native_pdf": "PowerPoint-exported 15-page PDF contact sheet inspected; no clipping observed",
+    "owner_content_approval": false
+  }
+}
