@@ -1,6 +1,14 @@
 # Chapter 1
 # Introduction
 
+## Current graduation revision and evidence boundary
+
+**Current source audit: 1 November 2026 — `2a0d9031297ac1063a0f327a8a76c455bb5da315` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 391 Python tests (299 Analyzer hermetic + 46 synthetic PostgreSQL + 46 USB isolated), run 41230498604, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 61, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+
+The current graduation objective is evidence-grounded, multi-vendor log investigation with reproducible evaluation. Asset inventory and portable Windows ingestion remain implemented supporting modules. The October core distinguishes event identity, observed technical failure, explicit terminal status, causal hypotheses and UNKNOWN physical cause. Acceptance requires authentic reviewed-only judgments and an independently authorized HTTPS demonstration, not simply more features. The objectives and field workflow below document the earlier prototype; the RAG objective is not an executed M2/M3 experiment in the current evaluation.
+
+## Historical prototype material (retained for provenance)
+
 ## 1.1 Background and Significance
 
 In contemporary enterprise computing environments, managing, auditing, and troubleshooting distributed infrastructure presents significant operational challenges. Enterprise organizations frequently deploy heterogeneous computing estates comprising mission-critical database servers, directory controllers, specialized industrial workstations, and departmental endpoints. While automated centralized monitoring solutions exist for well-connected corporate networks, modern enterprise topologies frequently feature segmented network architectures, demilitarized zones (DMZs), isolated operational technology (OT) subnets, and air-gapped environments. In these environments, continuous outbound connectivity to centralized cloud monitoring or Software-as-a-Service (SaaS) management platforms is often constrained by organizational security policies, strict change-control procedures, or physical network isolation.

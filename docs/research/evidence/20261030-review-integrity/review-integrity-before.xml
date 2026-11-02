@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="6" time="1.566" timestamp="2026-10-30T11:10:40.318589+07:00" hostname="Mew"><testcase classname="tests.test_analyzer_investigation" name="test_grounding_rejects_modified_proposal_and_empty_human_assertions[blank_reviewer]" time="0.635"><failure message="Failed: DID NOT RAISE ValueError">tests\test_analyzer_investigation.py:234: in test_grounding_rejects_modified_proposal_and_empty_human_assertions
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_grounding_rejects_modified_proposal_and_empty_human_assertions[blank_rationale]" time="0.049"><failure message="Failed: DID NOT RAISE ValueError">tests\test_analyzer_investigation.py:234: in test_grounding_rejects_modified_proposal_and_empty_human_assertions
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_grounding_rejects_modified_proposal_and_empty_human_assertions[padded_ai]" time="0.036"><failure message="Failed: DID NOT RAISE ValueError">tests\test_analyzer_investigation.py:234: in test_grounding_rejects_modified_proposal_and_empty_human_assertions
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_grounding_rejects_modified_proposal_and_empty_human_assertions[category]" time="0.036"><failure message="Failed: DID NOT RAISE ValueError">tests\test_analyzer_investigation.py:234: in test_grounding_rejects_modified_proposal_and_empty_human_assertions
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_grounding_rejects_modified_proposal_and_empty_human_assertions[remove_citation]" time="0.039"><failure message="Failed: DID NOT RAISE ValueError">tests\test_analyzer_investigation.py:234: in test_grounding_rejects_modified_proposal_and_empty_human_assertions
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_grounding_rejects_modified_proposal_and_empty_human_assertions[alter_citation]" time="0.038"><failure message="Failed: DID NOT RAISE ValueError">tests\test_analyzer_investigation.py:234: in test_grounding_rejects_modified_proposal_and_empty_human_assertions
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase></testsuite></testsuites>

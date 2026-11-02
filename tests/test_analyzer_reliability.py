@@ -374,7 +374,8 @@ def test_unknown_build_summary_makes_no_windows_claims():
     blob = " ".join([summary.overview] + summary.causes + summary.steps)
     assert "Windows event log entry" not in blob
     assert "Event ID" not in blob
-    assert summary.causes and summary.steps
+    assert summary.causes == [] and summary.steps
+    assert "No failure observed" in summary.overview
 
 
 # ---------------------------------------------------------------------------

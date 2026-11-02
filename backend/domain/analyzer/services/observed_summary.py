@@ -1,7 +1,7 @@
 """Narrow deterministic event semantics; no cause inferred from event ID alone."""
 from backend.domain.analyzer.schemas.analyze import SolutionSummary
 from backend.domain.analyzer.services.incident_extract import _is_successful_fortinet_configuration
-from backend.domain.analyzer.services.parser import _fortinet_field
+from backend.domain.analyzer.services.parser import _fortinet_field, windows_group_policy_connectivity
 
 
 def observed_event_summary(event_id, provider, family, text, language):
@@ -32,7 +32,7 @@ def observed_event_summary(event_id, provider, family, text, language):
             confidence='medium')
     normalized_provider = provider.lower().replace('-', '').replace(' ', '')
     if family == 'windows_event' and event_id == '1129' and 'grouppolicy' in normalized_provider:
-        connectivity = 'domain controller' in text.lower() and any(s in text.lower() for s in ['could not contact','lack of network connectivity','connectivity failed'])
+        connectivity = windows_group_policy_connectivity(event_id, provider, text)
         return SolutionSummary(
             overview=(('Group Policy ติดต่อ Domain Controller ไม่ได้ตามข้อความ Event 1129' if th else
                        'Group Policy Event 1129 reports failure to contact a Domain Controller.') if connectivity else

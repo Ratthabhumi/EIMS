@@ -1,0 +1,34 @@
+{
+  "source_sha": "a2707b55fb1bc867feb3f55cc1156cc042058a45",
+  "common_controls_identical": [
+    "analyzer_git_sha",
+    "manifest_sha256",
+    "annotation_sha256",
+    "scorer_sha256",
+    "runner_sha256",
+    "annotations_v2_sha256",
+    "semantics_v2_code_sha256"
+  ],
+  "full_predictions_unchanged": 12,
+  "claims": 77,
+  "reviewed_cases": 0,
+  "human_judgments": 0,
+  "modes": {
+    "rule_only": {
+      "executed": 12,
+      "errors": 0,
+      "kb_executed": 0
+    },
+    "rule_kb": {
+      "executed": 12,
+      "errors": 0,
+      "kb_executed": 12
+    },
+    "full_investigation": {
+      "executed": 12,
+      "errors": 0,
+      "kb_executed": 12
+    }
+  },
+  "comparison_limit": "M0/M1 share detection path; full mode includes native synthesis and memory History. No human quality superiority or cross-boundary latency claim."
+}

@@ -1,0 +1,28 @@
+{
+  "starting_head": "2eef18cef7d8493e7af594334cc7cd0ac0551a14",
+  "export_content": {
+    "before_failed": 16,
+    "after_passed": 16,
+    "scope": "Actual live/History Markdown and PDF HTML builders, not downloaded PDF rendering"
+  },
+  "upload_parser": {
+    "baseline_contract_failures": 5,
+    "valid_formats_preserved": [
+      "UTF-8 text",
+      "XML",
+      "HTML",
+      "CSV"
+    ],
+    "ocr": "missing-engine error path covered in CI; real OCR NOT_TESTED"
+  },
+  "local_hermetic": {
+    "tests": "311",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "1"
+  },
+  "local_postgres": "BLOCKED: connection refused; Docker engine API returned 500. Six new tests did not reach assertions; not a product RED result. Use CI integration results.",
+  "browser": "BLOCKED_NOT_TESTED: no listeners on 8019/3009/3449; previous startup policy rejection respected. No retries.",
+  "frozen_provenance": "36 digests / 12 DRAFT DEV / 61 claims verified; 0 human reviews; accuracy NOT_MEASURED",
+  "scope": "No academic artifacts, authentication settings, production data or frozen snapshots changed. Exact final HEAD/CI/tested checkout are recorded in PR #10."
+}

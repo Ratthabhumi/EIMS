@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="10" skipped="0" tests="10" time="1.901" timestamp="2026-10-30T15:00:52.475065+07:00" hostname="Mew"><testcase classname="tests.test_analyzer_investigation" name="test_no_failure_recommendations_and_reopened_history[bundle_related]" time="0.578"><failure message="AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'&#10;  &#10;  'primary error line' is contained here:&#10;  ?           ^&#10;    earch the primary error line in veeam help center follow the references below; avoid destructive actions before preserving evidence&#10;  ?           ^^^^^^^^^^^^^^^  ++++">tests\test_analyzer_investigation.py:322: in test_no_failure_recommendations_and_reopened_history
+    assert 'primary error line' not in ' '.join(summary['steps']).lower()
+E   AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'
+E     
+E     'primary error line' is contained here:
+E     ?           ^
+E       earch the primary error line in veeam help center follow the references below; avoid destructive actions before preserving evidence
+E     ?           ^^^^^^^^^^^^^^^  ++++</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_no_failure_recommendations_and_reopened_history[esxi_heartbeat]" time="0.050"><failure message="AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'&#10;  &#10;  'primary error line' is contained here:&#10;  ?           ^&#10;    earch the primary error line in broadcom support follow the references below; avoid destructive actions before preserving evidence&#10;  ?           ^^^^^^^^^^^^^^^  ++++">tests\test_analyzer_investigation.py:322: in test_no_failure_recommendations_and_reopened_history
+    assert 'primary error line' not in ' '.join(summary['steps']).lower()
+E   AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'
+E     
+E     'primary error line' is contained here:
+E     ?           ^
+E       earch the primary error line in broadcom support follow the references below; avoid destructive actions before preserving evidence
+E     ?           ^^^^^^^^^^^^^^^  ++++</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_no_failure_recommendations_and_reopened_history[bundle_unrelated]" time="0.044"><failure message="AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'&#10;  &#10;  'primary error line' is contained here:&#10;  ?           ^&#10;    earch the primary error line in veeam help center follow the references below; avoid destructive actions before preserving evidence&#10;  ?           ^^^^^^^^^^^^^^^  ++++">tests\test_analyzer_investigation.py:322: in test_no_failure_recommendations_and_reopened_history
+    assert 'primary error line' not in ' '.join(summary['steps']).lower()
+E   AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'
+E     
+E     'primary error line' is contained here:
+E     ?           ^
+E       earch the primary error line in veeam help center follow the references below; avoid destructive actions before preserving evidence
+E     ?           ^^^^^^^^^^^^^^^  ++++</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_no_failure_recommendations_and_reopened_history[veeam_options]" time="0.039"><failure message="AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'&#10;  &#10;  'primary error line' is contained here:&#10;  ?           ^&#10;    earch the primary error line in veeam help center follow the references below; avoid destructive actions before preserving evidence&#10;  ?           ^^^^^^^^^^^^^^^  ++++">tests\test_analyzer_investigation.py:322: in test_no_failure_recommendations_and_reopened_history
+    assert 'primary error line' not in ' '.join(summary['steps']).lower()
+E   AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'
+E     
+E     'primary error line' is contained here:
+E     ?           ^
+E       earch the primary error line in veeam help center follow the references below; avoid destructive actions before preserving evidence
+E     ?           ^^^^^^^^^^^^^^^  ++++</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_no_failure_recommendations_and_reopened_history[json_info]" time="0.041"><failure message="AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'&#10;  &#10;  'primary error line' is contained here:&#10;  ?           ^&#10;    earch the primary error line in the vendor documentation follow the references below; avoid destructive actions before preserving evidence&#10;  ?           ^^^^^^^^^^^^^^^  ++++">tests\test_analyzer_investigation.py:322: in test_no_failure_recommendations_and_reopened_history
+    assert 'primary error line' not in ' '.join(summary['steps']).lower()
+E   AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'
+E     
+E     'primary error line' is contained here:
+E     ?           ^
+E       earch the primary error line in the vendor documentation follow the references below; avoid destructive actions before preserving evidence
+E     ?           ^^^^^^^^^^^^^^^  ++++</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_no_failure_recommendations_and_reopened_history[noise_filename]" time="0.044"><failure message="AssertionError: assert 'primary error line' not in 'identify wh...y error line'&#10;  &#10;  'primary error line' is contained here:&#10;    n with the primary error line">tests\test_analyzer_investigation.py:322: in test_no_failure_recommendations_and_reopened_history
+    assert 'primary error line' not in ' '.join(summary['steps']).lower()
+E   AssertionError: assert 'primary error line' not in 'identify wh...y error line'
+E     
+E     'primary error line' is contained here:
+E       n with the primary error line</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_no_failure_recommendations_and_reopened_history[fort_accept]" time="0.042"><failure message="AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'&#10;  &#10;  'primary error line' is contained here:&#10;  ?           ^&#10;    earch the primary error line in fortinet docs follow the references below; avoid destructive actions before preserving evidence&#10;  ?           ^^^^^^^^^^^^^^^  ++++">tests\test_analyzer_investigation.py:322: in test_no_failure_recommendations_and_reopened_history
+    assert 'primary error line' not in ' '.join(summary['steps']).lower()
+E   AssertionError: assert 'primary error line' not in 'preserve th...ing evidence'
+E     
+E     'primary error line' is contained here:
+E     ?           ^
+E       earch the primary error line in fortinet docs follow the references below; avoid destructive actions before preserving evidence
+E     ?           ^^^^^^^^^^^^^^^  ++++</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_no_failure_recommendations_and_reopened_history[win_boot]" time="0.044"><failure message="AssertionError: assert 'no failure observed' in 'event id 6005 from eventlog is a windows event log entry.'&#10; +  where 'event id 6005 from eventlog is a windows event log entry.' = &lt;built-in method lower of str object at 0x000002505F07C260&gt;()&#10; +    where &lt;built-in method lower of str object at 0x000002505F07C260&gt; = 'Event ID 6005 from EventLog is a Windows event log entry.'.lower">tests\test_analyzer_investigation.py:323: in test_no_failure_recommendations_and_reopened_history
+    assert 'no failure observed' in summary['overview'].lower()
+E   AssertionError: assert 'no failure observed' in 'event id 6005 from eventlog is a windows event log entry.'
+E    +  where 'event id 6005 from eventlog is a windows event log entry.' = &lt;built-in method lower of str object at 0x000002505F07C260&gt;()
+E    +    where &lt;built-in method lower of str object at 0x000002505F07C260&gt; = 'Event ID 6005 from EventLog is a Windows event log entry.'.lower</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_informational_summary_ignores_unrelated_failure_snippets[th]" time="0.003"><failure message="AssertionError: assert 'ไม่พบความล้มเหลว' in 'VMware: ยังไม่พบ diagnostic signature ที่ระบุชัดเจน ผลลัพธ์สุดท้ายของ task/session ยังไม่ทราบจากหลักฐานที่ให้มา'&#10; +  where 'VMware: ยังไม่พบ diagnostic signature ที่ระบุชัดเจน ผลลัพธ์สุดท้ายของ task/session ยังไม่ทราบจากหลักฐานที่ให้มา' = SolutionSummary(overview='VMware: ยังไม่พบ diagnostic signature ที่ระบุชัดเจน ผลลัพธ์สุดท้ายของ task/session ยังไม่ทรา...ข้อมูลก่อนสำรองหลักฐาน'], evidence=[], confidence='', limitations=[], nextEvidence=[], incident=None, evidenceItems=[]).overview">tests\test_analyzer_investigation.py:336: in test_informational_summary_ignores_unrelated_failure_snippets
+    assert ('ไม่พบความล้มเหลว' if language == 'th' else 'No failure observed') in s.overview
+E   AssertionError: assert 'ไม่พบความล้มเหลว' in 'VMware: ยังไม่พบ diagnostic signature ที่ระบุชัดเจน ผลลัพธ์สุดท้ายของ task/session ยังไม่ทราบจากหลักฐานที่ให้มา'
+E    +  where 'VMware: ยังไม่พบ diagnostic signature ที่ระบุชัดเจน ผลลัพธ์สุดท้ายของ task/session ยังไม่ทราบจากหลักฐานที่ให้มา' = SolutionSummary(overview='VMware: ยังไม่พบ diagnostic signature ที่ระบุชัดเจน ผลลัพธ์สุดท้ายของ task/session ยังไม่ทรา...ข้อมูลก่อนสำรองหลักฐาน'], evidence=[], confidence='', limitations=[], nextEvidence=[], incident=None, evidenceItems=[]).overview</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_informational_summary_ignores_unrelated_failure_snippets[en]" time="0.004"><failure message="AssertionError: assert 'No failure observed' in 'VMware: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.'&#10; +  where 'VMware: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.' = SolutionSummary(overview='VMware: No recognized diagnostic signature is present. The final task/session outcome is unk...re preserving evidence'], evidence=[], confidence='', limitations=[], nextEvidence=[], incident=None, evidenceItems=[]).overview">tests\test_analyzer_investigation.py:336: in test_informational_summary_ignores_unrelated_failure_snippets
+    assert ('ไม่พบความล้มเหลว' if language == 'th' else 'No failure observed') in s.overview
+E   AssertionError: assert 'No failure observed' in 'VMware: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.'
+E    +  where 'VMware: No recognized diagnostic signature is present. The final task/session outcome is unknown from the supplied evidence.' = SolutionSummary(overview='VMware: No recognized diagnostic signature is present. The final task/session outcome is unk...re preserving evidence'], evidence=[], confidence='', limitations=[], nextEvidence=[], incident=None, evidenceItems=[]).overview</failure></testcase></testsuite></testsuites>

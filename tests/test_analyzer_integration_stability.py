@@ -298,3 +298,28 @@ def test_secure_websocket_real_asgi_handshake_denies_spoofed_headers(monkeypatch
                 pytest.fail('Secure broadcast connection accepted')
         assert exc.value.code==1008
     assert ws_controller.manager.active_connections==before
+
+
+@pytest.mark.parametrize('name,mime,raw', [
+    ('input.xml','application/xml',b'<Event>\xff</Event>'),
+    ('input.html','text/html',b'<p>\xff</p>'),
+    ('input.csv','text/csv',b'event,message\n1,\xff'),
+    ('input.log','text/plain',b'Event ID: 1129\x00binary'),
+    ('input.png','text/plain',b'Event ID: 1129'),
+])
+def test_upload_parser_rejects_corrupt_or_misidentified_text(name,mime,raw):
+    from backend.api.routers.analyzer.analyze import _process_upload
+    with pytest.raises(ValueError):
+        _process_upload(raw,name,mime)
+
+
+@pytest.mark.parametrize('name,mime,raw', [
+    ('input.xml','application/xml',b'<Event><System><EventID>1129</EventID></System></Event>'),
+    ('input.html','text/html',b'<p>Event ID: 1129</p>'),
+    ('input.csv','text/csv',b'event,message\n1129,Group Policy'),
+    ('input.log','application/octet-stream',b'Event ID: 1129'),
+])
+def test_upload_parser_preserves_supported_text_formats(name,mime,raw):
+    from backend.api.routers.analyzer.analyze import _process_upload
+    text,_ = _process_upload(raw,name,mime)
+    assert '1129' in text

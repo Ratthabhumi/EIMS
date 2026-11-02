@@ -1031,6 +1031,26 @@ async def build_summary(
     if curated:
         return curated
 
+    # Use the same source-record signal policy as incident extraction. Search
+    # snippets are reference material, never evidence that this input failed.
+    from backend.domain.analyzer.services.incident_extract import _is_noise, _signal_strength
+    raw_evidence = description or evidence_text
+    if raw_evidence.strip() and not any(
+        not _is_noise(line) and _signal_strength(line) >= 1
+        for line in raw_evidence.splitlines()
+    ):
+        th = lang == "th"
+        return SolutionSummary(
+            overview=("ไม่พบความล้มเหลวในข้อมูลที่ให้มา ไม่ใช่การยืนยันว่าระบบทั้งหมดทำงานปกติ"
+                      if th else "No failure observed in the supplied records. This does not establish overall system health."),
+            causes=[],
+            steps=[("หากต้องตรวจสอบเพิ่มเติม ให้เก็บลำดับเหตุการณ์ ผลจบ session ที่เกี่ยวข้อง และบริบทผลิตภัณฑ์ต้นทาง"
+                    if th else "If further verification is needed, collect the event sequence, the relevant session's completion record and emitting product context.")],
+            limitations=[("ยังยืนยันผลจบของงานที่เกี่ยวข้องไม่ได้หากไม่มีบันทึกจบงานที่ผูกกับ session นั้น; ข้อความสำเร็จของ session อื่นไม่ยืนยันผลของงานนี้"
+                          if th else "The relevant job outcome cannot be established without a completion record associated with that session; success in another session does not establish this job's outcome.")],
+            confidence="low",
+        )
+
     rag_context = ""
     similar = []
     if description and db and family != "unknown_text":

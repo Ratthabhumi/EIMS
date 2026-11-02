@@ -1,0 +1,29 @@
+{
+  "starting_head": "e6590f7b86793c3cbd7385744b23fefb5980c5ca",
+  "browser": "BLOCKED_BY_AUTOMATIC_APPROVAL_POLICY",
+  "rejected_action": "npm run start -- --hostname 127.0.0.1 --port 3009",
+  "reason": "blocked by policy",
+  "production_data_used": false,
+  "frozen_full_hashes_unchanged": 12,
+  "repetitions": 2,
+  "human_reviews": 0,
+  "ocr": "Tesseract executable not found on PATH; image flow NOT_TESTED",
+  "before": {
+    "tests": 10,
+    "failures": 4,
+    "errors": 0,
+    "skipped": 0
+  },
+  "after": {
+    "tests": 56,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "hermetic": {
+    "tests": 302,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1
+  }
+}

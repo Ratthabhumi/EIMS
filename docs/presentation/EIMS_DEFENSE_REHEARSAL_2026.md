@@ -1,3 +1,16 @@
+## Current rehearsal overlay — 1 November 2026
+
+Use the 15 slides and their Speaker Notes in EIMS_PRESENTATION_SOURCE_2026.md. The older script below is archival, not the current spoken script.
+
+- Slides 1–3: state project objective and bounded graduation scope; do not call the prototype production-certified.
+- Slides 4–9: explain existing architecture, deterministic Analyzer, source context and owner-scoped History. Do not imply M2/M3 were evaluated.
+- Slide 10: distinguish engineering CI, scientific human review and deployed runtime acceptance.
+- Slide 11: verified publication baseline 2a0d903 / run 41230498604 = 299 hermetic + 46 PostgreSQL + 46 USB isolated = 391 PASS. Full snapshot has 61 claims, 12 DRAFT DEV, zero authentic review, accuracy NOT_MEASURED. Final tooling-only CI is linked in PR #10; never add old and new test counts together.
+- Slide 12: run the offline operator sequence when HTTPS remains blocked; call it a frozen synthetic artifact, not live History/browser acceptance.
+- Slides 13–15: historical engineering incidents are lessons; remaining gates are real review, approved runtime, binary assembly/visual approval and owner-controlled merge.
+
+> **31 October 2026: historical artifact / STALE_PENDING_REBUILD.** The September editorial baseline is `c38bef97a5f18e85d4338108cb18c48a57d7e1a4`; historical field-run revisions are not newly verified. Use updated Chapter 1–5 and EIMS_PRESENTATION_SOURCE_2026.md for current claims. Rendered DOCX/PDF/PPTX and old rehearsal text do not include all October changes. A9/49 events/10 findings below are historical, not current secure browser acceptance. No binary was rebuilt or visually validated in this audit. Human institutional/content/figure review remains required.
+
 # EIMS Final Defense Oral Rehearsal Guide (2026)
 **Academic Year 2026 | International Program, Faculty of Engineering, KMITL**
 **Project:** Development of an Enterprise Infrastructure Management System (EIMS)

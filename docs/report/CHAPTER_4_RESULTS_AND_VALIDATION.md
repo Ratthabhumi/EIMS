@@ -1,6 +1,24 @@
 # Chapter 4
 # Results and Validation
 
+## Current graduation revision and evidence boundary
+
+**Current source audit: 1 November 2026 — `2a0d9031297ac1063a0f327a8a76c455bb5da315` (PR #10).** Next.js 16.3.0 / React 19.2.8. Engineering CI: 391 Python tests (299 Analyzer hermetic + 46 synthetic PostgreSQL + 46 USB isolated), run 41230498604, not project-wide certification. DEV 12 DRAFT, HELDOUT 5 reserved, claims 61, genuine human reviews 0. Diagnostic accuracy NOT_MEASURED; secure HTTPS browser BLOCKED_NOT_TESTED; current USB/production acceptance NOT_TESTED. No main merge.
+
+### Current October engineering and scientific results
+
+| Evidence layer | Current result | Limit |
+|---|---|---|
+| Analyzer hermetic + synthetic PostgreSQL CI | 299 + 46 + 46 = 391 PASS at source above, CI run 41230498604 | Does not cover all modules or a deployed system |
+| Counterexamples | 8/8 PASS | Synthetic regression, not accuracy |
+| Frozen M0/M1/Full | 12 DEV executions per mode; Full emits 61 claims | All DRAFT; 0 human-reviewed cases/claims |
+| Scientific metrics | Accuracy, semantic support precision and unsupported-claim rate NOT_MEASURED | Zero reviewed denominator; no generalization claim |
+| Secure HTTPS/USB/production | BLOCKED_NOT_TESTED / NOT_TESTED / NOT_CERTIFIED | Historical A9 is a different boundary |
+
+Current snapshot: `evaluation/analyzer/results/20261101-priority-full_investigation`; source/input/annotation/prediction hashes and review bindings preserved. New bounded project-wide smoke results are in `docs/research/PROJECT_WIDE_READINESS_20261031.md`; do not add their counts to the 391-test CI claim. Historical validation below was assembled on 29 September 2026 at editorial baseline `c38bef97a5f18e85d4338108cb18c48a57d7e1a4`; individual field-run SHAs/dates are not newly verified. 49 stored events, 10 findings and A9 PASS remain historical observations, not October Secure Mode acceptance.
+
+## Historical prototype material (retained for provenance)
+
 This chapter presents the empirical validation results, experimental observations, test suite execution metrics, and field verification evidence for the Enterprise Infrastructure Management System (EIMS). The primary objective is to substantiate the functional correctness, data provenance, deduplication resilience, and user interface delivery of the platform based strictly on recorded engineering evidence.
 
 ## 4.1 Validation Objectives

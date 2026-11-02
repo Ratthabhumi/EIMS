@@ -59,7 +59,7 @@ def load_manual_reviews(path, predictions):
             p = lookup.get(r["case_id"])
             if not p or p.get("prediction_sha256") != r["prediction_sha256"]:
                 raise ValueError("manual review references missing/stale prediction")
-            if r["reviewer_id"].lower().startswith(("ai", "codex")):
+            if not r["reviewer_id"].strip() or not r["rationale"].strip() or r["reviewer_id"].strip().lower().startswith(("ai", "codex")):
                 raise ValueError("manual support review requires human reviewer")
             key = (category, r["case_id"], r["item_id"])
             if key in seen:
@@ -94,7 +94,7 @@ def load_manifest(path):
             raise ValueError("scenario-group split leakage")
         groups[group] = c["split"]
         if c["review_status"] == "REVIEWED":
-            if not c.get("reviewer_id") or c["reviewer_id"].lower().startswith(("ai", "codex")):
+            if not (c.get("reviewer_id") or "").strip() or c["reviewer_id"].strip().lower().startswith(("ai", "codex")):
                 raise ValueError("REVIEWED requires recorded human reviewer")
             if c.get("reviewed_annotation_sha256") != annotation_digest(c):
                 raise ValueError("review receipt does not bind current annotation")

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="1.566" timestamp="2026-11-01T01:35:01.242558+07:00" hostname="Mew"><testcase classname="tests.test_analyzer_investigation" name="test_priority_canonical_metadata_regression[win_policy-diagnosticCode-WINDOWS-GROUP-POLICY-CONNECTIVITY]" time="0.703"><failure message="AssertionError: assert '' == 'WINDOWS-GROU...-CONNECTIVITY'&#10;  &#10;  - WINDOWS-GROUP-POLICY-CONNECTIVITY">tests\test_analyzer_investigation.py:362: in test_priority_canonical_metadata_regression
+    assert result['native_response']['eventMetadata'][field] == expected
+E   AssertionError: assert '' == 'WINDOWS-GROU...-CONNECTIVITY'
+E     
+E     - WINDOWS-GROUP-POLICY-CONNECTIVITY</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_priority_canonical_metadata_regression[esxi_tracker-level-Error]" time="0.049"><failure message="AssertionError: assert 'Information' == 'Error'&#10;  &#10;  - Error&#10;  + Information">tests\test_analyzer_investigation.py:362: in test_priority_canonical_metadata_regression
+    assert result['native_response']['eventMetadata'][field] == expected
+E   AssertionError: assert 'Information' == 'Error'
+E     
+E     - Error
+E     + Information</failure></testcase><testcase classname="tests.test_analyzer_investigation" name="test_fortinet_observation_has_native_source_provenance" time="0.043"><failure message="assert 0 == 1&#10; +  where 0 = len([])">tests\test_analyzer_investigation.py:370: in test_fortinet_observation_has_native_source_provenance
+    assert len(summary['evidenceItems']) == 1
+E   assert 0 == 1
+E    +  where 0 = len([])</failure></testcase></testsuite></testsuites>

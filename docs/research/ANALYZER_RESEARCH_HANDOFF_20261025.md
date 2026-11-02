@@ -1,3 +1,21 @@
+## Review-validator correction — 30 October 2026
+
+Applied and tested: immutable emitted category/citation binding; nonblank human assertions;
+one temporary-data end-to-end reviewed-only scoring test. No actual human judgments.
+See GRADUATION_DELIVERY_20261030.md for six reproduced failures and mode comparison.
+Research handoff remains narrow: independent reviewer disagreement, small-sample validity,
+and session-to-outcome evidence. No new vendor/model or infrastructure work required.
+
+## Graduation delivery — 30 October 2026
+
+Current scope/experiment boundaries and owner tasks:
+[GRADUATION_DELIVERY_20261030.md](GRADUATION_DELIVERY_20261030.md).
+Core Analyzer frozen; tenancy/WSS/new model work deferred. Priority review packet hashes
+verified unchanged; supplementary nine-case packet added. No human decisions invented.
+Populated synthetic parent-upgrade test added; local run skipped because DB is stopped.
+Use delivery PR exact-head CI for its executed result. Prior test counts below are historical.
+No trusted browser listener available; operator runbook replaces repeated startup attempts.
+
 ## 26 October continuation — current delta
 
 See [continuation evidence and permission matrix](CONTINUATION_20261026.md).

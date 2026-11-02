@@ -105,6 +105,8 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
   const solUnknowns: string[] = result.solutionSummary?.limitations || [];
   const solNextEvidence: string[] = result.solutionSummary?.nextEvidence || [];
   const incident = result.solutionSummary?.incident || null;
+  // Legacy API fields use the literal "None" when no failure was observed.
+  const observedFailure = (value: unknown) => typeof value === 'string' && value.trim() !== '' && value.trim().toLowerCase() !== 'none';
   const evidenceItems: any[] = result.solutionSummary?.evidenceItems || [];
   const bundleFiles: any[] = result.files || [];
   const correlationConfidence: string = result.correlationConfidence || "";
@@ -149,6 +151,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
             <>
               <span className="text-eims-info dark:text-sky-400 font-bold">{product || provider}</span>
               <span className="text-eims-text-secondary font-normal text-sm ml-1">· Diagnostic {diagCode}</span>
+              {metadata.sourceFamily === 'windows_event' && <span className="text-eims-text-secondary font-normal text-sm ml-1">Event ID: {eventId}</span>}
               <span className="text-eims-text-secondary font-normal text-sm ml-2">{isEn ? "Number of events:" : "จำนวนเหตุการณ์:"} {numEvents}</span>
             </>
           ) : (
@@ -219,14 +222,14 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
         {/* Summary Box */}
         <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm flex flex-col">
           <h4 className="text-md font-semibold text-eims-text mb-3 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" /> {isEn ? "Problem Summary" : "สรุปปัญหา"}
+            <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" /> {isEn ? "Investigation summary" : "สรุปการวิเคราะห์"}
           </h4>
         <div className="text-eims-text-secondary leading-relaxed text-sm">
           {summary}
         </div>
         {causes.length > 0 && (
           <div className="mt-3 pl-4 border-l-2 border-red-500/30">
-            <p className="text-sm text-red-500 mb-1 font-medium">{isEn ? (hasVendorDiag ? "Likely Causes / Assessment:" : "Root Causes:") : "สาเหตุที่เป็นไปได้:"}</p>
+            <p className="text-sm text-red-500 mb-1 font-medium">{isEn ? "Possible causes / assessment:" : "สาเหตุที่เป็นไปได้ / การประเมิน:"}</p>
             <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
               {causes.map((cause: string, idx: number) => (
                 <li key={idx}>{cause}</li>
@@ -240,7 +243,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
       {/* Resolution Steps */}
       <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-lg p-4 shadow-sm">
         <h4 className="text-md font-semibold text-emerald-700 dark:text-emerald-400 mb-4 flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5" /> {isEn ? "Resolution Steps" : "วิธีแก้ไข (ทำตามลำดับ)"}
+          <CheckCircle2 className="w-5 h-5" /> {isEn ? "Recommended next steps" : "ขั้นตอนที่แนะนำถัดไป"}
         </h4>
         <div className="space-y-3">
           {steps.length > 0 ? steps.map((step: string, idx: number) => (
@@ -406,18 +409,19 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
       )}
 
       {/* Structured incident */}
-      {incident && (incident.firstMeaningfulFailure || incident.terminalFailure || (incident.observedPaths || []).length > 0) && (
+      {incident && (observedFailure(incident.firstMeaningfulFailure) || observedFailure(incident.terminalFailure) || (incident.observedPaths || []).length > 0) && (
         <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
           <h4 className="text-md font-semibold text-eims-text mb-3">
             {isEn ? "Failure Sequence (Observed)" : "ลำดับความล้มเหลว (ที่พบจริง)"}
           </h4>
           <div className="text-sm text-eims-text-secondary space-y-2">
-            {incident.firstMeaningfulFailure && (
+            {observedFailure(incident.firstMeaningfulFailure) && (
               <p><span className="font-medium text-eims-text">{isEn ? "First observed failure: " : "ความล้มเหลวแรกที่พบ: "}</span><span className="font-mono text-xs">{incident.firstMeaningfulFailure}</span></p>
             )}
-            {incident.terminalFailure && (
-              <p><span className="font-medium text-eims-text">{isEn ? "Terminal failure: " : "ความล้มเหลวสุดท้าย: "}</span><span className="font-mono text-xs">{incident.terminalFailure}</span></p>
+            {observedFailure(incident.terminalFailure) && (
+              <p><span className="font-medium text-eims-text">{isEn ? "Last observed failure: " : "ความล้มเหลวล่าสุดที่พบ: "}</span><span className="font-mono text-xs">{incident.terminalFailure}</span></p>
             )}
+            <p>{isEn ? 'The last observed failure alone does not establish the final job outcome.' : 'ความล้มเหลวล่าสุดที่พบเพียงอย่างเดียวไม่ได้ยืนยันผลจบงาน'}</p>
             {incident.operationStage && (
               <p><span className="font-medium text-eims-text">{isEn ? "Operation stage: " : "ขั้นตอนการทำงาน: "}</span>{incident.operationStage}</p>
             )}

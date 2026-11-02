@@ -1,3 +1,5 @@
+> **31 October 2026: historical artifact / STALE_PENDING_REBUILD.** The September editorial baseline is `c38bef97a5f18e85d4338108cb18c48a57d7e1a4`; historical field-run revisions are not newly verified. Use updated Chapter 1–5 and EIMS_PRESENTATION_SOURCE_2026.md for current claims. Rendered DOCX/PDF/PPTX and old rehearsal text do not include all October changes. A9/49 events/10 findings below are historical, not current secure browser acceptance. No binary was rebuilt or visually validated in this audit. Human institutional/content/figure review remains required.
+
 # EIMS Editorial & Assembly Validation Report 2026
 
 **Audit Date:** 29 September 2026  

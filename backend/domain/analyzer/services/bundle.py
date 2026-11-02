@@ -508,7 +508,11 @@ def build_evidence_items(
     files: List[BundleFileEvidence],
     *, records=None,
 ) -> List[Dict[str, object]]:
-    """Failure-relevant lines with file provenance (line numbers 1-based)."""
+    """Failure lines and bounded configuration observations with source provenance.
+
+    Informational citations do not change incident failure detection. The legacy
+    files-only path remains failure-only; native routes supply source records.
+    """
     from backend.domain.analyzer.services.incident_extract import (
         _CTK_UNLINK_FAILED, _is_successful_fortinet_configuration, _is_noise, _signal_strength,
     )
@@ -519,7 +523,8 @@ def build_evidence_items(
         selected = []
         counts = {}
         for r in records:
-            if _is_noise(r.raw_text) or _signal_strength(r.raw_text) < 2:
+            configuration = _is_successful_fortinet_configuration(r.raw_text)
+            if not configuration and (_is_noise(r.raw_text) or _signal_strength(r.raw_text) < 2):
                 continue
             count = counts.get(r.source_file, 0)
             if count >= MAX_EVIDENCE_ITEMS_PER_FILE:
@@ -535,7 +540,7 @@ def build_evidence_items(
                                     "truncated": len(row.raw_text) > 500})
             selected.append({"sourceFile": r.source_file, "lineNumber": r.line_number,
                              "timestamp": r.timestamp_raw, "message": r.raw_text.strip()[:500],
-                             "signature": ", ".join(r.signatures),
+                             "signature": "FORTINET-CONFIGURATION-OBSERVED" if configuration else ", ".join(r.signatures),
                              "observedPath": next(iter(r.observed_paths), ""),
                              "sourceContext": context, "sourceContextOrigin": "extracted_source_excerpt"})
         return selected

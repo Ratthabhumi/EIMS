@@ -269,6 +269,22 @@ def parse_veeam(text: str, filename_hint: str = "") -> EventMetadata:
     )
 
 
+def _vmware_severity(text: str) -> str:
+    """Maximum observed level; explicit timestamped prefixes outrank message words.
+
+    Unprefixed legacy lines retain the existing lexical detector. Filename hints
+    and embedded Er/Wa/In tokens are never prefix evidence. Veeam is unchanged.
+    """
+    prefix = re.compile(r"^\s*\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?\s+(Er\(02\)|Wa\(03\)|In\(05\))\s+\S+", re.I)
+    levels = {"er(02)": "Error", "wa(03)": "Warning", "in(05)": "Information"}
+    rank = {"Information": 0, "Warning": 1, "Error": 2}
+    found = []
+    for line in (text or "").splitlines():
+        match = prefix.match(line)
+        found.append(levels[match.group(1).lower()] if match else _severity(line))
+    return max(found, key=lambda level: rank[level], default="Information")
+
+
 def parse_vmware(text: str, filename_hint: str = "") -> EventMetadata:
     """Parse VMware ESXi/host/vmware.log style text."""
     code = resolve_vendor_diagnostic(text, "vmware")
@@ -278,7 +294,7 @@ def parse_vmware(text: str, filename_hint: str = "") -> EventMetadata:
             r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)", text
         )
         timestamp = m.group(1) if m else ""
-    level = _severity(text)
+    level = _vmware_severity(text)
     head = " ".join((text or "").split()[:40])
     return EventMetadata(
         eventId=code or "VMWARE-UNKNOWN",

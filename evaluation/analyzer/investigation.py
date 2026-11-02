@@ -93,6 +93,9 @@ def make_claims(response, files):
     add("overview", summary.get("overview", ""), "UNCERTAIN", "RCA_OVERVIEW", refs)
     for i, r in enumerate(refs):
         role = "SEVERITY" if re.match(r"^\s*Level\s*:", r["message"], re.I) else "FAILURE_DESCRIPTION"
+        from backend.domain.analyzer.services.incident_extract import _is_successful_fortinet_configuration
+        if _is_successful_fortinet_configuration(r["message"]):
+            role = "INFORMATIONAL"
         if "CTK_CTKUNLINK" in r["message"]:
             role = "TECHNICAL_FAILURE"
         add(f"observed-{i}", r["message"], "DIRECTLY_OBSERVED", role, [r])

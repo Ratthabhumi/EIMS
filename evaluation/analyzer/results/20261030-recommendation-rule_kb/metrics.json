@@ -1,0 +1,2286 @@
+{
+  "case_count": 0,
+  "error_count": 0,
+  "source": {
+    "accuracy": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "exact class incl UNKNOWN and ERROR",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "per_class": {},
+    "confusion_matrix": {},
+    "macro": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      }
+    },
+    "micro": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "tp": 0,
+      "fp": 0,
+      "fn": 0
+    }
+  },
+  "diagnostic": {
+    "accuracy": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "exact class incl UNKNOWN and ERROR",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "per_class": {},
+    "confusion_matrix": {},
+    "macro": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "mean over truth-supported classes with defined metric",
+        "undefined": "EMPTY_DENOMINATOR",
+        "undefined_classes": []
+      }
+    },
+    "micro": {
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "f1": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "single-label micro over all classes",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "tp": 0,
+      "fp": 0,
+      "fn": 0
+    }
+  },
+  "diagnostic_errors_by_vendor": {},
+  "first_failure_accuracy": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "exact file/line-set; explicit null counts; errors wrong",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "terminal_failure_accuracy": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "exact file/line-set; explicit null counts; errors wrong",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "evidence_span": {
+    "precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "deduplicated exact (file,1-based line) sets",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "recall": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "deduplicated exact (file,1-based line) sets",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "f1": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "deduplicated exact (file,1-based line) sets",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+  },
+  "false_positive_failure_rate": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "finding on a truth-negative case",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "provenance": {
+    "coordinate_validity": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "existing line and exact/truncated-prefix raw message; not semantic support",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "file_precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "citation file in truth evidence",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "exact_line_precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "citation file+line in truth evidence; repeated citations counted",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "citation_coverage": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "cases with at least one truth-supported emitted citation",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "semantic_support_precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "human-reviewed citation support bound to prediction hash; coordinate validity alone insufficient",
+      "undefined": "EMPTY_DENOMINATOR"
+    }
+  },
+  "correlation": {
+    "precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "recall": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "f1": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "false_merge_count": 0,
+    "false_split_count": 0
+  },
+  "kb": {
+    "applicability_precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "exact official URL against reviewed applicable_kb; prerequisites must be reviewed",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "recommendation_coverage": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "applicable URLs retrieved / annotated applicable URLs",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "prerequisite_satisfaction": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "NOT_MEASURED; separate prerequisite review required",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "cross_vendor_contamination": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "NOT_MEASURED; URL mismatch alone cannot establish vendor contamination",
+      "undefined": "EMPTY_DENOMINATOR"
+    }
+  },
+  "identity_abstention": {
+    "precision": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "recall": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "f1": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+  },
+  "false_certain_identity_rate": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "diagnostic identity emitted where UNKNOWN expected; errors separately counted",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "unsupported_claim_rate": {
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "case_support": 0,
+    "policy": "human-reviewed material claims bound to prediction hash; uncertain labels excluded and counted",
+    "undefined": "EMPTY_DENOMINATOR"
+  },
+  "manual_review": {
+    "claim_labels": 0,
+    "citation_labels": 0,
+    "uncertain_labels": 0,
+    "policy": "reviewed subset only; no claim of exhaustive narrative review"
+  },
+  "latency": {
+    "p50_seconds": null,
+    "p95_seconds": null,
+    "sample_count": 0,
+    "raw_seconds": [],
+    "policy": "perf_counter wall seconds; linear interpolated percentiles; no fabricated zeros"
+  },
+  "status": "INSUFFICIENT_DATA",
+  "exploratory_draft_only": {
+    "status": "NOT_GOLD_NOT_ACCURACY_CERTIFICATION",
+    "case_count": 12,
+    "error_count": 0,
+    "source": {
+      "accuracy": {
+        "value": 1.0,
+        "numerator": 12,
+        "denominator": 12,
+        "case_support": 12,
+        "policy": "exact class incl UNKNOWN and ERROR",
+        "undefined": null
+      },
+      "per_class": {
+        "fortinet": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 4,
+            "denominator": 4,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "json": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "unknown_text": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "veeam_vbr": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 4,
+            "denominator": 4,
+            "case_support": 4,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 4,
+            "denominator": 4,
+            "case_support": 4,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 8,
+            "denominator": 8,
+            "case_support": 4,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 4,
+          "fp": 0,
+          "fn": 0
+        },
+        "vmware": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 4,
+            "denominator": 4,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "windows_event": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 4,
+            "denominator": 4,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "confusion_matrix": {
+        "fortinet": {
+          "fortinet": 2,
+          "json": 0,
+          "unknown_text": 0,
+          "veeam_vbr": 0,
+          "vmware": 0,
+          "windows_event": 0
+        },
+        "json": {
+          "fortinet": 0,
+          "json": 1,
+          "unknown_text": 0,
+          "veeam_vbr": 0,
+          "vmware": 0,
+          "windows_event": 0
+        },
+        "unknown_text": {
+          "fortinet": 0,
+          "json": 0,
+          "unknown_text": 1,
+          "veeam_vbr": 0,
+          "vmware": 0,
+          "windows_event": 0
+        },
+        "veeam_vbr": {
+          "fortinet": 0,
+          "json": 0,
+          "unknown_text": 0,
+          "veeam_vbr": 4,
+          "vmware": 0,
+          "windows_event": 0
+        },
+        "vmware": {
+          "fortinet": 0,
+          "json": 0,
+          "unknown_text": 0,
+          "veeam_vbr": 0,
+          "vmware": 2,
+          "windows_event": 0
+        },
+        "windows_event": {
+          "fortinet": 0,
+          "json": 0,
+          "unknown_text": 0,
+          "veeam_vbr": 0,
+          "vmware": 0,
+          "windows_event": 2
+        }
+      },
+      "macro": {
+        "precision": {
+          "value": 1.0,
+          "numerator": 6.0,
+          "denominator": 6,
+          "case_support": 12,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": null,
+          "undefined_classes": []
+        },
+        "recall": {
+          "value": 1.0,
+          "numerator": 6.0,
+          "denominator": 6,
+          "case_support": 12,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": null,
+          "undefined_classes": []
+        },
+        "f1": {
+          "value": 1.0,
+          "numerator": 6.0,
+          "denominator": 6,
+          "case_support": 12,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": null,
+          "undefined_classes": []
+        }
+      },
+      "micro": {
+        "precision": {
+          "value": 1.0,
+          "numerator": 12,
+          "denominator": 12,
+          "case_support": 12,
+          "policy": "single-label micro over all classes",
+          "undefined": null
+        },
+        "recall": {
+          "value": 1.0,
+          "numerator": 12,
+          "denominator": 12,
+          "case_support": 12,
+          "policy": "single-label micro over all classes",
+          "undefined": null
+        },
+        "f1": {
+          "value": 1.0,
+          "numerator": 24,
+          "denominator": 24,
+          "case_support": 12,
+          "policy": "single-label micro over all classes",
+          "undefined": null
+        },
+        "tp": 12,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "diagnostic": {
+      "accuracy": {
+        "value": 1.0,
+        "numerator": 12,
+        "denominator": 12,
+        "case_support": 12,
+        "policy": "exact class incl UNKNOWN and ERROR",
+        "undefined": null
+      },
+      "per_class": {
+        "0000000013": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "0100044547": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1129": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "6005": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 1,
+            "denominator": 1,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 1,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "UNKNOWN": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 6,
+            "denominator": 6,
+            "case_support": 6,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 6,
+            "denominator": 6,
+            "case_support": 6,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 12,
+            "denominator": 12,
+            "case_support": 6,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 6,
+          "fp": 0,
+          "fn": 0
+        },
+        "VMWARE-CBT-DELETE-FAILED": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 2,
+            "denominator": 2,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 4,
+            "denominator": 4,
+            "case_support": 2,
+            "policy": "exact class; no exclusions",
+            "undefined": null
+          },
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "confusion_matrix": {
+        "0000000013": {
+          "0000000013": 1,
+          "0100044547": 0,
+          "1129": 0,
+          "6005": 0,
+          "UNKNOWN": 0,
+          "VMWARE-CBT-DELETE-FAILED": 0
+        },
+        "0100044547": {
+          "0000000013": 0,
+          "0100044547": 1,
+          "1129": 0,
+          "6005": 0,
+          "UNKNOWN": 0,
+          "VMWARE-CBT-DELETE-FAILED": 0
+        },
+        "1129": {
+          "0000000013": 0,
+          "0100044547": 0,
+          "1129": 1,
+          "6005": 0,
+          "UNKNOWN": 0,
+          "VMWARE-CBT-DELETE-FAILED": 0
+        },
+        "6005": {
+          "0000000013": 0,
+          "0100044547": 0,
+          "1129": 0,
+          "6005": 1,
+          "UNKNOWN": 0,
+          "VMWARE-CBT-DELETE-FAILED": 0
+        },
+        "UNKNOWN": {
+          "0000000013": 0,
+          "0100044547": 0,
+          "1129": 0,
+          "6005": 0,
+          "UNKNOWN": 6,
+          "VMWARE-CBT-DELETE-FAILED": 0
+        },
+        "VMWARE-CBT-DELETE-FAILED": {
+          "0000000013": 0,
+          "0100044547": 0,
+          "1129": 0,
+          "6005": 0,
+          "UNKNOWN": 0,
+          "VMWARE-CBT-DELETE-FAILED": 2
+        }
+      },
+      "macro": {
+        "precision": {
+          "value": 1.0,
+          "numerator": 6.0,
+          "denominator": 6,
+          "case_support": 12,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": null,
+          "undefined_classes": []
+        },
+        "recall": {
+          "value": 1.0,
+          "numerator": 6.0,
+          "denominator": 6,
+          "case_support": 12,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": null,
+          "undefined_classes": []
+        },
+        "f1": {
+          "value": 1.0,
+          "numerator": 6.0,
+          "denominator": 6,
+          "case_support": 12,
+          "policy": "mean over truth-supported classes with defined metric",
+          "undefined": null,
+          "undefined_classes": []
+        }
+      },
+      "micro": {
+        "precision": {
+          "value": 1.0,
+          "numerator": 12,
+          "denominator": 12,
+          "case_support": 12,
+          "policy": "single-label micro over all classes",
+          "undefined": null
+        },
+        "recall": {
+          "value": 1.0,
+          "numerator": 12,
+          "denominator": 12,
+          "case_support": 12,
+          "policy": "single-label micro over all classes",
+          "undefined": null
+        },
+        "f1": {
+          "value": 1.0,
+          "numerator": 24,
+          "denominator": 24,
+          "case_support": 12,
+          "policy": "single-label micro over all classes",
+          "undefined": null
+        },
+        "tp": 12,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "diagnostic_errors_by_vendor": {},
+    "first_failure_accuracy": {
+      "value": 1.0,
+      "numerator": 12,
+      "denominator": 12,
+      "case_support": 12,
+      "policy": "exact file/line-set; explicit null counts; errors wrong",
+      "undefined": null
+    },
+    "terminal_failure_accuracy": {
+      "value": 1.0,
+      "numerator": 12,
+      "denominator": 12,
+      "case_support": 12,
+      "policy": "exact file/line-set; explicit null counts; errors wrong",
+      "undefined": null
+    },
+    "evidence_span": {
+      "precision": {
+        "value": 0.8,
+        "numerator": 4,
+        "denominator": 5,
+        "case_support": 12,
+        "policy": "deduplicated exact (file,1-based line) sets",
+        "undefined": null
+      },
+      "recall": {
+        "value": 1.0,
+        "numerator": 4,
+        "denominator": 4,
+        "case_support": 12,
+        "policy": "deduplicated exact (file,1-based line) sets",
+        "undefined": null
+      },
+      "f1": {
+        "value": 0.8888888888888888,
+        "numerator": 8,
+        "denominator": 9,
+        "case_support": 12,
+        "policy": "deduplicated exact (file,1-based line) sets",
+        "undefined": null
+      },
+      "tp": 4,
+      "fp": 1,
+      "fn": 0
+    },
+    "false_positive_failure_rate": {
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 9,
+      "case_support": 9,
+      "policy": "finding on a truth-negative case",
+      "undefined": null
+    },
+    "provenance": {
+      "coordinate_validity": {
+        "value": 1.0,
+        "numerator": 5,
+        "denominator": 5,
+        "case_support": 12,
+        "policy": "existing line and exact/truncated-prefix raw message; not semantic support",
+        "undefined": null
+      },
+      "file_precision": {
+        "value": 1.0,
+        "numerator": 5,
+        "denominator": 5,
+        "case_support": 12,
+        "policy": "citation file in truth evidence",
+        "undefined": null
+      },
+      "exact_line_precision": {
+        "value": 0.8,
+        "numerator": 4,
+        "denominator": 5,
+        "case_support": 12,
+        "policy": "citation file+line in truth evidence; repeated citations counted",
+        "undefined": null
+      },
+      "citation_coverage": {
+        "value": 1.0,
+        "numerator": 3,
+        "denominator": 3,
+        "case_support": 3,
+        "policy": "cases with at least one truth-supported emitted citation",
+        "undefined": null
+      },
+      "semantic_support_precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "human-reviewed citation support bound to prediction hash; coordinate validity alone insufficient",
+        "undefined": "EMPTY_DENOMINATOR"
+      }
+    },
+    "correlation": {
+      "precision": {
+        "value": 1.0,
+        "numerator": 1,
+        "denominator": 1,
+        "case_support": 2,
+        "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+        "undefined": null
+      },
+      "recall": {
+        "value": 1.0,
+        "numerator": 1,
+        "denominator": 1,
+        "case_support": 2,
+        "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+        "undefined": null
+      },
+      "f1": {
+        "value": 1.0,
+        "numerator": 2,
+        "denominator": 2,
+        "case_support": 2,
+        "policy": "labeled unordered pairs; STRONG/MEDIUM association positive; WEAK not proven; never causation",
+        "undefined": null
+      },
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "false_merge_count": 0,
+      "false_split_count": 0
+    },
+    "kb": {
+      "applicability_precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 12,
+        "policy": "exact official URL against reviewed applicable_kb; prerequisites must be reviewed",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "recommendation_coverage": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 12,
+        "policy": "applicable URLs retrieved / annotated applicable URLs",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "prerequisite_satisfaction": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "NOT_MEASURED; separate prerequisite review required",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "cross_vendor_contamination": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "NOT_MEASURED; URL mismatch alone cannot establish vendor contamination",
+        "undefined": "EMPTY_DENOMINATOR"
+      }
+    },
+    "identity_abstention": {
+      "precision": {
+        "value": 1.0,
+        "numerator": 6,
+        "denominator": 6,
+        "case_support": 12,
+        "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+        "undefined": null
+      },
+      "recall": {
+        "value": 1.0,
+        "numerator": 6,
+        "denominator": 6,
+        "case_support": 12,
+        "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+        "undefined": null
+      },
+      "f1": {
+        "value": 1.0,
+        "numerator": 12,
+        "denominator": 12,
+        "case_support": 12,
+        "policy": "no diagnostic identity; NOT root-cause confidence or narrative abstention",
+        "undefined": null
+      },
+      "tp": 6,
+      "fp": 0,
+      "fn": 0
+    },
+    "false_certain_identity_rate": {
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 6,
+      "case_support": 6,
+      "policy": "diagnostic identity emitted where UNKNOWN expected; errors separately counted",
+      "undefined": null
+    },
+    "unsupported_claim_rate": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "case_support": 0,
+      "policy": "human-reviewed material claims bound to prediction hash; uncertain labels excluded and counted",
+      "undefined": "EMPTY_DENOMINATOR"
+    },
+    "manual_review": {
+      "claim_labels": 0,
+      "citation_labels": 0,
+      "uncertain_labels": 0,
+      "policy": "reviewed subset only; no claim of exhaustive narrative review"
+    },
+    "latency": {
+      "p50_seconds": 0.000685449999764387,
+      "p95_seconds": 0.0012336250001681037,
+      "sample_count": 36,
+      "raw_seconds": [
+        0.000744999999369611,
+        0.0012038000004395144,
+        0.0010625000013533281,
+        0.0006980000016483245,
+        0.0006899999989400385,
+        0.0007030000015220139,
+        0.0004239999998389976,
+        0.0006029999985912582,
+        0.00047730000005685724,
+        0.0010305999985575909,
+        0.0010926000013569137,
+        0.0009478000010858523,
+        0.0006791000014345627,
+        0.0006843999999546213,
+        0.0006864999995741528,
+        0.0007858999997552019,
+        0.0006095999997342005,
+        0.0005352000007405877,
+        0.00023890000011306256,
+        0.0002389999990555225,
+        0.00024529999973310623,
+        0.0003845000010187505,
+        0.0005880000007891795,
+        0.0006099999991420191,
+        0.0006429000004573027,
+        0.0006754000005457783,
+        0.0006309000000328524,
+        0.0010835000011866214,
+        0.0010246000001643552,
+        0.0009277999997721054,
+        0.0007452999998349696,
+        0.0006272999999055173,
+        0.0006433999988075811,
+        0.0016609000012977049,
+        0.0009838999994826736,
+        0.0013230999993538717
+      ],
+      "policy": "perf_counter wall seconds; linear interpolated percentiles; no fabricated zeros"
+    }
+  },
+  "composition": {
+    "reviewed_executed": 0,
+    "draft_executed": 12,
+    "heldout_executed": 0
+  },
+  "semantics_v2": {
+    "reviewed": {
+      "case_count": 0,
+      "event_identity": {
+        "accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "exact class incl UNKNOWN and ERROR",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "per_class": {},
+        "confusion_matrix": {},
+        "macro": {
+          "precision": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": "EMPTY_DENOMINATOR",
+            "undefined_classes": []
+          },
+          "recall": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": "EMPTY_DENOMINATOR",
+            "undefined_classes": []
+          },
+          "f1": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": "EMPTY_DENOMINATOR",
+            "undefined_classes": []
+          }
+        },
+        "micro": {
+          "precision": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "single-label micro over all classes",
+            "undefined": "EMPTY_DENOMINATOR"
+          },
+          "recall": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "single-label micro over all classes",
+            "undefined": "EMPTY_DENOMINATOR"
+          },
+          "f1": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "single-label micro over all classes",
+            "undefined": "EMPTY_DENOMINATOR"
+          },
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "failure_detection": {
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "v2 binary observed failure; unknown truth excluded and counted",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "v2 binary observed failure; unknown truth excluded and counted",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "f1": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "v2 binary observed failure; unknown truth excluded and counted",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "known_truth": 0,
+        "unknown_truth": 0,
+        "accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "all known failure labels; case errors are incorrect",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "execution_errors": 0
+      },
+      "failure_type": {
+        "accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "exact class incl UNKNOWN and ERROR",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "per_class": {},
+        "confusion_matrix": {},
+        "macro": {
+          "precision": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": "EMPTY_DENOMINATOR",
+            "undefined_classes": []
+          },
+          "recall": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": "EMPTY_DENOMINATOR",
+            "undefined_classes": []
+          },
+          "f1": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": "EMPTY_DENOMINATOR",
+            "undefined_classes": []
+          }
+        },
+        "micro": {
+          "precision": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "single-label micro over all classes",
+            "undefined": "EMPTY_DENOMINATOR"
+          },
+          "recall": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "single-label micro over all classes",
+            "undefined": "EMPTY_DENOMINATOR"
+          },
+          "f1": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "single-label micro over all classes",
+            "undefined": "EMPTY_DENOMINATOR"
+          },
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "root_cause_status": {
+        "accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "case_support": 0,
+          "policy": "exact class incl UNKNOWN and ERROR",
+          "undefined": "EMPTY_DENOMINATOR"
+        },
+        "per_class": {},
+        "confusion_matrix": {},
+        "macro": {
+          "precision": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": "EMPTY_DENOMINATOR",
+            "undefined_classes": []
+          },
+          "recall": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": "EMPTY_DENOMINATOR",
+            "undefined_classes": []
+          },
+          "f1": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": "EMPTY_DENOMINATOR",
+            "undefined_classes": []
+          }
+        },
+        "micro": {
+          "precision": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "single-label micro over all classes",
+            "undefined": "EMPTY_DENOMINATOR"
+          },
+          "recall": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "single-label micro over all classes",
+            "undefined": "EMPTY_DENOMINATOR"
+          },
+          "f1": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "case_support": 0,
+            "policy": "single-label micro over all classes",
+            "undefined": "EMPTY_DENOMINATOR"
+          },
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "first_observed_failure": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "exact file/line, explicit null accepted; no clock inference",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "last_observed_failure": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "last canonical rank>=2 signal; not session completion",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "explicit_terminal_outcome": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "exact explicit session status and reference, including null",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "positive_terminal_case_support": 0,
+      "terminal_detection_sensitivity": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "exact explicit status/reference on truth-positive terminal cases",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "root_cause_proof_precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "NOT_MEASURED: requires reviewed causal-support judgments",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "rca_abstention_quality": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "NOT_MEASURED: typed UNKNOWN projection does not prove native narrative abstention",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "case_scores": []
+    },
+    "draft": {
+      "case_count": 12,
+      "event_identity": {
+        "accuracy": {
+          "value": 1.0,
+          "numerator": 12,
+          "denominator": 12,
+          "case_support": 12,
+          "policy": "exact class incl UNKNOWN and ERROR",
+          "undefined": null
+        },
+        "per_class": {
+          "0000000013": {
+            "precision": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 2,
+              "denominator": 2,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "0100044547": {
+            "precision": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 2,
+              "denominator": 2,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "1129": {
+            "precision": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 2,
+              "denominator": 2,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "6005": {
+            "precision": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 2,
+              "denominator": 2,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "UNKNOWN": {
+            "precision": {
+              "value": 1.0,
+              "numerator": 8,
+              "denominator": 8,
+              "case_support": 8,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 8,
+              "denominator": 8,
+              "case_support": 8,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 16,
+              "denominator": 16,
+              "case_support": 8,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 8,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "confusion_matrix": {
+          "0000000013": {
+            "0000000013": 1,
+            "0100044547": 0,
+            "1129": 0,
+            "6005": 0,
+            "UNKNOWN": 0
+          },
+          "0100044547": {
+            "0000000013": 0,
+            "0100044547": 1,
+            "1129": 0,
+            "6005": 0,
+            "UNKNOWN": 0
+          },
+          "1129": {
+            "0000000013": 0,
+            "0100044547": 0,
+            "1129": 1,
+            "6005": 0,
+            "UNKNOWN": 0
+          },
+          "6005": {
+            "0000000013": 0,
+            "0100044547": 0,
+            "1129": 0,
+            "6005": 1,
+            "UNKNOWN": 0
+          },
+          "UNKNOWN": {
+            "0000000013": 0,
+            "0100044547": 0,
+            "1129": 0,
+            "6005": 0,
+            "UNKNOWN": 8
+          }
+        },
+        "macro": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 5.0,
+            "denominator": 5,
+            "case_support": 12,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": null,
+            "undefined_classes": []
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 5.0,
+            "denominator": 5,
+            "case_support": 12,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": null,
+            "undefined_classes": []
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 5.0,
+            "denominator": 5,
+            "case_support": 12,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": null,
+            "undefined_classes": []
+          }
+        },
+        "micro": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 12,
+            "denominator": 12,
+            "case_support": 12,
+            "policy": "single-label micro over all classes",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 12,
+            "denominator": 12,
+            "case_support": 12,
+            "policy": "single-label micro over all classes",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 24,
+            "denominator": 24,
+            "case_support": 12,
+            "policy": "single-label micro over all classes",
+            "undefined": null
+          },
+          "tp": 12,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "failure_detection": {
+        "precision": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "case_support": 12,
+          "policy": "v2 binary observed failure; unknown truth excluded and counted",
+          "undefined": null
+        },
+        "recall": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "case_support": 12,
+          "policy": "v2 binary observed failure; unknown truth excluded and counted",
+          "undefined": null
+        },
+        "f1": {
+          "value": 1.0,
+          "numerator": 6,
+          "denominator": 6,
+          "case_support": 12,
+          "policy": "v2 binary observed failure; unknown truth excluded and counted",
+          "undefined": null
+        },
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "tn": 9,
+        "known_truth": 12,
+        "unknown_truth": 0,
+        "accuracy": {
+          "value": 1.0,
+          "numerator": 12,
+          "denominator": 12,
+          "case_support": 12,
+          "policy": "all known failure labels; case errors are incorrect",
+          "undefined": null
+        },
+        "execution_errors": 0
+      },
+      "failure_type": {
+        "accuracy": {
+          "value": 0.9166666666666666,
+          "numerator": 11,
+          "denominator": 12,
+          "case_support": 12,
+          "policy": "exact class incl UNKNOWN and ERROR",
+          "undefined": null
+        },
+        "per_class": {
+          "NO_FAILURE": {
+            "precision": {
+              "value": 1.0,
+              "numerator": 9,
+              "denominator": 9,
+              "case_support": 9,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 9,
+              "denominator": 9,
+              "case_support": 9,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 18,
+              "denominator": 18,
+              "case_support": 9,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 9,
+            "fp": 0,
+            "fn": 0
+          },
+          "UNCLASSIFIED_FAILURE": {
+            "precision": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "case_support": 0,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "recall": {
+              "value": null,
+              "numerator": 0,
+              "denominator": 0,
+              "case_support": 0,
+              "policy": "exact class; no exclusions",
+              "undefined": "EMPTY_DENOMINATOR"
+            },
+            "f1": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "case_support": 0,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 0,
+            "fp": 1,
+            "fn": 0
+          },
+          "VMWARE-CBT-DELETE-FAILED": {
+            "precision": {
+              "value": 1.0,
+              "numerator": 2,
+              "denominator": 2,
+              "case_support": 2,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 2,
+              "denominator": 2,
+              "case_support": 2,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 4,
+              "denominator": 4,
+              "case_support": 2,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 2,
+            "fp": 0,
+            "fn": 0
+          },
+          "WINDOWS-GROUP-POLICY-CONNECTIVITY": {
+            "precision": {
+              "value": null,
+              "numerator": 0,
+              "denominator": 0,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": "EMPTY_DENOMINATOR"
+            },
+            "recall": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "f1": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "case_support": 1,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          }
+        },
+        "confusion_matrix": {
+          "NO_FAILURE": {
+            "NO_FAILURE": 9,
+            "UNCLASSIFIED_FAILURE": 0,
+            "VMWARE-CBT-DELETE-FAILED": 0,
+            "WINDOWS-GROUP-POLICY-CONNECTIVITY": 0
+          },
+          "UNCLASSIFIED_FAILURE": {
+            "NO_FAILURE": 0,
+            "UNCLASSIFIED_FAILURE": 0,
+            "VMWARE-CBT-DELETE-FAILED": 0,
+            "WINDOWS-GROUP-POLICY-CONNECTIVITY": 0
+          },
+          "VMWARE-CBT-DELETE-FAILED": {
+            "NO_FAILURE": 0,
+            "UNCLASSIFIED_FAILURE": 0,
+            "VMWARE-CBT-DELETE-FAILED": 2,
+            "WINDOWS-GROUP-POLICY-CONNECTIVITY": 0
+          },
+          "WINDOWS-GROUP-POLICY-CONNECTIVITY": {
+            "NO_FAILURE": 0,
+            "UNCLASSIFIED_FAILURE": 1,
+            "VMWARE-CBT-DELETE-FAILED": 0,
+            "WINDOWS-GROUP-POLICY-CONNECTIVITY": 0
+          }
+        },
+        "macro": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 2.0,
+            "denominator": 2,
+            "case_support": 12,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": null,
+            "undefined_classes": [
+              "WINDOWS-GROUP-POLICY-CONNECTIVITY"
+            ]
+          },
+          "recall": {
+            "value": 0.6666666666666666,
+            "numerator": 2.0,
+            "denominator": 3,
+            "case_support": 12,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": null,
+            "undefined_classes": []
+          },
+          "f1": {
+            "value": 0.6666666666666666,
+            "numerator": 2.0,
+            "denominator": 3,
+            "case_support": 12,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": null,
+            "undefined_classes": []
+          }
+        },
+        "micro": {
+          "precision": {
+            "value": 0.9166666666666666,
+            "numerator": 11,
+            "denominator": 12,
+            "case_support": 12,
+            "policy": "single-label micro over all classes",
+            "undefined": null
+          },
+          "recall": {
+            "value": 0.9166666666666666,
+            "numerator": 11,
+            "denominator": 12,
+            "case_support": 12,
+            "policy": "single-label micro over all classes",
+            "undefined": null
+          },
+          "f1": {
+            "value": 0.9166666666666666,
+            "numerator": 22,
+            "denominator": 24,
+            "case_support": 12,
+            "policy": "single-label micro over all classes",
+            "undefined": null
+          },
+          "tp": 11,
+          "fp": 1,
+          "fn": 1
+        }
+      },
+      "root_cause_status": {
+        "accuracy": {
+          "value": 1.0,
+          "numerator": 12,
+          "denominator": 12,
+          "case_support": 12,
+          "policy": "exact class incl UNKNOWN and ERROR",
+          "undefined": null
+        },
+        "per_class": {
+          "UNKNOWN": {
+            "precision": {
+              "value": 1.0,
+              "numerator": 12,
+              "denominator": 12,
+              "case_support": 12,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 12,
+              "denominator": 12,
+              "case_support": 12,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 24,
+              "denominator": 24,
+              "case_support": 12,
+              "policy": "exact class; no exclusions",
+              "undefined": null
+            },
+            "tp": 12,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "confusion_matrix": {
+          "UNKNOWN": {
+            "UNKNOWN": 12
+          }
+        },
+        "macro": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 1.0,
+            "denominator": 1,
+            "case_support": 12,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": null,
+            "undefined_classes": []
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 1.0,
+            "denominator": 1,
+            "case_support": 12,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": null,
+            "undefined_classes": []
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 1.0,
+            "denominator": 1,
+            "case_support": 12,
+            "policy": "mean over truth-supported classes with defined metric",
+            "undefined": null,
+            "undefined_classes": []
+          }
+        },
+        "micro": {
+          "precision": {
+            "value": 1.0,
+            "numerator": 12,
+            "denominator": 12,
+            "case_support": 12,
+            "policy": "single-label micro over all classes",
+            "undefined": null
+          },
+          "recall": {
+            "value": 1.0,
+            "numerator": 12,
+            "denominator": 12,
+            "case_support": 12,
+            "policy": "single-label micro over all classes",
+            "undefined": null
+          },
+          "f1": {
+            "value": 1.0,
+            "numerator": 24,
+            "denominator": 24,
+            "case_support": 12,
+            "policy": "single-label micro over all classes",
+            "undefined": null
+          },
+          "tp": 12,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "first_observed_failure": {
+        "value": 1.0,
+        "numerator": 12,
+        "denominator": 12,
+        "case_support": 12,
+        "policy": "exact file/line, explicit null accepted; no clock inference",
+        "undefined": null
+      },
+      "last_observed_failure": {
+        "value": 1.0,
+        "numerator": 12,
+        "denominator": 12,
+        "case_support": 12,
+        "policy": "last canonical rank>=2 signal; not session completion",
+        "undefined": null
+      },
+      "explicit_terminal_outcome": {
+        "value": 1.0,
+        "numerator": 12,
+        "denominator": 12,
+        "case_support": 12,
+        "policy": "exact explicit session status and reference, including null",
+        "undefined": null
+      },
+      "positive_terminal_case_support": 0,
+      "terminal_detection_sensitivity": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "exact explicit status/reference on truth-positive terminal cases",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "root_cause_proof_precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "NOT_MEASURED: requires reviewed causal-support judgments",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "rca_abstention_quality": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "case_support": 0,
+        "policy": "NOT_MEASURED: typed UNKNOWN projection does not prove native narrative abstention",
+        "undefined": "EMPTY_DENOMINATOR"
+      },
+      "case_scores": [
+        {
+          "case_id": "bundle_related",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "bundle_unrelated",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "esxi_heartbeat",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "esxi_tracker",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "fort_accept",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "fort_config",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "json_info",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "noise_filename",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "veeam_options",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "veeam_tracker",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "win_boot",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        },
+        {
+          "case_id": "win_policy",
+          "event_identity_correct": true,
+          "failure_detection_correct": true,
+          "first_correct": true,
+          "last_correct": true,
+          "explicit_terminal_correct": true
+        }
+      ]
+    },
+    "status": "INSUFFICIENT_DATA"
+  }
+}
