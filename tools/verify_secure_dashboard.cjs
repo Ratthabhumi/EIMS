@@ -33,6 +33,36 @@ if(require.main===module)(async()=>{
   assert(!(await page.evaluate(()=>document.cookie)).includes('eims_session'));
   assert(!(await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).includes(cookie.value));
   report.checks.push('Real login; HttpOnly Secure SameSite cookie; no JWT in DOM/storage');
+  // Exercise both user input modes before the existing bundle/History/logout flow.
+  for (const language of ['en','th']) for (const cid of ['fort_config','esxi_tracker','win_policy']) for (const mode of ['Paste Text','File Upload']) {
+    await page.reload();
+    await page.getByText('Signed in: synthetic-browser-review',{exact:true}).waitFor();
+    await page.getByRole('button',{name:mode,exact:true}).click();
+    for(const select of await page.locator('select').all()) if(await select.locator('option[value="en"]').count()) await select.selectOption(language);
+    const file=path.resolve('evaluation/analyzer/gold/cases',cid,'input.txt');
+    if(mode==='Paste Text') await page.getByPlaceholder('Paste raw Event Viewer log text...').fill(fs.readFileSync(file,'utf8'));
+    else await page.locator('input[type=file]:not([multiple])').setInputFiles(file);
+    const pending=page.waitForResponse(r=>r.url().includes('/api/eims/api/v1/analyze')&&r.request().method()==='POST');
+    await page.getByRole('button',{name:'Analyze Log',exact:true}).click();
+    const response=await pending;assert.equal(response.status(),200);const result=await response.json();
+    assert(result.historyId);await page.getByRole('heading',{name:'Diagnostic Report',exact:true}).waitFor();
+    if(cid==='fort_config'){assert.equal(result.eventId,'0100044547');assert.equal(result.eventMetadata.isCritical,false);}
+    if(cid==='esxi_tracker'){assert.equal(result.eventMetadata.level,'Error');assert.equal(result.eventMetadata.isCritical,true);}
+    if(cid==='win_policy'){assert.equal(result.eventId,'1129');assert.equal(result.eventMetadata.timestamp,'');assert.equal(result.eventMetadata.diagnosticCode,'WINDOWS-GROUP-POLICY-CONNECTIVITY');}
+    await page.locator('details summary').first().click();assert(await page.locator('mark').first().isVisible());
+    const historyResponse=await owner.request.get(base+'/api/eims/api/v1/history');assert.equal(historyResponse.status(),200);
+    const restored=(await historyResponse.json()).find(r=>r.id===result.historyId);
+    assert(restored);assert.deepEqual(restored.solutionSummary,result.solutionSummary);
+    report.checks.push(`${language} ${cid} ${mode}: rendered result, source context and persisted History`);
+  }
+  await page.reload();await page.getByRole('button',{name:'File Upload',exact:true}).click();
+  await page.locator('input[type=file]:not([multiple])').setInputFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from([255,254,255])});
+  const invalidUpload=page.waitForResponse(r=>r.url().includes('/api/eims/api/v1/analyze')&&r.request().method()==='POST');
+  await page.getByRole('button',{name:'Analyze Log',exact:true}).click();assert.equal((await invalidUpload).status(),400);
+  await page.getByText(/Unable to extract log text/).waitFor();
+  assert.equal(await page.getByRole('heading',{name:'Diagnostic Report',exact:true}).count(),0);
+  report.checks.push('Invalid attachment produces an error, not Analysis complete');
+  await page.reload();
   await page.getByRole('button',{name:'Evidence Bundle',exact:true}).click();
   for(const select of await page.locator('select').all())if(await select.locator('option[value="en"]').count())await select.selectOption('en');
   const root=path.resolve('evaluation/analyzer/results/20261025-controlled-demo-after');

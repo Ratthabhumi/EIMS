@@ -759,3 +759,44 @@ def test_priority_metadata_and_citation_postgres_roundtrip(integrated,language,c
         assert rows[0]['eventMetadata']==meta and rows[0]['aiSummary']==saved['aiSummary']
         assert (await client.get('/history/',headers=bearer('synthetic-other'))).json()==[]
     integrated(check)
+@pytest.mark.parametrize('kind,status', [('empty_text',400),('empty_file',400),('invalid_utf8',400),('oversize',413)])
+def test_single_input_rejects_invalid_without_success_or_history(integrated,kind,status):
+    async def check(client,session,calls):
+        if kind=='empty_text':
+            payload={'data':{'text':' \n\t '}}
+        else:
+            raw={'empty_file':b'', 'invalid_utf8':b'\xff\xfe\xff', 'oversize':b'x'*(5*1024*1024+1)}[kind]
+            payload={'files':{'file':('invalid.txt',raw,'text/plain')}}
+        response=await client.post('/analyze/',headers=bearer(),**payload)
+        assert response.status_code==status,response.text
+        assert response.json().get('detail')
+        assert (await client.get('/history/',headers=bearer())).json()==[]
+        assert calls['export_attempts']==0
+    integrated(check)
+
+
+@pytest.mark.parametrize('cid',['fort_config','esxi_tracker','win_policy'])
+@pytest.mark.parametrize('language',['th','en'])
+def test_paste_text_and_attach_file_preserve_same_diagnosis(integrated,cid,language):
+    from evaluation.analyzer import runner
+    _,payloads=runner.load_manifest(runner.REPO/'evaluation/analyzer/gold/manifest.v1.json')
+    raw=next(iter(payloads[cid].values()))[0]
+    async def check(client,session,calls):
+        pasted=await client.post('/analyze/',headers=bearer(),data={'text':raw.decode(),'language':language})
+        attached=await client.post('/analyze/',headers=bearer(),data={'language':language},files={'file':('input.txt',raw,'text/plain')})
+        assert pasted.status_code==attached.status_code==200
+        a,b=pasted.json(),attached.json()
+        for key in ['eventId','diagnosticCode','level','timestamp','sourceFamily','isCritical']:
+            assert a['eventMetadata'][key]==b['eventMetadata'][key]
+        for key in ['overview','causes','steps','limitations']:
+            assert a['solutionSummary'][key]==b['solutionSummary'][key]
+        for result in [a,b]:
+            assert result['historyId']
+            assert result['solutionSummary']['evidenceItems']
+        session.expunge_all()
+        rows=(await client.get('/history/',headers=bearer())).json()
+        for result in [a,b]:
+            row=next(r for r in rows if r['id']==result['historyId'])
+            assert row['solutionSummary']==result['solutionSummary']
+        assert (await client.get('/history/',headers=bearer('synthetic-other'))).json()==[]
+    integrated(check)

@@ -158,34 +158,20 @@ async def submit_analysis(
         try:
             content = await read_upload_bounded(file, BUNDLE_MAX_FILE_BYTES)
         except UploadTooLarge:
-            return AnalyzeResponse(
-                eventId="Unknown",
-                provider="Unknown",
-                faultingApp=None,
-                summary=f"File exceeds maximum size of {BUNDLE_MAX_FILE_BYTES // (1024*1024)}MB.",
-                solutions=[],
-                limitations=[f"Uploaded file exceeds {BUNDLE_MAX_FILE_BYTES // (1024*1024)}MB limit"],
-            )
+            raise HTTPException(status_code=413, detail=f"File exceeds maximum size of {BUNDLE_MAX_FILE_BYTES // (1024*1024)}MB.") from None
         except Exception:
-            return AnalyzeResponse(
-                eventId="Unknown",
-                provider="Unknown",
-                faultingApp=None,
-                summary="Failed to read uploaded file.",
-                solutions=[],
-            )
+            raise HTTPException(status_code=400, detail="Failed to read uploaded file.") from None
 
         try:
             extracted, description = _process_upload(
                 content, file.filename or "", file.content_type
             )
             combined_text = (combined_text + "\n" + extracted).strip()
-        except ValueError as e:
-            return AnalyzeResponse(
-                eventId="Unknown",
-                provider="Unknown",
-                description=str(e),
-            )
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Unable to extract log text. Check the file format and UTF-8 encoding; image OCR requires installed Tesseract.") from None
+
+    if not combined_text.strip():
+        raise HTTPException(status_code=400, detail="Paste log text or attach a non-empty supported file.")
 
     if not description and combined_text:
         description = "Submitted via Text"
