@@ -8,6 +8,6 @@ for (const env of [{}, {EIMS_TEST_BROWSER_BASE_URL:'http://localhost:3449'},
  assert.throws(()=>runtimeConfig(env));
 }
 assert.deepEqual(runtimeConfig({EIMS_TEST_BROWSER_BASE_URL:'https://localhost:3449/'}), {
- base:'https://localhost:3449',options:{viewport:{width:1400,height:1000},ignoreHTTPSErrors:false}
+ base:'https://localhost:3449',options:{viewport:{width:1400,height:1000},ignoreHTTPSErrors:false,acceptDownloads:true}
 });
 console.log('PASS: 5 invalid runtime configurations rejected; trusted HTTPS required. No browser executed.');
