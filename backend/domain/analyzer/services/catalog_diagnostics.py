@@ -17,6 +17,14 @@ def catalog_summary(source_family: str, text: str, language: str):
     meta, entry = matched_knowledge(source_family, text)
     if source_family not in ("fortinet", "cisco_asa", "palo_alto", "linux_syslog", "json"):
         return None
+    # Unmatched structured records should reach the generic no-failure policy;
+    # catalog absence is not itself a diagnostic event.
+    if entry is None:
+        return None
+    # An informational FortiGate accept is a policy decision, not a system failure.
+    if (source_family == "fortinet" and str((meta.attributes or {}).get("action", "")).lower() == "accept"
+            and str(meta.level or "").lower() in {"notice", "info", "information"}):
+        return None
     th = language == "th"
     context = entry["description"] if entry else (
         "Parsed record has no matched diagnostic knowledge. Root cause remains unknown."
@@ -25,9 +33,9 @@ def catalog_summary(source_family: str, text: str, language: str):
     if entry:
         limitations.append(entry["limitations"])
     return SolutionSummary(
-        overview=("บริบทอ้างอิง (ยังไม่ยืนยันสาเหตุ): " if th else "Reference context (cause unconfirmed): ") + context,
-        causes=["ยังไม่มีหลักฐานเพียงพอที่จะยืนยันสาเหตุ" if th else "No root cause is established by this record alone."],
-        steps=(["ตรวจสอบข้อความต้นฉบับและลำดับเหตุการณ์ก่อนเปลี่ยนการตั้งค่า"] if th else
+        overview=("à¸šà¸£à¸´à¸šà¸—à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡ (à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¢à¸·à¸™à¸¢à¸±à¸™à¸ªà¸²à¹€à¸«à¸•à¸¸): " if th else "Reference context (cause unconfirmed): ") + context,
+        causes=["à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸«à¸¥à¸±à¸à¸à¸²à¸™à¹€à¸žà¸µà¸¢à¸‡à¸žà¸­à¸—à¸µà¹ˆà¸ˆà¸°à¸¢à¸·à¸™à¸¢à¸±à¸™à¸ªà¸²à¹€à¸«à¸•à¸¸" if th else "No root cause is established by this record alone."],
+        steps=(["à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸‚à¹‰à¸­à¸„à¸§à¸²à¸¡à¸•à¹‰à¸™à¸‰à¸šà¸±à¸šà¹à¸¥à¸°à¸¥à¸³à¸”à¸±à¸šà¹€à¸«à¸•à¸¸à¸à¸²à¸£à¸“à¹Œà¸à¹ˆà¸­à¸™à¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²"] if th else
                list(entry["investigation_steps"]) if entry else ["Preserve the raw record and collect adjacent events."]),
         evidence=[meta.logName] if meta else [], confidence="limited", limitations=limitations,
         nextEvidence=["Collect same-device records and the relevant configuration for the observed time window."],
