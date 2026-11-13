@@ -13,16 +13,75 @@ from backend.domain.analyzer.schemas.analyze import SolutionSummary, EventMetada
 router = APIRouter()
 
 
+def _safe_solution_summary(raw) -> "SolutionSummary | None":
+    """Defensively parse stored solution JSON.
+
+    Historical rows may carry legacy shapes (e.g. confidence stored as a
+    dict).  One malformed row must never 500 the whole history response,
+    so coerce known fields and degrade to overview-only instead of raising.
+    """
+    if not isinstance(raw, dict):
+        return None
+    cleaned = dict(raw)
+    conf = cleaned.get("confidence")
+    if isinstance(conf, dict):
+        level = conf.get("level")
+        cleaned["confidence"] = level if isinstance(level, str) else ""
+    elif conf is not None and not isinstance(conf, str):
+        cleaned["confidence"] = str(conf)
+    for key in ("causes", "steps", "evidence", "limitations", "nextEvidence"):
+        val = cleaned.get(key)
+        if val is not None and not isinstance(val, list):
+            cleaned[key] = [str(val)]
+    try:
+        return SolutionSummary(**cleaned)
+    except Exception:
+        pass
+    try:
+        overview = cleaned.get("overview")
+        return SolutionSummary(overview=overview if isinstance(overview, str) else "")
+    except Exception:
+        return None
+
+
+def _safe_event_metadata(raw) -> "EventMetadata | None":
+    if not isinstance(raw, dict):
+        return None
+    try:
+        return EventMetadata(**raw)
+    except Exception:
+        return None
+
+
+def _safe_search_results(raw) -> list:
+    from backend.domain.analyzer.schemas.analyze import SearchResult
+
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        try:
+            out.append(SearchResult(**item))
+        except Exception:
+            continue
+    return out
+
+
 @router.get("/catalog")
 async def get_operational_catalog(
     _user: str = Depends(get_current_user),
+    source_family: Optional[str] = None,
 ):
     """Return the static Operational Event Catalog (knowledge, not analyzed logs)."""
     from backend.domain.analyzer.services.operational_catalog import get_catalog
+    entries = get_catalog(source_family)
     return {
         "classification": "OPERATIONAL_EVENT_CATALOG",
-        "count": len(get_catalog()),
-        "entries": get_catalog(),
+        "schema_version": 1,
+        "count": len(entries),
+        "entries": entries,
     }
 
 
@@ -42,8 +101,8 @@ async def get_all_history(
     history_records = (await db.execute(stmt.order_by(AnalysisHistory.created_at.desc()))).scalars().all()
     results = []
     for record in history_records:
-        solution = SolutionSummary(**record.solution_summary) if record.solution_summary else None
-        metadata = EventMetadata(**record.event_metadata) if record.event_metadata else None
+        solution = _safe_solution_summary(record.solution_summary)
+        metadata = _safe_event_metadata(record.event_metadata)
         provenance = None
         if record.event_metadata:
             meta = record.event_metadata
@@ -78,7 +137,7 @@ async def get_all_history(
             "aiSummary": record.ai_summary,
             "solutionSummary": solution,
             "eventMetadata": metadata,
-            "searchResults": record.search_results or [],
+            "searchResults": _safe_search_results(record.search_results),
             "searchTimeMs": record.search_time_ms if record.search_time_ms is not None else 0.0,
             "created_at": record.created_at,
             "username": record.username,
@@ -209,14 +268,20 @@ async def get_history_stats(
         # Category Classification (derive from real records and event semantics)
         eid = str(record.event_id or "").strip()
         prov = str(record.provider or "").strip()
+        meta = _safe_event_metadata(record.event_metadata)
+        family = meta.sourceFamily if meta else ""
+        if not family:
+            family = "windows_event" if prov.lower() == "security" or any(w in prov.lower() for w in
+                ("windows", "grouppolicy", "kernel-power", "eventlog", "distributedcom", "service control manager")) else "unknown_text"
         if eid.upper().startswith("AINC-") or "incident" in prov.lower():
             cat = "Incident Investigation"
         elif record.event_metadata and record.event_metadata.get("category"):
             cat = record.event_metadata["category"]
-        elif eid in EVENT_CATEGORIES:
+        elif family == "windows_event" and eid in EVENT_CATEGORIES:
             cat = EVENT_CATEGORIES[eid]
         else:
-            cat_entry = get_catalog_entry(eid)
+            from backend.domain.analyzer.services.operational_catalog import entry_for_metadata
+            cat_entry = entry_for_metadata(meta) if meta and meta.sourceFamily else get_catalog_entry(eid, family)
             if cat_entry and cat_entry.get("category"):
                 cat_raw = cat_entry["category"]
                 if "Audit" in cat_raw:
@@ -226,7 +291,7 @@ async def get_history_stats(
                 else:
                     cat = cat_raw
             else:
-                cat = "System"
+                cat = "System" if family == "windows_event" else "Unclassified"
         category_counts[cat] = category_counts.get(cat, 0) + 1
 
         # Daily Trends

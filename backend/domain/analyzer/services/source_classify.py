@@ -21,6 +21,7 @@ SOURCE_FAMILIES = (
     "vmware",
     "fortinet",
     "cisco_asa",
+    "palo_alto",
     "linux_syslog",
     "json",
     "unknown_text",
@@ -142,6 +143,33 @@ def classify_source(text: str, filename_hint: str = "") -> Dict[str, object]:
     # Filename hints are weak signals: they only reinforce content markers.
     html_hint = name.endswith((".html", ".htm"))
 
+    from backend.domain.analyzer.services.panos_parser import panos_records
+    pan_records = panos_records(text)
+    # Explicit heterogeneous identities fail closed. Veeam quoting VMware
+    # APIs remains one expected subsystem context.
+    explicit = set()
+    if pan_records:
+        explicit.add("palo_alto")
+    if re.search(r"%(?:ASA|FTD|PIX)-[0-7]-\d+", text):
+        explicit.add("cisco_asa")
+    if re.search(r"\blogid=", text) and re.search(r"\btype=", text):
+        explicit.add("fortinet")
+    if _has_windows_evidence(text):
+        explicit.add("windows_event")
+    if re.search(r"veeam\.backup", lowered):
+        explicit.add("veeam_vbr")
+    elif _count_hits(lowered, _VMWARE_MARKERS) >= 2:
+        explicit.add("vmware")
+    if len(explicit) > 1:
+        result["attributes"]["mixedFamilies"] = sorted(explicit)
+        return result
+    if pan_records:
+        return _set("palo_alto", "Palo Alto Networks PAN-OS", 0.9)
+    # Malformed/custom PAN-OS-looking CSV must not fall through to Linux
+    # syslog or a Windows event embedded in a description.
+    if re.search(r",(?:TRAFFIC|THREAT|SYSTEM|CONFIG),", text):
+        return result
+
     # Veeam BEFORE VMware: Veeam logs quote VMware snapshot APIs.
     veeam_hits = _count_hits(lowered, _VEEAM_MARKERS)
     if veeam_hits >= 2 or (veeam_hits == 1 and ("veeam" in lowered or html_hint)):
@@ -178,6 +206,7 @@ def is_known_vendor_family(source_family: Optional[str]) -> bool:
         "vmware",
         "fortinet",
         "cisco_asa",
+        "palo_alto",
         "linux_syslog",
         "json",
     )

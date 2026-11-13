@@ -1,0 +1,830 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "source_family": "veeam_vbr",
+      "vendor": "Veeam",
+      "product": "Veeam Backup & Replication",
+      "code_type": "eims_diagnostic",
+      "diagnostic_code": "VMWARE-CBT-DELETE-FAILED",
+      "title": "Change tracking file deletion failed",
+      "category": "Backup / Recovery",
+      "severity": "Error",
+      "description": "EIMS detects a change tracking deletion failure. Missing, corrupt or locked CTK data are possibilities requiring evidence, not established causes.",
+      "observed_signatures": [
+        "Could not delete change tracking file"
+      ],
+      "relevant_log_fields": [
+        "diagnosticCode",
+        "timestamp",
+        "observedPaths"
+      ],
+      "investigation_steps": [
+        "Preserve the exact CTK error and operation context.",
+        "Check file existence and explicit lock evidence before considering remediation."
+      ],
+      "related_codes": [],
+      "official_references": [],
+      "support_level": "limited_diagnostic",
+      "verification_status": "code_supported",
+      "compatibility_scope": "Existing tested CTK deletion signature; official lock article not generalized.",
+      "limitations": "Reference knowledge is not proof of root cause. Existing tested CTK deletion signature; official lock article not generalized."
+    },
+    {
+      "source_family": "veeam_vbr",
+      "vendor": "Veeam",
+      "product": "Veeam Backup & Replication",
+      "code_type": "eims_diagnostic",
+      "diagnostic_code": "VMWARE-SNAPSHOT-FILE-MISSING",
+      "title": "Snapshot configuration / required-file failure",
+      "category": "Backup / Recovery",
+      "severity": "Error",
+      "description": "EIMS detects invalid snapshot format with a required-file failure. The missing filename and operation must come from evidence.",
+      "observed_signatures": [
+        "InvalidSnapshotFormat",
+        "A required file was not found"
+      ],
+      "relevant_log_fields": [
+        "diagnosticCode",
+        "timestamp",
+        "observedPaths"
+      ],
+      "investigation_steps": [
+        "Determine whether the failure occurred during creation, deletion or revert.",
+        "Verify referenced files without deleting or moving snapshot data."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Broadcom KB 424591",
+          "url": "https://knowledge.broadcom.com/external/article/424591",
+          "scope": "vSphere 8.x revert with InvalidSnapshotFormat and required file not found only"
+        }
+      ],
+      "support_level": "limited_diagnostic",
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "Runtime article gating remains in vendor_knowledge.py.",
+      "limitations": "Reference knowledge is not proof of root cause. Runtime article gating remains in vendor_knowledge.py."
+    },
+    {
+      "source_family": "vmware",
+      "vendor": "VMware / Broadcom",
+      "product": "VMware vSphere/ESXi",
+      "code_type": "eims_diagnostic",
+      "diagnostic_code": "VMWARE-CBT-DELETE-FAILED",
+      "title": "Change tracking file deletion failed",
+      "category": "Backup / Recovery",
+      "severity": "Error",
+      "description": "EIMS detects a change tracking deletion failure. Missing, corrupt or locked CTK data are possibilities requiring evidence, not established causes.",
+      "observed_signatures": [
+        "Could not delete change tracking file"
+      ],
+      "relevant_log_fields": [
+        "diagnosticCode",
+        "timestamp",
+        "observedPaths"
+      ],
+      "investigation_steps": [
+        "Preserve the exact CTK error and operation context.",
+        "Check file existence and explicit lock evidence before considering remediation."
+      ],
+      "related_codes": [],
+      "official_references": [],
+      "support_level": "limited_diagnostic",
+      "verification_status": "code_supported",
+      "compatibility_scope": "Existing tested CTK deletion signature; official lock article not generalized.",
+      "limitations": "Reference knowledge is not proof of root cause. Existing tested CTK deletion signature; official lock article not generalized."
+    },
+    {
+      "source_family": "vmware",
+      "vendor": "VMware / Broadcom",
+      "product": "VMware vSphere/ESXi",
+      "code_type": "eims_diagnostic",
+      "diagnostic_code": "VMWARE-SNAPSHOT-FILE-MISSING",
+      "title": "Snapshot configuration / required-file failure",
+      "category": "Backup / Recovery",
+      "severity": "Error",
+      "description": "EIMS detects invalid snapshot format with a required-file failure. The missing filename and operation must come from evidence.",
+      "observed_signatures": [
+        "InvalidSnapshotFormat",
+        "A required file was not found"
+      ],
+      "relevant_log_fields": [
+        "diagnosticCode",
+        "timestamp",
+        "observedPaths"
+      ],
+      "investigation_steps": [
+        "Determine whether the failure occurred during creation, deletion or revert.",
+        "Verify referenced files without deleting or moving snapshot data."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Broadcom KB 424591",
+          "url": "https://knowledge.broadcom.com/external/article/424591",
+          "scope": "vSphere 8.x revert with InvalidSnapshotFormat and required file not found only"
+        }
+      ],
+      "support_level": "limited_diagnostic",
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "Runtime article gating remains in vendor_knowledge.py.",
+      "limitations": "Reference knowledge is not proof of root cause. Runtime article gating remains in vendor_knowledge.py."
+    },
+    {
+      "source_family": "veeam_vbr",
+      "vendor": "Veeam",
+      "product": "Veeam Backup & Replication",
+      "code_type": "eims_diagnostic",
+      "diagnostic_code": "VEEAM-REPLICA-SNAPSHOT-CHAIN",
+      "title": "Replica snapshot operation failure",
+      "category": "Backup / Recovery",
+      "severity": "Error",
+      "description": "EIMS groups supported replica snapshot failures; the code is not an official Veeam event ID. Earlier CBT and later snapshot failures do not establish causality.",
+      "observed_signatures": [
+        "RevertSnapshot",
+        "InvalidSnapshotFormat"
+      ],
+      "relevant_log_fields": [
+        "diagnosticCode",
+        "timestamp"
+      ],
+      "investigation_steps": [
+        "Review first meaningful and terminal failures separately.",
+        "Collect complete Veeam job logs and matching VMware operation evidence."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Veeam KB1832",
+          "url": "https://www.veeam.com/kb1832",
+          "scope": "Log collection only"
+        }
+      ],
+      "support_level": "limited_diagnostic",
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "Existing replica signatures; operation-specific VMware gates retained.",
+      "limitations": "Reference knowledge is not proof of root cause. Existing replica signatures; operation-specific VMware gates retained."
+    },
+    {
+      "source_family": "veeam_vbr",
+      "vendor": "Veeam",
+      "product": "Veeam Backup & Replication",
+      "code_type": "eims_diagnostic",
+      "diagnostic_code": "VEEAM-SESSION-FAILED",
+      "title": "Session failed with no specific diagnosis",
+      "category": "Backup / Recovery",
+      "severity": "Error",
+      "description": "An explicit session failure was observed; the underlying cause remains unknown.",
+      "observed_signatures": [
+        "Task session",
+        "Failed"
+      ],
+      "relevant_log_fields": [
+        "diagnosticCode",
+        "timestamp"
+      ],
+      "investigation_steps": [
+        "Locate the earliest meaningful error in complete session logs.",
+        "Collect supporting logs for the same job and time window."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Veeam KB1832",
+          "url": "https://www.veeam.com/kb1832",
+          "scope": "Log collection only"
+        }
+      ],
+      "support_level": "limited_diagnostic",
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "Explicit Failed session outcome; no inferred storage cause.",
+      "limitations": "Reference knowledge is not proof of root cause. Explicit Failed session outcome; no inferred storage cause."
+    },
+    {
+      "source_family": "fortinet",
+      "vendor": "Fortinet",
+      "product": "FortiGate / FortiOS 6.2.14",
+      "code_type": "log_category",
+      "diagnostic_code": "traffic/forward",
+      "title": "Forward traffic / policy decision",
+      "category": "Firewall & Network Security",
+      "severity": "Context dependent",
+      "description": "Forward traffic fields describe a session and its policy decision. A deny action alone does not prove an attack.",
+      "observed_signatures": [
+        "traffic",
+        "forward"
+      ],
+      "relevant_log_fields": [
+        "logid",
+        "type",
+        "subtype",
+        "level",
+        "devname",
+        "action",
+        "srcip",
+        "dstip",
+        "service",
+        "policyid"
+      ],
+      "investigation_steps": [
+        "Compare the observed action and policy ID with intended policy.",
+        "Correlate session and repeated attempts before escalating."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "FortiOS 6.2.14 Log Reference",
+          "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
+          "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+    },
+    {
+      "source_family": "fortinet",
+      "vendor": "Fortinet",
+      "product": "FortiGate / FortiOS 6.2.14",
+      "code_type": "log_category",
+      "diagnostic_code": "utm/ips",
+      "title": "IPS detection",
+      "category": "Security",
+      "severity": "Context dependent",
+      "description": "An IPS log records a security detection; verify signature and action before claiming successful exploitation.",
+      "observed_signatures": [
+        "utm",
+        "ips"
+      ],
+      "relevant_log_fields": [
+        "logid",
+        "type",
+        "subtype",
+        "level",
+        "devname",
+        "action",
+        "attack",
+        "attackid",
+        "srcip",
+        "dstip"
+      ],
+      "investigation_steps": [
+        "Review the observed IPS signature and enforcement action.",
+        "Correlate application and endpoint evidence."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "FortiOS 6.2.14 Log Reference",
+          "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
+          "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+    },
+    {
+      "source_family": "fortinet",
+      "vendor": "Fortinet",
+      "product": "FortiGate / FortiOS 6.2.14",
+      "code_type": "log_category",
+      "diagnostic_code": "event/vpn",
+      "title": "VPN event",
+      "category": "RDP & Remote Access",
+      "severity": "Context dependent",
+      "description": "VPN category knowledge; not every VPN event is a failure.",
+      "observed_signatures": [
+        "event",
+        "vpn"
+      ],
+      "relevant_log_fields": [
+        "logid",
+        "type",
+        "subtype",
+        "level",
+        "devname",
+        "action",
+        "status",
+        "reason",
+        "remip"
+      ],
+      "investigation_steps": [
+        "Read the status and reason in the original message.",
+        "Compare negotiation context at both tunnel endpoints."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "FortiOS 6.2.14 Log Reference",
+          "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
+          "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+    },
+    {
+      "source_family": "fortinet",
+      "vendor": "Fortinet",
+      "product": "FortiGate / FortiOS 6.2.14",
+      "code_type": "log_category",
+      "diagnostic_code": "event/user",
+      "title": "User authentication event",
+      "category": "Authentication",
+      "severity": "Context dependent",
+      "description": "User category knowledge; evaluate success or failure from explicit status and message.",
+      "observed_signatures": [
+        "event",
+        "user"
+      ],
+      "relevant_log_fields": [
+        "logid",
+        "type",
+        "subtype",
+        "level",
+        "devname",
+        "action",
+        "status",
+        "user",
+        "reason"
+      ],
+      "investigation_steps": [
+        "Check the actual authentication outcome and identity source.",
+        "Correlate repeated attempts before declaring an incident."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "FortiOS 6.2.14 Log Reference",
+          "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
+          "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+    },
+    {
+      "source_family": "fortinet",
+      "vendor": "Fortinet",
+      "product": "FortiGate / FortiOS 6.2.14",
+      "code_type": "log_category",
+      "diagnostic_code": "event/system",
+      "title": "System / administrative event",
+      "category": "System",
+      "severity": "Context dependent",
+      "description": "System category knowledge describes administrative and system activity without implying failure.",
+      "observed_signatures": [
+        "event",
+        "system"
+      ],
+      "relevant_log_fields": [
+        "logid",
+        "type",
+        "subtype",
+        "level",
+        "devname",
+        "level",
+        "action",
+        "msg"
+      ],
+      "investigation_steps": [
+        "Review the original severity and message.",
+        "Compare activity with approved administrative work."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "FortiOS 6.2.14 Log Reference",
+          "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
+          "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "106023",
+      "title": "ACL denied packet",
+      "category": "Firewall & Network Security",
+      "severity": "Warning",
+      "description": "The ACL rejected an IP packet; this alone does not confirm malicious activity.",
+      "observed_signatures": [
+        "%ASA-",
+        "106023"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Check the matched ACL and intended flow.",
+        "Correlate repeated source activity before escalating."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-101001-to-199021.html",
+          "scope": "ASA message 106023"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "106024",
+      "title": "ACL compilation memory exhausted",
+      "category": "System",
+      "severity": "Critical",
+      "description": "ACL compilation exhausted memory and the prior compiled rules remain active.",
+      "observed_signatures": [
+        "%ASA-",
+        "106024"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Preserve the error and current rule context.",
+        "Review resource usage and seek vendor guidance before changes."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-101001-to-199021.html",
+          "scope": "ASA message 106024"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "113005",
+      "title": "AAA authentication rejected",
+      "category": "Authentication",
+      "severity": "Informational",
+      "description": "AAA authentication failed; inspect the reason and server context.",
+      "observed_signatures": [
+        "%ASA-",
+        "113005"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Review the reason and AAA server availability.",
+        "Validate an authorized test account before changing authentication policy."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-101001-to-199021.html",
+          "scope": "ASA message 113005"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "113019",
+      "title": "VPN session disconnected",
+      "category": "RDP & Remote Access",
+      "severity": "Warning",
+      "description": "A user session disconnected; use the logged reason and duration to assess whether this was expected.",
+      "observed_signatures": [
+        "%ASA-",
+        "113019"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Inspect session type, duration and reason.",
+        "Correlate tunnel events and endpoint activity."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-101001-to-199021.html",
+          "scope": "ASA message 113019"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "302013",
+      "title": "TCP connection created",
+      "category": "Networking / TCP/IP",
+      "severity": "Informational",
+      "description": "The firewall allocated a TCP connection slot. This does not prove application success.",
+      "observed_signatures": [
+        "%ASA-",
+        "302013"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Correlate connection ID and endpoints with teardown records."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-302003-to-342008.html",
+          "scope": "ASA message 302013"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "302014",
+      "title": "TCP connection removed",
+      "category": "Networking / TCP/IP",
+      "severity": "Informational",
+      "description": "A TCP connection was removed; investigate using the teardown reason.",
+      "observed_signatures": [
+        "%ASA-",
+        "302014"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Review reason, duration and byte counts.",
+        "Correlate with the matching connection creation record."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-302003-to-342008.html",
+          "scope": "ASA message 302014"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+    },
+    {
+      "source_family": "palo_alto",
+      "vendor": "Palo Alto Networks",
+      "product": "PAN-OS default CSV syslog",
+      "code_type": "log_category",
+      "diagnostic_code": "TRAFFIC",
+      "title": "Traffic log context",
+      "category": "Firewall & Network Security",
+      "severity": "Context dependent",
+      "description": "Traffic records describe sessions and policy actions; deny/drop does not prove an attack.",
+      "observed_signatures": [
+        "TRAFFIC"
+      ],
+      "relevant_log_fields": [
+        "type",
+        "subtype",
+        "serial",
+        "generatedTime",
+        "action",
+        "srcip",
+        "dstip",
+        "application",
+        "rule"
+      ],
+      "investigation_steps": [
+        "Check action, rule and application against intended policy.",
+        "Correlate session-end reason if available."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "PAN-OS Traffic Log Fields",
+          "url": "https://docs.paloaltonetworks.com/ngfw/administration/monitoring/use-syslog-for-monitoring/syslog-field-descriptions/traffic-log-fields",
+          "scope": "Default CSV field layout; trailing fields optional"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported.",
+      "limitations": "Reference knowledge is not proof of root cause. Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported."
+    },
+    {
+      "source_family": "palo_alto",
+      "vendor": "Palo Alto Networks",
+      "product": "PAN-OS default CSV syslog",
+      "code_type": "log_category",
+      "diagnostic_code": "THREAT",
+      "title": "Threat log context",
+      "category": "Security",
+      "severity": "Context dependent",
+      "description": "Threat records contain detection context and severity; action and endpoint evidence determine impact.",
+      "observed_signatures": [
+        "THREAT"
+      ],
+      "relevant_log_fields": [
+        "type",
+        "subtype",
+        "serial",
+        "generatedTime",
+        "action",
+        "threatId",
+        "severity",
+        "application",
+        "rule"
+      ],
+      "investigation_steps": [
+        "Review subtype, signature and action.",
+        "Correlate endpoint evidence before asserting compromise."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "PAN-OS Threat Log Fields",
+          "url": "https://docs.paloaltonetworks.com/ngfw/administration/monitoring/use-syslog-for-monitoring/syslog-field-descriptions/threat-log-fields",
+          "scope": "Default CSV field layout; trailing fields optional"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported.",
+      "limitations": "Reference knowledge is not proof of root cause. Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported."
+    },
+    {
+      "source_family": "palo_alto",
+      "vendor": "Palo Alto Networks",
+      "product": "PAN-OS default CSV syslog",
+      "code_type": "log_category",
+      "diagnostic_code": "SYSTEM",
+      "title": "System log context",
+      "category": "System",
+      "severity": "Context dependent",
+      "description": "System records expose module, event identifier, severity and description; no universal event-ID diagnosis is supplied.",
+      "observed_signatures": [
+        "SYSTEM"
+      ],
+      "relevant_log_fields": [
+        "type",
+        "subtype",
+        "serial",
+        "generatedTime",
+        "eventId",
+        "module",
+        "severity",
+        "description"
+      ],
+      "investigation_steps": [
+        "Read the original module, severity and event description.",
+        "Collect adjacent events before diagnosing the cause."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "PAN-OS System Log Fields",
+          "url": "https://docs.paloaltonetworks.com/ngfw/administration/monitoring/use-syslog-for-monitoring/syslog-field-descriptions/system-log-fields",
+          "scope": "Default CSV field layout; trailing fields optional"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported.",
+      "limitations": "Reference knowledge is not proof of root cause. Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported."
+    },
+    {
+      "source_family": "palo_alto",
+      "vendor": "Palo Alto Networks",
+      "product": "PAN-OS default CSV syslog",
+      "code_type": "log_category",
+      "diagnostic_code": "CONFIG",
+      "title": "Config log context",
+      "category": "System",
+      "severity": "Context dependent",
+      "description": "Configuration records expose administrative actions and explicit results; failed or unauthorized results require investigation.",
+      "observed_signatures": [
+        "CONFIG"
+      ],
+      "relevant_log_fields": [
+        "type",
+        "subtype",
+        "serial",
+        "generatedTime",
+        "command",
+        "admin",
+        "client",
+        "result",
+        "path"
+      ],
+      "investigation_steps": [
+        "Compare command, result and path with approved changes.",
+        "Confirm administrator intent before remediation."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "PAN-OS Config Log Fields",
+          "url": "https://docs.paloaltonetworks.com/ngfw/administration/monitoring/use-syslog-for-monitoring/syslog-field-descriptions/config-log-fields",
+          "scope": "Default CSV field layout; trailing fields optional"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported.",
+      "limitations": "Reference knowledge is not proof of root cause. Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported."
+    },
+    {
+      "source_family": "linux_syslog",
+      "vendor": "OpenSSH",
+      "product": "OpenSSH sshd",
+      "code_type": "general_signature",
+      "diagnostic_code": "AUTH-FAIL",
+      "title": "OpenSSH password authentication failed",
+      "category": "Authentication",
+      "severity": "Error",
+      "description": "An sshd Failed password record reports a failed authentication attempt; it does not alone prove brute force or compromise.",
+      "observed_signatures": [
+        "sshd",
+        "Failed password"
+      ],
+      "relevant_log_fields": [
+        "daemon",
+        "message",
+        "timestamp"
+      ],
+      "investigation_steps": [
+        "Review authentication method, account and source context.",
+        "Correlate repeated failures and successful logons before escalating."
+      ],
+      "related_codes": [],
+      "official_references": [
+        {
+          "title": "OpenSSH auth logging source",
+          "url": "https://github.com/openssh/openssh-portable/blob/master/auth.c",
+          "scope": "auth_log failed authentication output"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "Existing BSD-style syslog with sshd Failed password signature only.",
+      "limitations": "Reference knowledge is not proof of root cause. Existing BSD-style syslog with sshd Failed password signature only."
+    }
+  ]
+}
