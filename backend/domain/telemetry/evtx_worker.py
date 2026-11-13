@@ -63,13 +63,13 @@ class EVTXBackgroundWorker:
         try:
             task_payload = json.loads(task_data.decode("utf-8") if isinstance(task_data, bytes) else task_data)
         except (json.JSONDecodeError, UnicodeDecodeError):
-            logger.error(f"EVTX Worker received malformed task payload: {task_data}")
+            logger.error("EVTX Worker received malformed task payload; job discarded (no DLQ configured)")
             return
 
         minio_uri = task_payload.get("minio_uri")
         job_id = task_payload.get("job_id")
         if not minio_uri:
-            logger.error(f"EVTX Task missing minio_uri: {task_payload}")
+            logger.error("EVTX Task missing minio_uri; job discarded (no DLQ configured)")
             return
 
         logger.info(f"Processing EVTX Task (job_id={job_id}): {minio_uri}")

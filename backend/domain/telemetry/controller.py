@@ -6,7 +6,6 @@ Source-Available All Rights Reserved Policy
 ==============================================================================
 """
 
-import json
 import uuid
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
@@ -87,10 +86,11 @@ async def ingest_windows_event_log(
 async def upload_windows_evtx(
     file: UploadFile = File(..., description="Raw binary .evtx file"),
     x_client_cert_fingerprint: str = Depends(verify_mtls_fingerprint),
-    broker: AbstractTelemetryBroker = Depends(get_telemetry_broker)
+    cache_manager: AsynchronousCacheManager = Depends(get_cache_manager)
 ) -> dict:
     """
-    Accepts raw binary .evtx file, streams to MinIO, and creates an asynchronous 'Pending' EVTX parsing task.
+    Accepts a binary EVTX file and confirms Redis list publication before 202.
+    MinIO upload and LPUSH are not atomic; orphan/duplicate recovery is pending.
     """
     logger.info(f"Received EVTX upload request from Edge Agent: {x_client_cert_fingerprint}")
     
@@ -105,9 +105,25 @@ async def upload_windows_evtx(
         raise HTTPException(status_code=502, detail="Storage Gateway Fault")
         
     job_id = uuid.uuid4().hex
-    # Enqueue EVTX parsing job in Redis (list)
-    await broker.cache_manager.redis.lpush("eims:jobs:evtx", json.dumps({"job_id": job_id, "minio_uri": minio_uri}))
-    
+    # The EVTX worker consumes this Redis list, not the telemetry stream.
+    # Confirm LPUSH through the injected cache manager before returning 202.
+    # A Redis timeout after LPUSH is ambiguous; do not claim exactly-once.
+    try:
+        queue_depth = await cache_manager.lpush_queue(
+            "eims:jobs:evtx", {"job_id": job_id, "minio_uri": minio_uri}
+        )
+        if not isinstance(queue_depth, int) or queue_depth < 1:
+            raise RuntimeError("EVTX queue write was not confirmed")
+    except Exception:
+        # The MinIO object may now be orphaned. No automatic deletion is
+        # attempted because queue-write outcome can be ambiguous.
+        logger.error("EVTX queue publication unconfirmed after object upload")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="EVTX processing queue temporarily unavailable",
+            headers={"Retry-After": "5"},
+        ) from None
+
     return {
         "status": "processing",
         "message": "EVTX file accepted for asynchronous parsing",

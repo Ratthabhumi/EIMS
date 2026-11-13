@@ -221,6 +221,10 @@ class TelemetryStreamConsumer:
         _use_stub = isinstance(self.broker, StubTelemetryStreamBroker)
 
         session_maker = database_engine.get_session_maker() if not _use_stub else None
+        if not _use_stub and session_maker is None and (db_metrics or db_winlogs or anomalies_to_trigger):
+            # Do not acknowledge or trim events that were never durably stored.
+            # The next read/recovery path must retry them after DB recovery.
+            raise RuntimeError("Database session unavailable; telemetry batch not persisted")
         if session_maker and (db_metrics or db_winlogs or anomalies_to_trigger):
             await self._persist_batch(session_maker, db_metrics, db_winlogs, anomalies_to_trigger)
 
