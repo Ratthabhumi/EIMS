@@ -15,7 +15,8 @@ async function proxy(req: NextRequest, context: { params: Promise<{ path: string
     const response = await upstream(`/${path.map(encodeURIComponent).join('/')}${suffix}${new URL(req.url).search}`, {
       method: req.method, headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : await boundedBody(req),
     });
-    if (response.status >= 500) return reply({ detail: 'Analysis service unavailable' }, 502);
+    const isDegradedHealth = req.method === 'GET' && path.length === 3 && path[2] === 'health' && response.status === 503;
+    if (response.status >= 500 && !isDegradedHealth) return reply({ detail: 'Analysis service unavailable' }, 502);
     const result = new NextResponse(response.body, { status: response.status, headers: {
       'Content-Type': response.headers.get('content-type') || 'application/json',
       'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',

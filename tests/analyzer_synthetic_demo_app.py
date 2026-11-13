@@ -9,6 +9,7 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
@@ -91,6 +92,35 @@ app.include_router(history.router, prefix='/api/v1/history')
 app.include_router(auth_api.router, prefix='/api/v1/auth')
 app.include_router(stats.router, prefix='/api/v1/stats')
 app.include_router(feedback.router, prefix='/api/v1/feedback')
+
+@app.get('/api/v1/health', tags=['Synthetic Demo Observability'])
+async def read_synthetic_health() -> JSONResponse:
+    """TEST HARNESS ONLY: report the isolated Analyzer test environment honestly."""
+    try:
+        async with engine.connect() as connection:
+            await connection.execute(select(1))
+        database_ok = True
+    except Exception:
+        database_ok = False
+
+    # Redis and MinIO are intentionally not provisioned in this isolated demo.
+    # Return the same degraded-health contract as production, never fake HEALTHY.
+    return JSONResponse(
+        status_code=503,
+        content={
+            "system": "EIMS Synthetic Analyzer Demo",
+            "version": app.version,
+            "status": "DEGRADED",
+            "licensing_model": "Synthetic test environment; Redis and MinIO not provisioned",
+            "components": {
+                "postgresql_pgbouncer_tier": "UP" if database_ok else "DOWN",
+                "redis_volatile_lru_tier": "DOWN",
+                "minio_object_storage_tier": "DOWN",
+            },
+        },
+    )
+
+
 
 
 async def db():
