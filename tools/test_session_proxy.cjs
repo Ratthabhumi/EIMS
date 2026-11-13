@@ -76,7 +76,7 @@ function request(route,method='GET',body,headers={},base='https://localhost:3449
     const dependencies=id=>({__esModule:true,default:id==='jspdf'?PDF:async()=>({width:794,height:1100,toDataURL:()=>''})});
     const model={eventId:payload,provider:payload,eventMetadata:{logName:payload},solutionSummary:{overview:payload,evidence:[payload],steps:[payload],causes:[payload]},searchResults:[{title:payload,link:payload,snippet:payload}]};
     const mod={exports:{}};
-    new Function('module','exports','require','result','toast','document','friendlyLabel','catalogMap','escapeReportData',code)(mod,mod.exports,dependencies,model,{loading(){},success(){},error(e){throw Error(String(e))}},document,x=>({title:x.eventId,provider:x.provider}),new Map(),escapeReportData);
+    new Function('module','exports','require','result','toast','document','friendlyLabel','catalogMap','escapeReportData','isSyntheticDemo',code)(mod,mod.exports,dependencies,model,{loading(){},success(){},error(e){throw Error(String(e))}},document,x=>({title:x.eventId,provider:x.provider}),new Map(),escapeReportData,x=>String(x?.eventId??'').toUpperCase()==='AINC-2026-0910-0001');
     await mod.exports(model);return html;
   }
   for(const file of ['src/app/analyzer/page.tsx','src/components/AnalyzerHistoryList.tsx']){
