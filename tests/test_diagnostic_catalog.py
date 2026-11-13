@@ -226,6 +226,7 @@ def test_synthetic_raw_upload_reload_followup(language, monkeypatch):
         def add(self, record): self.record = record
         async def commit(self): pass
         async def refresh(self, record): record.id = 99
+        async def get(self, model, pk): return self.record if getattr(self.record, "id", None) == pk else None
         async def execute(self, stmt): return SimpleNamespace(scalars=lambda: SimpleNamespace(first=lambda: self.record))
     db = DB()
     result = asyncio.run(analyze.submit_analysis(text=pan_fixture("SYSTEM"), file=None, language=language, db=db, _user="demo", x_gemini_api_key=None))
