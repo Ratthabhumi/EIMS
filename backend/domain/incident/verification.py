@@ -184,9 +184,7 @@ async def evaluate(
 
     row = (
         await db.execute(
-            select(IncidentEvidence)
-            .where(IncidentEvidence.evidence_id == evidence_id)
-            .with_for_update()
+            select(IncidentEvidence).where(IncidentEvidence.evidence_id == evidence_id)
         )
     ).scalars().first()
     if row is None:

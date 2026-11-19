@@ -35,11 +35,19 @@ BEGIN
         EXECUTE format('CREATE ROLE %I LOGIN', rt);
     END IF;
 
-    -- Always enforce the posture, even for a pre-existing role.
-    EXECUTE format(
-        'ALTER ROLE %I NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS', mig);
-    EXECUTE format(
-        'ALTER ROLE %I NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS', rt);
+    -- Always enforce the posture, even for a pre-existing role. On managed
+    -- PostgreSQL the bootstrap role is not a superuser and may not touch the
+    -- SUPERUSER/BYPASSRLS attributes, so those are set only when allowed; a
+    -- freshly created role is already NOSUPERUSER/NOBYPASSRLS by default.
+    IF (SELECT rolsuper FROM pg_roles WHERE rolname = current_user) THEN
+        EXECUTE format(
+            'ALTER ROLE %I NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS', mig);
+        EXECUTE format(
+            'ALTER ROLE %I NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS', rt);
+    ELSE
+        EXECUTE format('ALTER ROLE %I NOCREATEDB NOCREATEROLE NOINHERIT', mig);
+        EXECUTE format('ALTER ROLE %I NOCREATEDB NOCREATEROLE NOINHERIT', rt);
+    END IF;
 
     -- The runtime must hold no role membership at all: no SET ROLE to an owner
     -- and no inherited privileges.
