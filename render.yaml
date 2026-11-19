@@ -52,6 +52,8 @@ services:
         value: "true"
       - key: EIMS_DEMO_SOFT_DEPS
         value: "1"
+      - key: EIMS_DEMO_PUBLIC_ACCESS
+        value: "1"
       - key: DB_POOL_SIZE
         value: "2"
       - key: DB_MAX_OVERFLOW

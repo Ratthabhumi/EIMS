@@ -3,227 +3,196 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>EIMS Demo Console</title>
+<title>EIMS — Infrastructure Incident Management</title>
 <style>
-  :root { color-scheme: dark; }
-  body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0;
-         background:#0b1020; color:#dbe3f4; }
-  header { padding:14px 20px; background:#131a2e; border-bottom:1px solid #23304f;
-           display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
-  h1 { font-size:16px; margin:0; letter-spacing:.5px; }
-  main { display:grid; grid-template-columns: 340px 1fr; gap:16px; padding:16px; }
-  section { background:#121a2c; border:1px solid #223050; border-radius:8px; padding:14px; }
-  h2 { font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#8ea2c8; margin:0 0 10px; }
-  input, button, select { font:inherit; background:#0d1424; color:#dbe3f4;
-      border:1px solid #2a3a5e; border-radius:6px; padding:8px; }
-  button { cursor:pointer; background:#1d2a45; }
-  button:hover { background:#27395c; }
-  input { width:100%; box-sizing:border-box; margin-bottom:8px; }
-  ul { list-style:none; margin:0; padding:0; }
-  li { padding:8px; border-bottom:1px solid #1c2740; cursor:pointer; }
-  li:hover { background:#182238; }
-  .badge { display:inline-block; padding:1px 7px; border-radius:10px; font-size:11px;
-           background:#243354; margin-left:6px; }
-  .msg { color:#ffb4b4; min-height:18px; font-size:12px; }
-  .ok { color:#8ce3a2; }
-  pre { white-space:pre-wrap; word-break:break-word; font-size:12px; color:#a9bad8; }
-  .row { display:flex; gap:8px; }
-  .row > * { flex:1; }
-  .hint { color:#7f92b6; font-size:11px; }
+  :root { color-scheme: dark; --bg:#0b1020; --panel:#121a2c; --line:#223050; --ink:#dbe3f4; --dim:#8ea2c8; --accent:#4f8cff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.55 ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif; }
+  header { padding:14px 22px; background:#0f1626; border-bottom:1px solid var(--line); display:flex; gap:18px; align-items:center; flex-wrap:wrap; }
+  h1 { font-size:16px; margin:0; letter-spacing:.4px; }
+  .tag { font-size:11px; color:#0b1020; background:#8ce3a2; padding:2px 8px; border-radius:10px; font-weight:600; }
+  nav { display:flex; gap:6px; padding:0 22px; background:#0f1626; border-bottom:1px solid var(--line); overflow-x:auto; }
+  nav button { background:none; border:0; color:var(--dim); padding:12px 14px; cursor:pointer; border-bottom:2px solid transparent; font:inherit; white-space:nowrap; }
+  nav button.active { color:#fff; border-bottom-color:var(--accent); }
+  main { padding:22px; max-width:1200px; margin:0 auto; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; }
+  .card .n { font-size:26px; font-weight:700; }
+  .card .l { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.6px; }
+  table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+  tr:last-child td { border-bottom:0; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:9px; font-size:11px; background:#243354; }
+  .pill.resolved { background:#1f4d33; } .pill.investigating { background:#4d3f1f; } .pill.open { background:#3a2440; }
+  .muted { color:var(--dim); }
+  .notice { background:#1b2438; border:1px solid var(--line); border-left:3px solid var(--accent); padding:10px 12px; border-radius:6px; margin-bottom:16px; font-size:13px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:820px){ .grid2 { grid-template-columns:1fr; } }
+  h2 { font-size:14px; text-transform:uppercase; letter-spacing:.7px; color:var(--dim); margin:22px 0 8px; }
+  h3 { font-size:15px; margin:0 0 6px; }
+  ul { margin:6px 0 0 18px; padding:0; }
+  code { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:#a9bad8; }
+  .row { cursor:pointer; } .row:hover td { background:#182238; }
+  .err { color:#ffb4b4; }
 </style>
 </head>
 <body>
 <header>
-  <h1>EIMS — Incident Console (demo)</h1>
-  <span id="who" class="hint"></span>
-  <button id="logout" hidden>Sign out</button>
+  <h1>EIMS · Enterprise Infrastructure Management System</h1>
+  <span class="tag">DEMO · synthetic data</span>
+  <span class="muted" id="dbname"></span>
 </header>
-<main>
-  <section>
-    <h2>Sign in</h2>
-    <div id="loginBox">
-      <input id="user" placeholder="username (demo.engineer / demo.reviewer)" autocomplete="username" />
-      <input id="pass" type="password" placeholder="password" autocomplete="current-password" />
-      <button id="login">Sign in</button>
-    </div>
-    <div id="sessionBox" hidden>
-      <p class="hint" id="sessionInfo"></p>
-    </div>
-    <div class="msg" id="loginMsg"></div>
-    <h2 style="margin-top:18px">Incidents</h2>
-    <button id="refresh">Refresh</button>
-    <ul id="incidents"></ul>
-  </section>
-
-  <section>
-    <h2>Incident detail</h2>
-    <div id="detail"><p class="hint">Select an incident.</p></div>
-  </section>
-</main>
+<nav id="nav">
+  <button data-view="overview" class="active">Overview</button>
+  <button data-view="assets">Asset Management</button>
+  <button data-view="observations">Log Analyzer</button>
+  <button data-view="incidents">Incident Management</button>
+  <button data-view="about">About this demo</button>
+</nav>
+<main id="main"><p class="muted">Loading…</p></main>
 
 <script>
-const state = { token: null, user: null, incidents: [] };
+const api = async (path) => {
+  const res = await fetch(path, { headers: { "Accept": "application/json" } });
+  if (!res.ok) throw new Error(res.status + " " + (await res.text()).slice(0, 120));
+  return res.json();
+};
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pill = (s) => `<span class="pill ${esc(s)}">${esc(s)}</span>`;
+const list = (items) => items && items.length ? `<ul>${items.map(i => `<li>${esc(i)}</li>`).join("")}</ul>` : `<p class="muted">Not recorded in this demo dataset.</p>`;
 
-async function api(path, options = {}) {
-  const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
-  if (state.token) headers["Authorization"] = "Bearer " + state.token;
-  const res = await fetch(path, Object.assign({}, options, { headers }));
-  const text = await res.text();
-  let body = null;
-  try { body = text ? JSON.parse(text) : null; } catch { body = text; }
-  if (!res.ok) {
-    const detail = body && body.detail ? body.detail : (text || res.status);
-    throw new Error(res.status + ": " + detail);
+const views = {};
+
+views.overview = async () => {
+  const s = await api("/api/v1/demo/summary");
+  document.getElementById("dbname").textContent = "database " + s.database + " · access " + s.demo_access;
+  return `
+    <div class="notice">Read-only presentation of the synthetic demo database. No login is required; all data below comes from PostgreSQL over the real API.</div>
+    <div class="cards">
+      <div class="card"><div class="n">${s.assets}</div><div class="l">Assets</div></div>
+      <div class="card"><div class="n">${s.observations}</div><div class="l">Analysis observations</div></div>
+      <div class="card"><div class="n">${s.incidents.open}</div><div class="l">Open incidents</div></div>
+      <div class="card"><div class="n">${s.incidents.investigating}</div><div class="l">Investigating</div></div>
+      <div class="card"><div class="n">${s.incidents.resolved}</div><div class="l">Resolved</div></div>
+      <div class="card"><div class="n">${s.evidence}</div><div class="l">Evidence records</div></div>
+      <div class="card"><div class="n">${s.verifications}</div><div class="l">Verifications</div></div>
+      <div class="card"><div class="n">${s.audit_rows}</div><div class="l">Audit rows</div></div>
+    </div>
+    <h2>System status</h2>
+    <table><tbody>
+      <tr><td>Core API</td><td>Ready</td></tr>
+      <tr><td>PostgreSQL</td><td>Connected (${esc(s.database)})</td></tr>
+      <tr><td>Redis</td><td class="muted">Not configured for this demo</td></tr>
+      <tr><td>Object storage (MinIO)</td><td class="muted">Not configured for this demo</td></tr>
+      <tr><td>Background workers</td><td class="muted">Not running in this demo</td></tr>
+    </tbody></table>`;
+};
+
+views.assets = async () => {
+  const r = await api("/api/v1/demo/assets");
+  return `<div class="notice">Synthetic assets. Related incidents are linked by the asset identity recorded on each incident.</div>
+    <table><thead><tr><th>Host</th><th>IP</th><th>Lifecycle</th><th>Compliance</th><th>Incidents</th></tr></thead><tbody>
+    ${r.data.map(a => `<tr>
+      <td><strong>${esc(a.hostname)}</strong><br><code>${esc(a.asset_id)}</code></td>
+      <td>${esc(a.canonical_ip)}</td><td>${esc(a.lifecycle_state ?? "—")}</td>
+      <td>${a.compliance_score ?? "—"}</td>
+      <td>${a.incidents.length ? a.incidents.map(i => `${esc(i.title)} ${pill(i.status)}`).join("<br>") : '<span class="muted">none</span>'}</td>
+    </tr>`).join("")}
+    </tbody></table>`;
+};
+
+views.observations = async () => {
+  const r = await api("/api/v1/demo/observations");
+  return `<div class="notice">${esc(r.note)} These records are the evidence source used by the incident workflow.</div>
+    <table><thead><tr><th>ID</th><th>Event</th><th>Provider</th><th>Description</th><th>Observed</th></tr></thead><tbody>
+    ${r.data.map(o => `<tr><td>${o.id}</td><td>${esc(o.event_id)}</td><td>${esc(o.provider)}</td>
+      <td>${esc(o.description)}</td><td class="muted">${esc(o.created_at ?? "")}</td></tr>`).join("")}
+    </tbody></table>`;
+};
+
+views.incidents = async () => {
+  const r = await api("/api/v1/demo/incidents");
+  return `<div class="notice">Incidents are created and resolved by the real domain services; this view can only read them.</div>
+    <table><thead><tr><th>Incident</th><th>Severity</th><th>Status</th><th>Asset</th><th>Cycle</th><th>Evidence</th><th>Verifications</th><th>Last seen</th></tr></thead><tbody>
+    ${r.data.map(i => `<tr class="row" data-id="${esc(i.incident_id)}">
+      <td><strong>${esc(i.title)}</strong></td><td>${esc(i.severity)}</td><td>${pill(i.status)}</td>
+      <td>${esc(i.asset ?? "—")}</td><td>${i.remediation_cycle}</td>
+      <td>${i.evidence_count}</td><td>${i.verification_count}</td>
+      <td class="muted">${esc(i.last_seen ?? "")}</td></tr>`).join("")}
+    </tbody></table>`;
+};
+
+views.detail = async (id) => {
+  const d = await api("/api/v1/demo/incidents/" + id);
+  const i = d.incident, g = i.guidance || {};
+  return `
+    <p><a href="#" data-back class="muted">← back to incidents</a></p>
+    <h3>${esc(i.title)}</h3>
+    <p>${pill(i.status)} <span class="pill">${esc(i.severity)}</span>
+       <span class="muted">asset ${esc(i.asset ?? "—")} · cycle ${i.remediation_cycle} · confidence ${esc(i.confidence)} · root cause ${esc(i.root_cause_state)}</span></p>
+
+    <h2>1. What happened</h2>
+    <p>${esc(g.what_happened ?? "Not recorded in this demo dataset.")}</p>
+    <h2>2. Why did it happen</h2>
+    <p>${esc(g.why ?? "Not recorded in this demo dataset.")}</p>
+    <h2>3. Impact</h2>
+    <p>${esc(g.impact ?? "Not recorded in this demo dataset.")}</p>
+    <div class="grid2">
+      <div><h2>4. What to inspect</h2>${list(g.inspect)}</div>
+      <div><h2>5. Recommended remediation</h2>${list(g.remediation)}</div>
+    </div>
+    <h2>6. Risks and uncertainty</h2>
+    <p>${esc(g.risks ?? "Not recorded in this demo dataset.")}</p>
+    ${g.proof ? `<h2>What proves resolution</h2><p>${esc(g.proof)}</p>` : ""}
+
+    <h2>7. Evidence (${d.evidence.length})</h2>
+    <table><thead><tr><th>Source</th><th>Ref</th><th>Digest</th><th>Observed</th><th>Attached by</th></tr></thead><tbody>
+    ${d.evidence.map(e => `<tr><td>${esc(e.source_type)}</td><td>${esc(e.source_id)}</td>
+      <td><code>${esc(e.digest.slice(0,16))}…</code></td><td class="muted">${esc(e.observed_at ?? "")}</td>
+      <td>${esc(e.added_by)}</td></tr>`).join("")}</tbody></table>
+
+    <h2>8. Verification history (${d.verifications.length})</h2>
+    ${d.verifications.length ? `<table><thead><tr><th>Cycle</th><th>Outcome</th><th>Verifier</th><th>Verified at</th></tr></thead><tbody>
+      ${d.verifications.map(v => `<tr><td>${v.remediation_cycle}</td><td>${esc(v.outcome)}</td>
+        <td>${esc(v.verifier_id)}</td><td class="muted">${esc(v.verified_at ?? "")}</td></tr>`).join("")}
+      </tbody></table>` : `<p class="muted">No verification recorded.</p>`}
+
+    <h2>9. Current resolution state</h2>
+    <p>${i.status === "resolved"
+      ? `Resolved after a reviewer verified current-cycle evidence. ${i.remediation_cycle > 0 ? "The incident was reopened, so this is remediation cycle " + i.remediation_cycle + "." : ""}`
+      : `Not resolved. Resolution requires evidence attached during the current remediation cycle and a reviewer verification; that is enforced by the API and by PostgreSQL triggers.`}</p>`;
+};
+
+views.about = async () => `
+  <div class="notice">Internal demonstration environment. Data is synthetic; nothing here is customer data.</div>
+  <table><tbody>
+    <tr><td>Access model</td><td>Public read-only demo endpoints (<code>/api/v1/demo/*</code>). No login, no writes.</td></tr>
+    <tr><td>Write boundary</td><td>Resolution and verification are <strong>not</strong> exposed here. They remain behind the authenticated API and the database triggers.</td></tr>
+    <tr><td>Not included</td><td>USB hardware agent, live log ingestion, LLM provider, dashboard analytics, user administration.</td></tr>
+    <tr><td>Health semantics</td><td><code>/api/v1/ready</code> answers for the database tier; <code>/api/v1/health</code> reports DEGRADED when optional cache/storage are absent.</td></tr>
+    <tr><td>Known limit</td><td>A fully compromised runtime credential could forge a verification row; the demo therefore shows persisted verification rather than accepting public claims.</td></tr>
+  </tbody></table>`;
+
+async function render(name, arg) {
+  const main = document.getElementById("main");
+  main.innerHTML = `<p class="muted">Loading…</p>`;
+  try { main.innerHTML = await (name === "detail" ? views.detail(arg) : views[name]()); }
+  catch (e) { main.innerHTML = `<p class="err">Could not load: ${esc(e.message)}</p>`; }
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+  if (name === "incidents") {
+    main.querySelectorAll("tr.row").forEach(tr => tr.onclick = () => render("detail", tr.dataset.id));
   }
-  return body;
+  const back = main.querySelector("[data-back]");
+  if (back) back.onclick = (ev) => { ev.preventDefault(); render("incidents"); };
+  window.scrollTo(0, 0);
 }
 
-function el(tag, text, cls) {
-  const n = document.createElement(tag);
-  if (text !== undefined) n.textContent = text;
-  if (cls) n.className = cls;
-  return n;
-}
-
-async function login() {
-  const username = document.getElementById("user").value.trim();
-  const password = document.getElementById("pass").value;
-  const msg = document.getElementById("loginMsg");
-  msg.textContent = "";
-  try {
-    const body = await api("/api/v1/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ username, password }),
-    });
-    state.token = body.access_token;
-    state.user = username;
-    document.getElementById("loginBox").hidden = true;
-    document.getElementById("sessionBox").hidden = false;
-    document.getElementById("logout").hidden = false;
-    document.getElementById("sessionInfo").textContent = "Signed in as " + username;
-    document.getElementById("who").textContent = username;
-    await loadIncidents();
-  } catch (err) {
-    msg.textContent = "Login failed — " + err.message;
-  }
-}
-
-function logout() {
-  state.token = null; state.user = null;
-  document.getElementById("loginBox").hidden = false;
-  document.getElementById("sessionBox").hidden = true;
-  document.getElementById("logout").hidden = true;
-  document.getElementById("who").textContent = "";
-  document.getElementById("incidents").innerHTML = "";
-  document.getElementById("detail").innerHTML = "<p class='hint'>Select an incident.</p>";
-}
-
-async function loadIncidents() {
-  const list = document.getElementById("incidents");
-  list.innerHTML = "";
-  try {
-    const body = await api("/api/v1/incidents?limit=50");
-    state.incidents = body.data || [];
-    for (const inc of state.incidents) {
-      const li = el("li");
-      li.appendChild(el("span", inc.title));
-      li.appendChild(el("span", inc.status, "badge"));
-      li.appendChild(el("span", "cycle " + (inc.remediation_cycle ?? 0), "badge"));
-      li.onclick = () => showIncident(inc.incident_id);
-      list.appendChild(li);
-    }
-    if (!state.incidents.length) list.appendChild(el("li", "No incidents yet."));
-  } catch (err) {
-    list.appendChild(el("li", "Could not load: " + err.message, "msg"));
-  }
-}
-
-async function showIncident(id) {
-  const box = document.getElementById("detail");
-  box.innerHTML = "<p class='hint'>Loading…</p>";
-  try {
-    const inc = await api("/api/v1/incidents/" + id);
-    box.innerHTML = "";
-    box.appendChild(el("h2", "Overview"));
-    const p = el("pre");
-    p.textContent = JSON.stringify({
-      incident_id: inc.incident_id,
-      title: inc.title,
-      status: inc.status,
-      severity: inc.severity,
-      confidence: inc.confidence,
-      asset_id: inc.asset_id,
-      remediation_cycle: inc.remediation_cycle,
-      root_cause_state: inc.root_cause_state,
-      first_seen: inc.first_seen,
-      last_seen: inc.last_seen,
-      dedupe_key: inc.dedupe_key,
-    }, null, 2);
-    box.appendChild(p);
-
-    box.appendChild(el("h2", "Evidence"));
-    const ev = el("pre");
-    ev.textContent = JSON.stringify(inc.evidence.map(e => ({
-      evidence_id: e.evidence_id, source_type: e.source_type,
-      source_id: e.source_id, digest: e.evidence_digest,
-      observed_at: e.observed_at,
-    })), null, 2);
-    box.appendChild(ev);
-
-    box.appendChild(el("h2", "Verification history"));
-    const vf = el("pre");
-    vf.textContent = JSON.stringify(inc.verifications, null, 2);
-    box.appendChild(vf);
-
-    box.appendChild(el("h2", "Resolve with verification"));
-    const hint = el("p", "Resolution requires an analysis evidence row from the current cycle and a reviewer account. The server revalidates it; a caller-supplied outcome is not accepted.", "hint");
-    box.appendChild(hint);
-    const select = document.createElement("select");
-    for (const e of inc.evidence) {
-      const opt = document.createElement("option");
-      opt.value = e.evidence_id;
-      opt.textContent = e.source_type + " · " + e.source_id;
-      select.appendChild(opt);
-    }
-    box.appendChild(select);
-    const btn = el("button", "Resolve");
-    btn.style.marginLeft = "8px";
-    btn.onclick = () => resolveIncident(inc.incident_id, select.value, box);
-    box.appendChild(btn);
-
-    const msg = el("div", "", "msg");
-    msg.id = "detailMsg";
-    box.appendChild(msg);
-  } catch (err) {
-    box.innerHTML = "";
-    box.appendChild(el("p", "Could not load incident: " + err.message, "msg"));
-  }
-}
-
-async function resolveIncident(id, evidenceId, box) {
-  const msg = box.querySelector("#detailMsg");
-  msg.textContent = "";
-  msg.className = "msg";
-  try {
-    const body = await api("/api/v1/incidents/" + id + "/status", {
-      method: "PATCH",
-      body: JSON.stringify({ status: "resolved", verification: { evidence_id: evidenceId } }),
-    });
-    msg.className = "msg ok";
-    msg.textContent = "Resolved. Verification rows: " + body.verifications.length +
-      " (latest verifier: " + (body.verifications.at(-1) || {}).verifier_id + ")";
-    await loadIncidents();
-    await showIncident(id);
-  } catch (err) {
-    msg.className = "msg";
-    msg.textContent = "Blocked — " + err.message;
-  }
-}
-
-document.getElementById("login").onclick = login;
-document.getElementById("logout").onclick = logout;
-document.getElementById("refresh").onclick = () => state.token && loadIncidents();
-document.getElementById("pass").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+document.getElementById("nav").addEventListener("click", (ev) => {
+  const btn = ev.target.closest("button[data-view]");
+  if (btn) render(btn.dataset.view);
+});
+render("overview");
 </script>
 </body>
 </html>

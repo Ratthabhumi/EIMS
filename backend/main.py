@@ -36,6 +36,7 @@ from backend.domain.analyzer.auth import seed_users
 from backend.domain.asset_registry import asset_router
 from backend.domain.asset_registry.audit_controller import audit_router
 from backend.domain.asset_registry.ocr_worker import ocr_worker
+from backend.domain.demo.controller import demo_router
 from backend.domain.incident.controller import incident_router
 from backend.domain.incident_ingest.consumer import incident_ingest_consumer
 from backend.domain.search.controller import search_router
@@ -209,6 +210,7 @@ app.include_router(telemetry_query_router)
 
 # Incident Core v1 (backend-only; evidence references, no payload copies)
 app.include_router(incident_router)
+app.include_router(demo_router)
 
 from backend.api.routers.analyzer import (
     admin,
