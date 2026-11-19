@@ -30,7 +30,7 @@ from backend.infrastructure.db_identity import (
 logger = get_logger("eims.infrastructure.database")
 # Deadline triggers cancellation; SQLAlchemy completes cleanup before returning.
 # Safe cleanup may extend wall-clock duration beyond the deadline.
-_DB_PING_TIMEOUT_SECONDS = 2.0
+_DB_PING_TIMEOUT_SECONDS = 10.0
 
 # Canonical ORM base class for Phase 2 declarative asset table schema definitions
 Base = declarative_base()

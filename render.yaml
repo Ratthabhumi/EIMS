@@ -7,7 +7,7 @@ services:
     branch: demo/2026-11-24
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT --proxy-headers
-    healthCheckPath: /api/v1/health
+    healthCheckPath: /api/v1/ready
     autoDeploy: false
     envVars:
       - key: PYTHON_VERSION

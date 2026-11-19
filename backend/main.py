@@ -242,6 +242,24 @@ async def demo_console() -> FileResponse:
     return FileResponse(_DEMO_CONSOLE)
 
 
+@app.get("/api/v1/ready", tags=["Operational Observability"])
+async def readiness() -> JSONResponse:
+    """Readiness for the demo deployment: the database is the only required tier.
+
+    ``/health`` reports every dependency and is intentionally DEGRADED when the
+    optional cache/storage tiers are absent (``EIMS_DEMO_SOFT_DEPS=1``). A load
+    balancer must not treat that as "not ready", so this endpoint answers for the
+    required tier only.
+    """
+    if database_engine._engine is None:
+        return JSONResponse(status_code=503, content={"status": "starting", "database": False})
+    ok = await database_engine.ping()
+    return JSONResponse(
+        status_code=200 if ok else 503,
+        content={"status": "ready" if ok else "database_unavailable", "database": ok},
+    )
+
+
 @app.get("/api/v1/health", tags=["Operational Observability"])
 async def read_system_health() -> JSONResponse:
     """
