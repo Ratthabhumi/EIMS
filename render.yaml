@@ -50,3 +50,9 @@ services:
         value: eims-demo-ocr
       - key: EIMS_MINIO_SECURE
         value: "true"
+      - key: EIMS_DEMO_SOFT_DEPS
+        value: "1"
+      - key: DB_POOL_SIZE
+        value: "2"
+      - key: DB_MAX_OVERFLOW
+        value: "1"
