@@ -1,14 +1,18 @@
-from sqlalchemy.future import select
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import UTC, datetime, timedelta
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from sqlalchemy import Date, case, cast, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
+from sqlalchemy.future import select
 
 from backend.domain.analyzer.auth import get_current_user
-
-from backend.infrastructure.database import get_db_session as get_db
 from backend.domain.analyzer.models.history import AnalysisHistory
+from backend.domain.analyzer.models.knowledge import KnowledgeEntry
+from backend.domain.analyzer.schemas.analyze import EventMetadata, SolutionSummary
 from backend.domain.analyzer.schemas.history import HistoryResponse
-from backend.domain.analyzer.schemas.analyze import SolutionSummary, EventMetadata
+from backend.infrastructure.database import get_db_session as get_db
 
 router = APIRouter()
 
@@ -71,10 +75,11 @@ def _safe_search_results(raw) -> list:
 
 @router.get("/catalog")
 async def get_operational_catalog(
-    _user: str = Depends(get_current_user),
-    source_family: Optional[str] = None,
+    response: Response,
+    source_family: str | None = None,
 ):
-    """Return the static Operational Event Catalog (knowledge, not analyzed logs)."""
+    """Return public, versioned reference data; it contains no user incident history."""
+    response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=600"
     from backend.domain.analyzer.services.operational_catalog import get_catalog
     entries = get_catalog(source_family)
     return {
@@ -85,11 +90,13 @@ async def get_operational_catalog(
     }
 
 
-@router.get("/", response_model=List[HistoryResponse])
+@router.get("/", response_model=list[HistoryResponse])
 async def get_all_history(
     db: AsyncSession = Depends(get_db),
     _user: str = Depends(get_current_user),
-    asset_id: Optional[str] = None,
+    asset_id: str | None = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ):
     stmt = select(AnalysisHistory).where(AnalysisHistory.username == _user)
     if asset_id:
@@ -98,7 +105,13 @@ async def get_all_history(
         stmt = stmt.filter(
             cast(AnalysisHistory.event_metadata, PGJSONB)["asset_id"].astext == asset_id
         )
-    history_records = (await db.execute(stmt.order_by(AnalysisHistory.created_at.desc()))).scalars().all()
+    history_records = (
+        await db.execute(
+            stmt.order_by(AnalysisHistory.created_at.desc(), AnalysisHistory.id.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+    ).scalars().all()
     results = []
     for record in history_records:
         solution = _safe_solution_summary(record.solution_summary)
@@ -163,7 +176,18 @@ async def delete_history(
     ))).scalars().first()
     if not record:
         raise HTTPException(status_code=404, detail="History record not found")
-        
+
+    linked_knowledge = (
+        await db.execute(
+            select(KnowledgeEntry.id).where(KnowledgeEntry.source_history_id == history_id)
+        )
+    ).scalar_one_or_none()
+    if linked_knowledge is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="This incident is retained as knowledge provenance and cannot be deleted",
+        )
+
     await db.delete(record)
     await db.commit()
     return {"message": "Record deleted successfully"}
@@ -172,45 +196,22 @@ async def delete_history(
 @router.post("/{history_id}/feedback")
 async def submit_feedback(
     history_id: int,
-    score: int, # 1 for Thumbs Up, -1 for Thumbs Down
-    db: AsyncSession = Depends(get_db),
-    user: str = Depends(get_current_user),
+    score: Annotated[int, Query(description="1 for useful, -1 for not useful")],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[str, Depends(get_current_user)],
 ):
-    """Update feedback score in history and synchronizes score in Vector Knowledge DB."""
+    """Record usefulness feedback only; it never edits or publishes incident knowledge."""
+    if score not in (-1, 1):
+        raise HTTPException(status_code=422, detail="Feedback score must be 1 or -1")
     record = (await db.execute(select(AnalysisHistory).filter(
         AnalysisHistory.id == history_id, AnalysisHistory.username == user,
     ))).scalars().first()
     if not record:
         raise HTTPException(status_code=404, detail="History record not found")
-        
+
     record.feedback_score = score
     record.feedback_by = user
     await db.commit()
-
-    # Sync with Vector DB if available
-    try:
-        from backend.domain.analyzer.services.vector_db import add_solution
-        from backend.domain.analyzer.services.bundle import derive_bundle_semantic_document_from_metadata
-        desc_to_sync = record.description
-        em = record.event_metadata if isinstance(record.event_metadata, dict) else {}
-        attrs = em.get("attributes") if isinstance(em.get("attributes"), dict) else {}
-        if "bundle" in attrs or (record.parse_method and "bundle" in str(record.parse_method).lower()):
-            desc_to_sync = derive_bundle_semantic_document_from_metadata(em, record.solution_summary or {})
-
-        source_fam = em.get("sourceFamily")
-        diag_id = em.get("diagnosticCode") or record.event_id
-        await add_solution(
-            db=db,
-            event_id=record.event_id,
-            description=desc_to_sync,
-            solution_summary=record.solution_summary,
-            feedback_score=score,
-            source_family=source_fam,
-            diagnostic_identity=diag_id,
-        )
-    except Exception as e:
-        print(f"Failed to update Vector DB feedback: {e}")
-
     return {"message": "Feedback submitted successfully", "score": score}
 
 @router.get("/stats")
@@ -218,22 +219,65 @@ async def get_history_stats(
     db: AsyncSession = Depends(get_db),
     _user: str = Depends(get_current_user),
 ):
-    history_records = (await db.execute(select(AnalysisHistory).where(
-        AnalysisHistory.username == _user,
-    ).order_by(AnalysisHistory.created_at.asc()))).scalars().all()
-    
-    total_logs = len(history_records)
-    critical_errors = 0
-    total_search_time = 0
-    
-    provider_counts = {}
-    category_counts = {}
-    daily_counts = {}
-    
-    import datetime
-    from backend.domain.analyzer.services.operational_catalog import get_catalog_entry
+    """Return per-user aggregates without materializing every incident row."""
+    metadata = cast(AnalysisHistory.event_metadata, JSONB)
+    critical_expr = metadata["isCritical"].astext == "true"
+    source_family_expr = metadata["sourceFamily"].astext
+    diagnostic_code_expr = metadata["diagnosticCode"].astext
+    category_expr = metadata["category"].astext
+    device_type_expr = metadata["attributes"]["deviceType"].astext
 
-    EVENT_CATEGORIES = {
+    metrics = (
+        await db.execute(
+            select(
+                func.count(AnalysisHistory.id),
+                func.coalesce(func.sum(case((critical_expr, 1), else_=0)), 0),
+                func.coalesce(func.avg(func.coalesce(AnalysisHistory.search_time_ms, 0.0)), 0.0),
+            ).where(AnalysisHistory.username == _user)
+        )
+    ).one()
+    total_logs, critical_errors, average_search_ms = metrics
+
+    provider_expr = func.coalesce(AnalysisHistory.provider, "Unknown")
+    provider_rows = (
+        await db.execute(
+            select(provider_expr, func.count(AnalysisHistory.id))
+            .where(AnalysisHistory.username == _user)
+            .group_by(provider_expr)
+            .order_by(func.count(AnalysisHistory.id).desc())
+        )
+    ).all()
+    provider_stats = [{"name": name, "value": count} for name, count in provider_rows]
+
+    category_rows = (
+        await db.execute(
+            select(
+                AnalysisHistory.event_id,
+                AnalysisHistory.provider,
+                source_family_expr,
+                diagnostic_code_expr,
+                category_expr,
+                device_type_expr,
+                func.count(AnalysisHistory.id),
+            )
+            .where(AnalysisHistory.username == _user)
+            .group_by(
+                AnalysisHistory.event_id,
+                AnalysisHistory.provider,
+                source_family_expr,
+                diagnostic_code_expr,
+                category_expr,
+                device_type_expr,
+            )
+        )
+    ).all()
+
+    from backend.domain.analyzer.services.operational_catalog import (
+        entry_for_metadata,
+        get_catalog_entry,
+    )
+
+    event_categories = {
         "4625": "Authentication",
         "4624": "Authentication",
         "1102": "Security",
@@ -252,69 +296,90 @@ async def get_history_stats(
         "4104": "PowerShell",
         "7045": "System",
     }
-    
-    for record in history_records:
-        # Critical Errors
-        if record.event_metadata and record.event_metadata.get("isCritical", False):
-            critical_errors += 1
-            
-        # Search Time
-        total_search_time += (record.search_time_ms or 0)
-        
-        # Provider Stats
-        provider = record.provider or "Unknown"
-        provider_counts[provider] = provider_counts.get(provider, 0) + 1
-        
-        # Category Classification (derive from real records and event semantics)
-        eid = str(record.event_id or "").strip()
-        prov = str(record.provider or "").strip()
-        meta = _safe_event_metadata(record.event_metadata)
-        family = meta.sourceFamily if meta else ""
+    category_counts: dict[str, int] = {}
+    for event_id, provider, source_family, diagnostic_code, category_override, device_type, count in category_rows:
+        eid = str(event_id or "").strip()
+        prov = str(provider or "").strip()
+        original_family = str(source_family or "")
+        family = original_family
         if not family:
-            family = "windows_event" if prov.lower() == "security" or any(w in prov.lower() for w in
-                ("windows", "grouppolicy", "kernel-power", "eventlog", "distributedcom", "service control manager")) else "unknown_text"
-        if eid.upper().startswith("AINC-") or "incident" in prov.lower():
-            cat = "Incident Investigation"
-        elif record.event_metadata and record.event_metadata.get("category"):
-            cat = record.event_metadata["category"]
-        elif family == "windows_event" and eid in EVENT_CATEGORIES:
-            cat = EVENT_CATEGORIES[eid]
-        else:
-            from backend.domain.analyzer.services.operational_catalog import entry_for_metadata
-            cat_entry = entry_for_metadata(meta) if meta and meta.sourceFamily else get_catalog_entry(eid, family)
-            if cat_entry and cat_entry.get("category"):
-                cat_raw = cat_entry["category"]
-                if "Audit" in cat_raw:
-                    cat = "Security"
-                elif "Services" in cat_raw:
-                    cat = "System"
-                else:
-                    cat = cat_raw
-            else:
-                cat = "System" if family == "windows_event" else "Unclassified"
-        category_counts[cat] = category_counts.get(cat, 0) + 1
+            family = "windows_event" if prov.lower() == "security" or any(
+                word in prov.lower()
+                for word in (
+                    "windows", "grouppolicy", "kernel-power", "eventlog",
+                    "distributedcom", "service control manager",
+                )
+            ) else "unknown_text"
 
-        # Daily Trends
-        if record.created_at:
-            day_str = record.created_at.strftime("%m/%d")
-            daily_counts[day_str] = daily_counts.get(day_str, 0) + 1
-            
-    avg_search_time = (total_search_time / total_logs / 1000) if total_logs > 0 else 0
-    
-    provider_stats = [{"name": k, "value": v} for k, v in provider_counts.items()]
-    category_stats = [{"name": k, "value": v} for k, v in category_counts.items()]
-    category_stats.sort(key=lambda x: x["value"], reverse=True)
-    
-    # Exactly last 7 calendar days (ending today)
-    today = datetime.datetime.now()
-    last_7_days = [(today - datetime.timedelta(days=i)).strftime("%m/%d") for i in range(6, -1, -1)]
-    daily_trends = [{"date": d_str, "count": daily_counts.get(d_str, 0)} for d_str in last_7_days]
-    
+        if eid.upper().startswith("AINC-") or "incident" in prov.lower():
+            category = "Incident Investigation"
+        elif category_override:
+            category = str(category_override)
+        elif family == "windows_event" and eid in event_categories:
+            category = event_categories[eid]
+        else:
+            metadata_model = EventMetadata(
+                eventId=eid or "Unknown",
+                provider=prov or "Unknown",
+                sourceFamily=original_family,
+                diagnosticCode=str(diagnostic_code or eid),
+                attributes={"deviceType": device_type} if device_type else {},
+            )
+            catalog_entry = (
+                entry_for_metadata(metadata_model)
+                if original_family
+                else get_catalog_entry(eid, family)
+            )
+            if catalog_entry and catalog_entry.get("category"):
+                raw_category = catalog_entry["category"]
+                if "Audit" in raw_category:
+                    category = "Security"
+                elif "Services" in raw_category:
+                    category = "System"
+                else:
+                    category = raw_category
+            else:
+                category = "System" if family == "windows_event" else "Unclassified"
+        category_counts[category] = category_counts.get(category, 0) + int(count)
+
+    category_stats = [
+        {"name": name, "value": count}
+        for name, count in sorted(category_counts.items(), key=lambda item: item[1], reverse=True)
+    ]
+
+    today = datetime.now(UTC).date()
+    first_day = today - timedelta(days=6)
+    day_expr = cast(AnalysisHistory.created_at, Date)
+    daily_rows = (
+        await db.execute(
+            select(day_expr, func.count(AnalysisHistory.id))
+            .where(
+                AnalysisHistory.username == _user,
+                day_expr.is_not(None),
+                day_expr >= first_day,
+            )
+            .group_by(day_expr)
+            .order_by(day_expr)
+        )
+    ).all()
+    daily_counts = {
+        day.strftime("%m/%d"): count
+        for day, count in daily_rows
+        if day is not None
+    }
+    last_7_days = [
+        (today - timedelta(days=days)).strftime("%m/%d")
+        for days in range(6, -1, -1)
+    ]
+
     return {
-        "totalLogs": total_logs,
-        "criticalErrors": critical_errors,
-        "avgSearchTimeSec": round(avg_search_time, 2),
-        "dailyTrends": daily_trends,
+        "totalLogs": int(total_logs or 0),
+        "criticalErrors": int(critical_errors or 0),
+        "avgSearchTimeSec": round(float(average_search_ms or 0.0) / 1000, 2),
+        "dailyTrends": [
+            {"date": day, "count": daily_counts.get(day, 0)}
+            for day in last_7_days
+        ],
         "categoryStats": category_stats,
-        "providerStats": provider_stats
+        "providerStats": provider_stats,
     }

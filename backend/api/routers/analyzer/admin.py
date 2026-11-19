@@ -9,6 +9,7 @@ from backend.infrastructure.database import get_db_session as get_db
 from backend.domain.analyzer.auth import hash_password, require_admin
 from backend.domain.analyzer.models.user import User
 from backend.domain.analyzer.models.history import AnalysisHistory
+from backend.domain.asset_registry.models import AuditLog
 
 router = APIRouter()
 
@@ -16,11 +17,17 @@ class UserCreate(BaseModel):
     username: str
     password: str
     role: str = "user"
+    knowledge_reviewer: bool = False
 
 class UserResponse(BaseModel):
     id: int
     username: str
     role: str
+    knowledge_reviewer: bool = False
+
+
+class KnowledgeReviewerUpdate(BaseModel):
+    enabled: bool
 
 class LeaderboardEntry(BaseModel):
     username: str
@@ -29,10 +36,10 @@ class LeaderboardEntry(BaseModel):
 @router.get("/users", response_model=List[UserResponse])
 async def get_users(db: AsyncSession = Depends(get_db), _: str = Depends(require_admin)):
     users = (await db.execute(select(User))).scalars().all()
-    return [{"id": u.id, "username": u.username, "role": u.role} for u in users]
+    return [{"id": u.id, "username": u.username, "role": u.role, "knowledge_reviewer": bool(u.knowledge_reviewer or u.role == "admin")} for u in users]
 
 @router.post("/users", response_model=UserResponse)
-async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), _: str = Depends(require_admin)):
+async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), current_admin: str = Depends(require_admin)):
     existing = (await db.execute(select(User).filter(User.username == user.username))).scalars().first()
     if existing:
         raise HTTPException(status_code=400, detail="Username already exists")
@@ -40,11 +47,67 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), _: s
     if retained is not None:
         raise HTTPException(status_code=409, detail="Username has retained History; choose a new username")
 
-    new_user = User(username=user.username, password=hash_password(user.password), role=user.role)
+    new_user = User(username=user.username, password=hash_password(user.password), role=user.role, knowledge_reviewer=user.knowledge_reviewer)
     db.add(new_user)
+    await db.flush()
+    if user.knowledge_reviewer:
+        db.add(AuditLog(
+            action_verb="GRANT_KNOWLEDGE_REVIEWER",
+            immutable_payload={
+                "event_type": "knowledge_reviewer_capability_changed",
+                "actor_username": current_admin,
+                "target_user_id": new_user.id,
+                "target_username": new_user.username,
+                "capability": "knowledge:review",
+                "previous_enabled": False,
+                "enabled": True,
+                "grant_context": "account_created",
+            },
+        ))
     await db.commit()
     await db.refresh(new_user)
-    return {"id": new_user.id, "username": new_user.username, "role": new_user.role}
+    return {"id": new_user.id, "username": new_user.username, "role": new_user.role, "knowledge_reviewer": bool(new_user.knowledge_reviewer or new_user.role == "admin")}
+
+
+@router.patch("/users/{user_id}/knowledge-reviewer", response_model=UserResponse)
+async def set_knowledge_reviewer(
+    user_id: int,
+    update: KnowledgeReviewerUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: str = Depends(require_admin),
+):
+    user = await db.get(User, user_id, with_for_update=True)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.role == "admin":
+        if not update.enabled:
+            raise HTTPException(
+                status_code=409,
+                detail="Admin accounts retain Knowledge review capability for compatibility",
+            )
+        return {"id": user.id, "username": user.username, "role": user.role, "knowledge_reviewer": True}
+
+    previous = bool(user.knowledge_reviewer)
+    if previous != update.enabled:
+        user.knowledge_reviewer = update.enabled
+        db.add(AuditLog(
+            action_verb=("GRANT_KNOWLEDGE_REVIEWER" if update.enabled else "REVOKE_KNOWLEDGE_REVIEWER"),
+            immutable_payload={
+                "event_type": "knowledge_reviewer_capability_changed",
+                "actor_username": current_admin,
+                "target_user_id": user.id,
+                "target_username": user.username,
+                "capability": "knowledge:review",
+                "previous_enabled": previous,
+                "enabled": update.enabled,
+            },
+        ))
+        # Capability mutation and its audit record commit atomically.
+        await db.commit()
+        await db.refresh(user)
+
+    return {"id": user.id, "username": user.username, "role": user.role, "knowledge_reviewer": bool(user.knowledge_reviewer or user.role == "admin")}
 
 @router.delete("/users/{user_id}")
 async def delete_user(user_id: int, db: AsyncSession = Depends(get_db), current_admin: str = Depends(require_admin)):

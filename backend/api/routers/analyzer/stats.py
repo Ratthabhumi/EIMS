@@ -1,12 +1,11 @@
-from sqlalchemy.future import select
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from backend.domain.analyzer.auth import get_current_user
-
-from backend.infrastructure.database import get_db_session as get_db
 from backend.domain.analyzer.models.history import AnalysisHistory
-from backend.domain.analyzer.schemas.analyze import StatsResponse, EventMetadata
+from backend.domain.analyzer.schemas.analyze import EventMetadata, StatsResponse
+from backend.infrastructure.database import get_db_session as get_db
 
 router = APIRouter()
 
@@ -16,19 +15,20 @@ async def get_stats(
     db: AsyncSession = Depends(get_db),
     _user: str = Depends(get_current_user),
 ):
-    from datetime import datetime, timedelta
     from collections import Counter
+    from datetime import UTC, datetime, timedelta
 
     records = (await db.execute(select(AnalysisHistory).where(AnalysisHistory.username == _user))).scalars().all()
     total = len(records)
     critical = 0
     total_time = 0.0
 
-    one_week_ago = datetime.utcnow() - timedelta(days=7)
+    now_utc = datetime.now(UTC).replace(tzinfo=None)
+    one_week_ago = now_utc - timedelta(days=7)
     weekly_errors = Counter()
-    
-    # Initialize daily trends for the last 7 days (including today)
-    daily_trends = { (datetime.utcnow() - timedelta(days=i)).strftime('%Y-%m-%d'): 0 for i in range(6, -1, -1) }
+
+    # Initialize daily trends from the same UTC snapshot used by the weekly filter.
+    daily_trends = {(now_utc - timedelta(days=i)).strftime('%Y-%m-%d'): 0 for i in range(6, -1, -1)}
     type_distribution = Counter()
 
     for record in records:
@@ -84,7 +84,6 @@ async def get_correlations(
     _user: str = Depends(get_current_user),
 ):
     """Find correlated event IDs: events that frequently co-occur or repeat in patterns."""
-    from datetime import datetime, timedelta
     from collections import Counter, defaultdict
 
     records = (await db.execute(select(AnalysisHistory).where(AnalysisHistory.username == _user).order_by(AnalysisHistory.created_at))).scalars().all()

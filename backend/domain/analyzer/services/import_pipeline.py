@@ -40,7 +40,15 @@ from backend.domain.analyzer.services.summary import (
     format_summary_text,
     search_solutions,
 )
+from backend.domain.incident_ingest.envelope import qualifies_winlog_severity
+from backend.domain.incident_ingest.outbox import (
+    OutboxItem,
+    enqueue_analysis_history,
+    enqueue_incident_ingest,
+    nudge_dispatch,
+)
 from backend.domain.telemetry.models import WindowsEventLog
+from backend.infrastructure.database import rollback_read_only_transaction
 
 logger = get_logger("eims.domain.import_pipeline")
 
@@ -243,19 +251,27 @@ async def _fetch_analyzed_keys(db: AsyncSession, keys: List[str]) -> set:
         return set()
 
 
-async def _persist_event(db: AsyncSession, asset_id, event: dict, dedup_key: str) -> uuid.UUID:
+async def _persist_event(db: AsyncSession, asset_id, event: dict, dedup_key: str,
+                         fallback_time: Optional[datetime] = None) -> uuid.UUID:
     """Create a WindowsEventLog row for a new event and return its log_id."""
     event_log_id = uuid.uuid4()
     row = WindowsEventLog(
         log_id=event_log_id,
         asset_id=asset_id,
-        occurrence_time=event.get("occurrence_time") or datetime.now(UTC),
+        occurrence_time=event.get("occurrence_time") or fallback_time or datetime.now(UTC),
         event_id=event.get("event_id"),
         severity_level=event.get("severity_level", "Information"),
         evtx_metadata=build_evtx_metadata(event, dedup_key),
     )
     db.add(row)
     return event_log_id
+
+
+def _verified_asset_uuid(asset_id) -> Optional[uuid.UUID]:
+    """Return asset_id only when it is already a registry UUID; never derive one."""
+    if isinstance(asset_id, uuid.UUID):
+        return asset_id
+    return None
 
 
 async def _find_event_log_id(db: AsyncSession, asset_id, dedup_key: str) -> Optional[str]:
@@ -295,6 +311,11 @@ async def _analyze_event(
     description = format_event_description(event)
 
     try:
+        # The dedup-key read can leave a clean transaction checked out. End it
+        # before search/translation work that may wait on external services.
+        if await rollback_read_only_transaction(db) is False:
+            raise RuntimeError("Import analysis requires a clean read-only DB session")
+
         results, combined_snippets = await asyncio.to_thread(
             search_solutions, event_id, provider
         )
@@ -330,9 +351,15 @@ async def _analyze_event(
             search_results=[res.model_dump() for res in results],
             search_time_ms=0.0,
             username="system",
+            # Explicit identity only: asset_id comes from the already-verified report upsert,
+            # never from hostname/workstation_name. Anything that is not a UUID stays NULL.
+            asset_id=_verified_asset_uuid(asset_id),
         )
         db.add(row)
+        await enqueue_analysis_history(
+            db, row, origin="offline_import", asset_id=_verified_asset_uuid(asset_id))
         await db.commit()
+        nudge_dispatch()
         return True
     except Exception as exc:
         logger.warning("Analysis failed for event %s/%s (non-fatal): %s", event_id, provider, exc)
@@ -389,17 +416,32 @@ async def ingest_report_events(
 
     # 3. Persist new events (one transaction, atomic)
     new_rows: List[tuple] = []  # (event, dedup_key, event_log_id)
+    observed_by_log: dict = {}  # F7: the exact occurrence_time persisted per log row, reused by the outbox
     for event, dedup_key in zip(normalized, keys):
         if dedup_key in existing_keys:
             result.events_duplicate += 1
             continue
-        event_log_id = await _persist_event(db, asset_id, event, dedup_key)
+        fallback_time = datetime.now(UTC)  # computed once per row; used for the row AND its outbox item
+        event_log_id = await _persist_event(db, asset_id, event, dedup_key, fallback_time=fallback_time)
+        observed_by_log[event_log_id] = event.get("occurrence_time") or fallback_time
         new_rows.append((event, dedup_key, event_log_id))
         result.events_new += 1
 
     if new_rows:
         try:
+            # Same transaction as the winlog rows; source_id is the actual persisted log_id and
+            # source_event_key is NULL for offline rows. Critical/Error/Warning only.
+            await enqueue_incident_ingest(db, [
+                OutboxItem(
+                    source_type="winlog", source_id=str(log_id),
+                    observed_at=observed_by_log[log_id],
+                    asset_id=_verified_asset_uuid(asset_id),
+                    provenance={"origin": "offline_import", "event_id": event.get("event_id"),
+                                "severity": event.get("severity_level")})
+                for event, _key, log_id in new_rows
+                if qualifies_winlog_severity(event.get("severity_level"))])
             await db.commit()
+            nudge_dispatch()
         except Exception as exc:
             logger.error("Failed to persist event evidence batch: %s", exc)
             await _safe_rollback(db)

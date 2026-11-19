@@ -17,10 +17,10 @@
     "provider": "Windows Security",
     "category": "Authentication",
     "severity": "Warning",
-    "description": "An account failed to log on. The leading indicator for brute-force, credential-stuffing, and password spray attacks.",
+    "description": "An account failed to log on. This event is an authentication signal for investigation; a single event does not identify the cause or prove brute-force, credential-stuffing, or password-spray activity.",
     "keywords": ["login", "logon", "failed login", "authentication", "password", "brute force", "invalid credentials"],
     "related_events": ["4624", "4740", "4771", "4776"],
-    "operator_context": "Cluster by Source Network Address and account name. High frequency within a short window indicates brute force; act before 4740 lockouts follow. Block the source IP.",
+    "operator_context": "Group by source address, account, LogonType, Status/SubStatus and time window; correlate with 4624, 4648, 4740 and expected service activity. Repeated failures are a signal to investigate, not proof of brute force. Preserve evidence and do not block a source until ownership, impact and incident-response approval are confirmed.",
     "source": "OPERATIONAL_EVENT_CATALOG"
   },
   {
@@ -1177,14 +1177,14 @@
   },
   {
     "event_id": "1129",
-    "title": "Group Policy DNS Lookup Failed",
+    "title": "Group Policy Network Connectivity Failure",
     "provider": "Microsoft-Windows-GroupPolicy",
     "category": "Group Policy",
     "severity": "Error",
-    "description": "Group Policy could not be processed because DNS lookup for the domain/DC failed.",
-    "keywords": ["group policy", "gpo", "dns", "lookup failed", "dc"],
+    "description": "Group Policy processing failed because network connectivity to a domain controller was unavailable; the event alone does not identify DNS, LDAP, routing, VPN, or firewall as the cause.",
+    "keywords": ["group policy", "gpo", "dns", "network connectivity", "domain controller"],
     "related_events": ["1054", "1014", "1015"],
-    "operator_context": "Root cause is DNS; check DC SRV records, preferred DNS server config, and connectivity to resolve the FQDN.",
+    "operator_context": "Treat DNS/DC discovery, routing, VPN, firewall, and network readiness as hypotheses. Verify DC SRV records and reachability, correlate System and GroupPolicy Operational events by ActivityID, and do not call DNS the root cause without supporting evidence.",
     "source": "OPERATIONAL_EVENT_CATALOG"
   },
   {
@@ -1304,7 +1304,7 @@
     "description": "The disk reported an error (bad block, controller communication problem).",
     "keywords": ["disk", "hard drive", "error", "bad block", "storage", "io"],
     "related_events": ["51", "153", "129", "157"],
-    "operator_context": "Predictive failure signal. Check SMART data, backup immediately, and schedule hardware replacement before data loss.",
+    "operator_context": "A disk error requires correlation with device, controller, path and array telemetry. Verify backup recoverability and collect SMART/vendor diagnostics; schedule replacement only when health evidence and the storage owner support it.",
     "source": "OPERATIONAL_EVENT_CATALOG"
   },
   {
@@ -1316,7 +1316,7 @@
     "description": "An error was detected on the paging file / disk during read/write operation.",
     "keywords": ["paging", "disk io", "error", "pagefile", "storage"],
     "related_events": ["7", "153", "157"],
-    "operator_context": "Disk hardware failure during paging can freeze the machine; check cables/controller and replace immediately.",
+    "operator_context": "A paging I/O error can involve disk, controller, driver, path or storage latency. Preserve event details, inspect SMART/RAID/SAN counters and verify backup recoverability; do not replace hardware until diagnostics identify the failing component.",
     "source": "OPERATIONAL_EVENT_CATALOG"
   },
   {
@@ -1325,10 +1325,10 @@
     "provider": "Ntfs",
     "category": "Storage / Disk",
     "severity": "Error",
-    "description": "The NTFS file system structure on the disk is corrupt, and the system is degrading gracefully (read-only).",
+    "description": "The event reports an NTFS file-system structure error. Confirm the affected volume and current mount/write state from system evidence; do not infer that every affected volume is already read-only.",
     "keywords": ["ntfs", "filesystem", "corrupt", "chkdsk", "disk", "dirty"],
     "related_events": ["7", "51", "98"],
-    "operator_context": "High severity: run chkdsk, evaluate the disk with SMART, and restore from backup if the volume is unrecoverable.",
+    "operator_context": "Preserve NTFS/storage events, identify the exact volume and verify a recoverable backup. Collect SMART, RAID and SAN diagnostics; repair-mode CHKDSK or restore is a state-changing recovery action and requires workload, backup and maintenance-impact review plus an approved recovery plan.",
     "source": "OPERATIONAL_EVENT_CATALOG"
   },
   {
@@ -1340,7 +1340,7 @@
     "description": "Volume-level integrity issue detected, either by NTFS or the resiliency layer.",
     "keywords": ["volume", "corrupt", "integrity", "ntfs", "refs", "storage"],
     "related_events": ["55", "8193"],
-    "operator_context": "Investigate volume health and backup integrity. On ReFS, enable integrity streams and rebuild degraded storage pools.",
+    "operator_context": "Investigate volume health, filesystem type, pool state and backup integrity. Do not enable integrity streams or rebuild a storage pool from this event alone; confirm ReFS/version support, pool topology, vendor guidance and a recoverable backup first.",
     "source": "OPERATIONAL_EVENT_CATALOG"
   },
   {

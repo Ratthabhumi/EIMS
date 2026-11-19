@@ -1,12 +1,12 @@
-import re
-from typing import List, Optional, Tuple
-from urllib.parse import urlparse
+import asyncio
 import json
-import requests
-from sqlalchemy.ext.asyncio import AsyncSession
+import re
+from typing import List
+from urllib.parse import urlparse
 
+from ddgs import DDGS
 from deep_translator import GoogleTranslator
-from duckduckgo_search import DDGS
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from backend.domain.analyzer.schemas.analyze import SearchResult, SolutionSummary
 from backend.domain.analyzer.services.event_knowledge import get_curated_summary
@@ -16,6 +16,9 @@ from backend.domain.analyzer.services.vendor_knowledge import (
     vendor_reference_results,
 )
 from backend.domain.analyzer.services.vendor_parsers import is_vendor_diagnostic_code
+from backend.domain.analyzer.services.verified_knowledge import (
+    search_approved_knowledge,
+)
 
 ACTION_KEYWORDS = re.compile(
     r"\b(fix|resolve|open|run|enable|disable|restart|check|configure|set|modify|"
@@ -739,157 +742,6 @@ def _build_from_web(
         return SolutionSummary(overview=overview, causes=causes, steps=steps)
 
 
-def _call_gemini(prompt: str, api_key: str) -> str:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.2}
-    }
-    headers = {"Content-Type": "application/json"}
-    try:
-        resp = requests.post(url, json=payload, headers=headers, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception as e:
-        print(f"Gemini API Error: {e}")
-        return ""
-
-def _build_from_gemini(
-    event_id: str,
-    provider: str,
-    snippets: str,
-    results: List[SearchResult],
-    language: str,
-    faulting_app: str,
-    api_key: str,
-    rag_context: str = "",
-    source_family: Optional[str] = None,
-    diagnostic_code: Optional[str] = None,
-    product: str = "",
-) -> SolutionSummary | None:
-    fam = (source_family or "").strip()
-    if not fam:
-        p_low = (provider or "").lower()
-        if "veeam" in p_low:
-            fam = "veeam_vbr"
-        elif "vmware" in p_low or "esxi" in p_low:
-            fam = "vmware"
-        elif "fortigate" in p_low or "fortinet" in p_low:
-            fam = "fortinet"
-        elif "cisco" in p_low or "asa" in p_low or "ftd" in p_low:
-            fam = "cisco_asa"
-        elif "syslog" in p_low or "linux" in p_low:
-            fam = "linux_syslog"
-        elif "json" in p_low:
-            fam = "json"
-        elif event_id.isdigit():
-            fam = "windows_event"
-        else:
-            fam = "unknown_text"
-
-    if fam == "windows_event":
-        system_context = "You are an expert Windows Server Administrator and SOC Analyst."
-        log_type_hint = ""
-        log_desc = f"Windows Event ID {event_id} from {provider or 'Windows'}"
-    elif fam == "veeam_vbr":
-        system_context = "You are an expert Veeam Backup & Replication engineer and VMware infrastructure specialist."
-        log_type_hint = (
-            "\nThis is a Veeam Backup & Replication log (replication/backup job). Focus on: "
-            "job/session stages, snapshot cleanup and revert operations, change-tracking (CBT) errors, "
-            "and VMware snapshot chain health. Describe observed evidence only; do not invent filenames, "
-            "do not claim a causal link between failure phases unless the log proves it."
-        )
-        code_part = f" ({diagnostic_code})" if diagnostic_code else ""
-        prod_part = f" ({product})" if product else ""
-        log_desc = f"Veeam diagnostic {event_id}{code_part}{prod_part}"
-    elif fam == "vmware":
-        system_context = "You are an expert VMware vSphere/ESXi engineer."
-        log_type_hint = (
-            "\nThis is a VMware ESXi/host log. Focus on: DISKLIB/CBT errors, snapshot operations, "
-            "missing-file conditions, and datastore file state. Describe observed evidence only; "
-            "do not invent filenames or lock owners."
-        )
-        code_part = f" ({diagnostic_code})" if diagnostic_code else ""
-        prod_part = f" ({product})" if product else ""
-        log_desc = f"VMware diagnostic {event_id}{code_part}{prod_part}"
-    elif fam == "fortinet":
-        system_context = "You are an expert Fortinet/FortiGate Firewall Administrator and Network Security Engineer."
-        log_type_hint = (
-            "\nThis is a Fortinet FortiGate firewall log. Focus on: traffic policy decisions, "
-            "IPS/UTM events, blocked connections, threat signatures, and network security recommendations."
-        )
-        log_desc = f"Fortinet FortiGate log (Log ID: {event_id})"
-    elif fam == "cisco_asa":
-        system_context = "You are an expert Cisco ASA/FTD Firewall Administrator and Network Security Engineer."
-        log_type_hint = (
-            "\nThis is a Cisco ASA/FTD syslog message. Focus on: access control policies, "
-            "NAT translations, VPN events, connection tracking, threat detection, and Cisco firewall recommendations."
-        )
-        log_desc = f"Cisco ASA log (Message ID: {event_id})"
-    elif fam == "linux_syslog":
-        system_context = "You are an expert Linux Systems Administrator and SRE."
-        log_type_hint = (
-            "\nThis is a Linux syslog entry. Focus on: Linux/system context, systemd service units, "
-            "kernel messages, auth/daemon logging, and host state. Describe observed errors and system state only."
-        )
-        log_desc = f"Linux syslog event from {provider or 'system'} (Identifier: {event_id})"
-    elif fam == "json":
-        system_context = "You are an expert Application Reliability and Cloud Systems Engineer."
-        log_type_hint = (
-            "\nThis is a structured JSON application or service log. Focus on: structured application/service context, "
-            "payload attributes, HTTP/RPC status codes, stack traces, and microservice error conditions."
-        )
-        log_desc = f"Structured JSON log event from {provider or 'application'} (ID: {event_id})"
-    else:  # unknown_text
-        system_context = "You are an expert Technical Incident Triage Specialist."
-        log_type_hint = (
-            "\nThis is an unstructured log entry. Perform conservative generic incident triage: "
-            "focus strictly on explicit error messages and facts present in the text, avoiding domain-specific assumptions."
-        )
-        log_desc = f"Unidentified log entry (ID: {event_id})"
-
-    fault_line = f"Faulting App: {faulting_app}\n" if (faulting_app and fam == "windows_event") else ""
-    prompt = f"""{system_context}
-Analyze {log_desc}.
-{fault_line}{log_type_hint}
-
-Internal Knowledge Base (Past Solved Issues):
-{rag_context}
-
-Web Context: {snippets}
-
-Output ONLY valid JSON with no markdown formatting. The JSON must match this structure:
-{{
-  "overview": "1-2 sentences explaining what the event means.",
-  "causes": ["cause 1", "cause 2"],
-  "steps": ["step 1", "step 2", "step 3"]
-}}
-Language required: {'Thai' if language == 'th' else 'English'}.
-"""
-    response_text = _call_gemini(prompt, api_key)
-    if not response_text:
-        return None
-        
-    try:
-        cleaned = response_text.strip()
-        if cleaned.startswith("```json"):
-            cleaned = cleaned[7:]
-        if cleaned.startswith("```"):
-            cleaned = cleaned[3:]
-        if cleaned.endswith("```"):
-            cleaned = cleaned[:-3]
-        
-        data = json.loads(cleaned.strip())
-        return SolutionSummary(
-            overview=data.get("overview", "No overview provided by AI."),
-            causes=data.get("causes", []),
-            steps=data.get("steps", [])
-        )
-    except Exception as e:
-        print(f"Gemini Parse Error: {e}")
-        return None
-
 
 def build_followup_answer(
     question: str,
@@ -907,52 +759,19 @@ def build_followup_answer(
         return ""
 
     normalized = text.lower()
-    needs_causes = bool(re.search(r"\b(cause|why|reason|because|why does|why is|why did|สาเหตุ|ทำไม|เพราะอะไร|เหตุผล)\b", normalized))
-    needs_steps = bool(re.search(r"\b(fix|solve|how|step|repair|resolve|แก้|วิธี|ทำอย่างไร|คำแนะนำ|แก้ไข|fixing|solve)\b", normalized))
-    needs_references = bool(re.search(
-        r"\b(link|reference|where|หา|ลิงก์|เอกสาร|documentation|อ้างอิง|source)\b", normalized
-    ))
-
-    if api_key:
-        sysdesc = (summary.overview or "")[:1500]
-        bounded_causes = list(summary.causes or [])[:5]
-        bounded_steps = list(summary.steps or [])[:8]
-        incident = summary.incident
-        incident_block = ""
-        if incident is not None:
-            try:
-                incident_block = (
-                    f"First observed failure: {incident.firstMeaningfulFailure}\n"
-                    f"Terminal failure: {incident.terminalFailure}\n"
-                    f"Operation stage: {incident.operationStage}\n"
-                    f"Observed paths: {list(incident.observedPaths or [])[:5]}"
-                )
-            except Exception:
-                incident_block = ""
-        bounded_evidence = list(summary.evidence or [])[:6]
-        try:
-            bounded_items = [
-                f"{i.sourceFile}:{i.lineNumber} {i.message}"
-                for i in list(summary.evidenceItems or [])[:6]
-            ]
-        except Exception:
-            bounded_items = []
-        prompt = f"""You are an expert IT assistant. The user is asking a follow-up question about an analyzed log entry.
-Context overview: {sysdesc}
-Known causes: {bounded_causes}
-Known steps: {bounded_steps}
-{incident_block}
-Observed evidence: {bounded_evidence}
-Evidence with source files: {bounded_items}
-Still unknown: {list(summary.limitations or [])[:4]}
-Next evidence to collect: {list(summary.nextEvidence or [])[:4]}
-
-User Question: {text}
-Language: {'Thai' if language == 'th' else 'English'}
-Answer the question directly and professionally. Never invent facts not present in the context."""
-        ai_ans = _call_gemini(prompt, api_key)
-        if ai_ans:
-            return ai_ans
+    # Thai has no spaces between words, so \b never fires inside phrases like "ทำไมถึงล้มเหลว".
+    needs_causes = bool(
+        re.search(r"\b(cause|why|reason|because|why does|why is|why did)\b", normalized)
+        or re.search(r"สาเหตุ|ทำไม|เพราะอะไร|เหตุผล", normalized)
+    )
+    needs_steps = bool(
+        re.search(r"\b(fix|solve|how|step|repair|resolve|fixing)\b", normalized)
+        or re.search(r"แก้|วิธี|ทำอย่างไร|ทำยังไง|คำแนะนำ|ขั้นตอน", normalized)
+    )
+    needs_references = bool(
+        re.search(r"\b(link|reference|where|documentation|source)\b", normalized)
+        or re.search(r"หา|ลิงก์|เอกสาร|อ้างอิง|แหล่งข้อมูล", normalized)
+    )
 
     lines: List[str] = []
     if language == "th":
@@ -1005,6 +824,58 @@ Answer the question directly and professionally. Never invent facts not present 
     return "\n".join(lines)
 
 
+async def _search_approved_knowledge_in_short_session(
+    db: AsyncSession,
+    *,
+    source_family: str,
+    diagnostic_identity: str,
+) -> dict | None:
+    """Read only approved exact-identity knowledge without retaining request checkout."""
+    bind = getattr(db, "bind", None)
+    if isinstance(bind, AsyncEngine):
+        async with AsyncSession(bind=bind, expire_on_commit=False) as knowledge_session:
+            return await search_approved_knowledge(
+                knowledge_session, source_family, diagnostic_identity
+            )
+    return await search_approved_knowledge(db, source_family, diagnostic_identity)
+
+
+async def _search_similar_logs_in_short_session(
+    db: AsyncSession,
+    *,
+    description: str,
+    api_key: str | None,
+    event_id: str,
+    source_family: str,
+    diagnostic_code: str | None,
+) -> List[dict]:
+    """Run RAG in an isolated short-lived session when the caller is engine-bound.
+
+    Connection-bound sessions are deliberately caller-owned (for example,
+    transaction/savepoint tests); never close or commit those sessions here.
+    """
+    bind = getattr(db, "bind", None)
+    if isinstance(bind, AsyncEngine):
+        async with AsyncSession(bind=bind, expire_on_commit=False) as rag_session:
+            return await search_similar_logs(
+                db=rag_session,
+                description=description,
+                api_key=api_key,
+                event_id=event_id,
+                source_family=source_family,
+                diagnostic_code=diagnostic_code,
+            )
+
+    return await search_similar_logs(
+        db=db,
+        description=description,
+        api_key=api_key,
+        event_id=event_id,
+        source_family=source_family,
+        diagnostic_code=diagnostic_code,
+    )
+
+
 async def build_summary(
     event_id: str,
     provider: str,
@@ -1023,6 +894,19 @@ async def build_summary(
 ) -> SolutionSummary:
     lang = language if language in ("th", "en") else "th"
     family = source_family or "windows_event"
+
+    # A human-approved exact-identity case outranks generic heuristics/catalog prose.
+    if db is not None and family != "unknown_text":
+        try:
+            approved = await _search_approved_knowledge_in_short_session(
+                db,
+                source_family=family,
+                diagnostic_identity=str(diagnostic_code or event_id or ""),
+            )
+            if approved:
+                return SolutionSummary(**approved)
+        except Exception as error:
+            print(f"Verified knowledge lookup error: {error}")
 
     from backend.domain.analyzer.services.observed_summary import observed_event_summary
     observed = observed_event_summary(event_id, provider, family, evidence_text or description or '', lang)
@@ -1047,8 +931,11 @@ async def build_summary(
 
     # Use the same source-record signal policy as incident extraction. Search
     # snippets are reference material, never evidence that this input failed.
-    from backend.domain.analyzer.services.incident_extract import _is_noise, _signal_strength
-    raw_evidence = description or evidence_text
+    from backend.domain.analyzer.services.incident_extract import (
+        _is_noise,
+        _signal_strength,
+    )
+    raw_evidence = evidence_text or description
     if raw_evidence.strip() and not any(
         not _is_noise(line) and _signal_strength(line) >= 1
         for line in raw_evidence.splitlines()
@@ -1069,8 +956,8 @@ async def build_summary(
     similar = []
     if description and db and family != "unknown_text":
         try:
-            similar = await search_similar_logs(
-                db=db,
+            similar = await _search_similar_logs_in_short_session(
+                db,
                 description=description,
                 api_key=api_key,
                 event_id=event_id,
@@ -1082,31 +969,14 @@ async def build_summary(
         except Exception as e:
             print(f"RAG search error: {e}")
 
-    if api_key:
-        gemini_summary = _build_from_gemini(
-            event_id,
-            provider,
-            snippets,
-            results,
-            lang,
-            faulting_app,
-            api_key,
-            rag_context,
-            source_family=family,
-            diagnostic_code=diagnostic_code,
-            product=product,
-        )
-        if gemini_summary:
-            return gemini_summary
-
-    # If no Gemini API but we found a similar past solution in our local vector DB, use it!
+    # Reuse only locally stored, positively verified knowledge when available.
     if similar:
         try:
             return SolutionSummary(**similar[0])
         except Exception:
             pass
 
-    return _build_from_web(
+    return await asyncio.to_thread(_build_from_web,
         event_id, provider, snippets, results, lang, faulting_app,
         source_family=family, diagnostic_code=diagnostic_code, product=product,
     )

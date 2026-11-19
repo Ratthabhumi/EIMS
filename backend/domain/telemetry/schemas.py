@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from backend.domain.asset_registry.schemas import PaginationMetadata
 
@@ -50,6 +50,13 @@ class WinlogMetadata(BaseModel):
 class AgentWinlogRequest(BaseModel):
     """Ingestion schema receiving continuous native .evtx streaming event strings and forensic anomalies."""
     occurrence_time: datetime = Field(..., description="Windows event occurrence time stamped in UTC.")
+
+    @field_validator("occurrence_time")
+    @classmethod
+    def require_timezone_and_normalize_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("occurrence_time must include a timezone offset")
+        return value.astimezone(UTC)
     event_id: int = Field(..., ge=0, description="Canonical Windows Event ID identifier (e.g., 4625 for logon failure).")
     severity: str = Field(..., max_length=50, description="Event severity classification literal (Critical, Warning, Information).")
     event_channel: str = Field(..., max_length=100, description="Windows log channel source (Security, System, Application).")

@@ -7,6 +7,9 @@ from fastapi import HTTPException
 from backend.domain.analyzer.models.session import AnalyzerSession, LoginWindow
 
 IDLE_SECONDS = 900
+# Avoid serializing every authenticated API request on one session-row UPDATE.
+# Active sessions are touched at most once per interval; idle expiry remains 15 minutes.
+SESSION_TOUCH_INTERVAL_SECONDS = 30
 WINDOW_SECONDS = 60
 ACCOUNT_LIMIT = 8
 CLIENT_LIMIT = 120
@@ -37,14 +40,29 @@ async def reserve_login(db, username, peer):
 
 async def validate_session(db, sid, user, touch=True):
     now = datetime.now(timezone.utc)
-    stmt = update(AnalyzerSession).where(
-        AnalyzerSession.id == digest(sid), AnalyzerSession.user_id == user.id,
-        AnalyzerSession.username == user.username, AnalyzerSession.revoked_at.is_(None),
+    identity = (
+        AnalyzerSession.id == digest(sid),
+        AnalyzerSession.user_id == user.id,
+        AnalyzerSession.username == user.username,
+        AnalyzerSession.revoked_at.is_(None),
         AnalyzerSession.credential_version == digest(user.password or ''),
         AnalyzerSession.expires_at > now,
         AnalyzerSession.last_seen > now - timedelta(seconds=IDLE_SECONDS),
-    ).values(last_seen=now if touch else AnalyzerSession.last_seen).returning(AnalyzerSession.id)
-    valid = (await db.execute(stmt)).scalar_one_or_none()
+    )
+    valid = None
+    if touch:
+        # Update last_seen only when the current activity marker is stale. Concurrent
+        # requests for one user no longer serialize on a write to the same session row.
+        stmt = update(AnalyzerSession).where(
+            *identity,
+            AnalyzerSession.last_seen <= now - timedelta(seconds=SESSION_TOUCH_INTERVAL_SECONDS),
+        ).values(last_seen=now).returning(AnalyzerSession.id)
+        valid = (await db.execute(stmt)).scalar_one_or_none()
+    if valid is None:
+        # Background session checks and recent activity are read-only. In particular,
+        # touch=False must not issue a no-op UPDATE that still takes a row lock.
+        from sqlalchemy import select
+        valid = (await db.execute(select(AnalyzerSession.id).where(*identity))).scalar_one_or_none()
     await db.commit()
     if valid is None:
         raise HTTPException(401, detail='Invalid token')

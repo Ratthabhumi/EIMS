@@ -56,8 +56,17 @@ async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends
 
 
 @router.get('/session')
-async def session_info(user: str = Depends(get_current_user)):
-    return {'username': user, 'mode': settings.AUTH_MODE.lower()}
+async def session_info(
+    user: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+):
+    account = (await db.execute(select(User).where(User.username == user))).scalars().first()
+    is_admin = bool(account and account.role == 'admin')
+    return {
+        'username': user,
+        'mode': settings.AUTH_MODE.lower(),
+        'capabilities': {'knowledge_review': bool(is_admin or (account and account.knowledge_reviewer))},
+    }
 
 
 @router.post('/logout')

@@ -1,12 +1,13 @@
-from sqlalchemy.future import select
-import json
 import re
-from typing import Optional, List
+
+from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import desc, text
+from sqlalchemy.future import select
+
+from backend.core.config import settings
 from backend.domain.analyzer.models.vector import VectorKnowledge
 from backend.domain.analyzer.services.vendor_parsers import is_vendor_diagnostic_code
-from backend.core.config import settings
+from backend.infrastructure.database import rollback_read_only_transaction
 
 # Cross-identity distance gate: a candidate whose diagnostic identity
 # differs from the request is only reusable when it is genuinely close.
@@ -76,7 +77,7 @@ def _get_local_model():
                 print(f"Failed to load local embedding model: {e} | {se}")
     return _local_model
 
-def _get_embedding(text_content: str, api_key: Optional[str] = None) -> list[float]:
+def _get_embedding(text_content: str, api_key: str | None = None) -> list[float]:
     """Generates 384-dimensional dense semantic embedding locally (Free, Ultra-fast, 100% Offline)."""
     if not text_content or not text_content.strip():
         return []
@@ -95,24 +96,8 @@ def _get_embedding(text_content: str, api_key: Optional[str] = None) -> list[flo
         except Exception as e:
             print(f"Local Embedding generation error: {e}")
 
-    # 2. Fallback: Cloud Gemini API if model cannot be loaded and key is present
-    if api_key:
-        import requests
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={api_key}"
-        payload = {
-            "model": "models/text-embedding-004",
-            "content": {"parts": [{"text": text_content}]}
-        }
-        headers = {'Content-Type': 'application/json'}
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=10)
-            response.raise_for_status()
-            data = response.json()
-            if "embedding" in data and "values" in data["embedding"]:
-                return data["embedding"]["values"][:384]
-        except Exception as e:
-            print(f"Cloud Gemini embedding error: {e}")
-
+    # No cloud fallback: knowledge retrieval is local-only and fails closed when
+    # the local embedding model is unavailable.
     return []
 
 async def add_solution(
@@ -121,33 +106,57 @@ async def add_solution(
     description: str, 
     solution_summary: dict, 
     feedback_score: int = 0, 
-    api_key: Optional[str] = None,
-    source_family: Optional[str] = None,
-    diagnostic_identity: Optional[str] = None,
+    api_key: str | None = None,
+    source_family: str | None = None,
+    diagnostic_identity: str | None = None,
 ):
-    """Adds a log and its verified solution to the Vector Knowledge Base.
+    """Store a feedback-tagged knowledge candidate; it remains pending review.
 
-    Negative feedback no longer vanishes: the exact existing row is
-    updated/quarantined with the negative score so retrieval guardrails
-    exclude it.  When no exact row exists there is nothing to quarantine
-    and nothing is inserted.
+    A thumbs-up records usefulness, not root-cause verification. Shared retrieval
+    requires an explicit reviewer approval marker. Negative feedback quarantines
+    an exact existing row; it never creates a new candidate.
     """
     # Existing shared knowledge rows have no owner identity. Do not publish
     # private secure-user History into that namespace until it is owner-scoped.
     if settings.AUTH_MODE.lower() == 'secure':
         return None
+    if await rollback_read_only_transaction(db) is False:
+        # Vector export is best-effort; do not hold a dirty caller transaction
+        # while waiting for local embedding inference.
+        return
+
     sol_dict = dict(solution_summary) if isinstance(solution_summary, dict) else {}
     if source_family or diagnostic_identity:
         sol_dict["_knowledge"] = {
             "sourceFamily": str(source_family or ""),
             "diagnosticIdentity": str(diagnostic_identity or event_id or ""),
+            "reviewStatus": "pending",
+            "reviewedBy": None,
+            "reviewedAt": None,
         }
 
+    # Embedding work can be CPU-heavy. Complete it before the first DB query so
+    # an idle request session does not hold a pooled connection during inference.
+    embedding = None
+    if feedback_score >= 0:
+        document_text = redact_for_embedding(f"Event ID: {event_id}. Description: {description}")
+        try:
+            import asyncio
+            embedding = await asyncio.to_thread(_get_embedding, document_text, api_key)
+        except Exception:
+            embedding = _get_embedding(document_text, api_key)
+
     try:
-        # Check if we already have this exact solution
-        existing = (await db.execute(select(VectorKnowledge).filter(VectorKnowledge.event_id == str(event_id), VectorKnowledge.description == description))).scalars().first()
+        existing = (await db.execute(
+            select(VectorKnowledge).filter(
+                VectorKnowledge.event_id == str(event_id),
+                VectorKnowledge.description == description,
+            )
+        )).scalars().first()
     except Exception as e:
         print(f"Failed to look up Vector DB row: {e}")
+        if await rollback_read_only_transaction(db) is False:
+            return
         if feedback_score < 0:
             return
         existing = None
@@ -158,15 +167,8 @@ async def add_solution(
         existing.feedback_score = feedback_score
         if sol_dict:
             existing.solution_json = sol_dict
-        if feedback_score >= 0:
-            refresh_text = redact_for_embedding(f"Event ID: {event_id}. Description: {description}")
-            try:
-                import asyncio
-                refresh_embedding = await asyncio.to_thread(_get_embedding, refresh_text, api_key)
-            except Exception:
-                refresh_embedding = _get_embedding(refresh_text, api_key)
-            if refresh_embedding:
-                existing.embedding = refresh_embedding
+        if feedback_score >= 0 and embedding:
+            existing.embedding = embedding
         try:
             await db.commit()
         except Exception as e:
@@ -175,26 +177,21 @@ async def add_solution(
         return
 
     if feedback_score < 0:
-        # Nothing to quarantine: no exact row exists, so insert nothing.
+        # Nothing to quarantine: release the read-only lookup before returning.
+        await rollback_read_only_transaction(db)
         return
 
-    document_text = redact_for_embedding(f"Event ID: {event_id}. Description: {description}")
-    try:
-        import asyncio
-        embedding = await asyncio.to_thread(_get_embedding, document_text, api_key)
-    except Exception:
-        embedding = _get_embedding(document_text, api_key)
-    
     if not embedding:
+        await rollback_read_only_transaction(db)
         return
-        
+
     try:
         new_knowledge = VectorKnowledge(
             event_id=str(event_id),
             description=description,
             embedding=embedding,
             solution_json=sol_dict,
-            feedback_score=feedback_score
+            feedback_score=feedback_score,
         )
         db.add(new_knowledge)
         await db.commit()
@@ -209,23 +206,13 @@ def _is_usable_knowledge_row(
     request_family: str,
     distance: float,
     max_distance: float = CROSS_IDENTITY_MAX_DISTANCE,
-    row_solution_json: Optional[dict] = None,
+    row_solution_json: dict | None = None,
 ) -> bool:
-    """Pure retrieval-guardrail predicate (unit-testable, no DB).
+    """Pure, fail-closed retrieval policy (unit-testable, no database).
 
-    Rules:
-    - negative feedback rows are never retrievable;
-    - unidentified sources (unknown_text) perform NO retrieval;
-    - vendor diagnostic requests reuse ONLY the exact same code
-      (Windows solutions can never answer Veeam/VMware and vice versa);
-    - Cisco ASA -> cisco_asa only;
-    - Fortinet -> fortinet only;
-    - Linux -> linux_syslog only;
-    - JSON -> json only;
-    - Windows numeric -> windows_event only;
-    - Legacy unmarked rows: conservative compatibility only (legacy numeric -> Windows only);
-    - unverified score-0 rows are reusable ONLY under the exact same diagnostic identity;
-    - cross-identity reuse within allowed family requires positive feedback AND close distance.
+    A positive feedback score means "helpful", not "verified". Retrieval therefore
+    requires an explicit human review marker, reviewer identity and review time.
+    Only the same source family is eligible; vendor diagnostics require exact codes.
     """
     try:
         score = int(row_score) if row_score is not None else 0
@@ -235,85 +222,49 @@ def _is_usable_knowledge_row(
         return False
 
     req_family = str(request_family or "").strip()
-    if req_family == "unknown_text":
+    req_id = str(request_identity or "").strip()
+    if not req_family or req_family == "unknown_text" or not req_id or req_id == "Unknown":
         return False
 
-    row_id = str(row_event_id or "").strip()
-    req_id = str(request_identity or "").strip()
-
     knowledge = (row_solution_json or {}).get("_knowledge") if isinstance(row_solution_json, dict) else None
-    if knowledge and isinstance(knowledge, dict):
-        row_family = str(knowledge.get("sourceFamily") or "").strip()
-        row_diag = str(knowledge.get("diagnosticIdentity") or row_id).strip()
-    else:
-        row_family = ""
-        row_diag = row_id
+    if not isinstance(knowledge, dict):
+        return False
+    if str(knowledge.get("reviewStatus") or "").strip().lower() != "approved":
+        return False
+    if not str(knowledge.get("reviewedBy") or "").strip() or not str(knowledge.get("reviewedAt") or "").strip():
+        return False
+
+    row_family = str(knowledge.get("sourceFamily") or "").strip()
+    row_diag = str(knowledge.get("diagnosticIdentity") or row_event_id or "").strip()
+    if not row_family or not row_diag or row_family != req_family:
+        return False
 
     req_is_vendor = req_family in ("veeam_vbr", "vmware") or is_vendor_diagnostic_code(req_id)
     row_is_vendor = row_family in ("veeam_vbr", "vmware") or is_vendor_diagnostic_code(row_diag)
+    if req_is_vendor or row_is_vendor:
+        return req_is_vendor and row_is_vendor and row_diag == req_id
 
-    # Vendor isolation: vendor can only answer exact same vendor diagnostic code
-    if req_is_vendor:
-        if not row_is_vendor:
-            return False
-        if row_family and req_family and row_family != req_family:
-            return False
-        return row_diag == req_id
-
-    if row_is_vendor:
-        # A vendor row must never answer a non-vendor request
-        return False
-
-    # Family-specific matching for known non-vendor families
-    if req_family in ("cisco_asa", "fortinet", "palo_alto", "linux_syslog", "json"):
-        if row_family != req_family:
-            return False
-
-    # Legacy unmarked rows
-    if not row_family:
-        if row_id.isdigit():
-            # Legacy numeric row is Windows only
-            if req_family != "windows_event":
-                return False
-            if row_id == req_id:
-                return True
-            if score <= 0:
-                return False
-            return distance <= max_distance
-        else:
-            # Conservative compatibility for other legacy rows
-            if req_family in ("cisco_asa", "fortinet", "palo_alto", "linux_syslog", "json", "veeam_vbr", "vmware"):
-                return False
-
-    if req_family == "windows_event":
-        if row_family and row_family != "windows_event":
-            return False
-
-    # Same identity check
-    if req_id and req_id != "Unknown" and row_diag == req_id:
+    if row_diag == req_id:
         return True
 
-    # Cross-identity within the same family: must be verified (score > 0) and close
-    if score <= 0:
-        return False
+    # Cross-identity retrieval is permitted only for an explicitly approved entry
+    # in the same family and within the configured semantic-distance threshold.
     return distance <= max_distance
 
 
 async def search_similar_logs(
-    db: AsyncSession, 
-    description: str, 
-    api_key: Optional[str] = None, 
-    event_id: Optional[str] = None, 
+    db: AsyncSession,
+    description: str,
+    api_key: str | None = None,
+    event_id: str | None = None,
     top_k: int = 2,
-    source_family: Optional[str] = None,
-    diagnostic_code: Optional[str] = None,
-) -> List[dict]:
-    """Search past solved logs with domain guardrails.
+    source_family: str | None = None,
+    diagnostic_code: str | None = None,
+) -> list[dict]:
+    """Search only explicitly approved knowledge entries with domain guardrails.
 
-    - unknown_text sources perform NO retrieval (no cross-domain answers);
-    - vendor diagnostic codes filter to the exact identity;
-    - negative-feedback rows are excluded; score-0 rows only under the
-      same diagnostic identity; verified rows are preferred.
+    User feedback ranks helpfulness but never approves a candidate. Unknown sources
+    perform no retrieval, and vendor diagnostics require the exact same code.
     """
     if settings.AUTH_MODE.lower() == 'secure':
         return []
@@ -341,7 +292,7 @@ async def search_similar_logs(
             query = query.filter(VectorKnowledge.event_id == str(diagnostic_code))
         elif event_id and event_id != "Unknown":
             query = query.filter(VectorKnowledge.event_id == str(event_id))
-        # Prefer positively verified knowledge, then closest vectors.
+        # Review approval gates retrieval; feedback score only ranks usefulness.
         query = (
             query.order_by(desc(VectorKnowledge.feedback_score), distance_col)
             .limit(max(top_k * 4, 8))
@@ -365,7 +316,9 @@ async def search_similar_logs(
             ):
                 continue
             if getattr(entity, "solution_json", None):
-                matches.append(entity.solution_json)
+                public_solution = dict(entity.solution_json)
+                public_solution.pop("_knowledge", None)
+                matches.append(public_solution)
             if len(matches) >= top_k:
                 break
         return matches

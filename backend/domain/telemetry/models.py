@@ -17,6 +17,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -58,6 +59,7 @@ class TelemetryMetric(Base):
         nullable=False,
         doc="Recorded CPU utilization percentage (0.0 to 100.0)."
     )
+    source_event_key: Mapped[str | None] = mapped_column(String(160), nullable=True)
     diagnostic_payload: Mapped[dict[str, Any]] = mapped_column(
         JSONB,
         nullable=False,
@@ -67,6 +69,7 @@ class TelemetryMetric(Base):
 
     __table_args__ = (
         Index("idx_telemetry_asset_time", "asset_id", "event_time"),
+        Index("uq_telemetry_metrics_source_event_key", "source_event_key", unique=True),
         {"comment": "High-frequency operational metrics governed under Core Law 4."}
     )
 
@@ -106,6 +109,7 @@ class WindowsEventLog(Base):
         nullable=False,
         doc="Categorized runtime criticality (Information, Warning, Critical)."
     )
+    source_event_key: Mapped[str | None] = mapped_column(String(160), nullable=True)
     evtx_metadata: Mapped[dict[str, Any]] = mapped_column(
         JSONB,
         nullable=False,
@@ -115,5 +119,33 @@ class WindowsEventLog(Base):
 
     __table_args__ = (
         Index("idx_winlog_metadata_gin", "evtx_metadata", postgresql_using="gin"),
+        Index("uq_windows_event_logs_source_event_key", "source_event_key", unique=True),
+        # Brute-force (4625) per-source-IP window count; must match migration a3d6f1e8c295.
+        Index("idx_winlog_4625_src_ip_time",
+              text("(evtx_metadata ->> 'source_network_ip')"), "occurrence_time",
+              postgresql_where=text("event_id = 4625")),
         {"comment": "Windows diagnostic logs featuring polymorphic GIN-indexed metadata."}
+    )
+
+
+class TelemetryAlertOutbox(Base):
+    """Transactional outbox: written in the same transaction as the quarantine/AuditLog.
+
+    A dispatcher publishes pending rows (published_at IS NULL) to a durable Redis Stream
+    after commit and stamps published_at only once XADD is confirmed (at-least-once;
+    consumers dedupe on alert_id).
+    """
+    __tablename__ = "telemetry_alert_outbox"
+
+    alert_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
+        doc="Stable alert identifier, also emitted in the published payload for consumer dedupe.")
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=_utcnow)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("idx_telemetry_alert_outbox_pending", "created_at",
+              postgresql_where=text("published_at IS NULL")),
     )

@@ -1,9 +1,16 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Float
+from datetime import UTC, datetime
+
+from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Index, Integer, String, desc
+from sqlalchemy.dialects.postgresql import UUID
+
 from backend.infrastructure.database import Base
-from datetime import datetime
+
 
 class AnalysisHistory(Base):
     __tablename__ = "analysis_history"
+    __table_args__ = (
+        Index("ix_analysis_history_username_created_at_id", "username", desc("created_at"), desc("id")),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     event_id = Column(String, index=True)
@@ -18,4 +25,14 @@ class AnalysisHistory(Base):
     feedback_score = Column(Integer, default=0)
     username = Column(String, default="admin")
     feedback_by = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    # Optional, additive identity link to the asset registry. Never backfilled
+    # from computer-name heuristics: unresolved stays NULL until evidence
+    # explicitly supplies a resolved asset_id.
+    asset_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("infrastructure_assets.asset_id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    # Legacy column is TIMESTAMP WITHOUT TIME ZONE; persist UTC-naive values explicitly.
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None))

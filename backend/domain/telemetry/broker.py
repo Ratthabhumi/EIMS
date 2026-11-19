@@ -1,175 +1,214 @@
-"""
-==============================================================================
-EIMS Telemetry Redis Stream Broker Architecture
-Governed by EIMS Documentation System (EDS v1.0.0) - Core Law 4 Section 7.3
-Source-Available All Rights Reserved Policy
-==============================================================================
-"""
-
+"""EIMS Redis Stream broker with consumer-group recovery and durable acknowledgements."""
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
+import json
+import uuid
 from typing import Any
 
 from fastapi import HTTPException, status
+from redis.exceptions import ResponseError
 
 from backend.core.logger import get_logger
-from backend.domain.telemetry.schemas import (
-    AgentHeartbeatRequest,
-    AgentWinlogRequest,
-    StreamIngestionResponse,
-)
+from backend.domain.telemetry.schemas import AgentHeartbeatRequest, AgentWinlogRequest, StreamIngestionResponse
 from backend.infrastructure.cache import AsynchronousCacheManager
 
 logger = get_logger("eims.telemetry.broker")
-
-# Canonical Core Law 4 Section 7.3 Redis Stream Namespace
 TELEMETRY_STREAM_KEY = "eims:telemetry:ingestion"
-# Hard length ceiling preventing out-of-memory conditions during telemetry surges or log storms
+TELEMETRY_CONSUMER_GROUP = "eims:telemetry:consumer"
+TELEMETRY_DEAD_LETTER_STREAM_KEY = "eims:telemetry:dead-letter"
+# Retained as a monitoring threshold only; MAXLEN is unsafe for pending entries.
 MAX_STREAM_LENGTH = 100000
+SOURCE_EVENT_KEY_MAX_LENGTH = 160
+
+
+def is_nogroup_error(exc: BaseException) -> bool:
+    """True for a Redis ResponseError meaning the stream/consumer group no longer exists."""
+    return isinstance(exc, ResponseError) and "NOGROUP" in str(exc).upper()
 
 
 class AbstractTelemetryBroker(ABC):
-    """Authoritative protocol defining high-frequency asynchronous telemetry ingestion."""
-
+    """Transport contract shared by Redis and hermetic test brokers."""
     @abstractmethod
-    async def publish_heartbeat(self, payload: AgentHeartbeatRequest, cert_fingerprint: str) -> StreamIngestionResponse:
-        ...
-
+    async def publish_heartbeat(self, payload: AgentHeartbeatRequest, cert_fingerprint: str,
+                                source_event_key: str | None = None) -> StreamIngestionResponse: ...
     @abstractmethod
-    async def publish_winlog(self, payload: AgentWinlogRequest, cert_fingerprint: str) -> StreamIngestionResponse:
-        ...
-
+    async def publish_winlog(self, payload: AgentWinlogRequest, cert_fingerprint: str,
+                             source_event_key: str | None = None) -> StreamIngestionResponse: ...
     @abstractmethod
-    async def fetch_stream_batch(self, stream_key: str, last_id: str, batch_size: int) -> tuple[list, str, str | None]:
-        """Returns (messages, stream_key, error_signal) for the given stream cursor."""
-        ...
-
+    async def fetch_stream_batch(self, stream_key: str, last_id: str, batch_size: int) -> tuple[list, str, str | None]: ...
     @abstractmethod
-    async def ack_stream_messages(self, stream_key: str, message_ids: list[str]) -> None:
-        """Acknowledgess a batch of processed stream entries (no-op on hermetic stubs)."""
-        ...
+    async def ack_stream_messages(self, stream_key: str, message_ids: list[str]) -> None: ...
+    @abstractmethod
+    async def dead_letter_stream_message(self, stream_key: str, message_id: str,
+                                         entry: dict[str, Any], reason: str) -> None: ...
 
 
 class RedisTelemetryStreamBroker(AbstractTelemetryBroker):
-    """
-    Production Redis Stream Event Broker pushing diagnostic envelopes into
-    'eims:telemetry:ingestion' utilizing approximate length truncation (XADD maxlen=100k).
-    """
-    def __init__(self, cache_manager: AsynchronousCacheManager):
+    """At-least-once Redis Streams transport with stale-pending recovery."""
+    def __init__(self, cache_manager: AsynchronousCacheManager, *, consumer_name: str | None = None,
+                 group_name: str = TELEMETRY_CONSUMER_GROUP, reclaim_idle_ms: int = 30000):
         self._cache = cache_manager
+        self.consumer_name = consumer_name or f"eims-{uuid.uuid4().hex[:12]}"
+        self.group_name = group_name
+        self.reclaim_idle_ms = max(0, int(reclaim_idle_ms))
+        self._ready_groups: set[tuple[str, str]] = set()
 
-    async def _publish_to_stream(self, event_type: str, payload_json: str, cert_fingerprint: str) -> StreamIngestionResponse:
+    async def _ensure_group(self, client, stream_key: str) -> None:
+        identity = (stream_key, self.group_name)
+        if identity in self._ready_groups:
+            return
+        try:
+            await client.xgroup_create(name=stream_key, groupname=self.group_name, id="0-0", mkstream=True)
+        except ResponseError as exc:
+            if "BUSYGROUP" not in str(exc).upper():
+                raise
+        self._ready_groups.add(identity)
+
+    async def _heal_missing_group(self, client, stream_key: str) -> None:
+        """Redis lost the stream/group (NOGROUP): drop only this group's ready flag and recreate it.
+
+        Never deletes streams/groups and never touches pending entries. Recreation failure is
+        logged and swallowed; the flag stays cleared so the next poll (after the caller's
+        polling interval) retries. There is deliberately no inner retry loop.
+        """
+        self._ready_groups.discard((stream_key, self.group_name))
+        logger.warning("Telemetry consumer group missing (NOGROUP); recreating on next poll")
+        try:
+            await self._ensure_group(client, stream_key)
+        except Exception:
+            logger.exception("Telemetry consumer group recreation failed; will retry next poll")
+
+    @staticmethod
+    def _text(value):
+        return value.decode("utf-8") if isinstance(value, bytes) else value
+
+    async def _publish_to_stream(self, event_type: str, payload_json: str, cert_fingerprint: str,
+                                 source_event_key: str | None = None) -> StreamIngestionResponse:
         self._cache._validate_namespace(TELEMETRY_STREAM_KEY)
         client = self._cache._redis_client
+        if client is None:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                                detail="Telemetry ingestion temporarily unavailable",
+                                headers={"Retry-After": "5"})
+        if source_event_key is not None and (not source_event_key or len(source_event_key) > SOURCE_EVENT_KEY_MAX_LENGTH):
+            raise HTTPException(status_code=422, detail="Invalid telemetry idempotency key")
+        envelope = {"event_type": event_type, "cert_fingerprint": cert_fingerprint,
+                    "payload": payload_json, "ingested_at": datetime.now(UTC).isoformat()}
+        if source_event_key is not None:
+            envelope["source_event_key"] = source_event_key
+        try:
+            # Never MAXLEN-trim: it can delete unacknowledged consumer-group entries.
+            stream_id = await client.xadd(name=TELEMETRY_STREAM_KEY, fields=envelope)
+            if not stream_id:
+                raise RuntimeError("Redis did not return a stream identifier")
+            return StreamIngestionResponse(status="accepted", stream_job_id=self._text(stream_id))
+        except HTTPException:
+            raise
+        except Exception:
+            logger.exception("Redis telemetry XADD failed; ingestion was not confirmed")
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                                detail="Telemetry ingestion temporarily unavailable",
+                                headers={"Retry-After": "5"}) from None
 
-        envelope = {
-            "event_type": event_type,
-            "cert_fingerprint": cert_fingerprint,
-            "payload": payload_json,
-            "ingested_at": datetime.now(UTC).isoformat()
-        }
+    async def publish_heartbeat(self, payload: AgentHeartbeatRequest, cert_fingerprint: str,
+                                source_event_key: str | None = None) -> StreamIngestionResponse:
+        return await self._publish_to_stream("heartbeat", payload.model_dump_json(), cert_fingerprint, source_event_key)
 
-        if client is not None:
-            try:
-                # Execute Redis XADD command with length boundary per Table 7.3
-                stream_id = await client.xadd(
-                    name=TELEMETRY_STREAM_KEY,
-                    fields=envelope,
-                    maxlen=MAX_STREAM_LENGTH,
-                    approximate=True
-                )
-                logger.debug(f"Telemetry stream ingestion accepted: sequence ID={stream_id}")
-                return StreamIngestionResponse(status="accepted", stream_job_id=str(stream_id))
-            except Exception:
-                logger.exception("Redis Stream XADD failed; ingestion was not confirmed")
-        else:
-            logger.error("Redis Stream client unavailable; ingestion was not attempted")
-
-        # Never fabricate an accepted job ID when Redis did not confirm a write.
-        # The client may safely retry, but a network timeout after XADD may have
-        # persisted the event; idempotency remains a separate delivery concern.
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Telemetry ingestion temporarily unavailable",
-            headers={"Retry-After": "5"},
-        )
-
-    async def publish_heartbeat(self, payload: AgentHeartbeatRequest, cert_fingerprint: str) -> StreamIngestionResponse:
-        return await self._publish_to_stream("heartbeat", payload.model_dump_json(), cert_fingerprint)
-
-    async def publish_winlog(self, payload: AgentWinlogRequest, cert_fingerprint: str) -> StreamIngestionResponse:
-        return await self._publish_to_stream("winlog", payload.model_dump_json(), cert_fingerprint)
+    async def publish_winlog(self, payload: AgentWinlogRequest, cert_fingerprint: str,
+                             source_event_key: str | None = None) -> StreamIngestionResponse:
+        return await self._publish_to_stream("winlog", payload.model_dump_json(), cert_fingerprint, source_event_key)
 
     async def fetch_stream_batch(self, stream_key: str, last_id: str, batch_size: int) -> tuple[list, str, str | None]:
         client = self._cache._redis_client
         if client is None:
             return [], stream_key, "broker-unavailable"
         try:
-            streams = await client.xread({stream_key: last_id}, count=batch_size, block=10)
-        except Exception as e:
-            logger.error(f"Broker stream read failure: {e}")
+            await self._ensure_group(client, stream_key)
+            claimed = await client.xautoclaim(
+                name=stream_key, groupname=self.group_name, consumername=self.consumer_name,
+                min_idle_time=self.reclaim_idle_ms, start_id="0-0", count=batch_size)
+            pending = claimed[1] if isinstance(claimed, (tuple, list)) else claimed.get("messages", [])
+            if pending:
+                return [(self._text(mid), fields) for mid, fields in pending], stream_key, None
+            streams = await client.xreadgroup(
+                groupname=self.group_name, consumername=self.consumer_name,
+                streams={stream_key: ">"}, count=batch_size, block=10)
+        except ResponseError as exc:
+            if is_nogroup_error(exc):
+                await self._heal_missing_group(client, stream_key)
+                return [], stream_key, "group-recreated"
+            logger.exception("Telemetry consumer-group read/recovery failed")
+            return [], stream_key, "stream-read-error"
+        except Exception:
+            logger.exception("Telemetry consumer-group read/recovery failed")
             return [], stream_key, "stream-read-error"
         if not streams:
             return [], stream_key, None
-        messages = [
-            (m_id if isinstance(m_id, str) else m_id.decode("utf-8"), entry)
-            for m_id, entry in streams[0][1]
-        ]
+        messages = [(self._text(mid), fields)
+                    for _, entries in streams for mid, fields in entries]
         return messages, stream_key, None
 
     async def ack_stream_messages(self, stream_key: str, message_ids: list[str]) -> None:
         client = self._cache._redis_client
-        if client is None or not message_ids:
+        if client is None:
+            raise RuntimeError("Redis unavailable; telemetry acknowledgement not confirmed")
+        if not message_ids:
             return
+        acknowledged = await client.xack(stream_key, self.group_name, *message_ids)
+        if acknowledged != len(message_ids):
+            raise RuntimeError(f"Redis acknowledged {acknowledged} of {len(message_ids)} telemetry entries")
+        # Cleanup is best-effort only after the durable ACK has succeeded.
         try:
-            await client.xack(stream_key, "eims:telemetry:consumer", *message_ids)
-        except Exception as e:
-            logger.error(f"Broker stream acknowledgement failure: {e}")
+            await client.xdel(stream_key, *message_ids)
+        except Exception:
+            logger.warning("Telemetry entries were acknowledged but stream cleanup failed")
+
+    async def dead_letter_stream_message(self, stream_key: str, message_id: str,
+                                         entry: dict[str, Any], reason: str) -> None:
+        client = self._cache._redis_client
+        if client is None:
+            raise RuntimeError("Redis unavailable; telemetry dead-letter write not confirmed")
+        await client.xadd(TELEMETRY_DEAD_LETTER_STREAM_KEY, fields={
+            "source_stream": stream_key, "source_stream_id": message_id,
+            "reason": reason[:160], "entry": json.dumps(entry, ensure_ascii=False, default=str),
+            "failed_at": datetime.now(UTC).isoformat()})
 
 
 class StubTelemetryStreamBroker(AbstractTelemetryBroker):
-    """
-    In-memory FIFO stream queue simulating Redis Stream broker processing
-    for instantaneous hermetic test automation without physical network sockets.
-    """
+    """In-memory at-least-once broker; entries remain until explicit ACK."""
     def __init__(self):
         self.stream_buffer: list[dict[str, Any]] = []
+        self.dead_letter_buffer: list[dict[str, Any]] = []
         self._counter = 0
 
-    async def _push(self, event_type: str, payload_json: str, cert_fingerprint: str) -> StreamIngestionResponse:
+    async def _push(self, event_type: str, payload_json: str, cert_fingerprint: str,
+                    source_event_key: str | None = None) -> StreamIngestionResponse:
         self._counter += 1
         job_id = f"stub-{int(datetime.now(UTC).timestamp() * 1000)}-{self._counter}"
-
-        entry = {
-            "sequence_id": job_id,
-            "event_type": event_type,
-            "cert_fingerprint": cert_fingerprint,
-            "payload": payload_json,
-            "queued_at": datetime.now(UTC).isoformat()
-        }
+        entry = {"sequence_id": job_id, "event_type": event_type, "cert_fingerprint": cert_fingerprint,
+                 "payload": payload_json, "queued_at": datetime.now(UTC).isoformat()}
+        if source_event_key is not None:
+            entry["source_event_key"] = source_event_key
         self.stream_buffer.append(entry)
-
-        # Enforce simulated maxlen limit of 100,000 entries
-        if len(self.stream_buffer) > MAX_STREAM_LENGTH:
-            self.stream_buffer.pop(0)
-
         return StreamIngestionResponse(status="accepted", stream_job_id=job_id, queued_at=entry["queued_at"])
 
-    async def publish_heartbeat(self, payload: AgentHeartbeatRequest, cert_fingerprint: str) -> StreamIngestionResponse:
-        return await self._push("heartbeat", payload.model_dump_json(), cert_fingerprint)
+    async def publish_heartbeat(self, payload: AgentHeartbeatRequest, cert_fingerprint: str,
+                                source_event_key: str | None = None) -> StreamIngestionResponse:
+        return await self._push("heartbeat", payload.model_dump_json(), cert_fingerprint, source_event_key)
 
-    async def publish_winlog(self, payload: AgentWinlogRequest, cert_fingerprint: str) -> StreamIngestionResponse:
-        return await self._push("winlog", payload.model_dump_json(), cert_fingerprint)
+    async def publish_winlog(self, payload: AgentWinlogRequest, cert_fingerprint: str,
+                             source_event_key: str | None = None) -> StreamIngestionResponse:
+        return await self._push("winlog", payload.model_dump_json(), cert_fingerprint, source_event_key)
 
     async def fetch_stream_batch(self, stream_key: str, last_id: str, batch_size: int) -> tuple[list, str, str | None]:
-        """Pops up to batch_size entries from the front of the in-memory buffer for exact-once verification."""
-        if not self.stream_buffer:
-            return [], stream_key, None
         batch = self.stream_buffer[:batch_size]
-        del self.stream_buffer[:batch_size]
-        messages = [(entry["sequence_id"], entry) for entry in batch]
-        return messages, stream_key, None
+        return [(entry["sequence_id"], entry) for entry in batch], stream_key, None
 
     async def ack_stream_messages(self, stream_key: str, message_ids: list[str]) -> None:
-        """Stub: messages are popped on fetch; ack is already satisfied."""
-        return None
+        acknowledged = set(message_ids)
+        self.stream_buffer[:] = [entry for entry in self.stream_buffer if entry["sequence_id"] not in acknowledged]
+
+    async def dead_letter_stream_message(self, stream_key: str, message_id: str,
+                                         entry: dict[str, Any], reason: str) -> None:
+        self.dead_letter_buffer.append({"source_stream": stream_key, "source_stream_id": message_id,
+                                        "entry": dict(entry), "reason": reason})

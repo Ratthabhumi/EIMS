@@ -1,13 +1,12 @@
-from fastapi import APIRouter, File, HTTPException, UploadFile, Form, Depends, Header
-from typing import List, Optional
-from sqlalchemy.ext.asyncio import AsyncSession
 import asyncio
 import io
 import time
-import xml.etree.ElementTree as ET
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.domain.analyzer.auth import get_current_user
-from backend.infrastructure.database import get_db_session as get_db
 from backend.domain.analyzer.models.history import AnalysisHistory
 from backend.domain.analyzer.schemas.analyze import (
     AnalyzeResponse,
@@ -20,9 +19,6 @@ from backend.domain.analyzer.schemas.analyze import (
     SearchResult,
     SolutionSummary,
 )
-from backend.domain.analyzer.services.parser import parse_event_metadata
-from backend.domain.analyzer.services.evtx_parser import parse_evtx
-from backend.domain.analyzer.services.compaction import MAX_CHARS, compact_log_evidence
 from backend.domain.analyzer.services.bundle import (
     BUNDLE_MAX_FILE_BYTES,
     BUNDLE_MAX_FILES,
@@ -30,21 +26,26 @@ from backend.domain.analyzer.services.bundle import (
     UploadTooLarge,
     build_evidence_items,
     correlate_bundle,
+    derive_bundle_semantic_document_from_metadata,
     read_upload_bounded,
     summarize_file_evidence,
     validate_bundle,
-    derive_bundle_semantic_document_from_metadata,
 )
+from backend.domain.analyzer.services.compaction import MAX_CHARS, compact_log_evidence
+from backend.domain.analyzer.services.evtx_parser import parse_evtx
+from backend.domain.analyzer.services.parser import parse_event_metadata
 from backend.domain.analyzer.services.summary import (
-    search_solutions,
+    build_followup_answer,
     build_summary,
     format_summary_text,
-    build_followup_answer,
+    search_solutions,
 )
+from backend.domain.incident_ingest.outbox import enqueue_analysis_history, nudge_dispatch
+from backend.infrastructure.database import get_db_session as get_db
 
 try:
-    from PIL import Image
     import pytesseract
+    from PIL import Image
 except ImportError:
     pass
 
@@ -125,7 +126,8 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
 
     if lower_name.endswith(".csv"):
         try:
-            import csv, io as _io
+            import csv
+            import io as _io
             text_raw = decoded_text
             from backend.domain.analyzer.services.panos_parser import panos_records
             if panos_records(text_raw):
@@ -159,7 +161,6 @@ async def submit_analysis(
     language: str = Form("th"),
     db: AsyncSession = Depends(get_db),
     _user: str = Depends(get_current_user),
-    x_gemini_api_key: Optional[str] = Header(None),
 ):
     description = ""
     combined_text = text or ""
@@ -190,9 +191,11 @@ async def submit_analysis(
     # Bounded evidence-aware compaction: header + signal windows + tail.
     # Never silently discards failures located past a fixed head offset.
     from backend.domain.analyzer.services.evidence import build_evidence_records
+    from backend.domain.analyzer.services.evidence_privacy import (
+        apply_context_policy,
+        protect_log_text,
+    )
     from backend.domain.analyzer.services.incident_extract import incident_from_records
-
-    from backend.domain.analyzer.services.evidence_privacy import protect_log_text, apply_context_policy
     combined_text, privacy = protect_log_text(combined_text)
     source_records = build_evidence_records(
         [((file.filename or "") if file else "", combined_text)], max_chars=MAX_CHARS
@@ -228,7 +231,7 @@ async def submit_analysis(
     )
     solution = await build_summary(
         metadata.eventId, metadata.provider, combined_snippets, results, lang,
-        metadata.faultingApp, x_gemini_api_key, combined_text, db,
+        metadata.faultingApp, None, combined_text, db,
         source_family=metadata.sourceFamily or None,
         diagnostic_code=metadata.diagnosticCode or None,
         product=metadata.product or "",
@@ -276,24 +279,15 @@ async def submit_analysis(
         username=_user,
     )
     db.add(db_history)
+    # Same transaction as the history row (flush only, no extra commit). asset_id stays NULL:
+    # pasted/uploaded evidence has no verified asset and none is inferred from hostnames.
+    await enqueue_analysis_history(db, db_history, origin="analyzer_submit")
     await db.commit()
-    await db.refresh(db_history)
+    nudge_dispatch()
+    # INSERT RETURNING has populated the primary key; no refresh SELECT is needed.
 
-    # Auto-export to Vector DB (safely isolated)
-    try:
-        from backend.domain.analyzer.services.vector_db import add_solution
-        await add_solution(
-            db=db,
-            event_id=metadata.eventId,
-            description=combined_text or "No raw text",
-            solution_summary=solution.model_dump(),
-            feedback_score=0,
-            api_key=x_gemini_api_key,
-            source_family=metadata.sourceFamily or None,
-            diagnostic_identity=metadata.diagnosticCode or metadata.eventId,
-        )
-    except Exception as e:
-        print(f"Failed to auto-export to Vector DB (safe ignore): {e}")
+    # Shared knowledge is never auto-published from an AI-generated analysis.
+    # Engineers must submit a curated proposal and an independent admin must approve it.
 
     return AnalyzeResponse(
         eventId=metadata.eventId,
@@ -313,7 +307,6 @@ async def submit_bundle(
     language: str = Form("th"),
     db: AsyncSession = Depends(get_db),
     _user: str = Depends(get_current_user),
-    x_gemini_api_key: Optional[str] = Header(None),
 ):
     if not files:
         raise HTTPException(status_code=400, detail="No files provided in bundle.")
@@ -354,7 +347,10 @@ async def submit_bundle(
     combined_parts: List[str] = []
     record_sources: List[tuple] = []
     privacy_by_file = {}
-    from backend.domain.analyzer.services.evidence_privacy import protect_log_text, apply_context_policy
+    from backend.domain.analyzer.services.evidence_privacy import (
+        apply_context_policy,
+        protect_log_text,
+    )
     for filename, content in cleaned:
         try:
             extracted, _desc = _process_upload(content, filename, None)
@@ -433,7 +429,7 @@ async def submit_bundle(
         results,
         lang,
         primary_meta.faultingApp,
-        x_gemini_api_key,
+        None,
         combined_text,
         db,
         source_family=primary_meta.sourceFamily or None,
@@ -506,27 +502,13 @@ async def submit_bundle(
         username=_user,
     )
     db.add(db_history)
+    await enqueue_analysis_history(db, db_history, origin="analyzer_bundle")
     await db.commit()
-    await db.refresh(db_history)
+    nudge_dispatch()
+    # INSERT RETURNING has populated the primary key; no refresh SELECT is needed.
 
-    try:
-        from backend.domain.analyzer.services.vector_db import add_solution
-        bundle_semantic_doc = derive_bundle_semantic_document_from_metadata(
-            primary_meta.model_dump(),
-            solution.model_dump(),
-        )
-        await add_solution(
-            db=db,
-            event_id=primary_meta.eventId,
-            description=bundle_semantic_doc,
-            solution_summary=solution.model_dump(),
-            feedback_score=0,
-            api_key=x_gemini_api_key,
-            source_family=primary_meta.sourceFamily or None,
-            diagnostic_identity=primary_meta.diagnosticCode or primary_meta.eventId,
-        )
-    except Exception as e:
-        print(f"Failed to auto-export to Vector DB (safe ignore): {e}")
+    # Bundled incident knowledge follows the same independent review lifecycle.
+    # No bundle is copied into shared retrieval merely because analysis completed.
 
     return BundleResponse(
         bundleId=db_history.id,
@@ -559,7 +541,6 @@ async def submit_bundle(
 async def followup_question(
     body: FollowUpRequest,
     _user: str = Depends(get_current_user),
-    x_gemini_api_key: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
     lang = body.language if body.language in ("th", "en") else "th"
@@ -599,7 +580,7 @@ async def followup_question(
                 stored_summary,
                 stored_results,
                 lang,
-                x_gemini_api_key,
+                None,
                 source_family=em.get("sourceFamily"),
                 event_id=h.event_id or "Unknown",
                 provider=h.provider or "Unknown",
@@ -621,7 +602,7 @@ async def followup_question(
         results,
         lang,
         "",
-        x_gemini_api_key,
+        None,
         "",
         db,
     )
@@ -630,7 +611,7 @@ async def followup_question(
         summary,
         results,
         lang,
-        x_gemini_api_key,
+        None,
         event_id=body.eventId,
         provider=body.provider,
     )

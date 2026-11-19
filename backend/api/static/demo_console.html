@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EIMS Demo Console</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0;
+         background:#0b1020; color:#dbe3f4; }
+  header { padding:14px 20px; background:#131a2e; border-bottom:1px solid #23304f;
+           display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  h1 { font-size:16px; margin:0; letter-spacing:.5px; }
+  main { display:grid; grid-template-columns: 340px 1fr; gap:16px; padding:16px; }
+  section { background:#121a2c; border:1px solid #223050; border-radius:8px; padding:14px; }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#8ea2c8; margin:0 0 10px; }
+  input, button, select { font:inherit; background:#0d1424; color:#dbe3f4;
+      border:1px solid #2a3a5e; border-radius:6px; padding:8px; }
+  button { cursor:pointer; background:#1d2a45; }
+  button:hover { background:#27395c; }
+  input { width:100%; box-sizing:border-box; margin-bottom:8px; }
+  ul { list-style:none; margin:0; padding:0; }
+  li { padding:8px; border-bottom:1px solid #1c2740; cursor:pointer; }
+  li:hover { background:#182238; }
+  .badge { display:inline-block; padding:1px 7px; border-radius:10px; font-size:11px;
+           background:#243354; margin-left:6px; }
+  .msg { color:#ffb4b4; min-height:18px; font-size:12px; }
+  .ok { color:#8ce3a2; }
+  pre { white-space:pre-wrap; word-break:break-word; font-size:12px; color:#a9bad8; }
+  .row { display:flex; gap:8px; }
+  .row > * { flex:1; }
+  .hint { color:#7f92b6; font-size:11px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>EIMS — Incident Console (demo)</h1>
+  <span id="who" class="hint"></span>
+  <button id="logout" hidden>Sign out</button>
+</header>
+<main>
+  <section>
+    <h2>Sign in</h2>
+    <div id="loginBox">
+      <input id="user" placeholder="username (demo.engineer / demo.reviewer)" autocomplete="username" />
+      <input id="pass" type="password" placeholder="password" autocomplete="current-password" />
+      <button id="login">Sign in</button>
+    </div>
+    <div id="sessionBox" hidden>
+      <p class="hint" id="sessionInfo"></p>
+    </div>
+    <div class="msg" id="loginMsg"></div>
+    <h2 style="margin-top:18px">Incidents</h2>
+    <button id="refresh">Refresh</button>
+    <ul id="incidents"></ul>
+  </section>
+
+  <section>
+    <h2>Incident detail</h2>
+    <div id="detail"><p class="hint">Select an incident.</p></div>
+  </section>
+</main>
+
+<script>
+const state = { token: null, user: null, incidents: [] };
+
+async function api(path, options = {}) {
+  const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
+  if (state.token) headers["Authorization"] = "Bearer " + state.token;
+  const res = await fetch(path, Object.assign({}, options, { headers }));
+  const text = await res.text();
+  let body = null;
+  try { body = text ? JSON.parse(text) : null; } catch { body = text; }
+  if (!res.ok) {
+    const detail = body && body.detail ? body.detail : (text || res.status);
+    throw new Error(res.status + ": " + detail);
+  }
+  return body;
+}
+
+function el(tag, text, cls) {
+  const n = document.createElement(tag);
+  if (text !== undefined) n.textContent = text;
+  if (cls) n.className = cls;
+  return n;
+}
+
+async function login() {
+  const username = document.getElementById("user").value.trim();
+  const password = document.getElementById("pass").value;
+  const msg = document.getElementById("loginMsg");
+  msg.textContent = "";
+  try {
+    const body = await api("/api/v1/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
+    state.token = body.access_token;
+    state.user = username;
+    document.getElementById("loginBox").hidden = true;
+    document.getElementById("sessionBox").hidden = false;
+    document.getElementById("logout").hidden = false;
+    document.getElementById("sessionInfo").textContent = "Signed in as " + username;
+    document.getElementById("who").textContent = username;
+    await loadIncidents();
+  } catch (err) {
+    msg.textContent = "Login failed — " + err.message;
+  }
+}
+
+function logout() {
+  state.token = null; state.user = null;
+  document.getElementById("loginBox").hidden = false;
+  document.getElementById("sessionBox").hidden = true;
+  document.getElementById("logout").hidden = true;
+  document.getElementById("who").textContent = "";
+  document.getElementById("incidents").innerHTML = "";
+  document.getElementById("detail").innerHTML = "<p class='hint'>Select an incident.</p>";
+}
+
+async function loadIncidents() {
+  const list = document.getElementById("incidents");
+  list.innerHTML = "";
+  try {
+    const body = await api("/api/v1/incidents?limit=50");
+    state.incidents = body.data || [];
+    for (const inc of state.incidents) {
+      const li = el("li");
+      li.appendChild(el("span", inc.title));
+      li.appendChild(el("span", inc.status, "badge"));
+      li.appendChild(el("span", "cycle " + (inc.remediation_cycle ?? 0), "badge"));
+      li.onclick = () => showIncident(inc.incident_id);
+      list.appendChild(li);
+    }
+    if (!state.incidents.length) list.appendChild(el("li", "No incidents yet."));
+  } catch (err) {
+    list.appendChild(el("li", "Could not load: " + err.message, "msg"));
+  }
+}
+
+async function showIncident(id) {
+  const box = document.getElementById("detail");
+  box.innerHTML = "<p class='hint'>Loading…</p>";
+  try {
+    const inc = await api("/api/v1/incidents/" + id);
+    box.innerHTML = "";
+    box.appendChild(el("h2", "Overview"));
+    const p = el("pre");
+    p.textContent = JSON.stringify({
+      incident_id: inc.incident_id,
+      title: inc.title,
+      status: inc.status,
+      severity: inc.severity,
+      confidence: inc.confidence,
+      asset_id: inc.asset_id,
+      remediation_cycle: inc.remediation_cycle,
+      root_cause_state: inc.root_cause_state,
+      first_seen: inc.first_seen,
+      last_seen: inc.last_seen,
+      dedupe_key: inc.dedupe_key,
+    }, null, 2);
+    box.appendChild(p);
+
+    box.appendChild(el("h2", "Evidence"));
+    const ev = el("pre");
+    ev.textContent = JSON.stringify(inc.evidence.map(e => ({
+      evidence_id: e.evidence_id, source_type: e.source_type,
+      source_id: e.source_id, digest: e.evidence_digest,
+      observed_at: e.observed_at,
+    })), null, 2);
+    box.appendChild(ev);
+
+    box.appendChild(el("h2", "Verification history"));
+    const vf = el("pre");
+    vf.textContent = JSON.stringify(inc.verifications, null, 2);
+    box.appendChild(vf);
+
+    box.appendChild(el("h2", "Resolve with verification"));
+    const hint = el("p", "Resolution requires an analysis evidence row from the current cycle and a reviewer account. The server revalidates it; a caller-supplied outcome is not accepted.", "hint");
+    box.appendChild(hint);
+    const select = document.createElement("select");
+    for (const e of inc.evidence) {
+      const opt = document.createElement("option");
+      opt.value = e.evidence_id;
+      opt.textContent = e.source_type + " · " + e.source_id;
+      select.appendChild(opt);
+    }
+    box.appendChild(select);
+    const btn = el("button", "Resolve");
+    btn.style.marginLeft = "8px";
+    btn.onclick = () => resolveIncident(inc.incident_id, select.value, box);
+    box.appendChild(btn);
+
+    const msg = el("div", "", "msg");
+    msg.id = "detailMsg";
+    box.appendChild(msg);
+  } catch (err) {
+    box.innerHTML = "";
+    box.appendChild(el("p", "Could not load incident: " + err.message, "msg"));
+  }
+}
+
+async function resolveIncident(id, evidenceId, box) {
+  const msg = box.querySelector("#detailMsg");
+  msg.textContent = "";
+  msg.className = "msg";
+  try {
+    const body = await api("/api/v1/incidents/" + id + "/status", {
+      method: "PATCH",
+      body: JSON.stringify({ status: "resolved", verification: { evidence_id: evidenceId } }),
+    });
+    msg.className = "msg ok";
+    msg.textContent = "Resolved. Verification rows: " + body.verifications.length +
+      " (latest verifier: " + (body.verifications.at(-1) || {}).verifier_id + ")";
+    await loadIncidents();
+    await showIncident(id);
+  } catch (err) {
+    msg.className = "msg";
+    msg.textContent = "Blocked — " + err.message;
+  }
+}
+
+document.getElementById("login").onclick = login;
+document.getElementById("logout").onclick = logout;
+document.getElementById("refresh").onclick = () => state.token && loadIncidents();
+document.getElementById("pass").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+</script>
+</body>
+</html>

@@ -6,21 +6,45 @@ Governed by EIMS Documentation System (EDS v1.0.0) - Core Law 3 & 4 Compliance
 """
 import asyncio
 from logging.config import fileConfig
+
+from alembic import context
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from alembic import context
 
 from backend.core.config import settings
-from backend.infrastructure.database import Base
-# Import canonical domain ORM models so Alembic autogenerate discovers schemas
-from backend.domain.asset_registry import InfrastructureAsset, HardwareInventory, AuditLog
-from backend.domain.asset_registry.ocr_worker import OCRRegistrationRecord
-from backend.domain.telemetry.models import TelemetryMetric, WindowsEventLog
-from backend.domain.evaluation.models import ServiceSession, ServiceEvaluation
-from backend.domain.analyzer.models.user import User
 from backend.domain.analyzer.models.history import AnalysisHistory
-from backend.domain.analyzer.models.vector import VectorKnowledge
+from backend.domain.analyzer.models.knowledge import (  # noqa: F401 - register metadata
+    KnowledgeEntry,
+    KnowledgeLifecycleEvent,
+    KnowledgeUsage,
+    KnowledgeSourceCandidate,
+    KnowledgeSourceEvent,
+)
 from backend.domain.analyzer.models.session import AnalyzerSession, LoginWindow
+from backend.domain.analyzer.models.user import User
+from backend.domain.analyzer.models.vector import VectorKnowledge
+
+# Import canonical domain ORM models so Alembic autogenerate discovers schemas
+from backend.domain.asset_registry import (
+    AuditLog,
+    HardwareInventory,
+    InfrastructureAsset,
+)
+from backend.domain.asset_registry.ocr_worker import OCRRegistrationRecord
+from backend.domain.evaluation.models import ServiceEvaluation, ServiceSession
+from backend.domain.incident.models import (  # noqa: F401 - register metadata
+    Incident,
+    IncidentEvidence,
+)
+from backend.domain.incident_ingest.models import (  # noqa: F401 - register metadata
+    IncidentIngestOutbox,
+)
+from backend.domain.telemetry.models import (
+    TelemetryAlertOutbox,
+    TelemetryMetric,
+    WindowsEventLog,
+)
+from backend.infrastructure.database import Base
 
 config = context.config
 

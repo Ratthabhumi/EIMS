@@ -2,14 +2,19 @@ from sqlalchemy.future import select
 import hashlib
 import os
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.config import settings
 from backend.core.logger import get_logger
+from backend.infrastructure.database import get_db_session
+from backend.domain.analyzer.models.user import User
+from backend.domain.analyzer.services.session_security import validate_session
 
 logger = get_logger("eims.analyzer.auth")
 
@@ -72,17 +77,12 @@ def _resolve_admin_password() -> str:
 
 
 def create_access_token(username: str, role: str = "user", session_id: str | None = None) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
     payload = {"sub": username, "role": role, "exp": expire}
     if session_id:
         payload['sid'] = session_id
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
-
-from backend.infrastructure.database import get_db_session
-from backend.domain.analyzer.models.user import User
-from sqlalchemy.ext.asyncio import AsyncSession
-from backend.domain.analyzer.services.session_security import validate_session
 
 _DUMMY_HASH = hash_password('non-account-public-timing-control')
 
@@ -171,7 +171,13 @@ async def get_current_user(
     if secrets.compare_digest(credentials.credentials, settings.ADMIN_TOKEN):
         return "admin"
     try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            credentials.credentials,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+            options={"require": ["exp"]},
+            leeway=0,
+        )
         username = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
@@ -198,6 +204,25 @@ async def require_admin(username: str = Depends(get_current_user), db: AsyncSess
     if role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return username
+
+
+async def require_knowledge_reviewer(
+    username: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> str:
+    """Allows Knowledge review to designated reviewers and legacy Admins.
+
+    This is an additive capability, not a separate Engineer identity. Review
+    endpoints still enforce proposer != reviewer at the record level.
+    """
+    if username in ("guest", "demo"):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+    user = (await db.execute(select(User).where(User.username == username))).scalars().first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+    if user.role == "admin" or bool(user.knowledge_reviewer):
+        return username
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Knowledge reviewer capability required")
 
 
 async def verify_admin_token(

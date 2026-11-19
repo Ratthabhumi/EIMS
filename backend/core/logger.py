@@ -6,10 +6,12 @@ Governed by EIMS Documentation System (EDS v1.0.0) - Prometheus/Loki Integration
 """
 
 import logging
-import sys
-from pythonjsonlogger import jsonlogger
-from backend.core.config import settings
 import os
+import sys
+
+from pythonjsonlogger.json import JsonFormatter
+
+from backend.core.config import settings
 
 try:
     import colorama
@@ -35,7 +37,7 @@ class EIMSColoredFormatter(logging.Formatter):
         return super().format(record)
 
 
-class EIMSJsonFormatter(jsonlogger.JsonFormatter):
+class EIMSJsonFormatter(JsonFormatter):
     """
     Custom JSON formatting class augmenting standard system telemetry logs with
     mandatory timestamp indexing and explicit application environment tags.

@@ -1,12 +1,21 @@
 """Explicit operator maintenance; no scheduler and no AnalysisHistory access."""
 from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import delete, or_, select
+
 from backend.domain.analyzer.models.session import AnalyzerSession, LoginWindow
 from backend.domain.analyzer.services.session_security import WINDOW_SECONDS
+from backend.infrastructure.db_identity import require_destructive_target
 
 
-async def cleanup_auth_records(db, *, retention_seconds: int, batch_size: int = 100, now=None, dry_run=False):
+async def cleanup_auth_records(db, *, retention_seconds: int, batch_size: int = 100,
+                               now=None, dry_run: bool = True):
     """One bounded transaction. Caller supplies institution-approved retention.
+
+    Dry-run is the default: a library call with no arguments must never delete.
+    A destructive run must additionally prove the live connection is the intended
+    target (``require_destructive_target`` on the same transaction), so a caller
+    cannot turn a dry-run tool into a destructive one by omitting a flag.
 
     Use a fresh AsyncSession. PostgreSQL locks skip rows another worker owns;
     login's atomic upsert waits for deletion, then creates a fresh expired window.
@@ -19,6 +28,9 @@ async def cleanup_auth_records(db, *, retention_seconds: int, batch_size: int = 
     cutoff = now - timedelta(seconds=retention_seconds)
     counts = {}
     async with db.begin():
+        if not dry_run:
+            # Same transaction and connection as the DELETE below.
+            await require_destructive_target(db, operation="session_cleanup")
         for model, eligible in [
             (AnalyzerSession, or_(AnalyzerSession.expires_at < cutoff,
                                  AnalyzerSession.revoked_at < cutoff)),

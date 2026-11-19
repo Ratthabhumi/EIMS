@@ -1,0 +1,52 @@
+services:
+  - type: web
+    name: eims-demo-api
+    runtime: python
+    plan: free
+    region: singapore
+    branch: demo/2026-11-24
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT --proxy-headers
+    healthCheckPath: /api/v1/health
+    autoDeploy: false
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: EIMS_ENVIRONMENT
+        value: production
+      - key: EIMS_AUTH_MODE
+        value: secure
+      - key: EIMS_DB_HOST
+        sync: false
+      - key: EIMS_DB_PORT
+        value: "5432"
+      - key: EIMS_DB_NAME
+        value: eims_demo
+      - key: EIMS_DB_USER
+        value: eims_runtime
+      - key: EIMS_DB_PASSWORD
+        sync: false
+      - key: EIMS_DB_IDENTITY
+        value: eims_demo|eims_runtime
+      - key: EIMS_DB_IDENTITY_REQUIRED
+        value: "1"
+      - key: EIMS_JWT_SECRET_KEY
+        generateValue: true
+      - key: EIMS_ADMIN_TOKEN
+        generateValue: true
+      - key: EIMS_ADMIN_PASSWORD
+        generateValue: true
+      - key: EIMS_REDIS_HOST
+        sync: false
+      - key: EIMS_REDIS_PORT
+        value: "6379"
+      - key: EIMS_MINIO_ENDPOINT
+        sync: false
+      - key: EIMS_MINIO_ACCESS_KEY
+        sync: false
+      - key: EIMS_MINIO_SECRET_KEY
+        sync: false
+      - key: EIMS_MINIO_BUCKET_NAME
+        value: eims-demo-ocr
+      - key: EIMS_MINIO_SECURE
+        value: "true"

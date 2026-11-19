@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String
 from backend.infrastructure.database import Base
 
 class User(Base):
@@ -8,3 +8,5 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     password = Column(String)
     role = Column(String, default="user")
+    # Additive capability: a reviewer remains a full Engineer user.
+    knowledge_reviewer = Column(Boolean, nullable=False, default=False, server_default="false")
