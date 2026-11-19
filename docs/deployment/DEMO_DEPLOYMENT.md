@@ -118,3 +118,36 @@ deploy manually) → Render rebuilds → hit `/api/v1/health` → sign in at `/d
   database is healthy; that is expected for the demo.
 - Startup identity is fail-closed: a wrong `EIMS_DB_IDENTITY` aborts boot.
 - `/demo` is the interactive console (same origin, no CORS).
+
+## Deployment record (2026-11-19)
+
+| Item | Value |
+|---|---|
+| Public service | `https://eims-demo-api.onrender.com` |
+| Demo console | `https://eims-demo-api.onrender.com/demo` |
+| Readiness (required tier) | `/api/v1/ready` -> `{"status":"ready","database":true}` |
+| Health (all tiers) | `/api/v1/health` -> 503 `DEGRADED` because cache/storage are absent by design |
+| Render service | `eims-demo-api` (free, Python 3.12.7, Ohio), service id `srv-dbvchv56e07s73be9i60` |
+| Neon | project `eims-demo-2026`, database `eims_demo`, PG 17, AWS us-east-2 |
+| Connection | direct (no `-pooler`), pool 2 + overflow 1 |
+| Migration head | `f7a1c3d9e502` |
+| Runtime role | `eims_runtime`; `rolsuper=false`, `rolbypassrls=false`, owns 0 relations, 0 memberships |
+| Table ownership | `eims_migrator` owns incidents / incident_evidence / incident_verification |
+| Guards | 5 triggers present |
+| Deployed commit | `2351fdc` on `demo/2026-11-24` |
+
+### Public E2E result (2026-11-19)
+
+```
+health=503 DEGRADED (expected)   ready=200 {"status":"ready","database":true}
+unauthenticated GET /api/v1/incidents -> 401
+login demo.engineer -> ok; demo.reviewer -> ok
+incidents=3  states: open/cycle0, resolved/cycle0, investigating/cycle1
+stale evidence resolve attempt -> 422 resolution_blocked:evidence_stale
+attach current-cycle analysis evidence -> 200
+resolve as demo.reviewer -> 200, status=resolved, verifications=2, latest cycle=1
+persisted read-back -> status=resolved, verifications=2
+```
+
+No secret is present in `/demo` HTML (checked) and no credential is in this
+repository.

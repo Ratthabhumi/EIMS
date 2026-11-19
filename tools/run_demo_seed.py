@@ -71,7 +71,7 @@ async def _counts(url: str) -> dict[str, int]:
 async def main() -> int:
     owner_raw = URL_FILE.read_text(encoding="utf-8")
     secret = _kv(SECRET_FILE)
-    demo_password = secrets.token_urlsafe(18)
+    demo_password = secret.get("EIMS_DEMO_PASSWORD") or secrets.token_urlsafe(18)
     secret["EIMS_DEMO_PASSWORD"] = demo_password
     secret["EIMS_DEMO_ENGINEER"] = "demo.engineer"
     secret["EIMS_DEMO_REVIEWER"] = "demo.reviewer"
