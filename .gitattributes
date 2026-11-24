@@ -9,3 +9,7 @@ evaluation/analyzer/**/*.csv text eol=lf
 tools/eval_analyzer.py text eol=lf
 tools/review_analyzer_case.py text eol=lf
 tests/test_analyzer_evaluation.py text eol=lf
+
+# Windows batch files must keep CRLF on checkout regardless of core.autocrlf.
+*.bat text eol=crlf
+*.cmd text eol=crlf
