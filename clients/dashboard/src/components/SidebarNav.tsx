@@ -2,22 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { apiUrl } from "@/lib/api";
-import { 
-  Home, 
-  Terminal, 
-  Shield, 
-  Star, 
-  Play, 
-  Usb, 
-  ScanText, 
-  BarChart3, 
-  HardDrive, 
-  Database, 
-  Activity, 
+import { useEffect, useState } from "react";
+import { infraConsoleUrls, type InfraConsoleUrls } from "@/lib/infra-consoles";
+import {
+  Home,
+  Terminal,
+  Shield,
+  Star,
+  Usb,
+  BarChart3,
+  Database,
+  Activity,
   History,
-  Settings 
+  Settings,
 } from "lucide-react";
+
+/** Stable SSR/first-paint defaults — avoids NEXT_PUBLIC_* server/client env skew. */
+const INFRA_SSR_DEFAULTS: InfraConsoleUrls = {
+  grafana: "http://localhost:3000",
+  minioConsole: "http://localhost:9001",
+  prometheus: "http://localhost:9090",
+  apiDocs: "http://localhost:8000/api/docs",
+};
 
 interface SidebarNavProps {
   onNavigate?: () => void;
@@ -25,6 +31,11 @@ interface SidebarNavProps {
 
 export function SidebarNav({ onNavigate }: SidebarNavProps) {
   const pathname = usePathname();
+  const [infra, setInfra] = useState<InfraConsoleUrls>(INFRA_SSR_DEFAULTS);
+
+  useEffect(() => {
+    setInfra(infraConsoleUrls());
+  }, []);
 
   const isActive = (path: string) => {
     if (path === "/" && pathname === "/") return true;
@@ -54,81 +65,64 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
 
   return (
     <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-6" onClick={handleClick}>
-      {/* 1. Main Navigation */}
       <div className="space-y-1">
         <div className="text-[11px] font-semibold text-eims-text-muted uppercase tracking-wider px-3 mb-2">Main</div>
-        <Link href="/" className={getLinkClasses("/")} onClick={handleClick}>
+        <Link prefetch={false} href="/" className={getLinkClasses("/")} onClick={handleClick}>
           <Home className={getIconClasses("/")} /> Home Portal
         </Link>
       </div>
 
-      {/* 2. Intelligent Operations & AI */}
       <div className="space-y-1">
-        <div className="text-[11px] font-semibold text-eims-text-muted uppercase tracking-wider px-3 mb-2">Operations & AI</div>
-        <Link href="/analyzer" className={getLinkClasses("/analyzer")} onClick={handleClick}>
-          <Terminal className={getIconClasses("/analyzer")} /> AI Log Analyzer
+        <div className="text-[11px] font-semibold text-eims-text-muted uppercase tracking-wider px-3 mb-2">Operations</div>
+        <Link prefetch={false} href="/analyzer" className={getLinkClasses("/analyzer")} onClick={handleClick}>
+          <Terminal className={getIconClasses("/analyzer")} /> Log Analyzer
         </Link>
-        <Link href="/observability" className={getLinkClasses("/observability")} onClick={handleClick}>
+        <Link prefetch={false} href="/observability" className={getLinkClasses("/observability")} onClick={handleClick}>
           <Shield className={getIconClasses("/observability")} /> Observability & Alerts
         </Link>
-        <Link href="/evaluations/admin" className={getLinkClasses("/evaluations/admin")} onClick={handleClick}>
+        <Link prefetch={false} href="/evaluations/admin" className={getLinkClasses("/evaluations/admin")} onClick={handleClick}>
           <Star className={getIconClasses("/evaluations/admin")} /> Service Evaluations
         </Link>
-        <Link href="/timeline" className={getLinkClasses("/timeline")} onClick={handleClick}>
+        <Link prefetch={false} href="/timeline" className={getLinkClasses("/timeline")} onClick={handleClick}>
           <History className={getIconClasses("/timeline")} /> Timeline
         </Link>
       </div>
 
-      {/* 3. Client Agents */}
       <div className="space-y-1">
-        <div className="text-[11px] font-semibold text-eims-text-muted uppercase tracking-wider px-3 mb-2">Client Agents</div>
-        <Link href="/agents" className={getLinkClasses("/agents")} onClick={handleClick}>
-          <Play className={getIconClasses("/agents")} /> Client Agents
-        </Link>
-        <Link href="/endpoints" className={getLinkClasses("/endpoints")} onClick={handleClick}>
+        <div className="text-[11px] font-semibold text-eims-text-muted uppercase tracking-wider px-3 mb-2">Endpoint Evidence</div>
+        <Link prefetch={false} href="/endpoints" className={getLinkClasses("/endpoints")} onClick={handleClick}>
           <Usb className={getIconClasses("/endpoints")} /> USB Auditor
-        </Link>
-        <Link href="/ocr-history" className={getLinkClasses("/ocr-history")} onClick={handleClick}>
-          <ScanText className={getIconClasses("/ocr-history")} /> Sticker OCR
         </Link>
       </div>
 
-      {/* 4. Infrastructure & Management */}
       <div className="space-y-1">
         <div className="text-[11px] font-semibold text-eims-text-muted uppercase tracking-wider px-3 mb-2">System & Infra</div>
-        <a 
-          href="http://localhost:3000" 
-          target="_blank" 
-          rel="noopener noreferrer" 
+        <a
+          href={infra.grafana}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-eims-text-secondary hover:text-eims-text hover:bg-eims-surface-subtle transition-colors"
         >
           <BarChart3 className="w-4 h-4 text-eims-text-secondary" /> Grafana Metrics
         </a>
-        <a 
-          href="http://localhost:9001" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-eims-text-secondary hover:text-eims-text hover:bg-eims-surface-subtle transition-colors"
-        >
-          <HardDrive className="w-4 h-4 text-eims-text-secondary" /> MinIO Console
-        </a>
-        <a 
-          href="http://localhost:9090" 
-          target="_blank" 
-          rel="noopener noreferrer" 
+        {/* MinIO Console hidden from nav (OCR/object-store demo not in advisor walkthrough); URL still in infraConsoleUrls. */}
+        <a
+          href={infra.prometheus}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-eims-text-secondary hover:text-eims-text hover:bg-eims-surface-subtle transition-colors"
         >
           <Database className="w-4 h-4 text-eims-text-secondary" /> Prometheus DB
         </a>
-        <a 
-          href={apiUrl("/api/docs")}
-          target="_blank" 
-          rel="noopener noreferrer" 
+        <a
+          href={infra.apiDocs}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-eims-text-secondary hover:text-eims-text hover:bg-eims-surface-subtle transition-colors"
         >
           <Activity className="w-4 h-4 text-eims-text-secondary" /> Core API Docs
         </a>
-        <Link href="/settings" className={getLinkClasses("/settings")} onClick={handleClick}>
+        <Link prefetch={false} href="/settings" className={getLinkClasses("/settings")} onClick={handleClick}>
           <Settings className={getIconClasses("/settings")} /> Settings
         </Link>
       </div>

@@ -1,18 +1,27 @@
 "use client";
 
 import { escapeReportData } from '@/lib/report-data';
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, Suspense } from "react";
 import { Terminal, Upload, Play, Search, Save, FileText, Settings2, ShieldAlert, ArrowLeft, Download, History, X, Database } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import AnalyzerDashboard from "@/components/AnalyzerDashboard";
-import AnalyzerHistoryList from "@/components/AnalyzerHistoryList";
+import AnalyzerHistoryList, { type AnalyzerMainTab } from "@/components/AnalyzerHistoryList";
 import AnalysisResultDetail from "@/components/AnalysisResultDetail";
-import AnalyzerSession from "@/components/AnalyzerSession";
 import SystemStatusCard from "@/components/SystemStatusCard";
+import EventIncidentLink from "@/components/incidents/EventIncidentLink";
 import { apiUrl } from "@/lib/api";
+import { type IncidentAssociation } from "@/lib/incident-orchestration";
+import { knowledgeMatchHtml, knowledgeMatchMarkdown } from "@/components/KnowledgeMatchBadge";
+import { downloadHtmlAsPdf, preloadPdfExport } from "@/lib/pdf-export";
+import { readPortalPreferences, writePortalPreferences } from "@/lib/portal-preferences";
+import { EVIDENCE_LIMITS } from "@/lib/ui-i18n";
 
-export default function AnalyzerPage() {
+function AnalyzerPageInner() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [file, setFile] = useState<File | null>(null);
   const [bundleFiles, setBundleFiles] = useState<File[]>([]);
   const [rawText, setRawText] = useState("");
@@ -20,24 +29,87 @@ export default function AnalyzerPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [language, setLanguage] = useState("th");
+  /** Analysis report output language — not Portal UI language. */
+  const [language, setLanguage] = useState<"th" | "en">("en");
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [incidentAssociation, setIncidentAssociation] = useState<IncidentAssociation | null>(null);
+
+  useEffect(() => {
+    const pref = readPortalPreferences().analyzerLanguage;
+    setLanguage(pref === "th" ? "th" : "en");
+  }, []);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bundleInputRef = useRef<HTMLInputElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
   const [leftColHeight, setLeftColHeight] = useState<number | null>(null);
   const [sessionSearchLatencies, setSessionSearchLatencies] = useState<number[]>([]);
+  const [incidentId, setIncidentId] = useState<string | null>(() => {
+    const fromUrl = (searchParams.get("incident") || "").trim();
+    return fromUrl || null;
+  });
+  const [linkedAnalysisId, setLinkedAnalysisId] = useState<number | null>(() => {
+    const analysisRaw = searchParams.get("analysis");
+    return analysisRaw && /^\d+$/.test(analysisRaw) ? Number(analysisRaw) : null;
+  });
+  const [mainTab, setMainTab] = useState<AnalyzerMainTab>(() =>
+    (searchParams.get("incident") || "").trim() ? "incident" : "history",
+  );
 
   const handleSearchLatency = useCallback((latencyMs: number) => {
     setSessionSearchLatencies(prev => [...prev, latencyMs]);
   }, []);
+
+  const syncIncidentUrl = useCallback((nextIncident: string | null, analysisId: number | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextIncident) params.set("incident", nextIncident);
+    else params.delete("incident");
+    if (analysisId != null) params.set("analysis", String(analysisId));
+    else params.delete("analysis");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    const fromUrl = (searchParams.get("incident") || "").trim();
+    if (fromUrl) {
+      setIncidentId(fromUrl);
+      setMainTab("incident");
+    } else {
+      setIncidentId(null);
+    }
+    const analysisRaw = searchParams.get("analysis");
+    if (analysisRaw && /^\d+$/.test(analysisRaw)) {
+      setLinkedAnalysisId(Number(analysisRaw));
+    }
+  }, [searchParams]);
+
+  const openIncident = useCallback((id: string, analysisId?: number | null) => {
+    setIncidentId(id);
+    setMainTab("incident");
+    setIsResultModalOpen(false);
+    if (typeof analysisId === "number") setLinkedAnalysisId(analysisId);
+    syncIncidentUrl(id, typeof analysisId === "number" ? analysisId : linkedAnalysisId);
+  }, [linkedAnalysisId, syncIncidentUrl]);
+
+  /** Close selected incident detail → Incident list landing; stay on Incident Workspace tab. */
+  const closeIncidentDetail = useCallback(() => {
+    setIncidentId(null);
+    setMainTab("incident");
+    syncIncidentUrl(null, linkedAnalysisId);
+  }, [linkedAnalysisId, syncIncidentUrl]);
 
   const avgSearchTimeMs = useMemo(() => {
     if (sessionSearchLatencies.length === 0) return null;
     const sum = sessionSearchLatencies.reduce((a, b) => a + b, 0);
     return sum / sessionSearchLatencies.length;
   }, [sessionSearchLatencies]);
+
+  useEffect(() => {
+    if (result && isResultModalOpen) {
+      void preloadPdfExport().catch((error) => console.warn("PDF export preload failed", error));
+    }
+  }, [result, isResultModalOpen]);
 
   useEffect(() => {
     if (!leftColRef.current) return;
@@ -64,7 +136,7 @@ export default function AnalyzerPage() {
 
   const handleBundleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const picked = Array.from(e.target.files).slice(0, 12);
+      const picked = Array.from(e.target.files).slice(0, EVIDENCE_LIMITS.maxFiles);
       setBundleFiles((prev) => {
         const names = new Set(prev.map((f) => f.name));
         const merged = [...prev];
@@ -74,7 +146,7 @@ export default function AnalyzerPage() {
             names.add(f.name);
           }
         }
-        return merged.slice(0, 12);
+        return merged.slice(0, EVIDENCE_LIMITS.maxFiles);
       });
     }
   };
@@ -129,20 +201,27 @@ export default function AnalyzerPage() {
 
   const handleUpload = async () => {
     if (uploadMode === "file" && !file) {
-      toast.error("Please select a file first.");
+      toast.error("Please select a file first");
       return;
     }
     if (uploadMode === "text" && !rawText.trim()) {
-      toast.error("Please paste some log text first.");
+      toast.error("Please paste some text first");
       return;
     }
     if (uploadMode === "bundle" && bundleFiles.length === 0) {
-      toast.error("Please select at least one file for the bundle.");
+      toast.error("Please add at least one evidence file");
       return;
     }
 
     setIsUploading(true);
-    toast.loading(uploadMode === "bundle" ? "Uploading evidence bundle..." : uploadMode === "file" ? "Uploading file..." : "Sending text...", { id: "uploading" });
+    toast.loading(
+      uploadMode === "bundle"
+        ? "Uploading evidence bundle…"
+        : uploadMode === "file"
+          ? "Uploading file…"
+          : "Sending text…",
+      { id: "uploading" },
+    );
 
     try {
       const formData = new FormData();
@@ -174,9 +253,10 @@ export default function AnalyzerPage() {
       }
       const data = await res.json();
       setResult(data);
+      setIncidentAssociation(null);
       setIsResultModalOpen(true);
       setRefreshTrigger(prev => prev + 1);
-      toast.success("Analysis complete", { id: "uploading" });
+      toast.success("Analysis complete — associating incident…", { id: "uploading" });
 
       // Clear input fields after successful analysis
       setRawText("");
@@ -205,7 +285,8 @@ export default function AnalyzerPage() {
       ? `**Source:** ${product || result.provider || "Not provided"}\n**Diagnostic Code:** ${diagCode}\n**Event ID:** ${result.eventId || "Not provided"}\n`
       : `**Event ID:** ${result.eventId || "Not provided"}\n`;
     content += `**Provider:** ${result.provider || "Not provided"}\n`;
-    content += `**Generated:** ${new Date().toLocaleString()}\n\n`;
+    content += `**Generated:** ${new Date().toLocaleString()}\n`;
+    content += knowledgeMatchMarkdown(result.solutionSummary?.knowledgeMatch) + "\n";
     
     if (result.aiSummary) {
       content += `## AI Summary\n\n${result.aiSummary}\n\n`;
@@ -260,12 +341,10 @@ export default function AnalyzerPage() {
     if (!safeResult) return;
     const toastId = toast.loading("Generating PDF...");
     try {
-      const { default: jsPDF } = await import("jspdf");
-      const { default: html2canvas } = await import("html2canvas");
-
-      // Build a hidden div with the report content
+      // Keep the sanitized report in the DOM but invisible; html2canvas reveals it only in its clone.
       const container = document.createElement("div");
-      container.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:794px;padding:40px;background:#fff;font-family:Arial,sans-serif;font-size:13px;color:#242321;line-height:1.6;";
+      container.dataset.eimsPdfExport = "true";
+      container.style.cssText = "position:fixed;top:0;left:0;width:794px;padding:40px;background:#fff;font-family:Arial,sans-serif;font-size:13px;color:#242321;line-height:1.6;opacity:0;pointer-events:none;z-index:-1;";
 
       const steps = safeResult.solutionSummary?.steps || [];
       const causes = safeResult.solutionSummary?.causes || [];
@@ -296,6 +375,7 @@ export default function AnalyzerPage() {
           ${meta.faultingApp ? `<div style="grid-column:1/-1"><span style="color:#716E66;font-size:11px;">Faulting App</span><br/><strong style="color:#dc2626;">${meta.faultingApp}</strong></div>` : ""}
         </div>
 
+        ${knowledgeMatchHtml(safeResult.solutionSummary?.knowledgeMatch)}
         <h2 style="font-size:14px;font-weight:600;margin:16px 0 8px;">Summary</h2>
         <div style="background:#F5F3EE;padding:12px 16px;border-radius:8px;margin-bottom:12px;">${safeResult.solutionSummary?.overview || safeResult.aiSummary || "No summary available."}</div>
 
@@ -324,86 +404,75 @@ export default function AnalyzerPage() {
       `;
 
       document.body.appendChild(container);
-      const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#fff" });
-      document.body.removeChild(container);
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const imgW = pageW;
-      const imgH = (canvas.height * imgW) / canvas.width;
-
-      let y = 0;
-      while (y < imgH) {
-        if (y > 0) pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, -y, imgW, imgH);
-        y += pageH;
+      try {
+        const pdfResult = await downloadHtmlAsPdf(
+          container,
+          `Diagnostic_Report_${safeResult.eventId || "Unknown"}.pdf`,
+        );
+        toast.success(`PDF downloaded (${pdfResult.pages} pages).`, { id: toastId });
+      } finally {
+        container.remove();
       }
-
-      pdf.save(`Diagnostic_Report_${safeResult.eventId || "Unknown"}.pdf`);
-      toast.success("PDF downloaded!", { id: toastId });
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to generate PDF.", { id: toastId });
+      console.error("PDF export failed", err);
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error(`Failed to generate PDF: ${message.slice(0, 120)}`, { id: toastId });
     }
   };
 
   return (
     <div className="animate-fade-in flex flex-col gap-5 pb-4">
-      <header className="flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
+      <header className="flex items-center justify-between shrink-0 gap-3 min-w-0">
+        <div className="flex items-center gap-4 min-w-0">
           <Link href="/" className="p-2 rounded-full hover:bg-eims-surface-subtle text-eims-text-secondary hover:text-eims-text transition-colors shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-[28px] font-semibold tracking-tight text-eims-text flex items-center gap-3">
-              <Terminal className="w-7 h-7 text-eims-accent" />
-              AI Log Analyzer (EventIQ)
+              <Terminal className="w-7 h-7 text-eims-accent shrink-0" />
+              Log Analyzer
             </h1>
-            <p className="text-sm text-eims-text-secondary mt-1">Upload Windows EVTX or raw log files for intelligent RCA.</p>
+            <p className="text-sm text-eims-text-secondary mt-1">
+              Drop in your evidence and find the root cause fast. Incident Workspace lives in its own main tab, not a side drawer.
+            </p>
           </div>
         </div>
-        {/* No View Dashboard button needed anymore */}
       </header>
 
-      <AnalyzerSession />
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
 
         {/* LEFT SIDEBAR (col 1 on xl) */}
         <div ref={leftColRef} className="xl:col-span-1 space-y-4 w-full">
 
-          {/* Upload Source */}
-          <div className="bg-eims-surface border border-eims-border rounded-xl p-5 shadow-sm">
-            <h2 className="text-xs font-semibold text-eims-text mb-4 uppercase tracking-wider flex items-center gap-2">
+          {/* Evidence Input — one UX surface; backend parsers remain type-specific */}
+          <div className="bg-eims-surface border border-eims-border rounded-xl p-5 shadow-sm" data-testid="evidence-input">
+            <h2 className="text-xs font-semibold text-eims-text mb-1 uppercase tracking-wider flex items-center gap-2">
               <Upload className="w-3.5 h-3.5 text-eims-text-secondary" />
-              Upload Source
+              Evidence Input
             </h2>
-            <div className="flex gap-2 mb-4 bg-eims-bg p-1 rounded-lg">
-              <button
-                onClick={() => setUploadMode("text")}
-                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${uploadMode === "text" ? "bg-eims-surface text-eims-text shadow-sm" : "text-eims-text-muted hover:text-eims-text"}`}
-              >Paste Text</button>
-              <button
-                onClick={() => setUploadMode("file")}
-                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${uploadMode === "file" ? "bg-eims-surface text-eims-text shadow-sm" : "text-eims-text-muted hover:text-eims-text"}`}
-              >File Upload</button>
-              <button
-                onClick={() => setUploadMode("bundle")}
-                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${uploadMode === "bundle" ? "bg-eims-surface text-eims-text shadow-sm" : "text-eims-text-muted hover:text-eims-text"}`}
-              >Evidence Bundle</button>
+            <p className="text-[11px] text-eims-text-muted mb-3">One submission path for Analyzer. Choose how you provide evidence; parsers stay type-specific.</p>
+            <div className="flex gap-1 mb-3 bg-eims-bg p-1 rounded-lg" role="tablist" aria-label="Evidence Input">
+              <button type="button" role="tab" aria-selected={uploadMode === "text"} onClick={() => setUploadMode("text")}
+                className={`flex-1 text-[11px] font-medium py-1.5 px-1 rounded-md transition-colors ${uploadMode === "text" ? "bg-eims-surface text-eims-text shadow-sm" : "text-eims-text-muted hover:text-eims-text"}`}
+              >Paste Log Text</button>
+              <button type="button" role="tab" aria-selected={uploadMode === "file"} onClick={() => setUploadMode("file")}
+                className={`flex-1 text-[11px] font-medium py-1.5 px-1 rounded-md transition-colors ${uploadMode === "file" ? "bg-eims-surface text-eims-text shadow-sm" : "text-eims-text-muted hover:text-eims-text"}`}
+              >Upload Files</button>
+              <button type="button" role="tab" aria-selected={uploadMode === "bundle"} onClick={() => setUploadMode("bundle")}
+                className={`flex-1 text-[11px] font-medium py-1.5 px-1 rounded-md transition-colors ${uploadMode === "bundle" ? "bg-eims-surface text-eims-text shadow-sm" : "text-eims-text-muted hover:text-eims-text"}`}
+              >Upload Evidence Bundle</button>
             </div>
             {uploadMode === "bundle" ? (
               <div>
-                <div
-                  className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
-                  onClick={() => bundleInputRef.current?.click()}
-                  tabIndex={0}
-                >
-                  <input type="file" multiple className="hidden" ref={bundleInputRef} onChange={handleBundleChange} accept=".log,.txt,.html,.htm,.xml,.csv,.evtx" />
+                <p className="text-[11px] text-eims-text-secondary mb-2">
+                  Multiple related files as one evidence set (not a ZIP). Up to {EVIDENCE_LIMITS.maxFiles} files · {EVIDENCE_LIMITS.maxFileMb} MB each · {EVIDENCE_LIMITS.maxTotalMb} MB total. Types: {EVIDENCE_LIMITS.extensions}.
+                </p>
+                <div className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
+                  onClick={() => bundleInputRef.current?.click()} tabIndex={0}>
+                  <input type="file" multiple className="hidden" ref={bundleInputRef} onChange={handleBundleChange} accept={EVIDENCE_LIMITS.acceptAttr} />
                   <FileText className="w-7 h-7 text-eims-text-muted mx-auto mb-2" />
-                  <p className="text-xs font-medium text-eims-text">Click to add files (up to 12)</p>
-                  <p className="text-xs text-eims-text-muted mt-1">LOG, TXT, HTML, XML, CSV, EVTX · 5MB each · 30MB total</p>
+                  <p className="text-xs font-medium text-eims-text">Click to add related evidence files</p>
+                  <p className="text-xs text-eims-text-muted mt-1">ZIP archives are not accepted — select individual files so each keeps its own metadata and hash.</p>
                 </div>
                 {bundleFiles.length > 0 && (
                   <ul className="mt-2 space-y-1.5 max-h-40 overflow-y-auto">
@@ -411,11 +480,7 @@ export default function AnalyzerPage() {
                       <li key={f.name} className="flex items-center gap-2 text-xs bg-eims-bg border border-eims-border rounded-lg px-2.5 py-1.5">
                         <span className="font-mono text-eims-text truncate flex-1">{f.name}</span>
                         <span className="text-eims-text-muted shrink-0">{(f.size / 1024).toFixed(1)} KB</span>
-                        <button
-                          onClick={() => removeBundleFile(f.name)}
-                          className="p-1 hover:bg-eims-surface-subtle rounded text-eims-text-muted hover:text-eims-text shrink-0"
-                          aria-label={`Remove ${f.name}`}
-                        >
+                        <button onClick={() => removeBundleFile(f.name)} className="p-1 hover:bg-eims-surface-subtle rounded text-eims-text-muted hover:text-eims-text shrink-0" aria-label={`Remove ${f.name}`}>
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </li>
@@ -424,38 +489,32 @@ export default function AnalyzerPage() {
                 )}
               </div>
             ) : uploadMode === "file" ? (
-              <div
-                className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
-                onClick={() => fileInputRef.current?.click()}
-                onPaste={handlePaste}
-                tabIndex={0}
-              >
-                <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*,.evtx,.txt,.log,.xml,.csv,.html,.htm" />
-                <FileText className="w-7 h-7 text-eims-text-muted mx-auto mb-2" />
-                <p className="text-xs font-medium text-eims-text">{file ? file.name : "Click or paste (Ctrl+V) image"}</p>
-                <p className="text-xs text-eims-text-muted mt-1">EVTX, XML, Image, CSV, TXT, LOG, HTML</p>
-                <p className="text-xs text-eims-text-muted mt-1">{language === "th" ? "รูปภาพต้องมี Tesseract OCR บนเซิร์ฟเวอร์ หากไม่พร้อมระบบจะแจ้งข้อผิดพลาด ใช้ข้อความหรือไฟล์ UTF-8 ได้" : "Images require server-side Tesseract OCR. If unavailable, analysis returns an error; use text or a UTF-8 file."}</p>
+              <div>
+                <p className="text-[11px] text-eims-text-secondary mb-2">Single file. Supported: {EVIDENCE_LIMITS.extensions}. Max {EVIDENCE_LIMITS.maxFileMb} MB.</p>
+                <div className="border-2 border-dashed border-eims-border rounded-lg p-6 text-center cursor-pointer hover:border-eims-accent transition-colors bg-eims-bg"
+                  onClick={() => fileInputRef.current?.click()} onPaste={handlePaste} tabIndex={0}>
+                  <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept={`image/*,${EVIDENCE_LIMITS.acceptAttr}`} />
+                  <FileText className="w-7 h-7 text-eims-text-muted mx-auto mb-2" />
+                  <p className="text-xs font-medium text-eims-text">{file ? file.name : "Click to choose a file (or paste image with Ctrl+V)"}</p>
+                  <p className="text-xs text-eims-text-muted mt-1">Images require server-side Tesseract OCR. If unavailable, use text or a UTF-8 file.</p>
+                </div>
               </div>
             ) : (
-              <textarea
-                value={rawText}
-                onChange={(e) => setRawText(e.target.value)}
-                onPaste={handlePaste}
-                placeholder="Paste raw Event Viewer log text..."
-                className="w-full h-[130px] p-3 text-xs bg-eims-bg border border-eims-border rounded-lg text-eims-text placeholder-eims-text-muted resize-none focus:outline-none focus:border-eims-accent transition-colors"
-              />
+              <div>
+                <p className="text-[11px] text-eims-text-secondary mb-2">Paste Event Viewer / log text. Original text is retained for analysis provenance.</p>
+                <textarea value={rawText} onChange={(e) => setRawText(e.target.value)} onPaste={handlePaste}
+                  placeholder="Paste raw Event Viewer log text…"
+                  className="w-full h-[130px] p-3 text-xs bg-eims-bg border border-eims-border rounded-lg text-eims-text placeholder-eims-text-muted resize-none focus:outline-none focus:border-eims-accent transition-colors" />
+              </div>
             )}
-            <button
-              onClick={handleUpload}
+            <button onClick={handleUpload}
               disabled={(uploadMode === "file" ? !file : uploadMode === "bundle" ? bundleFiles.length === 0 : !rawText) || isUploading || isAnalyzing}
-              className="mt-3 w-full bg-eims-accent hover:bg-eims-accent-hover text-white py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            >
+              className="mt-3 w-full bg-eims-accent hover:bg-eims-accent-hover text-white py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
               {(isUploading || isAnalyzing) ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Play className="w-4 h-4" />}
-              {isUploading ? "Uploading..." : isAnalyzing ? "Analyzing..." : "Analyze Log"}
+              {isUploading ? "Uploading…" : isAnalyzing ? "Analyzing…" : "Analyze Evidence"}
             </button>
           </div>
 
-          {/* Analysis Engine */}
           <div className="bg-eims-surface border border-eims-border rounded-xl p-5 shadow-sm">
             <h2 className="text-xs font-semibold text-eims-text mb-4 uppercase tracking-wider flex items-center gap-2">
               <Settings2 className="w-3.5 h-3.5 text-eims-text-secondary" />
@@ -463,24 +522,30 @@ export default function AnalyzerPage() {
             </h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-eims-text-secondary">AI Model</span>
+                <span className="text-xs text-eims-text-secondary">Analysis engine</span>
                 <span className="text-xs font-medium text-eims-text bg-eims-bg px-2 py-1 rounded border border-eims-border">Local Offline DB</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-eims-text-secondary">Language</span>
-                <select value={language} onChange={(e) => setLanguage(e.target.value)} className="text-xs font-medium text-eims-text bg-eims-bg px-2 py-1 rounded border border-eims-border focus:outline-none focus:border-eims-accent cursor-pointer">
-                  <option value="th">Thai (TH)</option>
+                <span className="text-xs text-eims-text-secondary">Analysis output language</span>
+                <select value={language}
+                  onChange={(e) => {
+                    const next = e.target.value === "th" ? "th" : "en";
+                    setLanguage(next);
+                    writePortalPreferences({ analyzerLanguage: next });
+                  }}
+                  className="text-xs font-medium text-eims-text bg-eims-bg px-2 py-1 rounded border border-eims-border focus:outline-none focus:border-eims-accent cursor-pointer"
+                  aria-label="Analysis output language">
                   <option value="en">English (EN)</option>
+                  <option value="th">Thai (TH)</option>
                 </select>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-eims-text-secondary">Vector RAG</span>
-                <span className="text-xs font-medium text-emerald-600/90 dark:text-[#78B096] bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">Enabled</span>
+                <span className="text-xs text-eims-text-secondary">Knowledge match</span>
+                <span className="text-xs font-medium text-emerald-600/90 dark:text-[#78B096] bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">Available</span>
               </div>
             </div>
           </div>
 
-          {/* System Status */}
           <div className="bg-eims-surface border border-eims-border rounded-xl p-5 shadow-sm">
             <h2 className="text-xs font-semibold text-eims-text uppercase tracking-wider flex items-center gap-2 mb-3">
               <span className="w-2 h-2 rounded-full bg-emerald-500/80 animate-pulse" />
@@ -489,7 +554,6 @@ export default function AnalyzerPage() {
             <SystemStatusCard />
           </div>
 
-          {/* Common Event IDs */}
           <div className="bg-eims-surface border border-eims-border rounded-xl p-5 shadow-sm">
             <h2 className="text-xs font-semibold text-eims-text uppercase tracking-wider flex items-center gap-2 mb-3">
               <Database className="w-3.5 h-3.5 text-eims-text-secondary" />
@@ -534,11 +598,24 @@ export default function AnalyzerPage() {
           <AnalyzerHistoryList
             refreshTrigger={refreshTrigger}
             onSearchLatency={handleSearchLatency}
+            onOpenIncident={(id, analysisId) => openIncident(id, analysisId ?? linkedAnalysisId)}
+            onCloseIncident={closeIncidentDetail}
+            initialAnalysisId={linkedAnalysisId}
+            correlationAssetId={(searchParams.get("asset") || "").trim() || null}
+            incidentId={incidentId}
+            activeTab={mainTab}
+            onActiveTabChange={setMainTab}
+            analysisLanguage={language}
+            onIncidentChanged={(id) => {
+              setIncidentId(id);
+              syncIncidentUrl(id, linkedAnalysisId);
+            }}
             className="flex-1 min-h-[400px] xl:min-h-0 flex flex-col"
           />
         </div>
 
       </div>
+
       {/* Result Popup Modal */}
       {isResultModalOpen && result && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 animate-in fade-in duration-200">
@@ -573,6 +650,40 @@ export default function AnalyzerPage() {
             
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-8">
+              {typeof result.historyId === "number" && (
+                <EventIncidentLink
+                  analysisHistoryId={result.historyId}
+                  eventKey={result.eventId != null ? String(result.eventId) : undefined}
+                  titleHint={
+                    result.solutionSummary?.title
+                      || (result.eventId != null ? `Event ${result.eventId}` : undefined)
+                  }
+                  assetId={(searchParams.get("asset") || "").trim() || null}
+                  autoEnsure
+                  onOpen={(incidentId) => {
+                    setIsResultModalOpen(false);
+                    openIncident(incidentId, result.historyId);
+                  }}
+                  onLinked={(_incidentId, association) => {
+                    // Association is background work. Never auto-navigate away from Analysis Record Details.
+                    // Ambiguous must never auto-open a candidate incident (onOpen is user-only).
+                    setIncidentAssociation(association ?? null);
+                    setRefreshTrigger((prev) => prev + 1);
+                    if (association?.outcome === "created") toast.success("Incident created — review when ready");
+                    else if (association?.outcome === "correlated") toast.success("Evidence linked to an existing incident");
+                    else if (association?.outcome === "already_linked") toast.success("Evidence already linked");
+                    else if (association?.outcome === "ambiguous") {
+                      toast("Correlation ambiguous — review before treating as linked", { icon: "⚠️" });
+                    } else if (association?.outcome === "failed") toast.error(association.message || "Incident association failed");
+                    else if (association?.outcome === "unavailable") toast("Analysis complete — no incident association yet");
+                  }}
+                />
+              )}
+              {incidentAssociation?.outcome === "failed" ? (
+                <p className="text-xs text-amber-700 dark:text-amber-300" role="status">
+                  Analysis is available. Incident association failed — use Advanced linking or retry. Do not assume an incident exists.
+                </p>
+              ) : null}
               <AnalysisResultDetail 
                 result={result} 
                 language={language}
@@ -586,4 +697,13 @@ export default function AnalyzerPage() {
     </div>
   );
 }
+
+export default function AnalyzerPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-sm text-eims-text-muted">Loading Log Analyzer…</div>}>
+      <AnalyzerPageInner />
+    </Suspense>
+  );
+}
+
 

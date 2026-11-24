@@ -1,11 +1,14 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, History, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { TimelineEvent, type TimelineEventData } from "@/components/TimelineEvent";
 import { apiUrl } from "@/lib/api";
+
+/** Bounded background refresh — not a substitute for persistence. */
+const REFRESH_MS = 30000;
 
 interface Pagination {
   total_records: number;
@@ -26,6 +29,9 @@ const PAGE_SIZE = 50;
 const EVENT_TYPES = [
   { value: "", label: "All sources" },
   { value: "audit", label: "Audit" },
+  { value: "incident_transition", label: "Incident transitions" },
+  { value: "evidence", label: "Evidence" },
+  { value: "verification", label: "Verification" },
   { value: "telemetry", label: "Telemetry" },
   { value: "winlog", label: "WinLog" },
 ];
@@ -49,65 +55,91 @@ function TimelineDashboardContent() {
   const [eventType, setEventType] = useState(initialType);
   const [severity, setSeverity] = useState("");
   const [page, setPage] = useState(1);
+  const fingerprintRef = useRef("");
+  const inFlightRef = useRef(false);
+
+  const loadTimeline = useCallback(
+    async (opts: { silent?: boolean } = {}) => {
+      if (inFlightRef.current) return;
+      inFlightRef.current = true;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      if (!opts.silent) {
+        setLoading(true);
+        setError(false);
+      }
+      try {
+        const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
+        if (eventType) params.set("type", eventType);
+        if (severity) params.set("severity", severity);
+        if (entityId) params.set("entity_id", entityId);
+
+        const res = await fetch(`${TIMELINE_ENDPOINT}?${params.toString()}`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error(`Timeline request failed with status ${res.status}`);
+        const json = (await res.json()) as TimelineResponse;
+        const nextEvents = json.data ?? [];
+        const nextPagination = json.pagination ?? null;
+        const fingerprint = `${nextPagination?.total_records ?? 0}|${nextEvents[0]?.id ?? ""}|${nextEvents.map((e) => e.id).join(",")}`;
+        if (fingerprint !== fingerprintRef.current) {
+          fingerprintRef.current = fingerprint;
+          setEvents(nextEvents);
+          setPagination(nextPagination);
+        }
+        setError(false);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        if (!opts.silent) {
+          setError(true);
+          setEvents([]);
+          fingerprintRef.current = "";
+        }
+      } finally {
+        clearTimeout(timeout);
+        inFlightRef.current = false;
+        if (!opts.silent) setLoading(false);
+      }
+    },
+    [eventType, severity, page, entityId],
+  );
 
   useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
+    void loadTimeline({ silent: false });
+  }, [loadTimeline]);
 
-    const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
-    if (eventType) params.set("type", eventType);
-    if (severity) params.set("severity", severity);
-    if (entityId) params.set("entity_id", entityId);
-
-    fetch(`${TIMELINE_ENDPOINT}?${params.toString()}`, { signal: controller.signal })
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`Timeline request failed with status ${res.status}`);
-        }
-        const json = (await res.json()) as TimelineResponse;
-        if (cancelled) return;
-        setEvents(json.data ?? []);
-        setPagination(json.pagination ?? null);
-      })
-      .catch((err) => {
-        if (cancelled || err instanceof DOMException) return;
-        setError(true);
-        setEvents([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void loadTimeline({ silent: true });
     };
-  }, [eventType, severity, page]);
-
-  const applyType = (value: string) => {
-    setEventType(value);
-    setPage(1);
-    setLoading(true);
-    setError(false);
-  };
-
-  const applySeverity = (value: string) => {
-    setSeverity(value);
-    setPage(1);
-    setLoading(true);
-    setError(false);
-  };
-
-  const changePage = (nextPage: number) => {
-    setPage(nextPage);
-    setLoading(true);
-    setError(false);
-  };
+    const onFocus = () => void loadTimeline({ silent: true });
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+    const timer = window.setInterval(() => void loadTimeline({ silent: true }), REFRESH_MS);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+      window.clearInterval(timer);
+    };
+  }, [loadTimeline]);
 
   const totalRecords = pagination?.total_records ?? 0;
   const pageSize = pagination?.page_size ?? PAGE_SIZE;
   const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
   const hasEvents = events.length > 0;
+
+  const sourceMix = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const e of events) {
+      const key = e.type || "unknown";
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, n]) => `${k}=${n}`)
+      .join(", ");
+  }, [events]);
 
   const selectClasses =
     "px-3 py-2 text-sm bg-eims-bg border border-eims-border rounded-md text-eims-text focus:outline-none focus:border-eims-accent focus:ring-1 focus:ring-eims-accent transition-colors cursor-pointer";
@@ -121,14 +153,19 @@ function TimelineDashboardContent() {
           </Link>
           <div>
             <h1 className="text-[28px] font-semibold tracking-tight text-eims-text">Unified Timeline</h1>
-            <p className="text-eims-text-secondary text-sm mt-1">Chronological events across audit logs, telemetry, and Windows event logs.</p>
+            <p className="text-eims-text-secondary text-sm mt-1">
+              Read-only engineering timeline: audit journal, incident transitions, evidence, verification, plus legacy telemetry/winlog.
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <select
             value={severity}
-            onChange={(event) => applySeverity(event.target.value)}
+            onChange={(event) => {
+              setSeverity(event.target.value);
+              setPage(1);
+            }}
             className={selectClasses}
             aria-label="Filter by severity"
           >
@@ -140,7 +177,10 @@ function TimelineDashboardContent() {
           </select>
           <select
             value={eventType}
-            onChange={(event) => applyType(event.target.value)}
+            onChange={(event) => {
+              setEventType(event.target.value);
+              setPage(1);
+            }}
             className={selectClasses}
             aria-label="Filter by source type"
           >
@@ -153,11 +193,24 @@ function TimelineDashboardContent() {
         </div>
       </header>
 
+      {!loading && !error && totalRecords > 0 ? (
+        <div
+          className="rounded-lg border border-eims-border bg-eims-surface-subtle/60 px-4 py-3 text-xs text-eims-text-secondary space-y-1"
+          data-testid="timeline-honesty"
+        >
+          <p>
+            Showing {events.length} of {totalRecords} records returned by the API for the current filters. Only sources with real rows appear.
+          </p>
+          {sourceMix ? <p>Source mix in this page: {sourceMix}</p> : null}
+          <p>
+            USB Auditor historical audit entries are preserved with original timestamps. Missing actor identity stays “not available in historical source”.
+          </p>
+        </div>
+      ) : null}
+
       <div className="flex flex-col flex-1 gap-4">
         {loading ? (
-          <div className="flex-1 min-h-[320px] flex items-center justify-center text-sm text-eims-text-muted">
-            Loading timeline...
-          </div>
+          <div className="flex-1 min-h-[320px] flex items-center justify-center text-sm text-eims-text-muted">Loading timeline…</div>
         ) : error ? (
           <div className="flex-1 min-h-[320px] flex flex-col items-center justify-center gap-2 text-sm">
             <AlertCircle className="w-8 h-8 text-eims-error opacity-70" />
@@ -178,9 +231,7 @@ function TimelineDashboardContent() {
 
         {!loading && !error && totalRecords > 0 ? (
           <div className="flex items-center justify-between pt-1 shrink-0">
-            <div className="text-sm text-eims-text-muted">
-              {totalRecords.toLocaleString()} events
-            </div>
+            <div className="text-sm text-eims-text-muted">{totalRecords.toLocaleString()} events</div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-eims-text-muted">
                 Page {page} of {totalPages.toLocaleString()}
@@ -188,7 +239,7 @@ function TimelineDashboardContent() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => changePage(Math.max(1, page - 1))}
+                  onClick={() => setPage(Math.max(1, page - 1))}
                   disabled={page <= 1}
                   className="p-2 bg-eims-surface-subtle hover:bg-eims-surface text-eims-text-secondary hover:text-eims-text rounded-md transition-all active:scale-95 focus:outline-none focus:ring-1 focus:ring-eims-text-secondary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border border-eims-border"
                   aria-label="Previous page"
@@ -197,7 +248,7 @@ function TimelineDashboardContent() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => changePage(page + 1)}
+                  onClick={() => setPage(page + 1)}
                   disabled={page >= totalPages}
                   className="p-2 bg-eims-surface-subtle hover:bg-eims-surface text-eims-text-secondary hover:text-eims-text rounded-md transition-all active:scale-95 focus:outline-none focus:ring-1 focus:ring-eims-text-secondary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border border-eims-border"
                   aria-label="Next page"

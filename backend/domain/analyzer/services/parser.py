@@ -266,10 +266,80 @@ def _parse_json_log(data: dict) -> EventMetadata:
     )
 
 
+_PG_JSONLOG_REQUIRED = {"error_severity", "state_code", "message"}
+_PG_JSONLOG_IDENTITY = {"pid", "backend_type", "session_id", "dbname", "line_num"}
+
+
+def _postgres_jsonlog(data) -> dict:
+    """PostgreSQL ``jsonlog`` entry recognised only by its documented keys (PostgreSQL docs, Table "Keys and Values of JSON Log Entries").
+
+    Requires error_severity, state_code and message plus at least one process/session identity key, and a well-formed
+    5-character SQLSTATE. Nothing is inferred from message text.
+    """
+    if not isinstance(data, dict) or not _PG_JSONLOG_REQUIRED <= set(data) or not _PG_JSONLOG_IDENTITY & set(data):
+        return {}
+    code = str(data.get("state_code") or "")
+    if not re.fullmatch(r"[0-9A-Z]{5}", code):
+        return {}
+    out = {"codeType": "sqlstate", "sqlState": code, "logFormat": "postgresql_jsonlog",
+           "pgSeverity": str(data.get("error_severity") or "")}
+    if data.get("backend_type"):
+        out["pgBackendType"] = str(data["backend_type"])
+    return out
+
+
 def _is_linux_syslog(text: str) -> bool:
     """Detect standard Linux syslog format (e.g., 'Aug 12 10:15:30 server sshd[1234]: Failed password')."""
     pattern = r'^[A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+(\S+)\s+([a-zA-Z0-9_\-\.]+)(?:\[\d+\])?:\s*(.*)'
     return bool(re.search(pattern, text.strip(), re.MULTILINE))
+
+
+# Server messages whose exact wording is confirmed by the PostgreSQL 16 documentation (Routine Vacuuming, "Preventing
+# Transaction ID Wraparound Failures") or by the upstream REL_16_STABLE source (checkpointer.c, shell_archive.c, pgarch.c,
+# tcop/postgres.c). Recognised only on syslog-forwarded lines whose program is postgres* (log_destination=syslog,
+# default syslog_ident "postgres"); nothing is inferred from other wording.
+_PG_DOCUMENTED_MESSAGES = {
+    "pg_xid_wraparound_warning": re.compile(r'WARNING:\s+database "(?P<database>[^"]+)" must be vacuumed within (?P<transactions>\d+) transactions'),
+    "pg_xid_wraparound_refusal": re.compile(r'ERROR:\s+database is not accepting commands to avoid wraparound data loss in database "(?P<database>[^"]+)"'),
+    "pg_checkpoint_too_frequent": re.compile(r'checkpoints are occurring too frequently \((?P<seconds>\d+) seconds? apart\)'),
+    "pg_archive_command_failed": re.compile(r'archive command failed with exit code (?P<exitCode>\d+)'),
+    "pg_archive_failed_too_many_times": re.compile(r'archiving write-ahead log file "(?P<walFile>[^"]+)" failed too many times, will try again later'),
+    "pg_recovery_conflict_cancel": re.compile(r'canceling statement due to conflict with recovery'),
+    "pg_recovery_conflict_terminate": re.compile(r'terminating connection due to conflict with recovery'),
+}
+PG_DOCUMENTED_MESSAGE_KEYS = frozenset(_PG_DOCUMENTED_MESSAGES)
+
+
+def _postgres_documented_message(daemon: str, msg: str) -> dict:
+    if not daemon.lower().startswith("postgres"):
+        return {}
+    for key, pattern in _PG_DOCUMENTED_MESSAGES.items():
+        m = pattern.search(msg)
+        if m:
+            return {"messageKey": key, "product": "PostgreSQL", **{k: v for k, v in m.groupdict().items() if v}}
+    return {}
+
+
+_SYSTEMD_EXIT = re.compile(
+    r"^(?:(?P<unit>[^\s:]+\.(?:service|socket|mount|swap|timer|target|path|scope|slice)):\s+)?"
+    r"(?P<kind>Main process|Control process|\S+(?: \S+)? process) exited, code=exited, status=(?P<status>\d{1,3})/(?P<name>[A-Z0-9_]+)",
+)
+
+
+def _systemd_exit_status(daemon: str, msg: str) -> dict:
+    """Exit status explicitly printed by systemd for a process that exited on its own (never inferred).
+
+    Signal terminations (code=killed/dumped) are not exit statuses and are not matched.
+    """
+    if daemon != "systemd":
+        return {}
+    m = _SYSTEMD_EXIT.match(msg.strip())
+    if not m or m.group("status") == "0":
+        return {}
+    out = {"exitStatus": m.group("status"), "exitName": m.group("name"), "processKind": m.group("kind")}
+    if m.group("unit"):
+        out["unit"] = m.group("unit")
+    return out
 
 
 def _parse_linux_syslog(text: str) -> EventMetadata:
@@ -297,6 +367,14 @@ def _parse_linux_syslog(text: str) -> EventMetadata:
         elif "connection refused" in msg_lower:
             event_id = "CONN-REFUSED"
             
+        attributes = {"codeType": "general_signature", "daemon": daemon, "message": msg}
+        pg_message = _postgres_documented_message(daemon, msg)
+        if pg_message:
+            attributes.update(pg_message, codeType="documented_message")
+        exit_status = _systemd_exit_status(daemon, msg)
+        if exit_status:
+            # Documented systemd message "<kind> exited, code=exited, status=<N>/<NAME>" (src/core/unit.c).
+            attributes.update(exit_status, codeType="process_exit_status")
         return EventMetadata(
             eventId=event_id,
             provider=f"Linux/{daemon}",
@@ -307,7 +385,7 @@ def _parse_linux_syslog(text: str) -> EventMetadata:
             isCritical=is_critical_level(level),
             faultingApp=daemon,
             diagnosticCode=event_id if event_id == "AUTH-FAIL" else "",
-            attributes={"codeType": "general_signature", "daemon": daemon, "message": msg},
+            attributes=attributes,
         )
     return EventMetadata(eventId="Linux-Syslog", provider="Linux/System", level="Info")
 
@@ -332,6 +410,10 @@ def parse_event_metadata(text: str, filename_hint: str = "") -> EventMetadata:
     json_data = _is_json_log(text)
     if json_data:
         meta = _stamp(_parse_json_log(json_data), "json", "JSON structured log", max(confidence, 0.85))
+        pg = _postgres_jsonlog(json_data)
+        if pg:  # explicit PostgreSQL jsonlog keys; the family stays "json" (no new source family)
+            meta.attributes = {**(meta.attributes or {}), **pg}
+            meta.provider = "PostgreSQL"
         return _merge_syslog(meta, text, family)
 
     # 2. Veeam / VMware vendor adapters (deterministic, stdlib only).
@@ -388,8 +470,89 @@ def windows_group_policy_connectivity(event_id: str, provider: str, text: str) -
     )
 
 
+_MAX_STACK_FRAMES = 40
+
+
+def _windows_attributes(text: str) -> tuple[str, dict]:
+    """Source identity and .NET runtime details that are stated verbatim in the text (never inferred).
+
+    Returns (application, attributes). ``recordId`` feeds Incident Core's evidence identity; the stack trace is kept
+    as written (first block, bounded) so the engineer can read it without it being summarised into a cause.
+    """
+    attrs: dict = {}
+    record = _field(text, r"(?i)Event\s*Record\s*ID\s*[:=]\s*(\d+)", r"(?i)<EventRecordID>\s*(\d+)\s*</EventRecordID>")
+    if record:
+        attrs["recordId"] = record
+    framework = _field(text, r"(?im)^\s*Framework\s+Version\s*:\s*([^\r\n]+)")
+    application = ""
+    if framework:
+        attrs["frameworkVersion"] = framework.strip()
+        application = (_field(text, r"(?im)^\s*Application\s*:\s*([^\r\n]+)") or "").strip()
+        if application:
+            attrs["application"] = application
+    lines = (text or "").splitlines()
+    starts = [i for i, ln in enumerate(lines) if re.match(r"\s*Exception\s+Info\s*:", ln, re.I)]
+    if starts:
+        first = starts[0]
+        attrs["exceptionInfo"] = lines[first].split(":", 1)[1].strip()[:300]
+        frames = []
+        for ln in lines[first + 1:]:
+            if re.match(r"\s+at\s+\S", ln):
+                frames.append(ln.strip()[:300])
+            else:
+                break
+        attrs["stackFrames"] = frames[:_MAX_STACK_FRAMES]
+        attrs["exceptionBlockCount"] = len(starts)
+    return application, attrs
+
+
+def _windows_event_xml(text: str) -> dict:
+    """Structured fields from a pasted Windows Event XML (Event Viewer "XML View").
+
+    ``TimeCreated/@SystemTime`` is the structured, zone-qualified (UTC) time the event was logged, so it is preferred over
+    any free-text date. Parsed with defusedxml; anything that is not a well-formed single <Event> yields nothing.
+    """
+    stripped = text.strip()
+    if "<Event" not in stripped or "<System" not in stripped:
+        return {}
+    start = stripped.find("<Event")
+    try:
+        from defusedxml import ElementTree as SafeET
+
+        root = SafeET.fromstring(stripped[start:stripped.rfind("</Event>") + len("</Event>")].encode("utf-8"))
+    except Exception:  # noqa: BLE001 - malformed/hostile XML: fall back to the text parser, never fail the request
+        return {}
+
+    def local(tag):
+        return tag.rsplit("}", 1)[-1]
+
+    system = next((child for child in root if local(child.tag) == "System"), None)
+    if system is None:
+        return {}
+    found: dict = {}
+    for child in system:
+        name = local(child.tag)
+        if name == "Provider":
+            found["provider"] = (child.get("Name") or "").strip()
+        elif name == "EventID":
+            found["event_id"] = (child.text or "").strip()
+        elif name == "TimeCreated":
+            found["timestamp"] = (child.get("SystemTime") or "").strip()
+        elif name == "Computer":
+            found["computer"] = (child.text or "").strip()
+        elif name == "Channel":
+            found["log_name"] = (child.text or "").strip()
+        elif name == "EventRecordID":
+            found["record_id"] = (child.text or "").strip()
+        elif name == "Level":
+            found["level"] = {"1": "Critical", "2": "Error", "3": "Warning", "4": "Information", "5": "Verbose"}.get(
+                (child.text or "").strip(), (child.text or "").strip())
+    return found
+
+
 def _parse_windows(text: str) -> EventMetadata:
     """Windows fields plus a narrowly supported Group Policy symptom category."""
+    xml = _windows_event_xml(text)
     event_id = _field(text, r"Event\s*ID[:\s]+(\d+)", r'"id"[:\s]+(\d+)', r"'id'[:\s]+(\d+)")
     provider = _field(
         text,
@@ -412,6 +575,14 @@ def _parse_windows(text: str) -> EventMetadata:
     )
     computer = _field(text, r"Computer[:\s]+([^\n\r]+)")
     
+    if xml:  # structured values win over free-text guesses
+        event_id = xml.get("event_id") or event_id
+        provider = xml.get("provider") or provider
+        level = xml.get("level") or level
+        log_name = xml.get("log_name") or log_name
+        timestamp = xml.get("timestamp") or timestamp
+        computer = xml.get("computer") or computer
+
     # Extract faulting application name
     faulting_app = _field(
         text,
@@ -419,6 +590,11 @@ def _parse_windows(text: str) -> EventMetadata:
         r"Faulting\s+module\s+name[:\s]+([^\n\r]+)",
     )
 
+    runtime_app, extra_attributes = _windows_attributes(text)
+    if xml.get("timestamp"):
+        extra_attributes = {**(extra_attributes or {}), "timeSource": "xml:System/TimeCreated@SystemTime"}
+    if xml.get("record_id"):
+        extra_attributes = {**(extra_attributes or {}), "recordId": xml["record_id"]}
     return EventMetadata(
         eventId=event_id or "Unknown",
         provider=provider or "Unknown",
@@ -427,7 +603,8 @@ def _parse_windows(text: str) -> EventMetadata:
         timestamp=timestamp,
         computer=computer,
         isCritical=is_critical_level(level),
-        faultingApp=faulting_app,
+        faultingApp=faulting_app or runtime_app,
+        attributes=extra_attributes,
         diagnosticCode=("WINDOWS-GROUP-POLICY-CONNECTIVITY"
                         if windows_group_policy_connectivity(event_id, provider, text)
                         and re.search(r"(?im)^\s*Event\s*ID\s*:\s*1129\s*$", text)

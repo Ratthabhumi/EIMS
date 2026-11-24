@@ -50,14 +50,24 @@ def test_curated_summary_is_request_local_deep_copy(monkeypatch):
     seed["en"].incident = IncidentAssessment(unknowns=["seed-only"])
     monkeypatch.setitem(event_knowledge.EVENT_KNOWLEDGE, "4624", seed)
     before = seed["en"].model_dump()
-    first = event_knowledge.get_curated_summary("4624", "en")
+    # Legacy compatibility layer (reads the seeded dictionary): original assertions unchanged.
+    first = event_knowledge._legacy_curated_summary("4624", "en")
     first.evidence.append("SYNTHETIC_CASE_A_ONLY")
     first.steps.append("CASE_A_RECOMMENDATION")
     first.incident.unknowns.append("CASE_A_UNKNOWN")
-    second = event_knowledge.get_curated_summary("4624", "en")
+    second = event_knowledge._legacy_curated_summary("4624", "en")
     assert first is not second
     assert second.model_dump() == before
     assert seed["en"].model_dump() == before
+
+    # Canonical-backed public reader (what summary.py uses): also request-local, never a shared template.
+    provider = "Microsoft-Windows-Security-Auditing"
+    baseline = event_knowledge.get_curated_summary("4624", "en", provider).model_dump()
+    served = event_knowledge.get_curated_summary("4624", "en", provider)
+    served.evidence.append("SYNTHETIC_CASE_A_ONLY")
+    served.steps.append("CASE_A_RECOMMENDATION")
+    again = event_knowledge.get_curated_summary("4624", "en", provider)
+    assert served is not again and again.model_dump() == baseline
 
 
 @pytest.mark.parametrize("family,label", [("veeam_vbr", "VEEAM-UNKNOWN"), ("vmware", "VMWARE-UNKNOWN")])
@@ -67,13 +77,162 @@ def test_unknown_vendor_summary_does_not_invent_terminal_failure(family, label):
     assert "outcome" in solution.overview.lower() and "unknown" in solution.overview.lower()
 
 
+def test_async_summary_offloads_local_builder(monkeypatch):
+    builder_name = "_build_from_web"
+    import threading
+    import time
+    from backend.domain.analyzer.services import observed_summary, catalog_diagnostics, incident_extract
+
+    monkeypatch.setattr(observed_summary, "observed_event_summary", lambda *args, **kwargs: None)
+    monkeypatch.setattr(catalog_diagnostics, "catalog_summary", lambda *args, **kwargs: None)
+    monkeypatch.setattr(incident_extract, "_is_noise", lambda line: False)
+    monkeypatch.setattr(incident_extract, "_signal_strength", lambda line: 2)
+    worker_threads = []
+
+    def blocking_builder(*args, **kwargs):
+        worker_threads.append(threading.get_ident())
+        time.sleep(0.05)
+        return SolutionSummary(overview="synthetic async offload")
+
+    monkeypatch.setattr(summary_mod, builder_name, blocking_builder)
+
+    async def exercise():
+        loop_thread = threading.get_ident()
+        heartbeat = asyncio.Event()
+
+        async def tick():
+            await asyncio.sleep(0.01)
+            heartbeat.set()
+
+        heartbeat_task = asyncio.create_task(tick())
+        result = await summary_mod.build_summary(
+            "SYNTHETIC-ASYNC", "Synthetic", "", [], language="th",
+            source_family="synthetic_async_test",
+            evidence_text="ERROR: synthetic failure evidence",
+        )
+        await heartbeat_task
+        assert heartbeat.is_set(), "event loop was blocked by synchronous summary generation"
+        assert worker_threads and worker_threads[0] != loop_thread
+        return result
+
+    result = asyncio.run(exercise())
+    assert result.overview == "synthetic async offload"
+
+
+def test_rag_uses_isolated_session_and_closes_before_external_summary_builder(monkeypatch):
+    from types import SimpleNamespace
+    from backend.domain.analyzer.services import (
+        catalog_diagnostics,
+        incident_extract,
+        observed_summary,
+    )
+
+    class FakeEngine:
+        pass
+
+    class FakeSession:
+        def __init__(self, bind, expire_on_commit=False):
+            self.bind = bind
+            self.closed = False
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, traceback):
+            self.closed = True
+            return False
+
+    monkeypatch.setattr(summary_mod, "AsyncEngine", FakeEngine)
+    monkeypatch.setattr(summary_mod, "AsyncSession", FakeSession)
+    monkeypatch.setattr(observed_summary, "observed_event_summary", lambda *a, **k: None)
+    monkeypatch.setattr(catalog_diagnostics, "catalog_summary", lambda *a, **k: None)
+    monkeypatch.setattr(incident_extract, "_is_noise", lambda line: False)
+    monkeypatch.setattr(incident_extract, "_signal_strength", lambda line: 2)
+
+    request_db = SimpleNamespace(bind=FakeEngine(), dirty={object()})
+    searched_sessions = []
+
+    async def search(db, **kwargs):
+        searched_sessions.append(db)
+        return []
+
+    def build_from_web(*args, **kwargs):
+        assert searched_sessions and searched_sessions[0].closed
+        assert request_db.dirty
+        return SolutionSummary(overview="isolated RAG session")
+
+    monkeypatch.setattr(summary_mod, "search_similar_logs", search)
+    monkeypatch.setattr(summary_mod, "_build_from_web", build_from_web)
+
+    result = asyncio.run(
+        summary_mod.build_summary(
+            "SYNTHETIC-POOL-LIFECYCLE",
+            "Synthetic",
+            "",
+            [],
+            language="en",
+            description="Synthetic database connection lifecycle",
+            db=request_db,
+            source_family="synthetic_pool_test",
+            evidence_text="ERROR: synthetic failure evidence",
+        )
+    )
+
+    assert result.overview == "isolated RAG session"
+    assert searched_sessions[0] is not request_db
+
+
+def test_connection_bound_rag_session_remains_caller_owned(monkeypatch):
+    from backend.domain.analyzer.services import (
+        catalog_diagnostics,
+        incident_extract,
+        observed_summary,
+    )
+
+    class FakeConnection:
+        pass
+
+    class CallerSession:
+        bind = FakeConnection()
+
+    request_db = CallerSession()
+    monkeypatch.setattr(observed_summary, "observed_event_summary", lambda *a, **k: None)
+    monkeypatch.setattr(catalog_diagnostics, "catalog_summary", lambda *a, **k: None)
+    monkeypatch.setattr(incident_extract, "_is_noise", lambda line: False)
+    monkeypatch.setattr(incident_extract, "_signal_strength", lambda line: 2)
+
+    async def search(db, **kwargs):
+        assert db is request_db
+        return []
+
+    monkeypatch.setattr(summary_mod, "search_similar_logs", search)
+    monkeypatch.setattr(
+        summary_mod,
+        "_build_from_web",
+        lambda *a, **k: SolutionSummary(overview="caller-owned connection"),
+    )
+    result = asyncio.run(
+        summary_mod.build_summary(
+            "SYNTHETIC-CONNECTION-BOUND",
+            "Synthetic",
+            "",
+            [],
+            language="en",
+            description="Synthetic connection-bound session",
+            db=request_db,
+            source_family="synthetic_pool_test",
+            evidence_text="ERROR: synthetic failure evidence",
+        )
+    )
+    assert result.overview == "caller-owned connection"
+
+
 def test_explicit_session_failed_summary_still_reports_observed_status():
     solution = summary_mod._build_from_web("VEEAM-SESSION-FAILED", "Synthetic Veeam", "", [], "en", source_family="veeam_vbr", diagnostic_code="VEEAM-SESSION-FAILED")
     assert "completed with a Failed status" in solution.overview
 
 
 def test_ctk_2620_is_technical_failure_without_inventing_job_outcome():
-    from backend.domain.analyzer.services.evidence import build_evidence_records
     line = "2026-10-25T10:00:03Z Er(02) vmx - CTK_CTKUNLINK result:2620"
     incident = extract_incident(line, "vmware")
     assert incident["firstMeaningfulFailure"] == line
@@ -412,7 +571,7 @@ def test_classify_source_only_vendor_domains_are_official():
 
 
 def test_veeam_fallback_refs_contain_no_microsoft():
-    import duckduckgo_search  # noqa: F401  (proves import surface only)
+    import ddgs  # noqa: F401  (proves the maintained import surface)
 
     def _boom(*a, **k):
         raise RuntimeError("offline")
@@ -448,8 +607,21 @@ def test_classify_source_families():
 # ---------------------------------------------------------------------------
 
 
+def _approved_knowledge(event_id, family, overview, provider="Synthetic Provider"):
+    knowledge = {
+        "sourceFamily": family,
+        "diagnosticIdentity": event_id,
+        "reviewStatus": "approved",
+        "reviewedBy": "synthetic-reviewer",
+        "reviewedAt": "2026-11-15T00:00:00Z",
+    }
+    if family == "windows_event":  # provider-bearing family: the entry is scoped to one provider
+        knowledge.update(provider=provider, providerScope="provider_specific")
+    return {"overview": overview, "_knowledge": knowledge}
+
+
 def test_rag_1129_never_answers_veeam(no_embeddings):
-    win_row = (_FakeRow("1129", 5, {"overview": "GroupPolicy fix"}), 0.05)
+    win_row = (_FakeRow("1129", 5, _approved_knowledge("1129", "windows_event", "GroupPolicy fix")), 0.05)
     db = _FakeDB(rows=[win_row])
     out = asyncio.run(
         vector_db_mod.search_similar_logs(
@@ -465,7 +637,7 @@ def test_rag_1129_never_answers_veeam(no_embeddings):
 
 def test_rag_vendor_row_never_answers_windows(no_embeddings):
     veeam_row = (
-        _FakeRow("VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, {"overview": "Veeam fix"}),
+        _FakeRow("VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, _approved_knowledge("VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", "Veeam fix")),
         0.05,
     )
     db = _FakeDB(rows=[veeam_row])
@@ -481,20 +653,20 @@ def test_rag_vendor_row_never_answers_windows(no_embeddings):
 
 
 def test_rag_negative_feedback_rows_excluded(no_embeddings):
-    bad = (_FakeRow("1129", -1, {"overview": "wrong fix"}), 0.01)
-    good = (_FakeRow("1129", 3, {"overview": "right fix"}), 0.4)
+    bad = (_FakeRow("1129", -1, _approved_knowledge("1129", "windows_event", "wrong fix")), 0.01)
+    good = (_FakeRow("1129", 3, _approved_knowledge("1129", "windows_event", "right fix")), 0.4)
     db = _FakeDB(rows=[bad, good])
     out = asyncio.run(
         vector_db_mod.search_similar_logs(
             db=db, description=WIN1129_TEXT, event_id="1129",
-            source_family="windows_event",
+            source_family="windows_event", provider="Synthetic Provider",
         )
     )
     assert out == [{"overview": "right fix"}]
 
 
-def test_rag_unverified_score_zero_requires_same_identity(no_embeddings):
-    stranger = (_FakeRow("4625", 0, {"overview": "unverified 4625"}), 0.05)
+def test_rag_positive_feedback_does_not_approve_same_identity(no_embeddings):
+    stranger = (_FakeRow("1129", 9, {"overview": "unreviewed 1129", "_knowledge": {"sourceFamily": "windows_event", "diagnosticIdentity": "1129", "reviewStatus": "pending"}}), 0.05)
     db = _FakeDB(rows=[stranger])
     out = asyncio.run(
         vector_db_mod.search_similar_logs(
@@ -506,7 +678,7 @@ def test_rag_unverified_score_zero_requires_same_identity(no_embeddings):
 
 
 def test_rag_unknown_source_retrieves_nothing(no_embeddings):
-    row = (_FakeRow("1129", 9, {"overview": "verified"}), 0.01)
+    row = (_FakeRow("1129", 9, _approved_knowledge("1129", "windows_event", "verified")), 0.01)
     db = _FakeDB(rows=[row])
     out = asyncio.run(
         vector_db_mod.search_similar_logs(
@@ -515,6 +687,42 @@ def test_rag_unknown_source_retrieves_nothing(no_embeddings):
         )
     )
     assert out == []
+
+
+def test_add_solution_embeds_before_database_checkout(monkeypatch):
+    embedded = {"ready": False}
+    vector = [0.2] * 384
+
+    def make_embedding(*args, **kwargs):
+        embedded["ready"] = True
+        return vector
+
+    class OrderedDB(_FakeDB):
+        async def execute(self, query):
+            assert embedded["ready"], "DB checkout happened before embedding completed"
+            return await super().execute(query)
+
+    monkeypatch.setattr(vector_db_mod.settings, "AUTH_MODE", "demo")
+    monkeypatch.setattr(vector_db_mod, "_get_embedding", make_embedding)
+    row = _FakeRow("1129", 0, {"overview": "old"})
+    db = OrderedDB(single=row)
+
+    asyncio.run(
+        vector_db_mod.add_solution(
+            db=db,
+            event_id="1129",
+            description="synthetic embedding order",
+            solution_summary={"overview": "new"},
+            feedback_score=1,
+            source_family="windows_event",
+            diagnostic_identity="1129",
+        )
+    )
+
+    assert row.feedback_score == 1
+    assert row.solution_json["overview"] == "new"
+    assert row.embedding == vector
+    assert db.commits == 1
 
 
 def test_thumbs_down_quarantines_exact_row(no_embeddings):
@@ -544,13 +752,49 @@ def test_thumbs_down_without_row_inserts_nothing(no_embeddings):
 
 def test_guardrail_predicate_matrix():
     f = vector_db_mod._is_usable_knowledge_row
-    assert f("VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", 0.1)
-    assert not f("1129", 5, "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", 0.01)
-    assert not f("VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, "1129", "windows_event", 0.01)
-    assert not f("1129", -1, "1129", "windows_event", 0.01)
-    assert f("1129", 0, "1129", "windows_event", 0.4)
-    assert not f("4625", 0, "1129", "windows_event", 0.05)
-    assert not f("1129", 5, "Unknown", "unknown_text", 0.01)
+    approved_veeam = _approved_knowledge(
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", "reviewed fix"
+    )
+    approved_windows = _approved_knowledge("1129", "windows_event", "reviewed fix")
+    assert f(
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN", 0,
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", 0.1,
+        row_solution_json=approved_veeam,
+    )
+    assert not f(
+        "1129", 5, "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", 0.01,
+        row_solution_json=approved_windows,
+    )
+    assert not f(
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, "1129", "windows_event", 0.01,
+        row_solution_json=approved_veeam,
+    )
+    assert not f(
+        "1129", -1, "1129", "windows_event", 0.01,
+        row_solution_json=approved_windows,
+    )
+    assert f(
+        "1129", 0, "1129", "windows_event", 0.4,
+        row_solution_json=approved_windows, request_provider="Synthetic Provider",
+    )
+    approved_other_code = _approved_knowledge("4625", "windows_event", "reviewed fix")
+    assert f(
+        "4625", 0, "1129", "windows_event", 0.05,
+        row_solution_json=approved_other_code, request_provider="Synthetic Provider",
+    )
+    pending = {
+        "_knowledge": {
+            "sourceFamily": "windows_event",
+            "diagnosticIdentity": "1129",
+            "reviewStatus": "pending",
+        }
+    }
+    assert not f("1129", 9, "1129", "windows_event", 0.01, row_solution_json=pending)
+    assert not f("1129", 9, "1129", "windows_event", 0.01, row_solution_json=None)
+    assert not f(
+        "1129", 5, "Unknown", "unknown_text", 0.01,
+        row_solution_json=approved_windows,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1297,99 +1541,57 @@ def test_kb_precedence_guaranteed_even_with_three_official_web_results(monkeypat
     assert results[0].sourceType == "official"
 
 
-def test_source_aware_gemini_prompt_matrix(monkeypatch):
-    from backend.domain.analyzer.services import summary as summary_mod
-
-    recorded_prompts = []
-    def mock_call_gemini(prompt, api_key):
-        recorded_prompts.append(prompt)
-        return '{"overview": "test", "causes": ["c1"], "steps": ["s1"]}'
-
-    monkeypatch.setattr(summary_mod, "_call_gemini", mock_call_gemini)
-
-    families = [
-        "windows_event",
-        "veeam_vbr",
-        "vmware",
-        "fortinet",
-        "cisco_asa",
-        "linux_syslog",
-        "json",
-        "unknown_text",
-    ]
-
-    for fam in families:
-        recorded_prompts.clear()
-        res = summary_mod._build_from_gemini(
-            event_id="1001" if fam == "windows_event" else "ERR_TEST",
-            provider="TestProvider",
-            snippets="test web context",
-            results=[],
-            language="en",
-            faulting_app="test.exe",
-            api_key="mock-key",
-            source_family=fam,
-            diagnostic_code="DIAG-01",
-            product="TestProd",
-        )
-        assert res is not None
-        assert len(recorded_prompts) == 1
-        prompt = recorded_prompts[0]
-
-        if fam == "windows_event":
-            assert "Windows Server Administrator" in prompt
-            assert "Windows Event ID" in prompt
-        else:
-            assert "Windows Server Administrator" not in prompt
-            assert "Windows Event ID" not in prompt
-
-        if fam == "linux_syslog":
-            assert "Linux/system context" in prompt or "Linux Systems Administrator" in prompt
-        elif fam == "json":
-            assert "structured application/service context" in prompt
-        elif fam == "unknown_text":
-            assert "conservative generic incident triage" in prompt
-
 
 def test_rag_domain_identity_matrix():
     f = vector_db_mod._is_usable_knowledge_row
 
-    # 1. Negative feedback is always excluded
-    assert not f("1001", -1, "1001", "windows_event", 0.01)
-    assert not f("1001", -1, "1001", "windows_event", 0.01, row_solution_json={"_knowledge": {"sourceFamily": "windows_event"}})
+    # 1. Negative feedback is always excluded, even after review.
+    approved_windows = _approved_knowledge("1001", "windows_event", "reviewed")
+    assert not f("1001", -1, "1001", "windows_event", 0.01, row_solution_json=approved_windows)
 
-    # 2. Unknown text does no retrieval
-    assert not f("1001", 5, "1001", "unknown_text", 0.01)
+    # 2. Unknown text does no retrieval.
+    assert not f("1001", 5, "1001", "unknown_text", 0.01, row_solution_json=approved_windows)
 
-    # 3. Vendor isolation: veeam/vmware only answer exact same vendor code
-    veeam_knowledge = {"_knowledge": {"sourceFamily": "veeam_vbr", "diagnosticIdentity": "VEEAM-REPLICA-SNAPSHOT-CHAIN"}}
-    assert f("VEEAM-REPLICA-SNAPSHOT-CHAIN", 0, "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", 0.1, row_solution_json=veeam_knowledge)
-    assert not f("VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, "VMWARE-SNAPSHOT-FILE-MISSING", "vmware", 0.05, row_solution_json=veeam_knowledge)
-    assert not f("VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, "1129", "windows_event", 0.05, row_solution_json=veeam_knowledge)
+    # 3. Vendor isolation: Veeam/VMware only answer exact same vendor code.
+    veeam_knowledge = _approved_knowledge(
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", "Veeam reviewed fix"
+    )
+    assert f(
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN", 0, "VEEAM-REPLICA-SNAPSHOT-CHAIN",
+        "veeam_vbr", 0.1, row_solution_json=veeam_knowledge,
+    )
+    assert not f(
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, "VMWARE-SNAPSHOT-FILE-MISSING",
+        "vmware", 0.05, row_solution_json=veeam_knowledge,
+    )
+    assert not f(
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN", 5, "1129", "windows_event",
+        0.05, row_solution_json=veeam_knowledge,
+    )
 
-    # 4. Cisco ASA isolation
-    cisco_knowledge = {"_knowledge": {"sourceFamily": "cisco_asa", "diagnosticIdentity": "ASA-106015"}}
+    # 4. Cisco ASA isolation.
+    cisco_knowledge = _approved_knowledge("ASA-106015", "cisco_asa", "Cisco reviewed fix")
     assert f("ASA-106015", 0, "ASA-106015", "cisco_asa", 0.1, row_solution_json=cisco_knowledge)
     assert not f("ASA-106015", 5, "ASA-106015", "fortinet", 0.05, row_solution_json=cisco_knowledge)
     assert not f("ASA-106015", 5, "1129", "windows_event", 0.05, row_solution_json=cisco_knowledge)
 
-    # 5. Fortinet isolation
-    forti_knowledge = {"_knowledge": {"sourceFamily": "fortinet", "diagnosticIdentity": "0000000013"}}
+    # 5. Fortinet isolation.
+    forti_knowledge = _approved_knowledge("0000000013", "fortinet", "Fortinet reviewed fix")
     assert f("0000000013", 0, "0000000013", "fortinet", 0.1, row_solution_json=forti_knowledge)
     assert not f("0000000013", 5, "0000000013", "cisco_asa", 0.05, row_solution_json=forti_knowledge)
 
-    # 6. Linux syslog isolation
-    linux_knowledge = {"_knowledge": {"sourceFamily": "linux_syslog", "diagnosticIdentity": "sshd_failed"}}
+    # 6. Linux syslog isolation.
+    linux_knowledge = _approved_knowledge("sshd_failed", "linux_syslog", "Linux reviewed fix")
     assert f("sshd_failed", 0, "sshd_failed", "linux_syslog", 0.1, row_solution_json=linux_knowledge)
     assert not f("sshd_failed", 5, "sshd_failed", "windows_event", 0.05, row_solution_json=linux_knowledge)
 
-    # 7. JSON isolation
-    json_knowledge = {"_knowledge": {"sourceFamily": "json", "diagnosticIdentity": "http_500"}}
+    # 7. JSON isolation.
+    json_knowledge = _approved_knowledge("http_500", "json", "JSON reviewed fix")
     assert f("http_500", 0, "http_500", "json", 0.1, row_solution_json=json_knowledge)
     assert not f("http_500", 5, "http_500", "linux_syslog", 0.05, row_solution_json=json_knowledge)
 
-    # 8. Legacy unmarked numeric row: Windows requests only
-    assert f("1129", 0, "1129", "windows_event", 0.1, row_solution_json=None)
+    # 8. Legacy unmarked rows fail closed until an engineer reviews them.
+    assert not f("1129", 0, "1129", "windows_event", 0.1, row_solution_json=None)
     assert not f("1129", 5, "1129", "linux_syslog", 0.05, row_solution_json=None)
     assert not f("1129", 5, "1129", "cisco_asa", 0.05, row_solution_json=None)
     assert not f("1129", 5, "VEEAM-REPLICA-SNAPSHOT-CHAIN", "veeam_vbr", 0.05, row_solution_json=None)
@@ -2042,6 +2244,56 @@ def test_source_record_compaction_preserves_indices_and_budget():
     assert sum(len(r.raw_text) + 1 for r in records) <= MAX_CHARS
     matching = [r for r in records if r.raw_text == failure]
     assert len(matching) == 1 and matching[0].line_number == 1001
+
+
+@pytest.mark.parametrize("question,wants_causes,wants_steps", [
+    ("ทำไมถึงล้มเหลว", True, False),
+    ("สาเหตุของปัญหา", True, False),
+    ("ต้องทำอย่างไร", False, True),
+    ("ช่วยแก้ไขให้หน่อย", False, True),
+])
+def test_thai_followup_fallback_detects_cause_and_steps(question, wants_causes, wants_steps):
+    summary = SolutionSummary(overview="OVERVIEW-MARK", causes=["CAUSE-MARK"], steps=["STEP-MARK"])
+    answer = summary_mod.build_followup_answer(question, summary, [], "th", None)
+    assert ("CAUSE-MARK" in answer) is wants_causes
+    assert ("STEP-MARK" in answer) is wants_steps
+    assert "OVERVIEW-MARK" not in answer
+
+
+@pytest.mark.parametrize("question", [
+    "\u0e2b\u0e32\u0e40\u0e2d\u0e01\u0e2a\u0e32\u0e23",  # ????????
+    "\u0e02\u0e2d\u0e25\u0e34\u0e07\u0e01\u0e4c",  # ???????
+    "\u0e02\u0e2d\u0e2d\u0e49\u0e32\u0e07\u0e2d\u0e34\u0e07",  # ?????????
+])
+def test_thai_followup_fallback_includes_requested_references(question):
+    from types import SimpleNamespace
+
+    summary = SolutionSummary(overview="OVERVIEW-MARK", causes=[], steps=[])
+    references = [SimpleNamespace(title="Synthetic reference", link="https://example.test/docs")]
+    answer = summary_mod.build_followup_answer(question, summary, references, "th", None)
+    assert "https://example.test/docs" in answer
+
+
+def test_local_embedding_fails_closed_without_cloud_api(monkeypatch):
+    import requests
+    monkeypatch.setattr(vector_db_mod, "_get_local_model", lambda: None)
+    monkeypatch.setattr(requests, "post", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected cloud request")))
+    assert vector_db_mod._get_embedding("synthetic text", api_key="unused-legacy-argument") == []
+
+def test_failure_gate_prefers_source_evidence_over_descriptive_title(monkeypatch):
+    from backend.domain.analyzer.services import observed_summary, catalog_diagnostics
+
+    monkeypatch.setattr(observed_summary, "observed_event_summary", lambda *args: None)
+    monkeypatch.setattr(catalog_diagnostics, "catalog_summary", lambda *args: None)
+    sentinel = SolutionSummary(overview="Evidence path reached")
+    monkeypatch.setattr(summary_mod, "_build_from_web", lambda *args, **kwargs: sentinel)
+
+    result = asyncio.run(summary_mod.build_summary(
+        event_id="UNKNOWN", provider="Synthetic", snippets="", results=[], language="en",
+        description="Synthetic incident title", source_family="unknown_text",
+        evidence_text="ERROR: synthetic dependency failure",
+    ))
+    assert result is sentinel
 
 
 # Duplicate guard (must remain last)

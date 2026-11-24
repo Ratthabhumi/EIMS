@@ -63,7 +63,19 @@
         "evidence": [],
         "correlation_pairs": [],
         "applicable_kb": [],
-        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+        "notes": "INFORMATIONAL_ONLY: Event ID 6005 is event recognition / operational boot-context, not root-cause diagnosis. Owner Phase E alignment; DRAFT not Gold.",
+        "event_identity": "6005",
+        "diagnostic_category": null,
+        "outcome": null,
+        "informational_only": true,
+        "identity_evidence": [
+          {
+            "file": "cases/win_boot/input.txt",
+            "line": 3,
+            "claim": "Event ID 6005 recognition"
+          }
+        ],
+        "diagnostic_evidence": []
       }
     },
     {
@@ -212,14 +224,26 @@
       ],
       "truth": {
         "source_family": "fortinet",
-        "diagnostic_code": "0000000013",
+        "diagnostic_code": "traffic/forward",
         "abstain_expected": false,
         "first_failure": null,
         "terminal_failure": null,
         "evidence": [],
         "correlation_pairs": [],
         "applicable_kb": [],
-        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+        "notes": "Layers: event_identity=logid, diagnostic_category=type/subtype, outcome=action. Accept is informational, not failure evidence. DRAFT not Gold.",
+        "event_identity": "0000000013",
+        "diagnostic_category": "traffic/forward",
+        "outcome": "accept",
+        "informational_only": true,
+        "identity_evidence": [
+          {
+            "file": "cases/fort_accept/input.txt",
+            "line": 1,
+            "claim": "Fortinet traffic forward record identity"
+          }
+        ],
+        "diagnostic_evidence": []
       }
     },
     {
@@ -238,14 +262,26 @@
       ],
       "truth": {
         "source_family": "fortinet",
-        "diagnostic_code": "0100044547",
+        "diagnostic_code": "event/system",
         "abstain_expected": false,
         "first_failure": null,
         "terminal_failure": null,
         "evidence": [],
         "correlation_pairs": [],
         "applicable_kb": [],
-        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+        "notes": "Successful configuration observation: identity/context only; not failure diagnosis. DRAFT not Gold.",
+        "event_identity": "0100044547",
+        "diagnostic_category": "event/system",
+        "outcome": "edit",
+        "informational_only": true,
+        "identity_evidence": [
+          {
+            "file": "cases/fort_config/input.txt",
+            "line": 1,
+            "claim": "Fortinet system configuration event identity"
+          }
+        ],
+        "diagnostic_evidence": []
       }
     },
     {
@@ -507,14 +543,43 @@
       ],
       "truth": {
         "source_family": "fortinet",
-        "diagnostic_code": "0000000013",
+        "diagnostic_code": "traffic/forward",
         "abstain_expected": false,
-        "first_failure": null,
-        "terminal_failure": null,
-        "evidence": [],
+        "first_failure": {
+          "file": "cases/fort_deny_reserved/input.txt",
+          "line": 1
+        },
+        "terminal_failure": {
+          "file": "cases/fort_deny_reserved/input.txt",
+          "line": 1
+        },
+        "evidence": [
+          {
+            "file": "cases/fort_deny_reserved/input.txt",
+            "line": 1
+          }
+        ],
         "correlation_pairs": [],
         "applicable_kb": [],
-        "notes": "AI-proposed annotation, not independently validated. Identity is not root cause. Review official KB applicability independently."
+        "notes": "Owner-authorized held-out annotation alignment only (Phase E): three semantic layers; diagnostic evidence aligned to Analyzer line 1. Not matcher tuning. DRAFT not Gold.",
+        "event_identity": "0000000013",
+        "diagnostic_category": "traffic/forward",
+        "outcome": "deny",
+        "informational_only": false,
+        "identity_evidence": [
+          {
+            "file": "cases/fort_deny_reserved/input.txt",
+            "line": 1,
+            "claim": "Fortinet traffic forward record identity"
+          }
+        ],
+        "diagnostic_evidence": [
+          {
+            "file": "cases/fort_deny_reserved/input.txt",
+            "line": 1,
+            "claim": "action=deny policy outcome in raw log"
+          }
+        ]
       }
     },
     {

@@ -1,0 +1,25 @@
+﻿{
+    "schema":  "v12-a14-remediation-manifest/v1",
+    "generatedAt":  "2026-11-18T23:44:04.5348511+07:00",
+    "repository":  "EIMS",
+    "baseA13ManifestSha256":  "8626A766FE4A342901D99E4228C4B8702994C9975D96A7C46F7729E34712A5A8",
+    "a14Workspace":  "C:\\Users\\MewMew\\AppData\\Local\\Temp\\v12-a14/EIMS",
+    "summary":  {
+                    "added":  0,
+                    "removed":  0,
+                    "modified":  4
+                },
+    "modified":  [
+                     "docs/V12_A13_TEST_ISOLATION_DESIGN.md",
+                     "tests/disposable_guard.py",
+                     "tests/test_fixture_isolation_contract.py",
+                     "tools/sprint11_benchmark.py"
+                 ],
+    "added":  [
+
+              ],
+    "removed":  [
+
+                ],
+    "hashSemantics":  "SHA-256 of raw working-tree bytes (CRLF)"
+}

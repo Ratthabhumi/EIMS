@@ -33,6 +33,7 @@ from backend.domain.asset_registry.models import AuditLog, InfrastructureAsset
 from backend.domain.incident.correlation import (
     CONFIDENCE_NONE,
     CONFIDENCE_RANK,
+    CONFIDENCE_STRONG,
     CONFIDENCE_WEAK,
     DEFAULT_WINDOW_SECONDS,
     CorrelationAssessment,
@@ -44,6 +45,12 @@ from backend.domain.incident.correlation import (
     normalize_signature,
     window_bucket,
 )
+from backend.domain.incident.event_time import (
+    CORRELATION_ELIGIBLE,
+    asserted_event_time,
+    parse_event_time,
+)
+from backend.domain.incident.evidence_identity import analysis_fields, analysis_fingerprint, build_event_key
 from backend.domain.incident.models import (
     INCIDENT_SEVERITIES,
     Incident,
@@ -159,6 +166,16 @@ class EvidenceInput:  # noqa: F811 - reconstructed definition
     observed_at: datetime
     source_event_key: str | None = None
     evidence_digest: str | None = None
+    # Event-time semantics (see event_time.py). ``None`` basis/confidence = not evaluated by the caller; they are
+    # completed in _normalize_evidence (legacy callers: the supplied observed_at is taken as an asserted event time).
+    event_time: datetime | None = None
+    time_basis: str | None = None
+    time_confidence: str | None = None
+    time_original: str | None = None
+
+    @property
+    def time_eligible(self) -> bool:
+        return self.event_time is not None and self.time_confidence in CORRELATION_ELIGIBLE
 
     @property
     def signature(self) -> str:
@@ -211,12 +228,28 @@ class IncidentService:
                 raise IncidentValidationError("Evidence source_id must be at most 64 characters.")
             observed = normalize_observed_at(item.observed_at)
             key = (source_type, source_id)
+            event_time, basis, confidence, original = (
+                item.event_time, item.time_basis, item.time_confidence, item.time_original)
+            if confidence is None:  # legacy direct caller: its observed_at is an asserted structured timestamp
+                event_time, basis, confidence, original = observed, "caller_supplied_structured_timestamp", "asserted", None
+            if confidence in CORRELATION_ELIGIBLE and event_time is None:
+                basis, confidence = "trusted_time_without_instant", "missing"
+            if (item.source_type or "").strip().lower() == "analysis" and item.time_confidence is None:
+                # An analysis record's request/ingestion time is never an event time (see enrich_evidence).
+                event_time, basis, confidence, original = None, "analysis_time_not_evaluated", "missing", None
+            if confidence in CORRELATION_ELIGIBLE and event_time is not None:
+                event_time = normalize_observed_at(event_time)
+                observed = event_time  # the correlation clock is the event clock, never the ingestion clock
             candidate = EvidenceInput(
                 source_type=source_type,
                 source_id=source_id,
                 observed_at=observed,
                 source_event_key=item.source_event_key,
                 evidence_digest=item.evidence_digest,
+                event_time=event_time,
+                time_basis=basis,
+                time_confidence=confidence,
+                time_original=original,
             )
             # Deterministic conflict resolution: earliest observation wins.
             if key not in normalized or observed < normalized[key].observed_at:
@@ -245,6 +278,23 @@ class IncidentService:
     @staticmethod
     def _is_terminal(incident: Incident) -> bool:
         return incident.status in {"resolved", "closed"}
+
+    async def find_by_evidence(self, source_type: str, source_id: str) -> list[dict]:
+        """Incident bound to one source event, if any (read-only).
+
+        (source_type, source_id) is unique across incidents, so there is at most one.
+        """
+        if source_type not in ("analysis", "winlog", "telemetry", "audit"):
+            raise IncidentValidationError("unsupported source_type")
+        bound = await self._evidence_lookup(source_type, str(source_id).strip())
+        if bound is None:
+            return []
+        incident = await self.get_incident(bound.incident_id)
+        return [{
+            "incident_id": incident.incident_id, "title": incident.title, "status": incident.status,
+            "severity": incident.severity, "root_cause_state": incident.root_cause_state,
+            "evidence_id": bound.evidence_id, "linked_at": bound.created_at,
+        }]
 
     async def _by_dedupe_key(self, dedupe_key: str) -> Incident | None:
         stmt = select(Incident).where(Incident.dedupe_key == dedupe_key)
@@ -299,6 +349,163 @@ class IncidentService:
             observed_at=normalize_observed_at(incident.last_seen),
         )
 
+    async def enrich_evidence(
+        self, items: list[EvidenceInput], asset_id: uuid.UUID | None
+    ) -> tuple[list[EvidenceInput], uuid.UUID | None]:
+        """Derive durable identity for analysis evidence from the persisted analysis record (server-side).
+
+        Adds the provider-qualified event key, the record's concrete asset (never guessed) and, when the source carries
+        an occurrence-distinguishing field, an occurrence fingerprint. Unknown records are left untouched, so the
+        caller's references keep working; the caller cannot supply a fingerprint for analysis evidence.
+        """
+        enriched: list[EvidenceInput] = []
+        resolved_asset = asset_id
+        for item in items:
+            if (item.source_type or "").strip().lower() != "analysis":
+                # A structured timestamp supplied by an authenticated collector: asserted when it carries a zone.
+                stamp = asserted_event_time(item.observed_at)
+                enriched.append(replace(
+                    item, event_time=stamp.event_time, time_basis=stamp.basis,
+                    time_confidence=stamp.confidence, time_original=stamp.original))
+                continue
+            unknown = replace(
+                item, evidence_digest=None, event_time=None, time_basis="analysis_record_unavailable",
+                time_confidence="missing", time_original=None)
+            if not item.source_id.isdigit():
+                enriched.append(unknown)
+                continue
+            row = await self._analysis_record(int(item.source_id))
+            if row is None:
+                enriched.append(unknown)
+                continue
+            fields = analysis_fields(row)
+            digest = analysis_fingerprint(row)
+            # The request's observed_at is NOT the event time: only the analysed record's own timestamp counts.
+            stamp = parse_event_time(fields["occurred"], declared_zone=fields.get("timezone"))
+            if stamp.confidence == "exact" and str(fields.get("time_source") or "").startswith("xml:"):
+                stamp = replace(stamp, basis="xml_timecreated_systemtime")  # structured Windows Event XML field
+            enriched.append(replace(
+                item,
+                source_event_key=build_event_key(fields["event_id"], fields["provider"], item.source_event_key),
+                evidence_digest=digest,
+                event_time=stamp.event_time, time_basis=stamp.basis,
+                time_confidence=stamp.confidence, time_original=stamp.original,
+            ))
+            if resolved_asset is None and row.asset_id is not None:
+                resolved_asset = row.asset_id
+        return enriched, resolved_asset
+
+    async def _analysis_record(self, history_id: int):
+        from backend.domain.analyzer.models.history import AnalysisHistory
+
+        try:
+            async with self.db.begin_nested():
+                return await self.db.get(AnalysisHistory, history_id)
+        except Exception:  # noqa: BLE001 - table absent or unreadable: identity stays source-only
+            return None
+
+    async def find_by_digest(self, digest: str) -> bool:
+        """True when this event occurrence fingerprint is already bound to an incident (read-only)."""
+        return await self._digest_lookup(digest) is not None
+
+    async def _digest_lookup(self, digest: str) -> IncidentEvidence | None:
+        stmt = select(IncidentEvidence).where(IncidentEvidence.evidence_digest == digest).limit(1)
+        return (await self.db.execute(stmt)).scalars().first()
+
+    async def _assess_candidates(
+        self, primary: EvidenceInput, asset_id: uuid.UUID | None, window_seconds: int
+    ) -> tuple[tuple[Incident, CorrelationAssessment] | None, list[tuple[Incident, CorrelationAssessment]]]:
+        """Split correlation candidates into one STRONG match (auto-merge) and ambiguous ones (never merged).
+
+        A strong match needs a trustworthy EVENT time on both sides. Ingestion time is never a substitute: without it
+        the evidence is kept separate and same-asset/same-signature incidents are only listed as ambiguous candidates.
+        """
+        if not primary.time_eligible:
+            return None, await self._untrusted_time_candidates(primary, asset_id, window_seconds)
+        strong: tuple[Incident, CorrelationAssessment] | None = None
+        ambiguous: list[tuple[Incident, CorrelationAssessment]] = []
+        for incident in await self._candidate_incidents(primary, asset_id, window_seconds):
+            existing = await self._incident_event_input(incident, primary)
+            if existing is None:
+                signature = self._incident_signature(incident)
+                if signature and signature == primary.signature and incident.asset_id == asset_id and asset_id is not None:
+                    ambiguous.append((incident, self._time_assessment(
+                        primary, asset_id, window_seconds, "existing_incident_has_no_trusted_event_time")))
+                continue
+            assessment = classify(primary.correlation_input(asset_id), existing, window_seconds=window_seconds)
+            if assessment.confidence == CONFIDENCE_STRONG:
+                if strong is None:
+                    strong = (incident, assessment)
+                else:  # two different incidents both match strongly: cannot choose, treat as ambiguous
+                    ambiguous.extend([strong, (incident, assessment)])
+                    strong = None
+                    break
+            elif assessment.mergeable:
+                ambiguous.append((incident, assessment))
+        return strong, ambiguous
+
+    @staticmethod
+    def _incident_signature(incident: Incident) -> str | None:
+        summary = incident.summary if isinstance(incident.summary, dict) else {}
+        correlation = summary.get("correlation")
+        signature = correlation.get("signature") if isinstance(correlation, dict) else None
+        return signature if isinstance(signature, str) and signature else None
+
+    @staticmethod
+    def _time_assessment(
+        primary: EvidenceInput, asset_id: uuid.UUID | None, window_seconds: int, reason: str
+    ) -> CorrelationAssessment:
+        now = normalize_observed_at(primary.observed_at)
+        return CorrelationAssessment(
+            confidence=CONFIDENCE_WEAK,
+            reasons=("same_asset_id", "same_signature", reason),
+            sources=(primary.correlation_input(asset_id).source_label,),
+            window_seconds=int(window_seconds),
+            window_bucket=window_bucket(now, window_seconds),
+            dedupe_key=build_dedupe_key(asset_id, primary.signature, now, window_seconds),
+            asset_key=str(asset_id) if asset_id is not None else "unresolved",
+        )
+
+    async def _untrusted_time_candidates(
+        self, primary: EvidenceInput, asset_id: uuid.UUID | None, window_seconds: int
+    ) -> list[tuple[Incident, CorrelationAssessment]]:
+        """Open incidents on the SAME concrete asset with the SAME signature, listed for a human. Never merged."""
+        if asset_id is None:
+            return []
+        stmt = (
+            select(Incident)
+            .where(Incident.asset_id == asset_id, Incident.status.notin_(("resolved", "closed")))
+            .order_by(Incident.last_seen.desc())
+            .limit(CANDIDATE_LIMIT)
+        )
+        reason = "event_time_untrusted:" + (primary.time_basis or "missing")
+        found = []
+        for incident in (await self.db.execute(stmt)).scalars().all():
+            if self._incident_signature(incident) == primary.signature:
+                found.append((incident, self._time_assessment(primary, asset_id, window_seconds, reason)))
+        return found
+
+    async def _incident_event_input(self, incident: Incident, primary: EvidenceInput) -> CorrelationInput | None:
+        """The incident's trusted event-time span, as the point nearest to the candidate (None if it has none)."""
+        signature = self._incident_signature(incident)
+        if signature is None:
+            return None
+        lo, hi = (await self.db.execute(
+            select(func.min(IncidentEvidence.event_time), func.max(IncidentEvidence.event_time)).where(
+                IncidentEvidence.incident_id == incident.incident_id,
+                IncidentEvidence.time_confidence.in_(tuple(CORRELATION_ELIGIBLE)),
+                IncidentEvidence.event_time.isnot(None),
+            )
+        )).one()
+        if lo is None or hi is None:
+            return None
+        lo, hi = normalize_observed_at(lo), normalize_observed_at(hi)
+        point = normalize_observed_at(primary.event_time)
+        nearest = min(max(point, lo), hi)
+        return CorrelationInput(
+            asset_id=incident.asset_id, source_type="incident", source_id=str(incident.incident_id),
+            signature=signature, observed_at=nearest)
+
     async def _best_candidate(
         self, primary: EvidenceInput, asset_id: uuid.UUID | None, window_seconds: int
     ) -> tuple[Incident, CorrelationAssessment] | None:
@@ -335,6 +542,10 @@ class IncidentService:
                 source_event_key=item.source_event_key,
                 evidence_digest=item.digest,
                 observed_at=normalize_observed_at(item.observed_at),
+                event_time=item.event_time if item.time_eligible else None,
+                time_basis=item.time_basis or "unrecorded_legacy",
+                time_confidence=item.time_confidence or "missing",
+                time_original=(item.time_original or None) and item.time_original[:200],
                 added_by=actor,
             )
             self.db.add(row)
@@ -444,7 +655,12 @@ class IncidentService:
 
         primary = items[0]
         signature = primary.signature
-        dedupe_key = build_dedupe_key(asset_id, signature, primary.observed_at, window)
+        # Without a resolved asset an event signature alone is not evidence of the same incident, so the dedupe key
+        # is bound to the source record: retries stay idempotent, unrelated events with the same Event ID do not merge.
+        # The same applies without a trustworthy EVENT time: ingestion proximity must never merge evidence.
+        key_signature = (signature if asset_id is not None and primary.time_eligible
+                         else f"{signature}|{primary.source_type}:{primary.source_id}")
+        dedupe_key = build_dedupe_key(asset_id, key_signature, primary.observed_at, window)
 
         existing = await self._by_dedupe_key(dedupe_key)
         if existing is not None and self._is_terminal(existing):
@@ -473,11 +689,26 @@ class IncidentService:
                     asset_id=asset_id or incident.asset_id,
                 )
 
-        best = await self._best_candidate(primary, asset_id, window)
-        if best is not None:
-            incident, _assessment = best
+        # The same event occurrence submitted again (different source record, same occurrence fingerprint).
+        for item in items:
+            if item.evidence_digest:
+                twin = await self._digest_lookup(item.evidence_digest)
+                if twin is not None:
+                    incident = await self.get_incident(twin.incident_id)
+                    if self._is_terminal(incident):
+                        return incident, False
+                    return await self._reuse_incident(
+                        incident, items, actor=actor, window_seconds=window,
+                        asset_id=asset_id or incident.asset_id,
+                    )
+
+        # Conservative policy: only a STRONG match (same concrete asset AND same provider-qualified signature
+        # inside the window, open incident) is merged automatically. Anything weaker is ambiguous: the evidence is
+        # kept as its own incident and the candidates are recorded for a human to link explicitly.
+        strong, ambiguous = await self._assess_candidates(primary, asset_id, window)
+        if strong is not None:
             return await self._reuse_incident(
-                incident, items, actor=actor, window_seconds=window, asset_id=asset_id
+                strong[0], items, actor=actor, window_seconds=window, asset_id=asset_id
             )
 
         # Intra-request correlation for a brand-new incident (single source = weak).
@@ -485,6 +716,19 @@ class IncidentService:
             correlation = _single_item_assessment(primary, asset_id, window)
         else:
             correlation = _multi_item_assessment(primary, items, asset_id, window)
+        correlation_summary = correlation.as_summary(signature, asset_id)
+        correlation_summary["time"] = {
+            "event_time": primary.event_time.isoformat() if primary.time_eligible else None,
+            "time_basis": primary.time_basis, "time_confidence": primary.time_confidence,
+            "time_original": primary.time_original,
+            "ingestion_time_is_not_event_time": True,
+        }
+        if ambiguous:
+            correlation_summary["status"] = "ambiguous"
+            correlation_summary["candidates"] = [
+                {"incident_id": str(inc.incident_id), "confidence": a.confidence, "reasons": list(a.reasons)}
+                for inc, a in ambiguous[:5]
+            ]
 
         incident = Incident(
             title=(title or f"{primary.source_type} incident: {primary.source_id}")[:255],
@@ -497,7 +741,7 @@ class IncidentService:
             dedupe_key=dedupe_key,
             root_cause_state="unknown",
             owner=None,
-            summary={"correlation": correlation.as_summary(signature, asset_id)},
+            summary={"correlation": correlation_summary},
         )
 
         try:
@@ -700,6 +944,7 @@ class IncidentService:
         reviewer_identity: str | None = None,
         verification: VerificationRequest | None = None,
         verifier: str | None = None,
+        assurance: str = "verified-identity",
     ) -> Incident:
         """Applies one legal lifecycle edge inside a single locked transaction.
 
@@ -710,10 +955,18 @@ class IncidentService:
         an authorised ``verifier``. The evidence is revalidated here, under
         ``SELECT ... FOR UPDATE`` on the incident row, in the same transaction
         as the status change, so a controller cannot bypass the invariant.
+
+        ``assurance`` is the caller's actor assurance. The HTTP controller always passes the
+        value derived from the credential; resolving or closing with anything other than
+        "verified-identity" is rejected here too. The default exists only for trusted
+        internal callers (tests, seed tools) that supply a reviewer identity directly.
         """
         if not actor:
             raise IncidentValidationError("An authenticated actor is required.")
         target = (target_status or "").strip().lower()
+        if target in ("resolved", "closed") and assurance != "verified-identity":
+            raise IncidentPermissionError(
+                "resolving or closing an incident requires a verified-identity reviewer")
         try:
             incident = (
                 await self.db.execute(
@@ -760,6 +1013,10 @@ class IncidentService:
                 incident.remediation_cycle = int(incident.remediation_cycle or 0) + 1
                 incident.remediation_started_at = datetime.now(UTC)
                 extra = {**(extra or {}), "remediation_cycle": incident.remediation_cycle}
+                # Diagnoses belong to the cycle they were recorded in. The new cycle has no
+                # live (open or confirmed) diagnosis yet, so the state resets; earlier
+                # diagnosis rows stay as history.
+                incident.root_cause_state = "unknown"
 
             incident.status = target
             if target == "closed":

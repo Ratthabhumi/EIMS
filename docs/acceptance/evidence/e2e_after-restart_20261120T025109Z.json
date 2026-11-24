@@ -1,0 +1,45 @@
+{
+ "database": "127.0.0.1:56470/eims_e2e_test",
+ "results": [
+  {
+   "check": "S9 incident survives restart",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S9 evidence survives",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S9 notes survive restart with provenance",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S9 audit timeline survives (append-only, not shorter)",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S9 knowledge proposal still pending",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S9 migration head recorded",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S9 health endpoint answers",
+   "result": "PASS",
+   "detail": "200"
+  },
+  {
+   "check": "S9 idempotency holds after restart",
+   "result": "PASS",
+   "detail": ""
+  }
+ ]
+}

@@ -72,3 +72,53 @@ Heldout DRAFT execution is rejected. The versioned lock binds input hashes and
 truth before execution; review metadata alone can subsequently be added.
 Schema validation is followed by semantic file/span/pair, duplicate, scenario
 and review-receipt checks. Machine checks cannot certify semantic independence.
+
+## Phase E semantic layers (owner-authorized, 2026-11-22)
+
+### Cross-vendor EIMS diagnostic concepts (F01)
+
+`VMWARE-CBT-DELETE-FAILED` is an **EIMS diagnostic concept** (`code_type: eims_diagnostic`),
+not a vendor-native identifier. Catalog records remain keyed by
+`(source_family, code_type, diagnostic_code)`. Dual records for `veeam_vbr` and
+`vmware` may declare a dedicated `cross_vendor_relationship` field describing the
+shared concept and peer identity. That metadata **must not** authorize
+cross-family catalog lookup, vector retrieval, or parser matching.
+`related_codes` stays a separate list and is not a substitute for this field.
+
+### Fortinet identity layers (F02)
+
+Score these layers separately when annotated; do not treat them as one string:
+
+| Layer | Typical Fortinet source | Meaning |
+|---|---|---|
+| `event_identity` | `eventId` / `logid` | Event-family / message identity (e.g. `0000000013`) |
+| `diagnostic_category` | `diagnosticCode` / `type`+`subtype` | Category such as `traffic/forward` |
+| `outcome` | `attributes.action` | Policy/session outcome (`accept`, `deny`, …) |
+
+Log ID alone is never an outcome. Accept and deny may share event identity and
+category while differing in outcome. Legacy `diagnostic_code` remains for
+backward compatibility and should align with `diagnostic_category` when both
+are present.
+
+### Evidence roles (F04)
+
+| Field | Role |
+|---|---|
+| `identity_evidence` | Proves the event/observation exists (recognition/context) |
+| `diagnostic_evidence` | Supports a diagnostic/failure conclusion |
+| `evidence` | Legacy combined list; prefer role fields when annotated |
+
+Informational cases may have identity evidence without diagnostic/failure
+evidence. Coordinates alone do not prove semantic support.
+
+### INFORMATIONAL_ONLY (F05)
+
+Windows Event ID **6005** (Event Log service started) is **INFORMATIONAL_ONLY**:
+event recognition and operational boot/session context. It must not be scored
+as a standalone root-cause or failure diagnosis, and must not be penalized
+merely for lacking failure evidence. Set `informational_only: true` on such
+cases. Recognition (`event_identity` / legacy `diagnostic_code`) remains valid.
+
+Held-out annotation changes require Owner authorization and an update of
+`heldout.v1.lock.json` via `annotation_digest` (see `runner.load_manifest`).
+Annotation alignment is not permission to tune matchers against held-out data.

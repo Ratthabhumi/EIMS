@@ -1,0 +1,92 @@
+﻿{
+    "schema":  "v12-a17-phase7-signoff/v1",
+    "generatedAt":  "2026-11-19T10:21:52.1378492+07:00",
+    "note":  "Final sign-off manifest. Supplements Phase 5/6/6.1 evidence; historical manifests unchanged.",
+    "repositories":  [
+                         {
+                             "name":  "EIMS",
+                             "path":  "C:/Users/MewMew/Desktop/Co-op/EIMS",
+                             "branch":  "integration/eims-consolidated",
+                             "head":  "85493b2131d3e353453072559a5dfc301d75dd06",
+                             "modified":  59,
+                             "untracked":  219,
+                             "staged":  0
+                         },
+                         {
+                             "name":  "Chat_HAND",
+                             "path":  "C:/Users/MewMew/Desktop/Co-op/Chat_HAND",
+                             "branch":  "v2/verified-fallback",
+                             "head":  "c293b8aae2cbf2a669ba1cb4210001efe1f14885",
+                             "modified":  20,
+                             "untracked":  97,
+                             "staged":  0
+                         }
+                     ],
+    "historicalManifests":  [
+                                "A108C4D074CB668B855128B7C74006E54F7CB9CE227F0D24D77C8DFB42D6D578",
+                                "E04EACE441DDE748000402885F711C842366BB0BF5D06784F6878C3162184ABC",
+                                "5F5423EE449D7A3474DA5464F675C0423544921B632521465E776AF7D6A55E5B",
+                                "37DFF7E65A0FF58FEABE68A5E76EF5C2F5F244B35222EA0ED8FDE71CA3D460E5"
+                            ],
+    "review":  {
+                   "F2":  "REJECTED",
+                   "F1":  "ACCEPTED_WITH_LIMITATIONS",
+                   "executedTests":  false,
+                   "reviewer":  "Claude Code 2.1.323 read-only"
+               },
+    "decisions":  {
+                      "projectDelivery":  "READY_WITH_LIMITATIONS",
+                      "securityAcceptance":  "NOT_ACCEPTED",
+                      "phase7":  "COMPLETE",
+                      "development":  "FREEZE"
+                  },
+    "risks":  [
+                  "RR-1..RR-8 per docs/A17_FINAL_RESIDUAL_RISK_REGISTER.md"
+              ],
+    "files":  [
+                  {
+                      "path":  "EIMS/docs/A17_PHASE7_INDEPENDENT_REVIEW.md",
+                      "sha256":  "DC76CE1902C41D09804D45DA7555DD6BA9A2E758C67281412722302D2E60C7DA"
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_FINAL_RESIDUAL_RISK_REGISTER.md",
+                      "sha256":  "5EE8961A78EBD92F0E44BA3DDF39FE0AD4B389CBBD8375BF4082BAB607FF07D4"
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_PHASE7_PROJECT_HANDOVER.md",
+                      "sha256":  "D0236CF5C057049501DDA700F6BD5348ED18C70D1A67EE3DD8B14E02F2DDCFF6"
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_PHASE6_1_F1_F2_FINAL_VERIFICATION.md",
+                      "sha256":  "001753DE3C635EC86F8FE82F4D651467499F1777889E04AA45C466B1ECA2767B"
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_FINAL_ACCEPTANCE_MATRIX.md",
+                      "sha256":  "3E1E627845BEA6919F0C7DC770942A6CB2513D40BF3959B7458912B1BCF59C69"
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_PRESENTATION_EVIDENCE_MAP.md",
+                      "sha256":  "1E4119A450E721C793143C4386F61D599E26565F8861F97B0AFC817AB516EF4D"
+                  },
+                  {
+                      "path":  "EIMS/evidence/A17_PHASE6_1_FINAL_EVIDENCE_MANIFEST.json",
+                      "sha256":  "37DFF7E65A0FF58FEABE68A5E76EF5C2F5F244B35222EA0ED8FDE71CA3D460E5"
+                  },
+                  {
+                      "path":  "EIMS/evidence/A17_PHASE6_FINAL_EVIDENCE_MANIFEST.json",
+                      "sha256":  "5F5423EE449D7A3474DA5464F675C0423544921B632521465E776AF7D6A55E5B"
+                  },
+                  {
+                      "path":  "EIMS/evidence/v12-a17-final-manifest.json",
+                      "sha256":  "A108C4D074CB668B855128B7C74006E54F7CB9CE227F0D24D77C8DFB42D6D578"
+                  },
+                  {
+                      "path":  "Chat_HAND/docs/A17_JOURNAL_V1_LEGACY_STATUS.md",
+                      "sha256":  "16CB9B2A5DA32D06394EE37FC630E45F3B9A6040A2A0E24CA972AEAF44ECCD9B"
+                  },
+                  {
+                      "path":  "Chat_HAND/evidence/v12-a17-final-manifest.json",
+                      "sha256":  "E04EACE441DDE748000402885F711C842366BB0BF5D06784F6878C3162184ABC"
+                  }
+              ]
+}

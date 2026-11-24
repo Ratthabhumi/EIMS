@@ -27,3 +27,4 @@ deep-translator>=1.11.4
 pgvector>=0.2.5
 fastembed>=0.3.2
 sentence-transformers>=2.6.0
+tzdata>=2024.1

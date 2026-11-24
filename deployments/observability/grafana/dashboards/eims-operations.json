@@ -1,0 +1,98 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "targets": [
+        {
+          "expr": "up{job=\"eims_fastapi\"}",
+          "legendFormat": "eims_fastapi",
+          "refId": "A"
+        }
+      ],
+      "title": "EIMS API scrape target (up)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[5m]))",
+          "legendFormat": "req/s",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP request rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "B"
+        }
+      ],
+      "title": "HTTP latency (p50/p95)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 6 },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "sum by (handler, status) (rate(http_requests_total[5m]))",
+          "legendFormat": "{{handler}} {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests by handler/status",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 6 },
+      "id": 5,
+      "targets": [
+        {
+          "expr": "up",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "title": "All scrape targets (up)",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["eims", "operations"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "browser",
+  "title": "EIMS Operations",
+  "uid": "eims-operations",
+  "version": 1
+}

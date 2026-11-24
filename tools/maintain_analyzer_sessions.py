@@ -1,4 +1,9 @@
-"""Explicit auth-only maintenance. Dry run by default; no scheduler installation."""
+"""Explicit auth-only maintenance. Dry run by default; no scheduler installation.
+
+Destructive execution (``--apply``) is additionally gated by the live-connection
+identity check in ``cleanup_auth_records`` (``EIMS_DB_IDENTITY`` or a database
+marked disposable). The CLI itself is not "disabled": do not describe it that way.
+"""
 import argparse
 import asyncio
 import json

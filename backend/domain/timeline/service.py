@@ -1,6 +1,6 @@
 """
 ==============================================================================
-EIMS Query Layer - Unified Timeline Aggregation Service (Sprint 10)
+EIMS Query Layer - Unified Timeline Aggregation Service (Sprint 10 + Portal Correction)
 Governed by EIMS Documentation System (EDS v1.0.0) - Core Law 5 Compliance
 Source-Available All Rights Reserved Policy
 ==============================================================================
@@ -14,6 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.logger import get_logger
 from backend.domain.asset_registry.models import AuditLog
+from backend.domain.incident.models import Incident, IncidentEvidence, IncidentVerification
+from backend.domain.incident.service import ACTION_INCIDENT_EVIDENCE_ADDED
 from backend.domain.telemetry.models import TelemetryMetric, WindowsEventLog
 from backend.domain.timeline.schemas import TimelineEvent
 
@@ -22,13 +24,40 @@ logger = get_logger("eims.query.timeline")
 ENTITY_TYPE = "asset"
 SEVERITY_INFORMATION = "Information"
 
+# Audit verbs that are already represented by incident_evidence rows.
+_AUDIT_VERBS_COVERED_BY_EVIDENCE = frozenset({ACTION_INCIDENT_EVIDENCE_ADDED})
+
+_ACTION_DESCRIPTIONS: dict[str, str] = {
+    "IMPORT_REPORT": "Imported an offline USB Auditor report and enrolled the asset.",
+    "UPDATE_FROM_REPORT": "Updated the asset from an offline USB Auditor report.",
+    "ENROLL_ASSET": "Enrolled a new infrastructure asset.",
+    "TRANSITION_STATE": "Changed the asset lifecycle state.",
+    "INCIDENT_CREATED": "Created a correlated incident from evidence.",
+    "INCIDENT_STATUS_CHANGED": "Changed the incident lifecycle status.",
+    "INCIDENT_EVIDENCE_ADDED": "Attached evidence to an incident.",
+}
+
+
+def describe_audit_action(action_verb: str, metadata: dict | None) -> str:
+    """Maps technical audit verbs to engineer-facing text without dropping the verb."""
+    payload = metadata if isinstance(metadata, dict) else {}
+    base = _ACTION_DESCRIPTIONS.get(action_verb, f"Recorded action {action_verb}.")
+    previous_state = payload.get("previous_state")
+    new_state = payload.get("new_state")
+    if previous_state and new_state:
+        return f"{base} ({previous_state} → {new_state}). Original verb: {action_verb}."
+    event = payload.get("event")
+    if isinstance(event, str) and event.strip():
+        return f"{base} {event.strip()} Original verb: {action_verb}."
+    return f"{base} Original verb: {action_verb}."
+
 
 class TimelineService:
     """
-    Aggregates chronological events across `audit_logs`, `telemetry_metrics`, and
-    `windows_event_logs` via a single UNION ALL query — no new event table is
-    introduced (Architecture §6.5 design decision).
+    Aggregates chronological events across audit, incident evidence, incident
+    verification, and the legacy telemetry/winlog sources via UNION ALL.
     """
+
     async def get_timeline(
         self,
         db: AsyncSession,
@@ -40,10 +69,6 @@ class TimelineService:
         page: int = 1,
         limit: int = 50,
     ) -> tuple[list[TimelineEvent], int]:
-        """
-        Builds and executes the unified source query, computing an accurate
-        total record count, then slicing the requested chronological page.
-        """
         union_subq = union_all(*self._build_source_selects(entity_id=entity_id, event_type=event_type)).subquery()
 
         conditions = []
@@ -61,7 +86,8 @@ class TimelineService:
         page_stmt = (
             select(union_subq)
             .where(*conditions)
-            .order_by(union_subq.c.timestamp.desc())
+            # Deterministic page boundaries when timestamps collide.
+            .order_by(union_subq.c.timestamp.desc(), union_subq.c.type.asc(), union_subq.c.id.asc())
             .offset(skip)
             .limit(limit)
         )
@@ -71,7 +97,13 @@ class TimelineService:
     def _build_source_selects(self, entity_id, event_type) -> list:
         selects = []
         if event_type is None or event_type == "audit":
-            selects.append(self._audit_select(entity_id))
+            selects.append(self._audit_select(entity_id, transition_only=False))
+        if event_type == "incident_transition":
+            selects.append(self._audit_select(entity_id, transition_only=True))
+        if event_type is None or event_type == "evidence":
+            selects.append(self._evidence_select(entity_id))
+        if event_type is None or event_type == "verification":
+            selects.append(self._verification_select(entity_id))
         if event_type is None or event_type == "telemetry":
             selects.append(self._telemetry_select(entity_id))
         if event_type is None or event_type == "winlog":
@@ -80,10 +112,10 @@ class TimelineService:
             raise ValueError(f"Unsupported timeline event type filter: '{event_type}'")
         return selects
 
-    def _audit_select(self, entity_id):
+    def _audit_select(self, entity_id, *, transition_only: bool):
         stmt = select(
             cast(AuditLog.log_id, String).label("id"),
-            literal("audit").label("type"),
+            literal("incident_transition" if transition_only else "audit").label("type"),
             literal(SEVERITY_INFORMATION).label("severity"),
             AuditLog.performed_at.label("timestamp"),
             cast(AuditLog.asset_id, String).label("entity_id"),
@@ -92,8 +124,80 @@ class TimelineService:
             literal("").label("description"),
             AuditLog.immutable_payload.label("metadata"),
         )
+        # Evidence attachment is emitted from incident_evidence to avoid duplicates.
+        stmt = stmt.where(AuditLog.action_verb.notin_(list(_AUDIT_VERBS_COVERED_BY_EVIDENCE)))
+        if transition_only:
+            stmt = stmt.where(AuditLog.action_verb == "INCIDENT_STATUS_CHANGED")
         if entity_id is not None:
             stmt = stmt.where(AuditLog.asset_id == entity_id)
+        return stmt
+
+    def _evidence_select(self, entity_id):
+        stmt = (
+            select(
+                cast(IncidentEvidence.evidence_id, String).label("id"),
+                literal("evidence").label("type"),
+                literal(SEVERITY_INFORMATION).label("severity"),
+                IncidentEvidence.created_at.label("timestamp"),
+                cast(Incident.asset_id, String).label("entity_id"),
+                null().cast(String).label("actor_id"),
+                func.concat(
+                    "Evidence attached (",
+                    IncidentEvidence.source_type,
+                    "/",
+                    IncidentEvidence.source_id,
+                    ")",
+                ).label("title"),
+                literal("").label("description"),
+                func.jsonb_build_object(
+                    "incident_id", cast(IncidentEvidence.incident_id, String),
+                    "actor", IncidentEvidence.added_by,
+                    "source_type", IncidentEvidence.source_type,
+                    "source_id", IncidentEvidence.source_id,
+                    "evidence_digest", IncidentEvidence.evidence_digest,
+                    "observed_at", cast(IncidentEvidence.observed_at, String),
+                    "correlation_id", null().cast(String),
+                ).label("metadata"),
+            )
+            .select_from(IncidentEvidence)
+            .join(Incident, Incident.incident_id == IncidentEvidence.incident_id)
+        )
+        if entity_id is not None:
+            stmt = stmt.where(Incident.asset_id == entity_id)
+        return stmt
+
+    def _verification_select(self, entity_id):
+        stmt = (
+            select(
+                cast(IncidentVerification.verification_id, String).label("id"),
+                literal("verification").label("type"),
+                literal(SEVERITY_INFORMATION).label("severity"),
+                IncidentVerification.verified_at.label("timestamp"),
+                cast(Incident.asset_id, String).label("entity_id"),
+                null().cast(String).label("actor_id"),
+                func.concat(
+                    "Verification ",
+                    IncidentVerification.outcome,
+                    " (cycle ",
+                    cast(IncidentVerification.remediation_cycle, String),
+                    ")",
+                ).label("title"),
+                literal("").label("description"),
+                func.jsonb_build_object(
+                    "incident_id", cast(IncidentVerification.incident_id, String),
+                    "actor", IncidentVerification.verifier_id,
+                    "outcome", IncidentVerification.outcome,
+                    "remediation_cycle", IncidentVerification.remediation_cycle,
+                    "evidence_id", cast(IncidentVerification.evidence_id, String),
+                    "evidence_digest", IncidentVerification.evidence_digest,
+                    "correlation_id", null().cast(String),
+                ).label("metadata"),
+            )
+            .select_from(IncidentVerification)
+            .join(Incident, Incident.incident_id == IncidentVerification.incident_id)
+        )
+        if entity_id is not None:
+            stmt = stmt.where(Incident.asset_id == entity_id)
         return stmt
 
     def _telemetry_select(self, entity_id):
@@ -130,13 +234,44 @@ class TimelineService:
 
     @staticmethod
     def _build_event(row) -> TimelineEvent:
-        metadata = row.metadata or {}
+        metadata = dict(row.metadata or {}) if isinstance(row.metadata, dict) else {}
         description = row.description or ""
-        if row.type == "audit" and isinstance(metadata, dict):
-            previous_state = metadata.get("previous_state")
-            new_state = metadata.get("new_state")
-            if previous_state and new_state:
-                description = f"Asset state transitioned from {previous_state} to {new_state}"
+        if row.type in {"audit", "incident_transition"}:
+            description = describe_audit_action(row.title, metadata)
+        elif row.type == "evidence":
+            actor = metadata.get("actor") or "unavailable"
+            incident = metadata.get("incident_id") or "unavailable"
+            description = (
+                f"Evidence reference attached by {actor} to incident {incident}. "
+                f"Source {metadata.get('source_type', 'unavailable')}/"
+                f"{metadata.get('source_id', 'unavailable')}."
+            )
+        elif row.type == "verification":
+            actor = metadata.get("actor") or "unavailable"
+            incident = metadata.get("incident_id") or "unavailable"
+            outcome = metadata.get("outcome") or "unavailable"
+            cycle = metadata.get("remediation_cycle")
+            cycle_text = str(cycle) if cycle is not None else "unavailable"
+            description = (
+                f"Remediation cycle {cycle_text} verification {outcome} by {actor} "
+                f"for incident {incident}."
+            )
+
+        # Never invent missing relationships — surface honest placeholders in metadata.
+        if "correlation_id" not in metadata or not metadata.get("correlation_id"):
+            metadata["correlation_id"] = None
+        if row.type in {"audit", "incident_transition"} and not metadata.get("actor") and row.actor_id:
+            metadata["actor"] = str(row.actor_id)
+            metadata.setdefault("assurance", "verified_identity")
+        # Preserve explicit unattributed / shared-token / historical-missing markers.
+        if not metadata.get("assurance"):
+            if metadata.get("actor") or row.actor_id:
+                metadata["assurance"] = "verified_identity"
+            elif row.type in {"audit", "incident_transition"}:
+                # Historical USB imports often omit actor_id — do not invent one.
+                metadata["assurance"] = "historical_unavailable"
+            else:
+                metadata["assurance"] = "unattributed"
 
         return TimelineEvent(
             id=str(row.id),

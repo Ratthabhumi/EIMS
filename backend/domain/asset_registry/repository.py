@@ -236,7 +236,14 @@ class AssetRepository:
             audit_entry = AuditLog(
                 asset_id=asset.asset_id,
                 action_verb="IMPORT_REPORT",
-                immutable_payload={"event": "Offline USB Auditor Import", "score": compliance_score}
+                immutable_payload={
+                    "event": "Offline USB Auditor Import",
+                    "score": compliance_score,
+                    # Honest open-access provenance — not a verified human identity.
+                    "assurance": "unattributed",
+                    "principal": "open_access",
+                    "source": "usb_auditor_offline_report",
+                },
             )
             self.db_session.add(audit_entry)
         else:
@@ -250,7 +257,13 @@ class AssetRepository:
             audit_entry = AuditLog(
                 asset_id=asset.asset_id,
                 action_verb="UPDATE_FROM_REPORT",
-                immutable_payload={"event": "Offline USB Auditor Update", "new_score": compliance_score}
+                immutable_payload={
+                    "event": "Offline USB Auditor Update",
+                    "new_score": compliance_score,
+                    "assurance": "unattributed",
+                    "principal": "open_access",
+                    "source": "usb_auditor_offline_report",
+                },
             )
             self.db_session.add(audit_entry)
 

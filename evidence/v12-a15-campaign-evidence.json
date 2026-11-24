@@ -1,0 +1,66 @@
+{
+  "schema": "v12-a15-campaign-evidence/v1",
+  "generatedAt": "2026-11-19T00:05:00+07:00",
+  "campaign": "A15",
+  "finalAcceptance": "NOT GRANTED",
+  "baseline": {
+    "chatHandHead": "c293b8aae2cbf2a669ba1cb4210001efe1f14885",
+    "eimsHead": "85493b2131d3e353453072559a5dfc301d75dd06",
+    "a13ChatHandManifest": "2AAF6FF226582014D19559386D7E1173058BE0A4EDF562356F9516869A6FC450",
+    "a13EimsManifest": "8626A766FE4A342901D99E4228C4B8702994C9975D96A7C46F7729E34712A5A8",
+    "a14EimsManifest": "0E9F90E5A6BFC25E7A54A5BEDD7D796DB55E07E4F78F79D63AE5D9AED05F3DCF",
+    "a14ChatHandManifest": "DOES_NOT_EXIST (campaign prompt supplied the EIMS hash twice)"
+  },
+  "a15Manifests": {
+    "eims": "F6C6F2E59D7D14A4C660EF103639700FEBEB3B396B6EDA5C1B2E3C100E1C5906",
+    "chatHand": "07DEE01B8F4320B41EFEB3E408E2ECA267EF81A3E3F334E2886CD805922CD6F1"
+  },
+  "changes": {
+    "eims": {
+      "modified": ["tests/disposable_guard.py", "tools/audit_compose_security.py"],
+      "added": ["tests/test_benchmark_url_guard.py", "tests/test_compose_interpolation.py"]
+    },
+    "chatHand": {
+      "modified": [],
+      "added": ["gateway/lib/execution-journal.mjs", "gateway/lib/risk-policy.mjs", "scripts/test-a15-execution-integrity.mjs"]
+    }
+  },
+  "rv": {
+    "RV-1": "CLOSED", "RV-2": "CLOSED", "RV-3": "OPEN", "RV-4": "PARTIAL",
+    "RV-5": "OPEN", "RV-6": "PARTIAL", "RV-7": "OPEN", "RV-8": "CLOSED",
+    "RV-9": "CLOSED", "RV-10": "PARTIAL", "RV-11": "BLOCKED", "RV-12": "PARTIAL"
+  },
+  "offlineTests": {
+    "chatHand": { "suite": "scripts/test-a15-execution-integrity.mjs", "passed": 16, "failed": 0 },
+    "eims": { "suite": "benchmark url + compose + isolation + auth", "passed": 59, "failed": 0, "skipped": 0 }
+  },
+  "review": {
+    "reviewer": "Claude Code CLI 2.1.323 (plan mode, read-only)",
+    "scope": "full workspace",
+    "verdict": "PARTIAL",
+    "high": 2,
+    "highDetail": ["F2 connected-identity verifier is dead code and async-incompatible", "F3 journal COMPLETED is unauthenticated and append is public"],
+    "medium": 6,
+    "low": 1,
+    "postReviewFixes": ["RV-1 query string now refused outright", "journal requires broker proof and immutable attempt identity", "compose inline-URL-credential exemption removed"]
+  },
+  "implementationClass": {
+    "benchmarkUrlBoundary": "IMPLEMENTED_TESTED",
+    "composeInterpolation": "IMPLEMENTED_TESTED",
+    "executionJournal": "IMPLEMENTED_LIBRARY_NOT_WIRED",
+    "riskPolicy": "IMPLEMENTED_LIBRARY_NOT_WIRED",
+    "connectedIdentityVerification": "IMPLEMENTED_NOT_WIRED",
+    "redisAcl": "DESIGN_ONLY",
+    "pgbouncerScramTls": "DESIGN_ONLY",
+    "auditVerifier": "DESIGN_ONLY",
+    "vectorContract": "UNVERIFIED",
+    "imageDigests": "BLOCKED"
+  },
+  "notPerformed": [
+    "container/runtime start", "migration apply", "operational connection",
+    "trust grant creation", "commit/stage/push", "GUI/live E2E",
+    "image pull or digest pin", "redis/pgbouncer reconfiguration",
+    "audit verifier implementation", "vector reproduction", "Track B/C full suites", "C7 rerun"
+  ],
+  "gates": { "A": "PARTIAL", "B": "BLOCKED", "C": "BLOCKED", "X": "NOT_RUN" }
+}

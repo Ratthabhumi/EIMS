@@ -20,6 +20,7 @@ from backend.domain.analyzer.schemas.analyze import (
     SolutionSummary,
 )
 from backend.domain.analyzer.services.bundle import (
+    ALLOWED_EXTENSIONS,
     BUNDLE_MAX_FILE_BYTES,
     BUNDLE_MAX_FILES,
     BUNDLE_MAX_TOTAL_BYTES,
@@ -89,6 +90,11 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
                 "https://github.com/UB-Mannheim/tesseract/wiki"
             )
 
+    # Same allow-list as the bundle path: a .zip/.exe must not be analysed as text.
+    ext = lower_name[lower_name.rfind("."):] if "." in lower_name else ""
+    if ext and ext not in ALLOWED_EXTENSIONS:
+        raise ValueError(f"Unsupported file type '{ext}'")
+
     if lower_name.endswith(".evtx"):
         extracted, description = parse_evtx(content)
         return extracted, description
@@ -154,6 +160,48 @@ def _process_upload(content: bytes, filename: str, content_type: str | None) -> 
     return text, f"Uploaded file: {filename}"
 
 
+async def _knowledge_match(db: AsyncSession, metadata) -> "KnowledgeMatch":
+    """Deterministic knowledge classification for the parsed identity (fail-closed)."""
+    from backend.domain.analyzer.schemas.analyze import KnowledgeMatch
+    from backend.domain.analyzer.services.operational_catalog import entry_for_metadata
+    from backend.domain.knowledge.retrieval import retrieve
+
+    try:
+        detected = (metadata.attributes or {}).get("productVersion")
+        detected = str(detected) if detected else None
+        if metadata.sourceFamily == "windows_event" and metadata.eventId:
+            from backend.domain.knowledge.retrieval import retrieve_windows
+            return KnowledgeMatch(**await retrieve_windows(
+                db, str(metadata.diagnosticCode or metadata.eventId), metadata.provider,
+                detected_version=detected))
+        entry = entry_for_metadata(metadata)
+        return KnowledgeMatch(**await retrieve(db, entry, detected_version=detected))
+    except Exception:  # noqa: BLE001 - classification must never break an analysis
+        return KnowledgeMatch(note="Knowledge classification unavailable.", overlayAvailable=False)
+
+
+async def _apply_approved_supplement(db: AsyncSession, solution) -> None:
+    """Add the stated fields of a human-approved supplement to the catalog guidance. Drafts and stale approvals are never used."""
+    try:
+        guidance = solution.operationalGuidance
+        if guidance is None or not guidance.catalogId:
+            return
+        from backend.domain.analyzer.schemas.analyze import OperationalGuidance
+        from backend.domain.knowledge import proposals
+        from backend.domain.knowledge.catalog_adapter import operational_problems
+        supplement = await proposals.approved_supplement(db, guidance.catalogId)
+        if not supplement:
+            return
+        view = proposals.merged_view(guidance.catalogId, supplement)
+        data = guidance.model_dump()
+        data.update({k: v for k, v in view.items() if k in OperationalGuidance.model_fields and k not in ("evidenceAndSource", "confidenceLimitations")})
+        data["missing"] = operational_problems(view)
+        data["reviewState"] = "APPROVED_SUPPLEMENT (human-approved; catalog content hash current)"
+        solution.operationalGuidance = OperationalGuidance(**data)
+    except Exception:  # noqa: BLE001 - guidance enrichment must never break an analysis
+        return
+
+
 @router.post("/", response_model=AnalyzeResponse)
 async def submit_analysis(
     text: Optional[str] = Form(None),
@@ -180,7 +228,7 @@ async def submit_analysis(
             )
             combined_text = (combined_text + "\n" + extracted).strip()
         except ValueError:
-            raise HTTPException(status_code=400, detail="Unable to extract log text. Check the file format and UTF-8 encoding; image OCR requires installed Tesseract.") from None
+            raise HTTPException(status_code=400, detail="Unable to extract log text. Supported: LOG, TXT, HTML, XML, CSV, EVTX (UTF-8) or an image with Tesseract OCR installed.") from None
 
     if not combined_text.strip():
         raise HTTPException(status_code=400, detail="Paste log text or attach a non-empty supported file.")
@@ -260,9 +308,14 @@ async def submit_analysis(
             observedPaths=[str(x) for x in incident.get("observedPaths", [])][:8],
             unknowns=[str(x) for x in incident.get("unknowns", [])][:6],
             nextEvidence=[str(x) for x in incident.get("nextEvidence", [])][:6],
+            evidenceRefs=[x for x in incident.get("evidenceRefs", []) if isinstance(x, dict)][:10],
         )
     except Exception:
         pass
+    # Trust level is assigned here from the catalog + governance overlay only,
+    # unconditionally overwriting anything the synthesis path may have set.
+    solution.knowledgeMatch = await _knowledge_match(db, metadata)
+    await _apply_approved_supplement(db, solution)
     final_summary = format_summary_text(solution, lang)
     search_time_ms = (time.time() - start_time) * 1000
 
@@ -392,7 +445,7 @@ async def submit_bundle(
     primary_meta.attributes = {**(primary_meta.attributes or {}), 'evidencePrivacy': {'files':privacy_by_file}}
 
     # Structured evidence records: one normalized representation for
-    # chronology, correlation, and KB operation context Ã¢â‚¬â€ independent of
+    # chronology, correlation, and KB operation context — independent of
     # upload order.  combined_text stays the general summary / RAG context,
     # but vendor article applicability receives diagnostic-local context.
     from backend.domain.analyzer.services.evidence import (
@@ -462,9 +515,15 @@ async def submit_bundle(
             observedPaths=[str(x) for x in incident.get("observedPaths", [])][:8],
             unknowns=[str(x) for x in incident.get("unknowns", [])][:6],
             nextEvidence=[str(x) for x in incident.get("nextEvidence", [])][:6],
+            evidenceRefs=[x for x in incident.get("evidenceRefs", []) if isinstance(x, dict)][:10],
         )
     except Exception:
         pass
+    # Server-assigned trust level for the bundle's primary diagnostic identity
+    # (the same identity that selects the headline diagnosis). Other files in the
+    # bundle are not individually classified. Overwrites anything synthesis set.
+    solution.knowledgeMatch = await _knowledge_match(db, primary_meta)
+    await _apply_approved_supplement(db, solution)
     final_summary = format_summary_text(solution, lang)
     search_time_ms = (time.time() - start_time) * 1000
 

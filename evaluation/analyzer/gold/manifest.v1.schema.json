@@ -53,6 +53,12 @@
         },
         "claim": {
           "type": "string"
+        },
+        "role": {
+          "enum": [
+            "identity",
+            "diagnostic"
+          ]
         }
       }
     },
@@ -230,6 +236,39 @@
             },
             "notes": {
               "type": "string"
+            },
+            "event_identity": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "diagnostic_category": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "outcome": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "informational_only": {
+              "type": "boolean"
+            },
+            "identity_evidence": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/line_ref"
+              }
+            },
+            "diagnostic_evidence": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/line_ref"
+              }
             }
           }
         },

@@ -1,4 +1,5 @@
 """Synthetic, hermetic multi-vendor catalog/parser/API regressions."""
+from tests import catalog_expectations as X
 import asyncio
 import csv
 import io
@@ -10,15 +11,19 @@ from types import SimpleNamespace
 
 import pytest
 
-from backend.domain.analyzer.services.operational_catalog import (
-    CATALOG_PATH, VENDOR_CATALOG_PATH, entry_for_metadata, get_catalog, get_catalog_entry, load_catalog,
-)
-from backend.domain.analyzer.services.parser import parse_event_metadata
-from backend.domain.analyzer.services.panos_parser import panos_records
-from backend.domain.analyzer.services.source_classify import classify_source
-from backend.domain.analyzer.services.catalog_diagnostics import catalog_references
-from backend.domain.analyzer.services import summary, vector_db
 from backend.api.routers.analyzer import history
+from backend.domain.analyzer.services import summary, vector_db
+from backend.domain.analyzer.services.catalog_diagnostics import catalog_references
+from backend.domain.analyzer.services.operational_catalog import (
+    CATALOG_PATH,
+    VENDOR_CATALOG_PATH,
+    entry_for_metadata,
+    get_catalog,
+    get_catalog_entry,
+    load_catalog,
+)
+from backend.domain.analyzer.services.panos_parser import panos_records
+from backend.domain.analyzer.services.parser import parse_event_metadata
 
 
 def pan_fixture(typ, **overrides):
@@ -88,11 +93,11 @@ def test_invalid_pan_safe_unknown(text):
 def test_exact_windows_preservation_and_counts():
     original = json.loads(Path(CATALOG_PATH).read_text(encoding="utf-8"))
     windows = get_catalog("windows_event")
-    assert len(windows) == len(original) == 141
+    assert len(windows) == len(original) == 153
     for old, entry in zip(original, windows):
         assert all(entry[key] == value for key, value in old.items())
-    assert Counter(e["source_family"] for e in get_catalog()) == {
-        "windows_event":141,"veeam_vbr":4,"vmware":2,"fortinet":5,"cisco_asa":6,"palo_alto":4,"linux_syslog":1}
+    assert Counter(e["source_family"] for e in get_catalog()) == {"windows_event": X.LEGACY_WINDOWS_COUNT, **X.VENDOR_BY_FAMILY}
+    assert set(X.VENDOR_BY_FAMILY) == {"veeam_vbr", "vmware", "fortinet", "cisco_asa", "palo_alto", "linux_syslog"}
     assert get_catalog("json") == []
     assert len({e["catalog_id"] for e in get_catalog()}) == len(get_catalog())
     assert get_catalog_entry("1129")["category"] == "Group Policy"
@@ -103,6 +108,27 @@ def test_exact_windows_preservation_and_counts():
     mutated = get_catalog()
     mutated[0]["title"] = "bad"
     assert get_catalog()[0]["title"] != "bad"
+
+
+def test_windows_1129_catalog_does_not_assert_dns_as_confirmed_root_cause():
+    entry = get_catalog_entry("1129", "windows_event")
+    assert entry is not None
+    assert "does not identify DNS" in entry["description"]
+    assert "as hypotheses" in entry["operator_context"]
+    assert "Root cause is DNS" not in entry["operator_context"]
+
+    from backend.domain.analyzer.services.observed_summary import observed_event_summary
+    observed = observed_event_summary(
+        "1129",
+        "Microsoft-Windows-GroupPolicy",
+        "windows_event",
+        "Event ID: 1129\\nProvider: Microsoft-Windows-GroupPolicy\\nLevel: Error\\nDescription: Group Policy could not contact a domain controller; network connectivity failed.",
+        "en",
+    )
+    causes = " ".join(observed.causes)
+    assert "UNKNOWN" in causes
+    assert "does not establish which DNS" in causes
+    assert "DNS is the root cause" not in causes
 
 
 @pytest.mark.parametrize("fault", ["version", "not_list", "duplicate", "missing", "bad_reference", "bad_steps", "redefine_windows"])
@@ -179,9 +205,16 @@ def test_panos_rag_isolation():
 
 
 def test_catalog_api_filters_and_history_totals():
-    response = asyncio.run(history.get_operational_catalog(_user="demo", source_family="palo_alto"))
+    from fastapi import Response
+    response_headers = Response()
+    response = asyncio.run(history.get_operational_catalog(response_headers, source_family="palo_alto"))
+    assert response_headers.headers["Cache-Control"] == "public, max-age=300, stale-while-revalidate=600"
     assert response["count"] == 4
     assert response["classification"] == "OPERATIONAL_EVENT_CATALOG"
+    assert response["surface"] == "parser_linked_analyzer_catalog"
+    full = asyncio.run(history.get_operational_catalog(Response(), source_family=None))
+    assert full["count"] == X.TOTAL
+    assert full["surface"] == "parser_linked_analyzer_catalog"
     rows = []
     for text in (pan_fixture("SYSTEM"), 'logid=4625 type=traffic subtype=forward level=warning devname=FG-SYNTHETIC'):
         meta = parse_event_metadata(text)
@@ -189,17 +222,40 @@ def test_catalog_api_filters_and_history_totals():
             event_metadata=meta.model_dump(), created_at=datetime.now(timezone.utc), search_time_ms=0,
             solution_summary={}, parse_method="text", description="Synthetic", ai_summary="", search_results=[],
             username="demo", feedback_by=None, feedback_score=None))
-    class DB:
-        async def execute(self, stmt):
-            return SimpleNamespace(scalars=lambda: SimpleNamespace(all=lambda: rows))
     legacy = SimpleNamespace(**vars(rows[0]))
     legacy.id, legacy.provider, legacy.event_metadata = 3, "Palo Alto Security", {}
     rows.append(legacy)
+    class Result:
+        def __init__(self, one=None, all_rows=None, scalar_rows=None):
+            self._one, self._all = one, all_rows or []
+            self._scalar_rows = scalar_rows or []
+        def one(self): return self._one
+        def all(self): return self._all
+        def scalars(self): return SimpleNamespace(all=lambda: self._scalar_rows)
+    class DB:
+        def __init__(self): self.calls = 0
+        async def execute(self, stmt):
+            self.calls += 1
+            if self.calls == 1:
+                return Result(one=(3, 0, 0.0))
+            if self.calls == 2:
+                return Result(all_rows=[("Palo Alto Security", 2), ("Fortinet", 1)])
+            if self.calls == 3:
+                return Result(all_rows=[
+                    (rows[0].event_id, rows[0].provider, "palo_alto", "SYSTEM", None, None, 1),
+                    (rows[1].event_id, rows[1].provider, "fortinet", "traffic/forward", None, None, 1),
+                    (rows[2].event_id, rows[2].provider, None, None, None, None, 1),
+                ])
+            if self.calls == 4:
+                return Result(all_rows=[])
+            return Result(scalar_rows=rows)
     stats = asyncio.run(history.get_history_stats(db=DB(), _user="demo"))
     assert stats["totalLogs"] == 3
     assert all(c["name"] != "Group Policy" and c["name"] != "Authentication" for c in stats["categoryStats"])
     assert {c["name"]:c["value"] for c in stats["categoryStats"]}["Unclassified"] == 1
-    reloaded = asyncio.run(history.get_all_history(db=DB(), _user="demo"))
+    history_db = DB()
+    history_db.calls = 4
+    reloaded = asyncio.run(history.get_all_history(db=history_db, _user="demo"))
     assert reloaded[0]["eventMetadata"].sourceFamily == "palo_alto"
     assert reloaded[0]["eventMetadata"].attributes["eventId"] == "1129"
 
@@ -224,16 +280,18 @@ def test_synthetic_raw_upload_reload_followup(language, monkeypatch):
     monkeypatch.setattr(analyze, "search_solutions", lambda *args, **kwargs: (catalog_references(kwargs.get("source_family"), kwargs.get("evidence_text", "")), ""))
     class DB:
         def add(self, record): self.record = record
-        async def commit(self): pass
+        async def commit(self):
+            self.record.id = 99
+            self.record.created_at = datetime.now(timezone.utc)
         async def refresh(self, record): record.id = 99
         async def get(self, model, pk): return self.record if getattr(self.record, "id", None) == pk else None
         async def execute(self, stmt): return SimpleNamespace(scalars=lambda: SimpleNamespace(first=lambda: self.record))
     db = DB()
-    result = asyncio.run(analyze.submit_analysis(text=pan_fixture("SYSTEM"), file=None, language=language, db=db, _user="demo", x_gemini_api_key=None))
+    result = asyncio.run(analyze.submit_analysis(text=pan_fixture("SYSTEM"), file=None, language=language, db=db, _user="demo"))
     assert result.eventMetadata.sourceFamily == "palo_alto"
     assert result.historyId == 99
     assert db.record.event_metadata["attributes"]["eventId"] == "1129"
-    answer = asyncio.run(analyze.followup_question(FollowUpRequest(question="How to investigate?", historyId=99, language=language), _user="demo", db=db, x_gemini_api_key=None))
+    answer = asyncio.run(analyze.followup_question(FollowUpRequest(question="How to investigate?", historyId=99, language=language), _user="demo", db=db))
     assert "Group Policy" not in answer.answer
     assert answer.answer
 
@@ -250,8 +308,13 @@ def test_windows_xml_upload_and_invalid_evtx_safe():
 
 def test_windows_and_veeam_bundle_router_workflows(monkeypatch):
     from fastapi import UploadFile
+
     from backend.api.routers.analyzer import analyze
-    from tests.test_analyzer_reliability import WIN1129_TEXT, VEEAM_RAW_TEXT, VMWARE_CTK_TEXT
+    from tests.test_analyzer_reliability import (
+        VEEAM_RAW_TEXT,
+        VMWARE_CTK_TEXT,
+        WIN1129_TEXT,
+    )
     async def no_export(**kwargs): pass
     async def no_retrieval(**kwargs): return []
     monkeypatch.setattr(summary, "search_similar_logs", no_retrieval)
@@ -262,14 +325,14 @@ def test_windows_and_veeam_bundle_router_workflows(monkeypatch):
         async def commit(self): pass
         async def refresh(self, record): record.id = 77
     db = DB()
-    win = asyncio.run(analyze.submit_analysis(text=WIN1129_TEXT, file=None, language="en", db=db, _user="demo", x_gemini_api_key=None))
+    win = asyncio.run(analyze.submit_analysis(text=WIN1129_TEXT, file=None, language="en", db=db, _user="demo"))
     assert win.eventMetadata.sourceFamily == "windows_event"
     assert win.eventMetadata.provider == "Microsoft-Windows-GroupPolicy"
     assert get_catalog_entry(win.eventId)["category"] == "Group Policy"
     bundle = asyncio.run(analyze.submit_bundle(files=[
         UploadFile(filename="veeam-synthetic.log", file=io.BytesIO(VEEAM_RAW_TEXT.encode())),
         UploadFile(filename="vmware-synthetic.log", file=io.BytesIO(VMWARE_CTK_TEXT.encode())),
-    ], language="en", db=db, _user="demo", x_gemini_api_key=None))
+    ], language="en", db=db, _user="demo"))
     assert {f.sourceFamily for f in bundle.files} == {"veeam_vbr", "vmware"}
     assert bundle.solutionSummary.incident.firstMeaningfulFailure
     assert bundle.solutionSummary.incident.terminalFailure

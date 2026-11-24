@@ -103,6 +103,11 @@ class AsynchronousDatabaseEngine:
         )
         logger.info("SQLAlchemy Asynchronous Database Engine connected successfully to PgBouncer target.")
 
+    @property
+    def is_initialized(self) -> bool:
+        """Public readiness accessor: callers must not reach into the private engine handle (it bypasses the guards)."""
+        return self._engine is not None
+
     async def close(self) -> None:
         """Waits for the shared health probe to clean up before disposing the pool."""
         task = self._ping_inflight

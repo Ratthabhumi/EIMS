@@ -54,10 +54,10 @@ _CANONICAL_ROUTES: tuple[NavigationRoute, ...] = (
     ),
     NavigationRoute(
         id="nav-analyzer",
-        title="AI Log Analyzer",
-        subtitle="AI-assisted incident analysis, log inspection, and anomaly detection",
+        title="Log Analyzer",
+        subtitle="EVTX and raw log root-cause analysis with evidence-backed remediation",
         url="/analyzer",
-        keywords=("analyzer", "ai log analyzer", "ai", "llm", "analysis", "incident", "investigate", "log analysis", "ai summary"),
+        keywords=("analyzer", "log analyzer", "ai log analyzer", "eventiq", "analysis", "incident", "investigate", "log analysis", "evtx"),
     ),
     NavigationRoute(
         id="nav-evaluations-admin",
@@ -96,10 +96,10 @@ _CANONICAL_ROUTES: tuple[NavigationRoute, ...] = (
     ),
     NavigationRoute(
         id="nav-settings",
-        title="System Settings",
-        subtitle="Platform configuration, appearance, auth mode, and connection parameters",
+        title="Runtime Configuration",
+        subtitle="Read-only process health, dependency readiness, and safe runtime facts",
         url="/settings",
-        keywords=("settings", "preferences", "config", "configuration", "theme", "appearance"),
+        keywords=("settings", "runtime", "health", "readiness", "configuration", "preferences"),
     ),
 )
 

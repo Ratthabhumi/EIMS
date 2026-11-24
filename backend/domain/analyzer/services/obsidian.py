@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime
 
 # Configure default vault path, can be overridden by environment variable
@@ -8,6 +9,8 @@ def save_to_obsidian(event_id: str, description: str, solution_summary: dict) ->
     """Saves the log and solution to the Obsidian vault as a markdown file."""
     os.makedirs(VAULT_PATH, exist_ok=True)
     
+    # event_id is parsed from uploaded logs: never let it shape the file path (separators, drive/stream colons, dots).
+    event_id = re.sub(r"[^A-Za-z0-9_-]", "_", str(event_id or ""))[:64] or "unknown"
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"Event_{event_id}_{timestamp}.md"
     filepath = os.path.join(VAULT_PATH, filename)

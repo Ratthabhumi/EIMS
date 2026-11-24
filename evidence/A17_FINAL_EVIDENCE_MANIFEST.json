@@ -1,0 +1,59 @@
+{
+  "schema": "v12-a17-final-evidence/v1",
+  "generatedAt": "2026-11-19T10:15:00+07:00",
+  "campaign": "A17 Phase 5",
+  "securityAcceptance": "NOT ACCEPTED",
+  "projectHandover": "READY WITH LIMITATIONS",
+  "repositories": {
+    "eims": { "head": "85493b2131d3e353453072559a5dfc301d75dd06", "branch": "integration/eims-consolidated", "modified": 59, "untracked": 207, "staged": 0 },
+    "chatHand": { "head": "c293b8aae2cbf2a669ba1cb4210001efe1f14885", "branch": "v2/verified-fallback", "modified": 20, "untracked": 97, "staged": 0 }
+  },
+  "manifests": {
+    "eimsA17Final": "A108C4D074CB668B855128B7C74006E54F7CB9CE227F0D24D77C8DFB42D6D578",
+    "chatHandA17Final": "E04EACE441DDE748000402885F711C842366BB0BF5D06784F6878C3162184ABC",
+    "note": "The manifests record file lists and base hashes; the reviewer found they lack per-file SHA-256 entries. Recorded as RR-7, not rewritten."
+  },
+  "review": {
+    "reviewer": "Claude Code 2.1.323 (plan mode, read-only)",
+    "verdict": "do not accept A17 as closed",
+    "high": 3,
+    "medium": 2,
+    "low": 2,
+    "info": 1,
+    "postReviewFixes": [
+      "F1: --apply prefix/import bypass closed; behavioural subprocess test added",
+      "F2: module-level imports fixed so the benchmark target check can execute"
+    ],
+    "reReviewOfFixes": "NOT RUN"
+  },
+  "statuses": {
+    "R-1": "BLOCKED",
+    "R-2": "PARTIAL",
+    "R-3": "SAFE_DISABLED",
+    "R-4": "PARTIAL",
+    "R-5": "LEGACY_NOT_TRUSTED",
+    "R-6": "NOT_WIRED",
+    "R-7": "PARTIAL",
+    "brokerL2": "FUTURE_WORK",
+    "anchorL3": "FUTURE_WORK",
+    "redisAcl": "NOT_RUN",
+    "pgbouncer": "NOT_RUN",
+    "imageDigests": "NOT_RUN",
+    "vectorContract": "UNVERIFIED",
+    "independentReview": "EXECUTED_FINDINGS_OPEN"
+  },
+  "tests": {
+    "a17Closure": { "command": "pytest tests/test_a17_closure_behavior.py", "passed": 4, "failed": 0 },
+    "focusedSuites": { "command": "pytest benchmark/async/compose/isolation/auth", "passed": 65, "failed": 0 },
+    "chatHand": { "command": "node scripts/test-a15-execution-integrity.mjs", "passed": 18, "failed": 0 },
+    "skipped": 0,
+    "note": "Offline only. No service-dependent or E2E test was run."
+  },
+  "notPerformed": [
+    "container/runtime start", "migration apply", "operational connection",
+    "trust grant creation", "commit/stage/push", "GUI/live E2E",
+    "image pull or digest pin", "redis/pgbouncer change",
+    "audit verifier", "vector reproduction", "full Track B/C suites"
+  ],
+  "gates": { "A": "BLOCKED", "B": "PARTIAL", "C": "PARTIAL", "D": "NOT_RUN", "E": "EXECUTED_FINDINGS_OPEN" }
+}

@@ -1,0 +1,806 @@
+{
+  "evidence_only": true,
+  "certification_decision": null,
+  "finding_count": 132,
+  "counts_by_code": {
+    "parser_match_coverage_missing": 43,
+    "parser_non_match_coverage_missing": 43,
+    "reference_parser_check_summary": 1,
+    "unqualified_always_never": 3,
+    "version_scope_missing": 42
+  },
+  "findings": [
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:ha:unexpected-failover-causes",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:ha:unexpected-failover-causes",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "unqualified_always_never",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "message": "Unqualified 'always' or 'never' language needs human evidence review."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-local-traffic",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-local-traffic",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:auth:password-authentication-failed",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:auth:password-authentication-failed",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:connections:too-many-connections",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:connections:too-many-connections",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:locks:deadlock-detected",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:locks:deadlock-detected",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:replication:standby-query-canceled-recovery-conflict",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:replication:standby-query-canceled-recovery-conflict",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:server:administrator-shutdown-or-terminate",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:server:administrator-shutdown-or-terminate",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:storage:data-disk-full",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:storage:data-disk-full",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:wal:archive-command-failing-pg-wal-fills",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "candidate:postgresql:wal:archive-command-failing-pg-wal-fills",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "unqualified_always_never",
+      "severity": "warning",
+      "record_key": "candidate:veeam-vbr:proxy:no-proxy-available-vmware",
+      "message": "Unqualified 'always' or 'never' language needs human evidence review."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:105005",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:105005",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106001",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106001",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106015",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106015",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106023",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106023",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106024",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106024",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106100",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106100",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113005",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113005",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113019",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113019",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302013",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302013",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302014",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302014",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411001",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411001",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411002",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411002",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/system",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/system",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/user",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/user",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/vpn",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/vpn",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:traffic/forward",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:traffic/forward",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:utm/ips",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:fortinet:log_category:utm/ips",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:linux_syslog:general_signature:AUTH-FAIL",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:linux_syslog:general_signature:AUTH-FAIL",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:palo_alto:log_category:CONFIG",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:palo_alto:log_category:CONFIG",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:palo_alto:log_category:SYSTEM",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:palo_alto:log_category:SYSTEM",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:palo_alto:log_category:THREAT",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:palo_alto:log_category:THREAT",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:palo_alto:log_category:TRAFFIC",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:palo_alto:log_category:TRAFFIC",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-REPLICA-SNAPSHOT-CHAIN",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-REPLICA-SNAPSHOT-CHAIN",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-SESSION-FAILED",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-SESSION-FAILED",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "parser_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "message": "No run-bound per-record positive/parser/evaluator test evidence is attached."
+    },
+    {
+      "code": "parser_non_match_coverage_missing",
+      "severity": "warning",
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "message": "No run-bound per-record negative/non-match test evidence is attached."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:100",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1002",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1003",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1006",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:101",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:10102",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:10104",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1014",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1015",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:102",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:103",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:104",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1054",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1055",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1076",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:109",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:18500",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:2005",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:21",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:22",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:23",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:24",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:25",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:400",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:403",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4103",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4105",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4106",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4226",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5009",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5860",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5861",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:600",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:6005",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:6013",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7001",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7009",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7022",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7024",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7040",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:800",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "unqualified_always_never",
+      "severity": "warning",
+      "record_key": "reference:haproxy:termination_state_first_char:I",
+      "message": "Unqualified 'always' or 'never' language needs human evidence review."
+    },
+    {
+      "code": "reference_parser_check_summary",
+      "severity": "evidence",
+      "record_key": null,
+      "message": "Checked 312 parser-mapped references; 2 PostgreSQL success-class references were intentionally not surfaced."
+    }
+  ]
+}

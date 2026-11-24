@@ -1,0 +1,265 @@
+{
+ "database": "127.0.0.1:56470/eims_e2e_test",
+ "results": [
+  {
+   "check": "S1 parse: provider/event id/application",
+   "result": "PASS",
+   "detail": "{\"eventId\": \"1026\", \"provider\": \".NET Runtime\", \"level\": \"Error\", \"logName\": \"Application\", \"timestamp\": \"11/20/2026 9:14:22 AM\", \"computer\""
+  },
+  {
+   "check": "S1 stack trace preserved verbatim",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S1 repeated exception grouped, both line numbers kept",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S1 knowledge: direct provider-qualified context match",
+   "result": "PASS",
+   "detail": "{\"classification\": \"context_match\", \"catalogId\": \"windows_event:official_event_id:1026\", \"lifecycleStatus\": null, \"stale\": false, \"versionScope\": null, \"versionCompatible\": null, \"overlayAvailable\": t"
+  },
+  {
+   "check": "S1 knowledge is context, never an approved diagnosis",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S1 automatic incident created",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S1 evidence linked with provider-qualified signature",
+   "result": "PASS",
+   "detail": "analysis:1026@.net runtime"
+  },
+  {
+   "check": "S2 duplicate submission: already linked, same incident",
+   "result": "PASS",
+   "detail": "event_already_linked"
+  },
+  {
+   "check": "S2 same analysis record again: already linked",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S2 one occurrence = one fingerprint in the database",
+   "result": "PASS",
+   "detail": "1"
+  },
+  {
+   "check": "S3 same asset + provider + event within window: correlated to one incident",
+   "result": "PASS",
+   "detail": "correlated_with_open_incident"
+  },
+  {
+   "check": "S3 two distinct occurrences both kept",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S3 audit records the evidence addition",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S3 correlation records the event-time basis (ingestion time is not event time)",
+   "result": "PASS",
+   "detail": "{\"event_time\": \"2026-11-20T02:08:56+00:00\", \"time_basis\": \"source_timestamp_explicit_zone\", \"time_confidence\": \"exact\", \"time_original\": \"2026-11-20T02:08:56Z\", \"ingestion_time_is_not_event_time\": tru"
+  },
+  {
+   "check": "S3b same asset/provider/event but ambiguous local time: NOT merged",
+   "result": "PASS",
+   "detail": "ambiguous_not_merged"
+  },
+  {
+   "check": "S3b time basis recorded honestly",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S3c same signature six hours apart in EVENT time (ingested together): NOT merged",
+   "result": "PASS",
+   "detail": "created"
+  },
+  {
+   "check": "S3d event 200s after the first, merged on EVENT time",
+   "result": "PASS",
+   "detail": "correlated_with_open_incident"
+  },
+  {
+   "check": "S4 same asset, different event: NOT merged (ambiguous)",
+   "result": "PASS",
+   "detail": "ambiguous_not_merged"
+  },
+  {
+   "check": "S4 candidate recorded for human review",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S4 same Event ID, different provider: NOT merged",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S4 retrieval: no false provider match for 1000/.NET Runtime",
+   "result": "PASS",
+   "detail": "{\"classification\": \"no_verified_match\", \"catalogId\": null, \"lifecycleStatus\": null, \"stale\": false, \"versionScope\": null, \"versionCompatible\": null, \"overlayAvailable\": true, \"matc"
+  },
+  {
+   "check": "S4 missing asset: never merged automatically",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S4 missing provider/time: separate evidence, no false identity",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S4 retrieval: missing provider is contextual, flagged",
+   "result": "PASS",
+   "detail": "no_record"
+  },
+  {
+   "check": "S5 note created with honest provenance",
+   "result": "PASS",
+   "detail": "{\"note_id\":\"7501ba40-d551-449d-99f0-44226746b903\",\"incident_id\":\"108b2a84-5d06-4edf-8787-91e39498c8a6\",\"text\":\"DC02 rema"
+  },
+  {
+   "check": "S5 note readable after reload",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S5 note does not confirm diagnosis or change status",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S5 forged actor/assurance rejected",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S5 note present in append-only audit timeline",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S6 hypothesis recorded as hypothesis",
+   "result": "PASS",
+   "detail": "{\"diagnosis_id\":\"62ea7981-3181-4aa9-8d2c-f55b8befa787\",\"incident_id\":\"108b2a84-5d06-4edf-8787-91e394"
+  },
+  {
+   "check": "S6 hypothesis does not make the root cause confirmed",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S6 unattributed caller cannot confirm root cause",
+   "result": "PASS",
+   "detail": "403"
+  },
+  {
+   "check": "S6 verified reviewer confirms (authorised workflow)",
+   "result": "PASS",
+   "detail": "{\"diagnosis_id\":\"62ea7981-3181-4aa9-8d2c-f55b8befa787\",\"incident_id\":\"108b2a84-5d06-4edf-8787-91e39498c8a6\",\"remediation"
+  },
+  {
+   "check": "S6 remediation proposed with risk/rollback/verification criteria",
+   "result": "PASS",
+   "detail": "{\"remediation_id\":\"b649acb8-106a-4935-91e8-43a5eb5194f7\",\"incident_id\":\"108b2a84-5d06-4edf-8787-91e39498c8a6\",\"diagnosis_id\":\"62ea7981-3181-"
+  },
+  {
+   "check": "S6 fix applied is recorded",
+   "result": "PASS",
+   "detail": "{\"remediation_id\":\"b649acb8-106a-4935-91e8-43a5eb5194f7\",\"incident_id\":\"108b2a84-5d06-4edf-8787-91e39498c8a6\",\"diagnosis_id\":\"62ea7981-3181-"
+  },
+  {
+   "check": "S6 fix applied does NOT mean resolved",
+   "result": "PASS",
+   "detail": "open"
+  },
+  {
+   "check": "S6 unattributed caller cannot resolve",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S7 lifecycle: open access may move the case to triage",
+   "result": "PASS",
+   "detail": "{\"incident_id\":\"108b2a84-5d06-4edf-8787-91e39498c8a6\",\"title\":\"analysis incident: 1\",\"status\":\"triag"
+  },
+  {
+   "check": "S7 lifecycle: open access may move the case to investigating",
+   "result": "PASS",
+   "detail": "{\"incident_id\":\"108b2a84-5d06-4edf-8787-91e39498c8a6\",\"title\":\"analysis incident: 1\",\"status\":\"inves"
+  },
+  {
+   "check": "S7 resolution without verification evidence is rejected",
+   "result": "PASS",
+   "detail": "422"
+  },
+  {
+   "check": "S7 verification evidence attached",
+   "result": "PASS",
+   "detail": "{\"incident_id\":\"108b2a84-5d06-4edf-8787-91e39498c8a6\",\"title\":\"analysis incident: 1\",\"status\":\"inves"
+  },
+  {
+   "check": "S7 verified reviewer resolves with evidence",
+   "result": "PASS",
+   "detail": "{\"incident_id\":\"108b2a84-5d06-4edf-8787-91e39498c8a6\",\"title\":\"analysis incident: 1\",\"status\":\"resolved\",\"severity\":\"medium\",\"confidence\":\"medium\",\"asset_id\":nu"
+  },
+  {
+   "check": "S7 verification recorded",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S8 proposal submitted",
+   "result": "PASS",
+   "detail": "{\"proposal_link_id\":\"ed1bbd10-4cba-4a5b-8543-3a6936307ed8\",\"incident_id\":\"108b2a84-5d06-4edf-8787-91e39498c8a6\",\"diagnosis_id\":\"62ea7981-3181-4aa9-8d2c-f55b8bef"
+  },
+  {
+   "check": "S8 proposal is pending and nothing is approved",
+   "result": "PASS",
+   "detail": "pending=1 approved=0"
+  },
+  {
+   "check": "S10 provider-scoped proposal accepted as pending",
+   "result": "PASS",
+   "detail": "{\"id\":2,\"title\":\"Faulting demo.exe after update\",\"sourceFamily\":\"windows_event\",\"diagnosticIdentity\":\"1000\",\"provider\":\"Application Error\",\"providerScope\":\"prov"
+  },
+  {
+   "check": "S10 proposal carries provider scope from the analysed record",
+   "result": "PASS",
+   "detail": "{\"id\":2,\"title\":\"Faulting demo.exe after update\",\"sourceFamily\":\"windows_event\",\"diagnosticIdentity\":\"1000\",\"provider\":\"Application Error\",\"providerScope\":\"provider_specific\",\"resolutionStatus\":\"resol"
+  },
+  {
+   "check": "S10 independent reviewer approves",
+   "result": "PASS",
+   "detail": "{\"id\":2,\"title\":\"Faulting demo.exe after update\",\"sourceFamily\":\"windows_event\",\"diagnosticIdentity\":\"1000\",\"provider\":\"Application Error\",\"providerScope\":\"prov"
+  },
+  {
+   "check": "S10 same provider: approved guidance returned as provider_exact",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S10 other provider with the same Event ID: approved guidance NOT returned",
+   "result": "PASS",
+   "detail": ""
+  },
+  {
+   "check": "S10 missing provider: approved guidance NOT returned",
+   "result": "PASS",
+   "detail": ""
+  }
+ ]
+}

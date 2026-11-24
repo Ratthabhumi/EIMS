@@ -12,6 +12,7 @@ import pytest
 from fastapi import HTTPException, UploadFile
 
 from backend.domain.telemetry import controller
+from backend.domain.telemetry.evtx_worker import EVTX_STREAM_KEY
 
 
 def _file():
@@ -33,7 +34,7 @@ def _storage(monkeypatch, *, error=None):
 @pytest.mark.asyncio
 async def test_evtx_202_only_after_confirmed_queue_write(monkeypatch):
     upload = _storage(monkeypatch)
-    cache = SimpleNamespace(lpush_queue=AsyncMock(return_value=1))
+    cache = SimpleNamespace(xadd_queue=AsyncMock(return_value="1722760000000-1"))
     response = await controller.upload_windows_evtx(
         _file(), x_client_cert_fingerprint="a" * 64, cache_manager=cache
     )
@@ -41,19 +42,20 @@ async def test_evtx_202_only_after_confirmed_queue_write(monkeypatch):
     assert response["task_id"]
     assert response["minio_uri"] == "s3://synthetic-only/object.evtx"
     upload.assert_awaited_once()
-    cache.lpush_queue.assert_awaited_once()
-    key, payload = cache.lpush_queue.await_args.args
-    assert key == "eims:jobs:evtx"
+    cache.xadd_queue.assert_awaited_once()
+    key, payload = cache.xadd_queue.await_args.args
+    assert key == EVTX_STREAM_KEY
     assert json.loads(json.dumps(payload)) == {
         "job_id": response["task_id"],
         "minio_uri": response["minio_uri"],
+        "uploader_fingerprint": "a" * 64,
     }
 
 
 @pytest.mark.asyncio
 async def test_evtx_queue_failure_after_storage_does_not_claim_202(monkeypatch):
     upload = _storage(monkeypatch)
-    cache = SimpleNamespace(lpush_queue=AsyncMock(
+    cache = SimpleNamespace(xadd_queue=AsyncMock(
         side_effect=ConnectionError("synthetic-redis-disconnect")
     ))
     with pytest.raises(HTTPException) as failure:
@@ -70,7 +72,7 @@ async def test_evtx_queue_failure_after_storage_does_not_claim_202(monkeypatch):
 @pytest.mark.parametrize("queue_depth", [0, None])
 async def test_evtx_unconfirmed_queue_result_is_not_accepted(monkeypatch, queue_depth):
     _storage(monkeypatch)
-    cache = SimpleNamespace(lpush_queue=AsyncMock(return_value=queue_depth))
+    cache = SimpleNamespace(xadd_queue=AsyncMock(return_value=queue_depth))
     with pytest.raises(HTTPException) as failure:
         await controller.upload_windows_evtx(
             _file(), x_client_cert_fingerprint="a" * 64, cache_manager=cache
@@ -81,10 +83,10 @@ async def test_evtx_unconfirmed_queue_result_is_not_accepted(monkeypatch, queue_
 @pytest.mark.asyncio
 async def test_evtx_storage_failure_never_attempts_queue(monkeypatch):
     _storage(monkeypatch, error=RuntimeError("synthetic-storage-unavailable"))
-    cache = SimpleNamespace(lpush_queue=AsyncMock())
+    cache = SimpleNamespace(xadd_queue=AsyncMock())
     with pytest.raises(HTTPException) as failure:
         await controller.upload_windows_evtx(
             _file(), x_client_cert_fingerprint="a" * 64, cache_manager=cache
         )
     assert failure.value.status_code == 502
-    cache.lpush_queue.assert_not_awaited()
+    cache.xadd_queue.assert_not_awaited()

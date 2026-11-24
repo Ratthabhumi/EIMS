@@ -21,7 +21,7 @@ SOURCE_EVENT_KEY_MAX = 160
 MAX_FIELD_CHARS = 2048
 QUALIFYING_WINLOG_SEVERITIES = frozenset({"critical", "error", "warning"})
 # Only these provenance keys are ever stored/forwarded; values are short scalars (never log text).
-PROVENANCE_KEYS = frozenset({"origin", "event_id", "severity"})
+PROVENANCE_KEYS = frozenset({"origin", "event_id", "severity", "time_quality"})
 _PROVENANCE_VALUE_MAX = 64
 
 

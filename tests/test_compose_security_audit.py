@@ -17,14 +17,15 @@ def test_current_dev_compose_has_explicit_security_findings():
     document = yaml.safe_load(DEV_COMPOSE.read_text(encoding="utf-8"))
     findings = audit_compose(document)
     rules = {item["rule"] for item in findings}
-    assert {
-        "NON_LOOPBACK_PORT",
-        "INLINE_SECRET",
-        "IMAGE_UNPINNED",
-        "PUBLIC_OBJECT_BUCKET",
-        "REDIS_AUTH_UNVERIFIED",
-    }.issubset(rules)
-    assert any(f["service"] == "minio_setup" and f["rule"] == "PUBLIC_OBJECT_BUCKET" for f in findings)
+    # Exposure controls that were hardened must stay hardened (regression guard): every published port is
+    # loopback-only and the OCR bucket is private. Re-introducing either now fails this test.
+    assert "NON_LOOPBACK_PORT" not in rules, [f["service"] for f in findings if f["rule"] == "NON_LOOPBACK_PORT"]
+    assert "PUBLIC_OBJECT_BUCKET" not in rules
+    # No host-level escape hatches in the dev stack.
+    assert not rules & {"HOST_NETWORK", "PRIVILEGED_CONTAINER", "DOCKER_SOCKET_MOUNT", "HOST_PID", "HOST_IPC",
+                        "HOST_USER_NAMESPACE", "HOST_DEVICE_ACCESS", "ADDED_LINUX_CAPABILITIES", "DISABLED_SECURITY_PROFILE"}
+    # Residual, explicitly reported dev-tier findings (local loopback only; not suitable for production as-is).
+    assert {"INLINE_SECRET", "IMAGE_UNPINNED", "REDIS_AUTH_UNVERIFIED"}.issubset(rules)
     assert any(f["service"] == "redis_cache" and f["rule"] == "REDIS_AUTH_UNVERIFIED" for f in findings)
 
 

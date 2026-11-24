@@ -1,4 +1,5 @@
-import io
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import re
 import defusedxml.ElementTree as ET
 from xml.etree.ElementTree import Element
@@ -83,18 +84,22 @@ def parse_evtx(content: bytes, max_records: int = 100) -> tuple[str, str]:
     error_events = []
 
     try:
-        with Evtx(io.BytesIO(content)) as log:
-            for i, record in enumerate(log.records()):
-                if i >= max_records:
-                    break
-                xml_str = record.xml()
-                text = _event_xml_to_text(xml_str)
-                if not text:
-                    continue
-                if not fallback:
-                    fallback = text
-                if _is_error_level(xml_str):
-                    error_events.append(text)
+        # python-evtx opens a filesystem path, not a BytesIO object, so spool to a temp file.
+        with TemporaryDirectory(prefix="eims-evtx-") as temp_dir:
+            source_path = Path(temp_dir) / "input.evtx"
+            source_path.write_bytes(content)
+            with Evtx(str(source_path)) as log:
+                for i, record in enumerate(log.records()):
+                    if i >= max_records:
+                        break
+                    xml_str = record.xml()
+                    text = _event_xml_to_text(xml_str)
+                    if not text:
+                        continue
+                    if not fallback:
+                        fallback = text
+                    if _is_error_level(xml_str):
+                        error_events.append(text)
     except Exception as e:
         raise ValueError(f"Failed to parse EVTX file: Data may be corrupted ({str(e)})")
 

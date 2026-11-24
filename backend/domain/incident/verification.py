@@ -205,7 +205,7 @@ async def evaluate(
         )
 
     recomputed = recompute_evidence_digest(row)
-    if recomputed != row.evidence_digest:
+    if recomputed != row.evidence_digest and not await _matches_occurrence_fingerprint(db, row):
         raise VerificationRejected(
             "evidence_digest_mismatch",
             "stored evidence digest does not match its trusted recomputation",
@@ -225,7 +225,8 @@ async def evaluate(
     return VerificationDecision(
         outcome=OUTCOME_PASSED,
         evidence_id=row.evidence_id,
-        evidence_digest=recomputed,
+        # The digest the row actually carries (source identity, or the occurrence fingerprint just revalidated).
+        evidence_digest=row.evidence_digest,
         remediation_cycle=int(incident.remediation_cycle or 0),
         verifier=verifier_name,
         reason="evidence revalidated against trusted persistence",
@@ -245,3 +246,18 @@ def build_record(
         verifier_id=decision.verifier,
         verified_at=datetime.now(UTC),
     )
+
+
+async def _matches_occurrence_fingerprint(db: AsyncSession, row: IncidentEvidence) -> bool:
+    """Analysis evidence may carry the occurrence fingerprint (see evidence_identity) instead of the source-identity
+    digest. Recompute it server-side from the persisted analysis row; the caller never supplies it."""
+    if row.source_type != "analysis" or not str(row.source_id).isdigit():
+        return False
+    from backend.domain.analyzer.models.history import AnalysisHistory
+    from backend.domain.incident.evidence_identity import analysis_fingerprint
+
+    record = await db.get(AnalysisHistory, int(row.source_id))
+    if record is None:
+        return False
+    fingerprint = analysis_fingerprint(record)
+    return fingerprint is not None and fingerprint == row.evidence_digest

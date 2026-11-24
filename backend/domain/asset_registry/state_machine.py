@@ -37,11 +37,14 @@ class AssetLifecycleStateMachine:
     _ALLOWED_TRANSITIONS: Dict[AssetState, Set[AssetState]] = {
         AssetState.DISCOVERED: {
             AssetState.PENDING_AUDIT,
+            # Soft-archive before audit completes (USB/e2e cleanup; row retained as Decommissioned).
+            AssetState.DECOMMISSIONED,
         },
         AssetState.PENDING_AUDIT: {
             AssetState.COMPLIANT,
             AssetState.NON_COMPLIANT,
             AssetState.QUARANTINED,
+            AssetState.DECOMMISSIONED,
         },
         AssetState.COMPLIANT: {
             AssetState.NON_COMPLIANT,

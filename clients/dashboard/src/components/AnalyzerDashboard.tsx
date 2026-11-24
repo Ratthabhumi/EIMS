@@ -74,8 +74,11 @@ export default function AnalyzerDashboard({ refreshTrigger = 0, avgSearchTimeMs 
           <div>
             <p className="text-eims-text-secondary text-xs font-medium uppercase tracking-wider mb-1">Avg Search Time</p>
             <h3 className="text-2xl font-bold text-eims-text">
-              {avgSearchTimeMs !== null && avgSearchTimeMs !== undefined
-                ? `${avgSearchTimeMs < 1 ? avgSearchTimeMs.toFixed(1) : Math.round(avgSearchTimeMs)} ms`
+              {/* Real time to analyze a submitted log, averaged by the backend over stored analyses. */}
+              {stats.avgSearchTimeSec > 0
+                ? (stats.avgSearchTimeSec < 1
+                  ? `${Math.round(stats.avgSearchTimeSec * 1000)} ms`
+                  : `${stats.avgSearchTimeSec.toFixed(2)} s`)
                 : "—"}
             </h3>
           </div>

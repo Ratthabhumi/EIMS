@@ -1,0 +1,124 @@
+{
+  "schema": "v12-freeze-summary/v1",
+  "generatedAt": "2026-11-18T20:36:48+07:00",
+  "hashAlgorithm": "sha256",
+  "campaign": "EIMS V12 Final Closure — A8/A9/A10",
+  "repository": {
+    "name": "EIMS",
+    "root": "C:/Users/MewMew/Desktop/Co-op/EIMS",
+    "remote": "https://github.com/Ratthabhumi/EIMS.git",
+    "branch": "integration/eims-consolidated",
+    "head": "85493b2131d3e353453072559a5dfc301d75dd06",
+    "headDate": "2026-11-13T20:08:31+07:00",
+    "coreAutocrlf": "true"
+  },
+  "manifests": {
+    "head": { "path": "evidence/v12-head-manifest.json", "sha256": "7ACF98EA04F3EEC78ED53B9C970A11992F193BC34A9748064649AB8EF34D6C92", "bytes": 270769 },
+    "workingTree": { "path": "evidence/v12-working-tree-manifest.json", "sha256": "53EE6A4093ECB50FEC25F746200F9BBCD10ABAFC17BCA41F567B2FD521BC2356", "bytes": 279681 },
+    "evidenceMap": { "path": "evidence/v12-evidence-revision-map.json", "sha256": "6FFB26C606194B18F2010B5A6DC077D6AC7137329F549B13D6488B0D4AB2F0DD", "bytes": 264603 }
+  },
+  "counts": {
+    "head": { "fileCount": 895, "totalBytes": 20611244 },
+    "workingTree": {
+      "fileCount": 1063,
+      "totalBytes": 41344360,
+      "trackedCount": 895,
+      "untrackedCount": 168,
+      "changedTrackedCount": 59,
+      "byStatus": { "HEAD_IDENTICAL": 836, "MODIFIED": 59, "UNTRACKED": 168 }
+    }
+  },
+  "gitStatusAtFreeze": {
+    "porcelainModified": 59,
+    "porcelainUntrackedExpanded": 168,
+    "staged": 0,
+    "deleted": 0,
+    "diffCheckExit": 0
+  },
+  "defaultModeCheck": {
+    "note": "Earlier collapsed counts (58 modified / 84 untracked) used directory-collapsed `git status --porcelain`. Expanded `-uall` is authoritative: 59 modified (58 + .gitignore) and 168 untracked (162 + 2 released fixtures + 4 A8/A10 docs)."
+  },
+  "verification": {
+    "method": "Regenerated the working-tree manifest after writing the evidence artifacts and compared entry by entry against the frozen manifest.",
+    "frozenEntries": 1063,
+    "changedEntries": 0,
+    "missingEntries": 0,
+    "addedAfterFreeze": 4,
+    "addedPaths": [
+      "evidence/v12-head-manifest.json",
+      "evidence/v12-working-tree-manifest.json",
+      "evidence/v12-evidence-revision-map.json",
+      "evidence/v12-freeze-summary.json"
+    ],
+    "result": "PASS — every frozen entry still matches; the only delta is the four declared post-freeze evidence artifacts."
+  },
+  "exclusions": [
+    ".git/",
+    "venv/, .venv/, env/",
+    "node_modules/, .next/, out/, dist/, build/",
+    "__pycache__/, *.py[cod], *.egg-info/",
+    ".pytest_cache/, .ruff_cache/, .mypy_cache/, .coverage, htmlcov/",
+    "*.log except scripts/agent-monitor/tests/fixtures/**/*.log",
+    "*.db, *.sqlite*, dump.rdb, *.parquet, minio_storage/, postgres_data/, backups/",
+    ".env, .env.* (never hashed)",
+    "test-results/**/*.zip (37 archives, 769794816 bytes, reproducible Playwright traces)",
+    ".kilo/, .cursor/, .omc/ ignored portions"
+  ],
+  "gitignoreChange": {
+    "applied": true,
+    "authorized": "explicit controller approval in the Final Closure Master Campaign",
+    "file": ".gitignore",
+    "line": 73,
+    "rule": "!scripts/agent-monitor/tests/fixtures/**/*.log",
+    "diff": "+!scripts/agent-monitor/tests/fixtures/**/*.log (one line added after *.log at line 72)",
+    "sha256Before": "0AC59FED2BE7D094CCC797F38658299758728E8F44D25C4F9A23D7345A102341",
+    "sha256After": "1C46031577E21A6DD6176F5DB047A86A5CB72BA363ADFF700F33F7267A59D204",
+    "scopeVerification": {
+      "gitVersion": "2.50.0.windows.1",
+      "parentDirectoriesIgnored": false,
+      "globalExcludesConfigured": false,
+      "nestedGitignoreUnderScripts": false,
+      "fixtureLogsVisibleAfter": true,
+      "deeperFixturePathsVisible": true,
+      "logsOutsideFixtureStillIgnored": true,
+      "forceAddUsed": false,
+      "otherGitignoreLinesChanged": false,
+      "fixtureContentChanged": false
+    }
+  },
+  "intermediateManifestBeforeA9": {
+    "path": "%TEMP%/v12-freeze/eims-wt-v1.json (not a repository artifact)",
+    "fileCount": 1059,
+    "totalBytes": 41317878,
+    "byStatus": { "HEAD_IDENTICAL": 837, "MODIFIED": 58, "UNTRACKED": 162, "IGNORED_REQUIRED": 2 },
+    "note": "Generated before the authorized .gitignore change and retained only to prove the delta. It is superseded and must not be used as the freeze."
+  },
+  "postFreezeArtifacts": [
+    { "path": "evidence/v12-head-manifest.json", "role": "manifest", "sha256": "7ACF98EA04F3EEC78ED53B9C970A11992F193BC34A9748064649AB8EF34D6C92" },
+    { "path": "evidence/v12-working-tree-manifest.json", "role": "manifest", "sha256": "53EE6A4093ECB50FEC25F746200F9BBCD10ABAFC17BCA41F567B2FD521BC2356" },
+    { "path": "evidence/v12-evidence-revision-map.json", "role": "evidence-map", "sha256": "6FFB26C606194B18F2010B5A6DC077D6AC7137329F549B13D6488B0D4AB2F0DD" },
+    { "path": "evidence/v12-freeze-summary.json", "role": "summary", "sha256": null, "note": "self; hash recorded in the campaign report" }
+  ],
+  "docsIncludedInFreeze": [
+    "docs/V12_SOURCE_FREEZE_MANIFEST.md",
+    "docs/V12_EVIDENCE_REVISION_BINDING.md",
+    "docs/V12_INDEPENDENT_REVIEW_SCOPE.md",
+    "docs/V12_CONTAINER_PREFLIGHT.md",
+    "docs/V12_ENGINEERING_FREEZE_AUDIT.md",
+    "docs/V12_FINAL_ACCEPTANCE_MATRIX.md",
+    "docs/V12_GATE2_TEST_PLAN.md"
+  ],
+  "verdict": {
+    "freezeState": "FROZEN",
+    "freezeIsValidOnlyIf": "no source, test, config or fixture change occurs; any change invalidates this freeze",
+    "evidenceStatus": "no prior EIMS product result is bound to this revision; Track C must regenerate evidence",
+    "independentReview": "scope prepared, not requested"
+  },
+  "limitations": [
+    "Proves which bytes exist, not that the code is correct.",
+    "Does not prove ownership of the 168 untracked paths.",
+    "Excludes dependency environments, build output, databases and container volumes.",
+    "core.autocrlf=true means HEAD blob hashes and working-tree hashes differ for the same file; modification status comes from git status.",
+    "test-results trace archives are excluded by rule and inventoried by count/size only."
+  ]
+}

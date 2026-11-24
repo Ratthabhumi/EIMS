@@ -829,15 +829,16 @@ async def _search_approved_knowledge_in_short_session(
     *,
     source_family: str,
     diagnostic_identity: str,
+    provider: str = "",
 ) -> dict | None:
     """Read only approved exact-identity knowledge without retaining request checkout."""
     bind = getattr(db, "bind", None)
     if isinstance(bind, AsyncEngine):
         async with AsyncSession(bind=bind, expire_on_commit=False) as knowledge_session:
             return await search_approved_knowledge(
-                knowledge_session, source_family, diagnostic_identity
+                knowledge_session, source_family, diagnostic_identity, provider
             )
-    return await search_approved_knowledge(db, source_family, diagnostic_identity)
+    return await search_approved_knowledge(db, source_family, diagnostic_identity, provider)
 
 
 async def _search_similar_logs_in_short_session(
@@ -848,6 +849,7 @@ async def _search_similar_logs_in_short_session(
     event_id: str,
     source_family: str,
     diagnostic_code: str | None,
+    provider: str = "",
 ) -> List[dict]:
     """Run RAG in an isolated short-lived session when the caller is engine-bound.
 
@@ -864,6 +866,7 @@ async def _search_similar_logs_in_short_session(
                 event_id=event_id,
                 source_family=source_family,
                 diagnostic_code=diagnostic_code,
+                provider=provider,
             )
 
     return await search_similar_logs(
@@ -873,6 +876,7 @@ async def _search_similar_logs_in_short_session(
         event_id=event_id,
         source_family=source_family,
         diagnostic_code=diagnostic_code,
+        provider=provider,
     )
 
 
@@ -902,6 +906,7 @@ async def build_summary(
                 db,
                 source_family=family,
                 diagnostic_identity=str(diagnostic_code or event_id or ""),
+                provider=str(provider or ""),
             )
             if approved:
                 return SolutionSummary(**approved)
@@ -918,6 +923,8 @@ async def build_summary(
     if family in ("veeam_vbr", "vmware") and diagnostic_code and is_vendor_diagnostic_code(diagnostic_code):
         vendor = get_vendor_summary(diagnostic_code, lang, evidence_text or description or "")
         if vendor:
+            from backend.domain.analyzer.services.catalog_diagnostics import guidance_for_entry
+            vendor.operationalGuidance = guidance_for_entry(family, diagnostic_code)
             return vendor
 
     from backend.domain.analyzer.services.catalog_diagnostics import catalog_summary
@@ -925,7 +932,7 @@ async def build_summary(
     if context:
         return context
 
-    curated = get_curated_summary(event_id, lang) if family == "windows_event" else None
+    curated = get_curated_summary(event_id, lang, provider) if family == "windows_event" else None
     if curated:
         return curated
 
@@ -963,6 +970,7 @@ async def build_summary(
                 event_id=event_id,
                 source_family=family,
                 diagnostic_code=diagnostic_code,
+                provider=str(provider or ""),
             )
             if similar:
                 rag_context = json.dumps(similar, ensure_ascii=False)

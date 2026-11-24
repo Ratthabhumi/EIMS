@@ -35,12 +35,20 @@ async def get_timeline_service() -> TimelineService:
     response_model=TimelineResponse,
     status_code=200,
     summary="Unified Cross-Source Timeline",
-    description="Aggregates chronological events from audit_logs, telemetry_metrics, and windows_event_logs.",
+    description=(
+        "Aggregates chronological events from audit_logs (including incident status "
+        "transitions), incident_evidence, incident_verification, telemetry_metrics, "
+        "and windows_event_logs. Server-side pagination; read-only."
+    ),
 )
 async def query_timeline(
     entity_id: Optional[UUID] = Query(None, description="Filter by related asset/entity UUID."),
-    event_type: Optional[Literal["audit", "telemetry", "winlog"]] = Query(
-        None, alias="type", description="Filter by event source type."
+    event_type: Optional[
+        Literal["audit", "incident_transition", "evidence", "verification", "telemetry", "winlog"]
+    ] = Query(
+        None,
+        alias="type",
+        description="Filter by event source type (audit, incident_transition, evidence, verification, telemetry, winlog).",
     ),
     severity: Optional[str] = Query(None, description="Severity level (Critical, Warning, Information)."),
     from_dt: Optional[datetime] = Query(None, alias="from", description="Start date (ISO 8601)."),

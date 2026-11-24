@@ -6,6 +6,7 @@ from sqlalchemy.future import select
 
 from backend.core.config import settings
 from backend.domain.analyzer.models.vector import VectorKnowledge
+from backend.domain.analyzer.services.verified_knowledge import PROVIDER_BEARING_FAMILIES, norm_provider
 from backend.domain.analyzer.services.vendor_parsers import is_vendor_diagnostic_code
 from backend.infrastructure.database import rollback_read_only_transaction
 
@@ -109,6 +110,7 @@ async def add_solution(
     api_key: str | None = None,
     source_family: str | None = None,
     diagnostic_identity: str | None = None,
+    provider: str | None = None,
 ):
     """Store a feedback-tagged knowledge candidate; it remains pending review.
 
@@ -116,8 +118,10 @@ async def add_solution(
     requires an explicit reviewer approval marker. Negative feedback quarantines
     an exact existing row; it never creates a new candidate.
     """
-    # Existing shared knowledge rows have no owner identity. Do not publish
-    # private secure-user History into that namespace until it is owner-scoped.
+    # Hardened (AUTH_MODE=secure) deployments never publish History into the shared, ownerless vector namespace.
+    # This is a data-ownership boundary, independent of application login (which does not exist): shared rows carry
+    # no owner, so exporting a possibly user-attributed History row there would leak it to every reader.
+    # Default local/demo mode (single shared open-access identity) keeps the vector export available.
     if settings.AUTH_MODE.lower() == 'secure':
         return None
     if await rollback_read_only_transaction(db) is False:
@@ -130,6 +134,9 @@ async def add_solution(
         sol_dict["_knowledge"] = {
             "sourceFamily": str(source_family or ""),
             "diagnosticIdentity": str(diagnostic_identity or event_id or ""),
+            # Provider scope (Windows event IDs are reused by unrelated providers). Never inferred from the Event ID.
+            "provider": str(provider or "").strip() or None,
+            "providerScope": "provider_specific" if str(provider or "").strip() else "unknown",
             "reviewStatus": "pending",
             "reviewedBy": None,
             "reviewedAt": None,
@@ -153,6 +160,10 @@ async def add_solution(
                 VectorKnowledge.description == description,
             )
         )).scalars().first()
+        if existing is not None and (source_family or "") in PROVIDER_BEARING_FAMILIES:
+            prior = (getattr(existing, "solution_json", None) or {}).get("_knowledge") or {}
+            if norm_provider(prior.get("provider")) != norm_provider(provider):
+                existing = None  # another provider's (or an unqualified) row is never overwritten or re-scored
     except Exception as e:
         print(f"Failed to look up Vector DB row: {e}")
         if await rollback_read_only_transaction(db) is False:
@@ -207,6 +218,7 @@ def _is_usable_knowledge_row(
     distance: float,
     max_distance: float = CROSS_IDENTITY_MAX_DISTANCE,
     row_solution_json: dict | None = None,
+    request_provider: str | None = None,
 ) -> bool:
     """Pure, fail-closed retrieval policy (unit-testable, no database).
 
@@ -239,6 +251,16 @@ def _is_usable_knowledge_row(
     if not row_family or not row_diag or row_family != req_family:
         return False
 
+    # Provider isolation: for provider-bearing families (Windows events) only an entry written for the SAME provider is
+    # usable. Legacy/unqualified rows, other providers and a missing request provider never match, and semantic
+    # similarity can never bridge providers.
+    if req_family in PROVIDER_BEARING_FAMILIES:
+        wanted = norm_provider(request_provider)
+        if not wanted or str(knowledge.get("providerScope") or "") != "provider_specific":
+            return False
+        if norm_provider(knowledge.get("provider")) != wanted:
+            return False
+
     req_is_vendor = req_family in ("veeam_vbr", "vmware") or is_vendor_diagnostic_code(req_id)
     row_is_vendor = row_family in ("veeam_vbr", "vmware") or is_vendor_diagnostic_code(row_diag)
     if req_is_vendor or row_is_vendor:
@@ -260,6 +282,7 @@ async def search_similar_logs(
     top_k: int = 2,
     source_family: str | None = None,
     diagnostic_code: str | None = None,
+    provider: str | None = None,
 ) -> list[dict]:
     """Search only explicitly approved knowledge entries with domain guardrails.
 
@@ -267,7 +290,7 @@ async def search_similar_logs(
     perform no retrieval, and vendor diagnostics require the exact same code.
     """
     if settings.AUTH_MODE.lower() == 'secure':
-        return []
+        return []  # same ownership boundary as add_solution: the shared vector namespace is closed in secure mode
     family = source_family or ""
     identity = str(diagnostic_code or event_id or "")
 
@@ -295,7 +318,7 @@ async def search_similar_logs(
         # Review approval gates retrieval; feedback score only ranks usefulness.
         query = (
             query.order_by(desc(VectorKnowledge.feedback_score), distance_col)
-            .limit(max(top_k * 4, 8))
+            .limit(max(top_k * 4, 8) if family not in PROVIDER_BEARING_FAMILIES else max(top_k * 25, 50))
         )
         rows = (await db.execute(query)).all()
 
@@ -313,6 +336,7 @@ async def search_similar_logs(
                 family,
                 distance,
                 row_solution_json=getattr(entity, "solution_json", None),
+                request_provider=provider,
             ):
                 continue
             if getattr(entity, "solution_json", None):

@@ -165,6 +165,31 @@ class IncidentDetailResponse(IncidentResponse):
         default_factory=list,
         description="Append-only verification history across remediation cycles.",
     )
+    # Set only by POST /incidents so the caller can tell what actually happened.
+    created: Optional[bool] = Field(None, description="True when a new incident row was created.")
+    match: Optional[str] = Field(
+        None,
+        description=(
+            "created | event_already_linked (the same source event was already bound to this incident) | "
+            "correlated_with_open_incident (a STRONG match: same concrete asset and same provider-qualified event "
+            "signature inside the window, open incident) | ambiguous_not_merged (a new incident was created because "
+            "candidates existed but none was a strong match; see summary.correlation.candidates; link explicitly)."
+        ),
+    )
+
+
+class IncidentLinkResponse(BaseModel):
+    """Which incident (if any) a source event is bound to. Read-only."""
+    model_config = ConfigDict(from_attributes=True)
+
+    incident_id: uuid.UUID
+    title: str
+    status: str
+    severity: str
+    root_cause_state: str
+    evidence_id: uuid.UUID
+    linked_at: datetime
+
 
 
 class IncidentVerificationResponse(BaseModel):

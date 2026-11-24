@@ -1,0 +1,33 @@
+﻿{
+    "schema":  "v12-a13-remediation-manifest/v1",
+    "generatedAt":  "2026-11-18T23:30:17.3099862+07:00",
+    "repository":  "EIMS",
+    "baseA11ManifestSha256":  "53EE6A4093ECB50FEC25F746200F9BBCD10ABAFC17BCA41F567B2FD521BC2356",
+    "baseA12ManifestSha256":  "5E4E4AE62F59D399226149E9097B993608A61718412E8E6E37B15779EBF78B8F",
+    "a13Workspace":  "C:\\Users\\MewMew\\AppData\\Local\\Temp\\v12-a13/EIMS",
+    "summary":  {
+                    "added":  5,
+                    "removed":  0,
+                    "modified":  7
+                },
+    "modified":  [
+                     "backend/core/config.py",
+                     "docker-compose.yml",
+                     "tests/disposable_guard.py",
+                     "tests/test_compose_security_audit.py",
+                     "tests/test_fixture_isolation_contract.py",
+                     "tools/sprint11_benchmark.py",
+                     "tools/sprint12_search_verify.py"
+                 ],
+    "added":  [
+                  "docs/V12_A13_AUDIT_INTEGRITY_DESIGN.md",
+                  "docs/V12_A13_LEDGER_CORRECTION.md",
+                  "docs/V12_A13_TEST_ISOLATION_DESIGN.md",
+                  "docs/V12_A13_VECTOR_REPRODUCTION_PLAN.md",
+                  "tests/test_auth_mode_contract.py"
+              ],
+    "removed":  [
+
+                ],
+    "hashSemantics":  "SHA-256 of raw working-tree bytes (CRLF); not comparable to Git blob (LF) hashes"
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "v12-a16-campaign-evidence/v1",
+  "generatedAt": "2026-11-19T00:40:00+07:00",
+  "campaign": "A16",
+  "finalAcceptance": "NOT GRANTED",
+  "a16Accepted": false,
+  "baseline": {
+    "eimsHead": "85493b2131d3e353453072559a5dfc301d75dd06",
+    "chatHandHead": "c293b8aae2cbf2a669ba1cb4210001efe1f14885",
+    "a15EimsManifest": "F6C6F2E59D7D14A4C660EF103639700FEBEB3B396B6EDA5C1B2E3C100E1C5906",
+    "a15ChatHandManifest": "07DEE01B8F4320B41EFEB3E408E2ECA267EF81A3E3F334E2886CD805922CD6F1"
+  },
+  "a16Manifests": {
+    "eims": "D8481ABB6FDCD873CF625339A1E6D551EE25EFAB2E241EEA11FC11E10111B84A",
+    "chatHand": "F0CDDA94A2575A5C3691431EC753BA8DB34341ABEB7737F087ED123444003963"
+  },
+  "changes": {
+    "eims": { "modified": ["tests/disposable_guard.py", "tools/sprint11_benchmark.py"], "added": ["tests/test_async_identity.py"] },
+    "chatHand": { "modified": ["gateway/lib/execution-journal.mjs", "scripts/test-a15-execution-integrity.mjs"], "added": [] }
+  },
+  "wiredControls": {
+    "benchmarkTruncate": "URL allowlist -> engine -> async identity -> truncate (single path)",
+    "otherDestructivePaths": "UNGUARDED (maintain_analyzer_sessions --apply, seed_analyzer_incident, seed_demo_data, test_global_search_integration db_session)"
+  },
+  "offlineTests": {
+    "eims": { "passed": 65, "failed": 0, "skipped": 0 },
+    "chatHand": { "passed": 17, "failed": 0 }
+  },
+  "review": {
+    "reviewer": "Claude Code CLI 2.1.323 (plan mode, read-only)",
+    "scope": "full workspace",
+    "verdict": "NOT ACCEPTED",
+    "high": 4,
+    "highDetail": [
+      "Journal COMPLETED forgeable via self-asserted proof and unkeyed chain",
+      "risk-policy trusts caller approverVerified and misstates denial",
+      "journal and policy wired nowhere",
+      "guard coverage incomplete on four destructive/settings-DB paths"
+    ],
+    "medium": 2,
+    "low": 6
+  },
+  "dispositions": {
+    "EIMS-RV4": "PARTIAL (one path wired)",
+    "CH-F1": "IMPLEMENTED_NOT_WIRED (authority primitive; proof forgeable)",
+    "CH-F2": "BLOCKED",
+    "CH-F4": "IMPLEMENTED_NOT_WIRED (caller-trusting)",
+    "CH-F5": "PARTIAL",
+    "RV5": "OPEN", "RV6": "PARTIAL", "RV7": "OPEN", "RV10": "PARTIAL", "RV11": "BLOCKED", "RV12": "PARTIAL",
+    "auditVerifier": "NOT RUN",
+    "vectorContract": "UNVERIFIED",
+    "redisAcl": "NOT DONE",
+    "pgbouncer": "NOT DONE"
+  },
+  "notPerformed": [
+    "container/runtime start", "migration apply", "operational connection",
+    "trust grant creation", "commit/stage/push", "GUI/live E2E",
+    "image pull or digest pin", "redis/pgbouncer change",
+    "audit verifier", "vector reproduction", "Track B/C suites", "C7 rerun"
+  ],
+  "gates": { "A": "PARTIAL", "B": "BLOCKED", "C": "BLOCKED", "X": "NOT_RUN" }
+}

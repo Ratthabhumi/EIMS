@@ -26,8 +26,16 @@ class MemoryHistory:
 
     async def commit(self):
         self.commits += 1
+        # Match ORM INSERT ... RETURNING defaults populated by a real commit;
+        # the production route no longer issues a second SELECT via refresh().
+        for obj in self.rows:
+            if getattr(obj, "id", None) is None:
+                obj.id = len(self.rows)
+            if getattr(obj, "created_at", None) is None:
+                obj.created_at = datetime(2026, 10, 25)
 
     async def refresh(self, obj):
+        # Retained for callers whose contract explicitly requests a refresh.
         obj.id = len(self.rows)
         obj.created_at = datetime(2026, 10, 25)
 
@@ -165,7 +173,7 @@ def predict_full(case, files):
             sink = MemoryHistory()
             uploads = [UploadFile(file=io.BytesIO(raw), filename=Path(name).name)
                        for name, (raw, _) in sorted(files.items())]
-            kwargs = dict(language="en", db=sink, _user="synthetic-evaluation", x_gemini_api_key=None)
+            kwargs = dict(language="en", db=sink, _user="synthetic-evaluation")
             if len(uploads) == 1:
                 trace.append({"stage": "production.submit_analysis"})
                 response = await api.submit_analysis(text=None, file=uploads[0], **kwargs)
@@ -195,7 +203,6 @@ def predict_full(case, files):
             stack.enter_context(patch.object(summary, "search_similar_logs", no_rag))
             stack.enter_context(patch.object(vector_db, "add_solution", no_export))
             stack.enter_context(patch.object(vector_db, "_get_embedding", forbidden))
-            stack.enter_context(patch.object(summary, "_call_gemini", forbidden))
             stack.enter_context(patch.object(summary, "get_vendor_summary", trace_function(summary.get_vendor_summary, "deterministic_vendor_summary")))
             stack.enter_context(patch.object(summary, "get_curated_summary", trace_function(summary.get_curated_summary, "curated_event_summary")))
             stack.enter_context(patch.object(summary, "_build_from_web", trace_function(summary._build_from_web, "offline_fallback_synthesis")))

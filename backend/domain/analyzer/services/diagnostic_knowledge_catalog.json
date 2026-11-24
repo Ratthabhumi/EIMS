@@ -24,11 +24,29 @@
         "Check file existence and explicit lock evidence before considering remediation."
       ],
       "related_codes": [],
-      "official_references": [],
+      "official_references": [
+        {
+          "title": "VM power-on fails with error: Change tracking invalid or disk in use (Broadcom KB 322285)",
+          "url": "https://knowledge.broadcom.com/external/article/322285/vm-poweron-fails-with-error-change-trac.html",
+          "scope": "Related, not the same message: ESXi 7.0/8.0 power-on failure from stale VMFS locks or corrupted -ctk.vmdk after failed backup/consolidation. Does not define \"Could not delete change tracking file\"."
+        }
+      ],
       "support_level": "limited_diagnostic",
-      "verification_status": "code_supported",
-      "compatibility_scope": "Existing tested CTK deletion signature; official lock article not generalized.",
-      "limitations": "Reference knowledge is not proof of root cause. Existing tested CTK deletion signature; official lock article not generalized."
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "Existing tested CTK deletion signature; official lock article not generalized; EIMS shared diagnostic concept with explicit cross_vendor_relationship; lookup remains source_family scoped.",
+      "limitations": "Reference knowledge is not proof of root cause. Existing tested CTK deletion signature; official lock article not generalized. Broadcom KB 322285 is a related contextual article only (ESXi 7.0/8.0 power-on failure); it does not define this deletion message, so no remediation is recorded.",
+      "cross_vendor_relationship": {
+        "kind": "eims_shared_diagnostic_concept",
+        "peer": {
+          "source_family": "vmware",
+          "code_type": "eims_diagnostic",
+          "diagnostic_code": "VMWARE-CBT-DELETE-FAILED"
+        },
+        "lookup": "source_family_scoped_only",
+        "not_vendor_native_id": true,
+        "does_not_imply_identical_root_cause": true,
+        "note": "Both family-scoped catalog records share an EIMS diagnostic concept string and observed signature. Matching and retrieval remain source_family scoped; this metadata alone must never authorize cross-family lookup."
+      }
     },
     {
       "source_family": "veeam_vbr",
@@ -89,11 +107,29 @@
         "Check file existence and explicit lock evidence before considering remediation."
       ],
       "related_codes": [],
-      "official_references": [],
+      "official_references": [
+        {
+          "title": "VM power-on fails with error: Change tracking invalid or disk in use (Broadcom KB 322285)",
+          "url": "https://knowledge.broadcom.com/external/article/322285/vm-poweron-fails-with-error-change-trac.html",
+          "scope": "Related, not the same message: ESXi 7.0/8.0 power-on failure from stale VMFS locks or corrupted -ctk.vmdk after failed backup/consolidation. Does not define \"Could not delete change tracking file\"."
+        }
+      ],
       "support_level": "limited_diagnostic",
-      "verification_status": "code_supported",
-      "compatibility_scope": "Existing tested CTK deletion signature; official lock article not generalized.",
-      "limitations": "Reference knowledge is not proof of root cause. Existing tested CTK deletion signature; official lock article not generalized."
+      "verification_status": "code_supported_with_contextual_reference",
+      "compatibility_scope": "Existing tested CTK deletion signature; official lock article not generalized; EIMS shared diagnostic concept with explicit cross_vendor_relationship; lookup remains source_family scoped.",
+      "limitations": "Reference knowledge is not proof of root cause. Existing tested CTK deletion signature; official lock article not generalized. Broadcom KB 322285 is a related contextual article only (ESXi 7.0/8.0 power-on failure); it does not define this deletion message, so no remediation is recorded.",
+      "cross_vendor_relationship": {
+        "kind": "eims_shared_diagnostic_concept",
+        "peer": {
+          "source_family": "veeam_vbr",
+          "code_type": "eims_diagnostic",
+          "diagnostic_code": "VMWARE-CBT-DELETE-FAILED"
+        },
+        "lookup": "source_family_scoped_only",
+        "not_vendor_native_id": true,
+        "does_not_imply_identical_root_cause": true,
+        "note": "Both family-scoped catalog records share an EIMS diagnostic concept string and observed signature. Matching and retrieval remain source_family scoped; this metadata alone must never authorize cross-family lookup."
+      }
     },
     {
       "source_family": "vmware",
@@ -159,12 +195,34 @@
           "title": "Veeam KB1832",
           "url": "https://www.veeam.com/kb1832",
           "scope": "Log collection only"
+        },
+        {
+          "title": "How to Manually Repair a VMware Replica created by Veeam (KB1773)",
+          "url": "https://www.veeam.com/kb1773",
+          "scope": "Veeam Backup & Replication 12-13.1 VMware replica repair; not applicable to CDP or Cloud Connect replicas"
         }
       ],
       "support_level": "limited_diagnostic",
       "verification_status": "code_supported_with_contextual_reference",
       "compatibility_scope": "Existing replica signatures; operation-specific VMware gates retained.",
-      "limitations": "Reference knowledge is not proof of root cause. Existing replica signatures; operation-specific VMware gates retained."
+      "limitations": "Reference knowledge is not proof of root cause. Existing replica signatures; operation-specific VMware gates retained.",
+      "diagnostic_guidance": {
+        "evidence_basis": "Veeam KB1773 (applies to VBR 12, 12.1, 12.2, 12.3, 12.3.1, 12.3.2, 13, 13.1), page text read 2026-11-20 through a model-extracted fetch; human re-read pending. EIMS signatures RevertSnapshot/InvalidSnapshotFormat are not named in the article, so the mapping from this EIMS signal to the article is an inference.",
+        "expected_findings": [
+          "Vendor-listed replica failure messages: \"Invalid Snapshot Configuration\", \"Unable to repair replica VM\", \"File or folder already exists\" when creating a snapshot on the replica, and \"CID mismatch error: The parent virtual disk has been modified since the child was created\".",
+          "Applies to VMware replicas created by Veeam only; the article states it is not applicable to CDP replicas or Cloud Connect replicas."
+        ],
+        "safe_remediation": [
+          "Stop other replication jobs that target the same replica destination and check target proxies for stuck hot-added replica disks before changing the replica (vendor step; hot-add cleanup is in Veeam KB1775).",
+          "Optionally clone the replica in VMware first; if the clone works, map the replication job to the clone (vendor step).",
+          "Repair is performed on the REPLICA VM only and is described by the vendor as intentionally destructive to replica data; follow the full KB1773 procedure and, if it does not resolve the failure, open a Veeam Support case (vendor guidance)."
+        ],
+        "risk": "Vendor states the procedure must never be performed on a production VM because it intentionally causes data loss; acceptable only for a Veeam replica, which is repaired on the next replication run.",
+        "rollback": "The vendor article provides no rollback. Before editing, record which disk files map to each SCSI ID and the VM configuration file location (vendor step); the replica itself is rebuilt by the next replication job run.",
+        "verification_criteria": [
+          "Creating and then removing a snapshot on the replica completes without error (vendor test step), then the replica is re-added to the job, remapped and the replication job runs successfully."
+        ]
+      }
     },
     {
       "source_family": "veeam_vbr",
@@ -237,12 +295,23 @@
           "title": "FortiOS 6.2.14 Log Reference",
           "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
           "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        },
+        {
+          "title": "FortiOS 7.4.2 Log Message Reference - List of log types and subtypes",
+          "url": "https://docs2.fortinet.com/document/fortigate/7.4.2/fortios-log-message-reference/160372/list-of-log-types-and-subtypes",
+          "scope": "FortiOS 7.4.2 type/subtype taxonomy. EIMS targets FortiOS 6.2.14, so this page does not establish applicability to 6.2.14; use the 6.2 Log Message Reference for that."
         }
       ],
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
-      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs.",
+      "diagnostic_guidance": {
+        "evidence_basis": "FortiOS 7.4.2 Log Message Reference page read 2026-11-20 through a model-extracted fetch; human re-read pending. Version mismatch: EIMS candidate targets 6.2.14. Definition only; no remediation recorded.",
+        "expected_findings": [
+          "Vendor (7.4.2) describes the traffic type as \"Records traffic flow information, such as HTTP/HTTPS requests and their responses\"; traffic subtypes listed: forward, local, multicast, sniffer, ztna."
+        ]
+      }
     },
     {
       "source_family": "fortinet",
@@ -280,12 +349,23 @@
           "title": "FortiOS 6.2.14 Log Reference",
           "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
           "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        },
+        {
+          "title": "FortiOS 7.4.2 Log Message Reference - List of log types and subtypes",
+          "url": "https://docs2.fortinet.com/document/fortigate/7.4.2/fortios-log-message-reference/160372/list-of-log-types-and-subtypes",
+          "scope": "FortiOS 7.4.2 type/subtype taxonomy. EIMS targets FortiOS 6.2.14, so this page does not establish applicability to 6.2.14; use the 6.2 Log Message Reference for that."
         }
       ],
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
-      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs.",
+      "diagnostic_guidance": {
+        "evidence_basis": "FortiOS 7.4.2 Log Message Reference page read 2026-11-20 through a model-extracted fetch; human re-read pending. Version mismatch: EIMS candidate targets 6.2.14. Definition only; no remediation recorded.",
+        "expected_findings": [
+          "Vendor (7.4.2) describes the UTM ips subtype as \"Records intrusion prevention events\"; listed subtypes: botnet, malicious-url, signature."
+        ]
+      }
     },
     {
       "source_family": "fortinet",
@@ -322,12 +402,23 @@
           "title": "FortiOS 6.2.14 Log Reference",
           "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
           "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        },
+        {
+          "title": "FortiOS 7.4.2 Log Message Reference - List of log types and subtypes",
+          "url": "https://docs2.fortinet.com/document/fortigate/7.4.2/fortios-log-message-reference/160372/list-of-log-types-and-subtypes",
+          "scope": "FortiOS 7.4.2 type/subtype taxonomy. EIMS targets FortiOS 6.2.14, so this page does not establish applicability to 6.2.14; use the 6.2 Log Message Reference for that."
         }
       ],
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
-      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs.",
+      "diagnostic_guidance": {
+        "evidence_basis": "FortiOS 7.4.2 Log Message Reference page read 2026-11-20 through a model-extracted fetch; human re-read pending. Version mismatch: EIMS candidate targets 6.2.14. Definition only; no remediation recorded.",
+        "expected_findings": [
+          "Vendor (7.4.2) describes the event type as \"Records system and administrative events\"; vpn is a listed event subtype."
+        ]
+      }
     },
     {
       "source_family": "fortinet",
@@ -364,12 +455,23 @@
           "title": "FortiOS 6.2.14 Log Reference",
           "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
           "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        },
+        {
+          "title": "FortiOS 7.4.2 Log Message Reference - List of log types and subtypes",
+          "url": "https://docs2.fortinet.com/document/fortigate/7.4.2/fortios-log-message-reference/160372/list-of-log-types-and-subtypes",
+          "scope": "FortiOS 7.4.2 type/subtype taxonomy. EIMS targets FortiOS 6.2.14, so this page does not establish applicability to 6.2.14; use the 6.2 Log Message Reference for that."
         }
       ],
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
-      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs.",
+      "diagnostic_guidance": {
+        "evidence_basis": "FortiOS 7.4.2 Log Message Reference page read 2026-11-20 through a model-extracted fetch; human re-read pending. Version mismatch: EIMS candidate targets 6.2.14. Definition only; no remediation recorded.",
+        "expected_findings": [
+          "Vendor (7.4.2) describes the event type as \"Records system and administrative events\"; user is a listed event subtype."
+        ]
+      }
     },
     {
       "source_family": "fortinet",
@@ -405,12 +507,23 @@
           "title": "FortiOS 6.2.14 Log Reference",
           "url": "https://fortinetweb.s3.amazonaws.com/docs.fortinet.com/v2/attachments/836bff13-d7bb-11ed-8e6d-fa163e15d75b/FortiOS_6.2.14_Log_Reference.pdf",
           "scope": "Types/subtypes pp.34-37; fields are event-dependent"
+        },
+        {
+          "title": "FortiOS 7.4.2 Log Message Reference - List of log types and subtypes",
+          "url": "https://docs2.fortinet.com/document/fortigate/7.4.2/fortios-log-message-reference/160372/list-of-log-types-and-subtypes",
+          "scope": "FortiOS 7.4.2 type/subtype taxonomy. EIMS targets FortiOS 6.2.14, so this page does not establish applicability to 6.2.14; use the 6.2 Log Message Reference for that."
         }
       ],
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "FortiOS key=value records; category coverage only, no invented log IDs.",
-      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs."
+      "limitations": "Reference knowledge is not proof of root cause. FortiOS key=value records; category coverage only, no invented log IDs.",
+      "diagnostic_guidance": {
+        "evidence_basis": "FortiOS 7.4.2 Log Message Reference page read 2026-11-20 through a model-extracted fetch; human re-read pending. Version mismatch: EIMS candidate targets 6.2.14. Definition only; no remediation recorded.",
+        "expected_findings": [
+          "Vendor (7.4.2) describes the event type as \"Records system and administrative events\"; system is a listed event subtype."
+        ]
+      }
     },
     {
       "source_family": "cisco_asa",
@@ -446,7 +559,22 @@
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
-      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Message names the denied protocol, source, destination and the access-group that denied the packet.",
+          "Appears even when logging is not enabled on the ACL."
+        ],
+        "safe_remediation": [
+          "None required for a single deny: it is policy behaviour. Repeated denies from one source might indicate footprinting or port scanning (source wording); correlate before escalating."
+        ],
+        "risk": "Relaxing an ACL to stop the message widens access; change only after confirming the flow is intended.",
+        "rollback": "Restore the previous ACL entry.",
+        "verification_criteria": [
+          "For an intended flow: the connection is built (302013) and no further 106023 for that tuple."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages (page updated 2026-09-22), text collected 2026-11-19 by a model-extracted page fetch; human re-read pending. No software version is stated on the page."
+      }
     },
     {
       "source_family": "cisco_asa",
@@ -482,7 +610,21 @@
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
-      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "ACL compilation ran out of memory; the previously compiled lists stay in use and changes since the last successful compilation are removed."
+        ],
+        "safe_remediation": [
+          "Remove rules (ACL, AAA, ICMP, SSH and Telnet rule types all count toward the limit), then re-apply the removed changes in smaller steps."
+        ],
+        "risk": "Changes made since the last successful compilation are not active; removing rules changes enforcement.",
+        "rollback": "Keep a copy of the configuration before removing rules and restore it if enforcement regresses.",
+        "verification_criteria": [
+          "A later ACL compilation completes without message 106024 (inference; the source page does not state a check)."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages (page updated 2026-09-22), text collected 2026-11-19 by a model-extracted page fetch; human re-read pending. No software version is stated on the page."
+      }
     },
     {
       "source_family": "cisco_asa",
@@ -518,7 +660,22 @@
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
-      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Two variants exist: AAA authentication rejected and AAA authorization rejected; the message names which.",
+          "The username is hidden when it is invalid or unknown."
+        ],
+        "safe_remediation": [
+          "Retry the authentication / authorization (source wording); then check the AAA server result for the same attempt."
+        ],
+        "risk": "Repeated retries with a wrong secret can lock the account on the AAA server.",
+        "rollback": "Not applicable: a retry changes no configuration.",
+        "verification_criteria": [
+          "The retried attempt is accepted and no further 113005 appears for the same user and source."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages (page updated 2026-09-22), text collected 2026-11-19 by a model-extracted page fetch; human re-read pending. No software version is stated on the page."
+      }
     },
     {
       "source_family": "cisco_asa",
@@ -554,7 +711,22 @@
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
-      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Group, username, IP, session type, duration, bytes transmitted/received and a disconnect reason.",
+          "Per the source the message indicates when and why the longest idle user is disconnected."
+        ],
+        "safe_remediation": [
+          "None required unless the disconnect reason indicates a problem (source wording)."
+        ],
+        "risk": "Not applicable: informational unless the reason shows a fault.",
+        "rollback": "Not applicable.",
+        "verification_criteria": [
+          "The reason matches the expected session end (for example idle timeout) for that user."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages (page updated 2026-09-22), text collected 2026-11-19 by a model-extracted page fetch; human re-read pending. No software version is stated on the page."
+      }
     },
     {
       "source_family": "cisco_asa",
@@ -589,7 +761,21 @@
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
-      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "A TCP connection was built for the logged endpoints; this does not prove application success."
+        ],
+        "safe_remediation": [
+          "None required (source wording)."
+        ],
+        "risk": "Not applicable: informational record.",
+        "rollback": "Not applicable.",
+        "verification_criteria": [
+          "Correlate with the matching teardown (302014) by connection ID."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages (page updated 2026-09-22), text collected 2026-11-19 by a model-extracted page fetch; human re-read pending. No software version is stated on the page."
+      }
     },
     {
       "source_family": "cisco_asa",
@@ -625,7 +811,21 @@
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
-      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies."
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "A TCP connection was torn down with a reason (for example Conn-timeout means the inactivity timer expired)."
+        ],
+        "safe_remediation": [
+          "None required (source wording); investigate only when the teardown reason is unexpected for the flow."
+        ],
+        "risk": "Not applicable: informational record.",
+        "rollback": "Not applicable.",
+        "verification_criteria": [
+          "The teardown reason matches the expected end of the session."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages (page updated 2026-09-22), text collected 2026-11-19 by a model-extracted page fetch; human re-read pending. No software version is stated on the page."
+      }
     },
     {
       "source_family": "palo_alto",
@@ -661,12 +861,25 @@
           "title": "PAN-OS Traffic Log Fields",
           "url": "https://docs.paloaltonetworks.com/ngfw/administration/monitoring/use-syslog-for-monitoring/syslog-field-descriptions/traffic-log-fields",
           "scope": "Default CSV field layout; trailing fields optional"
+        },
+        {
+          "title": "PAN-OS 11.1 Traffic Log Fields",
+          "url": "https://docs.paloaltonetworks.com/pan-os/11-1/pan-os-admin/monitoring/use-syslog-for-monitoring/syslog-field-descriptions/traffic-log-fields",
+          "scope": "PAN-OS 11.1 traffic log field definitions (subtype, action, session end reason)"
         }
       ],
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported.",
-      "limitations": "Reference knowledge is not proof of root cause. Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported."
+      "limitations": "Reference knowledge is not proof of root cause. Default CSV syslog only. Custom formats, CEF/LEEF, GUI CSV exports and other families unsupported.",
+      "diagnostic_guidance": {
+        "evidence_basis": "PAN-OS 11.1 Traffic Log Fields page read 2026-11-20 through a model-extracted fetch; human re-read pending. Definition only: the page defines fields, not remediation, so no remediation is recorded.",
+        "expected_findings": [
+          "Subtype values per vendor: start (session started), end (session ended), drop (dropped before the application was identified and no rule allowed it), deny (dropped after the application was identified, by a blocking rule or because no rule allowed it).",
+          "Action values per vendor: allow, deny, drop, drop ICMP, reset both, reset client, reset server.",
+          "Session End Reason is the highest-priority cause (threat, policy-deny, decrypt-cert-validation, decrypt-unsupport-param, decrypt-error, tcp-rst-from-client, tcp-rst-from-server, resources-unavailable, tcp-fin, tcp-reuse, decoder, aged-out, unknown); n/a when the log subtype is not end."
+        ]
+      }
     },
     {
       "source_family": "palo_alto",
@@ -824,7 +1037,338 @@
       "support_level": "documented_reference",
       "verification_status": "official_documentation_verified",
       "compatibility_scope": "Existing BSD-style syslog with sshd Failed password signature only.",
-      "limitations": "Reference knowledge is not proof of root cause. Existing BSD-style syslog with sshd Failed password signature only."
+      "limitations": "Reference knowledge is not proof of root cause. Existing BSD-style syslog with sshd Failed password signature only.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Text of the form '<Accepted|Failed|Partial|Postponed> <method> for [invalid user ]<name> from <ip> port <n> ssh2'.",
+          "'invalid user' is inserted when the account is not valid on the host."
+        ],
+        "safe_remediation": [],
+        "risk": "Blocking a source address on one failed attempt can lock out legitimate users.",
+        "rollback": "Not applicable: this record carries no remediation.",
+        "verification_criteria": [
+          "Inference: repeated failures from one source stop after any control the engineer applies."
+        ],
+        "evidence_basis": "OpenSSH portable auth.c (auth_log) format string, master branch (unpinned), read 2026-11-19 via a model-extracted fetch; source code, not vendor documentation; human re-read pending."
+      }
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "411002",
+      "title": "Interface line protocol changed to down",
+      "category": "Network / Interface",
+      "severity": "Warning",
+      "description": "ASA documents 411002 as: the status of the line protocol has changed from up to down.",
+      "observed_signatures": [
+        "%ASA-",
+        "411002",
+        "changed state to down"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Preserve the exact message text, interface name and timestamp.",
+        "Compare with related message(s): 411001."
+      ],
+      "related_codes": [
+        "411001"
+      ],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-400000-to-450001.html",
+          "scope": "ASA message 411002"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Message text: \"Line protocol on Interface <interface_name>, changed state to down\".",
+          "Vendor explanation: the status of the line protocol has changed from up to down."
+        ],
+        "safe_remediation": [
+          "If this is an unexpected event on the interface, check the physical line (vendor recommended action)."
+        ],
+        "risk": "Not stated by the vendor page. Inference: traffic through a line-protocol-down interface is interrupted until the link recovers.",
+        "rollback": "Not applicable: checking or retrying changes no configuration.",
+        "verification_criteria": [
+          "Inference (vendor states no verification): a later 411001 for the same interface (line protocol changed state to up) is logged."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages, page \"syslog-messages-400000-to-450001\" (page updated 2026-09-22), text collected 2026-11-20 by a model-extracted page fetch; human re-read pending. The page states no ASA software version."
+      }
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "411001",
+      "title": "Interface line protocol changed to up",
+      "category": "Network / Interface",
+      "severity": "Warning",
+      "description": "ASA documents 411001 as: the status of the line protocol has changed from down to up.",
+      "observed_signatures": [
+        "%ASA-",
+        "411001",
+        "changed state to up"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Preserve the exact message text, interface name and timestamp.",
+        "Compare with related message(s): 411002."
+      ],
+      "related_codes": [
+        "411002"
+      ],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-400000-to-450001.html",
+          "scope": "ASA message 411001"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Message text: \"Line protocol on Interface <interface_name>, changed state to up\".",
+          "Vendor explanation: the status of the line protocol has changed from down to up.",
+          "Vendor recommended action: none required."
+        ],
+        "risk": "Not stated by the vendor page; no action is recommended.",
+        "rollback": "Not applicable: checking or retrying changes no configuration.",
+        "verification_criteria": [
+          "Inference (vendor states no verification): the event itself is the recovery signal for a preceding 411002 on the same interface."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages, page \"syslog-messages-400000-to-450001\" (page updated 2026-09-22), text collected 2026-11-20 by a model-extracted page fetch; human re-read pending. The page states no ASA software version."
+      }
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "105005",
+      "title": "Failover communication with mate lost",
+      "category": "High Availability",
+      "severity": "Alert",
+      "description": "ASA documents 105005 as: one unit of the failover pair can no longer communicate with the other unit of the pair.",
+      "observed_signatures": [
+        "%ASA-",
+        "105005",
+        "Lost Failover communications"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Preserve the exact message text, interface name and timestamp.",
+        "Compare with related message(s): 105008."
+      ],
+      "related_codes": [
+        "105008"
+      ],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-101001-to-199021.html",
+          "scope": "ASA message 105005"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Message text: \"(Primary) Lost Failover communications with mate on interface <interface_name>\".",
+          "Vendor explanation: one unit of the failover pair can no longer communicate with the other unit of the pair."
+        ],
+        "safe_remediation": [
+          "Verify that the network connected to the specified interface is functioning correctly (vendor recommended action)."
+        ],
+        "risk": "Not stated by the vendor page.",
+        "rollback": "Not applicable: checking or retrying changes no configuration.",
+        "verification_criteria": [
+          "Inference (vendor states no verification): failover communication resumes and 105005 stops repeating for the same interface."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages, page \"syslog-messages-101001-to-199021\" (page updated 2026-09-22), text collected 2026-11-20 by a model-extracted page fetch; human re-read pending. The page states no ASA software version."
+      }
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "106015",
+      "title": "TCP packet denied: no associated connection",
+      "category": "Firewall & Network Security",
+      "severity": "Informational",
+      "description": "ASA documents 106015 as: the ASA discarded a TCP packet that has no associated connection in its connection table; without a SYN flag and without an existing connection the packet is discarded.",
+      "observed_signatures": [
+        "%ASA-",
+        "106015",
+        "Deny TCP (no connection)"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Preserve the exact message text, interface name and timestamp.",
+        "Compare with related message(s): 302014."
+      ],
+      "related_codes": [
+        "302014"
+      ],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-101001-to-199021.html",
+          "scope": "ASA message 106015"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Message text: \"Deny TCP (no connection) from <IP_address>/port to <IP_address>/port flags <tcp_flags> on interface <interface_name>\".",
+          "Vendor explanation: the ASA looks for a SYN flag; if it is not set and there is no existing connection, the packet is discarded."
+        ],
+        "safe_remediation": [
+          "None required unless the ASA receives a large volume of these invalid TCP packets; in that case trace the packets to the source and determine the reason they were sent (vendor recommended action)."
+        ],
+        "risk": "Not stated by the vendor page.",
+        "rollback": "Not applicable: checking or retrying changes no configuration.",
+        "verification_criteria": [
+          "Inference (vendor states no verification): the volume of 106015 for the same source and destination returns to baseline after the source is addressed."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages, page \"syslog-messages-101001-to-199021\" (page updated 2026-09-22), text collected 2026-11-20 by a model-extracted page fetch; human re-read pending. The page states no ASA software version."
+      }
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "106001",
+      "title": "Inbound TCP connection denied by security policy",
+      "category": "Firewall & Network Security",
+      "severity": "Critical",
+      "description": "ASA documents 106001 as: an attempt to connect to an inside address is denied by the defined security policy for the specified traffic type.",
+      "observed_signatures": [
+        "%ASA-",
+        "106001",
+        "Inbound TCP connection denied"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Preserve the exact message text, interface name and timestamp.",
+        "Compare with related message(s): 106023."
+      ],
+      "related_codes": [
+        "106023"
+      ],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-101001-to-199021.html",
+          "scope": "ASA message 106001"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Message text: \"Inbound TCP connection denied from <IP_address>/<port> to <IP_address>/<port> flags <tcp_flags> on interface <interface_name>\".",
+          "Vendor explanation: a connection attempt to an inside address is denied by the security policy defined for the specified traffic type.",
+          "Vendor recommended action: none required."
+        ],
+        "risk": "Not stated by the vendor page; no action is recommended.",
+        "rollback": "Not applicable: checking or retrying changes no configuration.",
+        "verification_criteria": [
+          "Inference (vendor states no verification): the denial is expected policy behavior; no recovery state exists."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages, page \"syslog-messages-101001-to-199021\" (page updated 2026-09-22), text collected 2026-11-20 by a model-extracted page fetch; human re-read pending. The page states no ASA software version."
+      }
+    },
+    {
+      "source_family": "cisco_asa",
+      "vendor": "Cisco",
+      "product": "Secure Firewall ASA",
+      "code_type": "official_message_id",
+      "diagnostic_code": "106100",
+      "title": "Access-list hit report",
+      "category": "Firewall & Network Security",
+      "severity": "Informational",
+      "description": "ASA documents 106100 as an access-list report: the initial occurrence or the total number of occurrences during an interval are listed.",
+      "observed_signatures": [
+        "%ASA-",
+        "106100",
+        "access-list"
+      ],
+      "relevant_log_fields": [
+        "messageId",
+        "severity",
+        "message"
+      ],
+      "investigation_steps": [
+        "Preserve the exact message text, interface name and timestamp.",
+        "Compare with related message(s): 106023."
+      ],
+      "related_codes": [
+        "106023"
+      ],
+      "official_references": [
+        {
+          "title": "Cisco ASA Syslog Messages",
+          "url": "https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/asa-syslog/syslog-messages-101001-to-199021.html",
+          "scope": "ASA message 106100"
+        }
+      ],
+      "support_level": "documented_reference",
+      "verification_status": "official_documentation_verified",
+      "compatibility_scope": "ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "limitations": "Reference knowledge is not proof of root cause. ASA only. FTD/PIX parsing retained without claiming this ASA catalog applies.",
+      "diagnostic_guidance": {
+        "expected_findings": [
+          "Message text starts: \"access-list <acl_ID> <protocol> <interface_name> <source_address>/<source_port> -> <interface_name>/<dest_address>(<dest_port>) hit-cnt <number>\".",
+          "Vendor explanation: the initial occurrence or the total number of occurrences during an interval are listed.",
+          "Vendor recommended action: none required."
+        ],
+        "risk": "Not stated by the vendor page; no action is recommended.",
+        "rollback": "Not applicable: checking or retrying changes no configuration.",
+        "verification_criteria": [
+          "Inference (vendor states no verification): this is an informational hit counter, not a failure to recover from."
+        ],
+        "evidence_basis": "Cisco Secure Firewall ASA Series Syslog Messages, page \"syslog-messages-101001-to-199021\" (page updated 2026-09-22), text collected 2026-11-20 by a model-extracted page fetch; human re-read pending. The page states no ASA software version."
+      }
     }
   ]
 }

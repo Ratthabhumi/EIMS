@@ -15,16 +15,25 @@ export default function EvidenceSourceReview({ item, isEn }: { item: Evidence; i
   const redacted = item.sourceContextOrigin === 'redacted_extracted_source_excerpt';
   const rows = (item.sourceContextOrigin === 'extracted_source_excerpt' || redacted) && Array.isArray(item.sourceContext)
     ? item.sourceContext.slice(0, 3) : [];
+  const lineInExcerpt = typeof item.lineNumber === 'number'
+    && rows.some((row) => row.lineNumber === item.lineNumber);
+  const lineLabel = typeof item.lineNumber !== 'number'
+    ? ''
+    : lineInExcerpt
+      ? (isEn ? ` · excerpt line ${item.lineNumber}` : ` · บรรทัด excerpt ${item.lineNumber}`)
+      : (isEn ? ` · reported offset ${item.lineNumber}` : ` · ออฟเซ็ตที่รายงาน ${item.lineNumber}`);
   return (
     <details ref={details} className="mt-1 rounded border border-eims-border p-2">
       <summary ref={finding} className="cursor-pointer text-eims-info break-all focus-visible:outline-2">
         {item.sourceFile || (isEn ? 'Submitted text' : 'ข้อความที่ส่งวิเคราะห์')}
-        {item.lineNumber ? `:${item.lineNumber}` : ''}
+        {lineLabel}
         {' · '}{isEn ? 'Inspect source evidence' : 'ตรวจหลักฐานต้นทาง'}
       </summary>
       {rows.length ? <>
         <p className="my-2 text-eims-text-muted">
-          {isEn ? 'Saved excerpt of decoded/extracted input; not the complete original file.' : 'ข้อความบางส่วนที่บันทึกจากข้อมูลที่ถอดอ่าน ไม่ใช่ไฟล์ต้นฉบับทั้งหมด'}
+          {isEn
+            ? 'Saved excerpt of decoded/extracted input. Line numbers below are excerpt positions, not guaranteed original file lines unless the source was line-oriented text.'
+            : 'ข้อความบางส่วนที่บันทึกจากข้อมูลที่ถอดอ่าน หมายเลขบรรทัดด้านล่างเป็นตำแหน่งใน excerpt ไม่รับประกันว่าเป็นบรรทัดไฟล์ต้นฉบับ'}
         </p>
         {redacted && <p className="my-2 text-eims-text-muted">{isEn ? 'Sensitive credentials masked / control characters replaced before analysis.' : 'ปิดบังข้อมูลรับรองหรือแทนอักขระควบคุมก่อนวิเคราะห์'}</p>}
         <pre className="whitespace-pre-wrap break-words text-eims-text" aria-label={isEn ? 'Source context' : 'บริบทหลักฐาน'}>

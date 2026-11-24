@@ -15,7 +15,8 @@ class ObsidianRequest(BaseModel):
 @router.post("/obsidian/export")
 async def export_obsidian(req: ObsidianRequest, db: AsyncSession = Depends(get_db), _admin: str = Depends(require_admin_or_token)):
     history_item = (await db.execute(select(AnalysisHistory).filter(AnalysisHistory.id == req.history_id))).scalars().first()
-    if not history_item:
+    # Export is owner-scoped like History itself: only the caller's own rows (shared token/admin may export any).
+    if not history_item or (_admin != "admin" and history_item.username != _admin):
         raise HTTPException(status_code=404, detail="History not found")
         
     if not history_item.solution_summary:

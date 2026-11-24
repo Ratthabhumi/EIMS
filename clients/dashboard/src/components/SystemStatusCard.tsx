@@ -1,7 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import { apiUrl } from "@/lib/api";
+import { useHealthStatus } from "@/lib/health-monitor";
 
 type Status = "ok" | "error" | "loading";
 
@@ -11,44 +10,12 @@ interface ServiceStatus {
 }
 
 export default function SystemStatusCard() {
-  const [services, setServices] = useState<ServiceStatus[]>([
-    { name: "API Server", status: "loading" },
-    { name: "Database", status: "loading" },
-    { name: "Vector RAG", status: "loading" },
-  ]);
-
-  useEffect(() => {
-    const check = async () => {
-      try {
-        const res = await fetch(apiUrl("/api/v1/health"));
-        if (res.ok || res.status === 503) {
-          const data = await res.json();
-          const c = data.components || {};
-          setServices([
-            { name: "API Server", status: "ok" },
-            { name: "Database", status: c.postgresql_pgbouncer_tier === "UP" ? "ok" : "error" },
-            { name: "Cache / Redis", status: c.redis_volatile_lru_tier === "UP" ? "ok" : "error" },
-          ]);
-        } else {
-          setServices([
-            { name: "API Server", status: "error" },
-            { name: "Database", status: "error" },
-            { name: "Cache / Redis", status: "error" },
-          ]);
-        }
-      } catch {
-        setServices([
-          { name: "API Server", status: "error" },
-          { name: "Database", status: "error" },
-          { name: "Cache / Redis", status: "error" },
-        ]);
-      }
-    };
-    check();
-    const interval = setInterval(check, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
+  const health = useHealthStatus();
+  const services: ServiceStatus[] = [
+    { name: "API Server", status: health === null ? "loading" : health.apiReachable ? "ok" : "error" },
+    { name: "Database", status: health === null ? "loading" : health.components.postgresql_pgbouncer_tier === "UP" ? "ok" : "error" },
+    { name: "Cache / Redis", status: health === null ? "loading" : health.components.redis_volatile_lru_tier === "UP" ? "ok" : "error" },
+  ];
   const allOk = services.every((s) => s.status === "ok");
 
   return (

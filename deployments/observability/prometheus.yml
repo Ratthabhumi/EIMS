@@ -6,7 +6,10 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
+  # Host API (uvicorn on the Windows host). Docker Desktop resolves host.docker.internal.
   - job_name: "eims_fastapi"
+    metrics_path: /metrics
     static_configs:
       - targets: ["host.docker.internal:8000"]
-    # We will add a /metrics endpoint to FastAPI if we install prometheus_fastapi_instrumentator
+        labels:
+          service: eims-core-api

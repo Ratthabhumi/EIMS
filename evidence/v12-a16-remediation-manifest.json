@@ -1,0 +1,23 @@
+﻿{
+    "schema":  "v12-a16-remediation-manifest/v1",
+    "generatedAt":  "2026-11-19T00:16:57.4781349+07:00",
+    "repository":  "EIMS",
+    "baseA15ManifestSha256":  "F6C6F2E59D7D14A4C660EF103639700FEBEB3B396B6EDA5C1B2E3C100E1C5906",
+    "a16Workspace":  "C:\\Users\\MewMew\\AppData\\Local\\Temp\\v12-a16/EIMS",
+    "summary":  {
+                    "added":  1,
+                    "removed":  0,
+                    "modified":  2
+                },
+    "modified":  [
+                     "tests/disposable_guard.py",
+                     "tools/sprint11_benchmark.py"
+                 ],
+    "added":  [
+                  "tests/test_async_identity.py"
+              ],
+    "removed":  [
+
+                ],
+    "hashSemantics":  "SHA-256 of raw working-tree bytes (CRLF)"
+}

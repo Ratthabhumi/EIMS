@@ -1,0 +1,130 @@
+﻿{
+    "schema":  "v12-a17-phase6-final-evidence/v1",
+    "generatedAt":  "2026-11-19T10:12:53.8444109+07:00",
+    "note":  "Supplements (does not replace) A17 Phase 5 manifests. Historical evidence unchanged.",
+    "repositories":  [
+                         {
+                             "name":  "EIMS",
+                             "path":  "C:/Users/MewMew/Desktop/Co-op/EIMS",
+                             "branch":  "integration/eims-consolidated",
+                             "head":  "85493b2131d3e353453072559a5dfc301d75dd06",
+                             "modified":  59,
+                             "untracked":  213,
+                             "staged":  0
+                         },
+                         {
+                             "name":  "Chat_HAND",
+                             "path":  "C:/Users/MewMew/Desktop/Co-op/Chat_HAND",
+                             "branch":  "v2/verified-fallback",
+                             "head":  "c293b8aae2cbf2a669ba1cb4210001efe1f14885",
+                             "modified":  20,
+                             "untracked":  97,
+                             "staged":  0
+                         }
+                     ],
+    "historicalManifests":  [
+                                {
+                                    "repo":  "EIMS",
+                                    "file":  "evidence/v12-a17-final-manifest.json",
+                                    "sha256":  "A108C4D074CB668B855128B7C74006E54F7CB9CE227F0D24D77C8DFB42D6D578"
+                                },
+                                {
+                                    "repo":  "Chat_HAND",
+                                    "file":  "evidence/v12-a17-final-manifest.json",
+                                    "sha256":  "E04EACE441DDE748000402885F711C842366BB0BF5D06784F6878C3162184ABC"
+                                }
+                            ],
+    "postReviewVerification":  {
+                                   "F2":  "NOT_VERIFIED_NEW_DEFECT",
+                                   "independentReReview":  "NOT_RUN",
+                                   "F1":  "PATCHED_PENDING_REVIEW"
+                               },
+    "testEvidence":  [
+                         {
+                             "command":  "pytest tests/test_a17_closure_behavior.py",
+                             "result":  "4 passed",
+                             "phase":  "phase6"
+                         },
+                         {
+                             "command":  "python tools/maintain_analyzer_sessions.py --apply|--ap|--a",
+                             "result":  "refused (exit 1)",
+                             "phase":  "phase6"
+                         },
+                         {
+                             "command":  "python -c \"import tools.sprint11_benchmark\"",
+                             "result":  "refused at import (guard)",
+                             "phase":  "phase6"
+                         }
+                     ],
+    "acceptance":  {
+                       "securityAcceptance":  "NOT_ACCEPTED",
+                       "projectDelivery":  "READY_WITH_LIMITATIONS"
+                   },
+    "files":  [
+                  {
+                      "path":  "docs/A17_PHASE6_POST_REVIEW_VERIFICATION.md",
+                      "sha256":  "5A1F7C2C038A450DC212BD15A3E576CE51C9CF6E0B54F982EB0F0C7A5960E9F2",
+                      "bytes":  3061
+                  },
+                  {
+                      "path":  "docs/A17_PRESENTATION_EVIDENCE_MAP.md",
+                      "sha256":  "1E4119A450E721C793143C4386F61D599E26565F8861F97B0AFC817AB516EF4D",
+                      "bytes":  2966
+                  },
+                  {
+                      "path":  "docs/A17_FINAL_INDEPENDENT_REVIEW.md",
+                      "sha256":  "A3D287F8DB7F00C29B1F6947133F6BF1F27003D6C7C0A115053E68096BA3330C",
+                      "bytes":  2850
+                  },
+                  {
+                      "path":  "docs/A17_FINAL_ACCEPTANCE_MATRIX.md",
+                      "sha256":  "3E1E627845BEA6919F0C7DC770942A6CB2513D40BF3959B7458912B1BCF59C69",
+                      "bytes":  3169
+                  },
+                  {
+                      "path":  "docs/A17_PROJECT_HANDOVER.md",
+                      "sha256":  "BBC4D2889E5F6B3CA79718B6B20B3CCFA21F92B9336163A5CA5EDBDA127C86B6",
+                      "bytes":  4007
+                  },
+                  {
+                      "path":  "docs/V13_A17_PHASE4_REPORT.md",
+                      "sha256":  "2834AEE6B30DB50D9EF6D29C5295510F8536CB106AA9AAAE902F2309B92BBBB3",
+                      "bytes":  5378
+                  },
+                  {
+                      "path":  "docs/A17_PHASE1_MUTATION_PATH_INVENTORY.md",
+                      "sha256":  "45A80D3B2180192F2DFA62E4F090AD21A768E1591A9F8D8FA7AF070426019810",
+                      "bytes":  4089
+                  },
+                  {
+                      "path":  "docs/A17_PHASE1_SECURITY_GAP_REPORT.md",
+                      "sha256":  "7B181F68B895FB7BC6025395E55C04397B0458F7BCA5633B3BA795C8362A8B17",
+                      "bytes":  3094
+                  },
+                  {
+                      "path":  "docs/A17_PHASE1_RECOMMENDATIONS.md",
+                      "sha256":  "751F7A41068B02F72E4742C9DA73B43B49E222E9A008C6CAAC0D2455A033F87D",
+                      "bytes":  4210
+                  },
+                  {
+                      "path":  "evidence/v12-a17-final-manifest.json",
+                      "sha256":  "A108C4D074CB668B855128B7C74006E54F7CB9CE227F0D24D77C8DFB42D6D578",
+                      "bytes":  937
+                  },
+                  {
+                      "path":  "evidence/A17_FINAL_EVIDENCE_MANIFEST.json",
+                      "sha256":  "54D200F2FB650EA50194473CA76E017E28377661990274D2BC82276A7FB661E1",
+                      "bytes":  2571
+                  },
+                  {
+                      "path":  "Chat_HAND/docs/A17_JOURNAL_V1_LEGACY_STATUS.md",
+                      "sha256":  "16CB9B2A5DA32D06394EE37FC630E45F3B9A6040A2A0E24CA972AEAF44ECCD9B",
+                      "bytes":  1702
+                  },
+                  {
+                      "path":  "Chat_HAND/evidence/v12-a17-final-manifest.json",
+                      "sha256":  "E04EACE441DDE748000402885F711C842366BB0BF5D06784F6878C3162184ABC",
+                      "bytes":  776
+                  }
+              ]
+}

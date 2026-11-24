@@ -1,0 +1,903 @@
+{
+  "schema_version": 1,
+  "note": "Nothing was written from memory and no catalog record was changed. Adoption of any noted sentence needs a human reading of the page.",
+  "summary": {
+    "records": 28,
+    "by_disposition": {
+      "BLOCKED": 9,
+      "MANUAL_REVIEW_REQUIRED": 5,
+      "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED": 11,
+      "RESOLVED_RULE_DEFECT": 3
+    }
+  },
+  "records": [
+    {
+      "record_key": "candidate:cisco-asa:failover:split-brain",
+      "class": "E",
+      "official_source_urls": [
+        "https://www.cisco.com/c/en/us/support/docs/security/adaptive-security-appliance-asa-software/217691-troubleshoot-split-brain-issues-on-asa-f.html"
+      ],
+      "remediation_in_record": [
+        "Emergency recovery (vendor): disable failover on the unit that is not passing traffic (ASA: no failover in configuration mode; FTD: configure high-availability suspend from Clish).",
+        "Isolate that unit from the network (ASA: shut the data interfaces; FTD: shut the interfaces on the connected device; or physically disconnect or power off).",
+        "If connectivity problems persist, clear stale ARP entries on upstream and downstream devices, or force the working unit to send a gratuitous ARP for the affected interface IP with debug menu ipaddrutl",
+        "Prevention listed by the vendor: Cisco-recommended release, separate paths for data and failover links, port-channel for the failover link, link latency under 10 ms (no more than 250 ms), hold timer f"
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {},
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "MANUAL_REVIEW_REQUIRED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the vendor page refuses automated retrieval (HTTP 403); it is not bypassed",
+      "remaining_blocker": "a person must read the cited page and decide what it states",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:cisco-ios:bgp:neighbor-down",
+      "class": "E",
+      "official_source_urls": [
+        "https://www.cisco.com/c/en/us/support/docs/ip/border-gateway-protocol-bgp/218027-troubleshoot-border-gateway-protocol-bas.html"
+      ],
+      "remediation_in_record": [
+        "Correct the peer IP or AS configuration on both ends; set a unique router ID with bgp router-id.",
+        "For iBGP over loopbacks define the source with neighbor <ip> update-source.",
+        "For eBGP over loopbacks between directly connected routers use neighbor <ip> disable-connected-check; for multihop eBGP use neighbor <ip> ebgp-multihop [hop-count].",
+        "Fix Layer 1 problems and review ACLs and firewalls that block TCP 179; make MTU consistent across the path."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {},
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "MANUAL_REVIEW_REQUIRED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the vendor page refuses automated retrieval (HTTP 403); it is not bypassed",
+      "remaining_blocker": "a person must read the cited page and decide what it states",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:cisco-ios:bgp:session-reset-on-interface-flap",
+      "class": "E",
+      "official_source_urls": [
+        "https://www.cisco.com/c/en/us/support/docs/ip/border-gateway-protocol-bgp/22166-bgp-trouble-main.html"
+      ],
+      "remediation_in_record": [
+        "Fix the interface or link problem that causes the flap (see the link-flap record).",
+        "Vendor page: configuring no bgp fast-external-fallover under BGP configuration disables the reset-on-link-down behavior \"to keep BGP stable and prevent the interface from flapping\". The page states no"
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {},
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "MANUAL_REVIEW_REQUIRED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the vendor page refuses automated retrieval (HTTP 403); it is not bypassed",
+      "remaining_blocker": "a person must read the cited page and decide what it states",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:cisco-ios:interface:errdisable",
+      "class": "E",
+      "official_source_urls": [
+        "https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/69980-errdisable-recovery.html"
+      ],
+      "remediation_in_record": [
+        "Fix the root cause first (for example match duplex on both ends, set EtherChannel to desirable mode, remove PortFast/BPDU Guard from switch-facing ports).",
+        "Manual recovery: in interface configuration mode run shutdown, then no shutdown.",
+        "Automatic recovery is disabled by default: errdisable recovery cause <cause> (or all); the default interval is 300 seconds and can be changed with errdisable recovery interval <seconds>."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {},
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "MANUAL_REVIEW_REQUIRED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the vendor page refuses automated retrieval (HTTP 403); it is not bypassed",
+      "remaining_blocker": "a person must read the cited page and decide what it states",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:cisco-nxos:ospf:adjacency-problems-nexus-7000",
+      "class": "E",
+      "official_source_urls": [
+        "https://www.cisco.com/c/en/us/support/docs/switches/nexus-7000-series-switches/116422-technote-ospf-00.html"
+      ],
+      "remediation_in_record": [
+        "Replace or move faulty cables, GBICs or ports and retest connectivity.",
+        "Align subnet, timers, area ID/type and authentication on both sides; remove the passive setting where adjacency is required; remove ACL or CoPP blocks; fix NAT that translates OSPF packets; give each ",
+        "For an MTU mismatch correct the MTU; the page notes ip ospf mtu-ignore as an option."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {},
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "MANUAL_REVIEW_REQUIRED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the vendor page refuses automated retrieval (HTTP 403); it is not bypassed",
+      "remaining_blocker": "a person must read the cited page and decide what it states",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "class": "D",
+      "official_source_urls": [
+        "https://community.fortinet.com/t5/FortiGate/Technical-Tip-Understanding-FortiGate-HA-failover-causes-from-HA/ta-p/264123"
+      ],
+      "remediation_in_record": [
+        "No remediation: the strings explain why a transition happened; address the underlying condition (interface, peer, memory, manual action) with the unexpected-failover candidate."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 0,
+        "impact_risk": 0,
+        "backup_rollback": 0,
+        "verification": 0
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "eligibility_status": "BLOCKED",
+      "missing_after_research": [
+        "live_collector",
+        "real_source_technical_evidence"
+      ]
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:split-brain-or-formation-failure",
+      "class": "E",
+      "official_source_urls": [
+        "https://docs.fortinet.com/document/fortigate/6.2.0/cookbook/946059/troubleshoot-an-ha-formation"
+      ],
+      "remediation_in_record": [
+        "Restore the heartbeat link or remove what blocks heartbeat packets; make mode, group-name, group-id and password identical (different group-id values produce different virtual MACs but an IP conflict ",
+        "Prevention (vendor): use back-to-back heartbeat links in a two-member cluster, redundant heartbeat interfaces, and heartbeat lost intervals/thresholds longer than link latency for geographically separ"
+      ],
+      "vendor_statements_noted": [
+        {
+          "category": "verification-in-diagnosis",
+          "sentence": "Verify that the HA configurations match between the HA members.",
+          "note": "a diagnostic check, not a post-remediation recovery criterion; the page gives no expected healthy output"
+        }
+      ],
+      "candidate_sentence_counts": {
+        "precondition": 1,
+        "impact_risk": 0,
+        "backup_rollback": 0,
+        "verification": 5
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "verification_steps": "stated",
+        "operational_impact": "stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:unexpected-failover-causes",
+      "class": "D",
+      "official_source_urls": [
+        "https://community.fortinet.com/t5/FortiGate/Technical-Tip-Troubleshooting-unexpected-High-Availability-HA/ta-p/228854"
+      ],
+      "remediation_in_record": [
+        "No single fix is given: identify the trigger from the outputs, check monitored interfaces and LAG members (adjust min-links if needed), verify heartbeat cables/ports; reset uptime (diagnose sys ha res"
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 2,
+        "impact_risk": 1,
+        "backup_rollback": 0,
+        "verification": 1
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "eligibility_status": "BLOCKED",
+      "missing_after_research": [
+        "live_collector",
+        "real_source_technical_evidence"
+      ]
+    },
+    {
+      "record_key": "candidate:microsoft-hyper-v:management:console-connect-or-auth-failure",
+      "class": "E",
+      "official_source_urls": [
+        "https://learn.microsoft.com/en-us/troubleshoot/windows-server/virtualization/hyper-v-cluster-connectivity-management-configuration"
+      ],
+      "remediation_in_record": [
+        "Open UDP/TCP 389 and port 2179; correct DNS settings and domain controller reachability.",
+        "Add users to the required groups; remove affected users from the default Users group if necessary.",
+        "Enable-PSRemoting; Enable-WSManCredSSP (server and client roles with -DelegateComputer); Set-Item wsman:localhost\\client\\trustedhosts <Hyper-V host IP>; enable the Remote Administration, Remote Deskto",
+        "If permission errors persist: MOFCOMP %SYSTEMROOT%\\System32\\WindowsVirtualization.V2.mof, and allow delegation of fresh credentials with NTLM-only server authentication in Group Policy."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 0,
+        "backup_rollback": 4,
+        "verification": 5
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "required_permission": "stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:microsoft-hyper-v:vm:fails-to-migrate-start-or-inaccessible",
+      "class": "E",
+      "official_source_urls": [
+        "https://learn.microsoft.com/en-us/troubleshoot/windows-server/virtualization/hyper-v-cluster-connectivity-management-configuration"
+      ],
+      "remediation_in_record": [
+        "Run Windows Update on all Hyper-V hosts before installing or migrating the Hyper-V role.",
+        "Vendor sequence for an unresponsive VM: shut down all healthy VMs, reboot the Hyper-V host, delete the problematic VM in Hyper-V Manager while retaining the VHDX file, back up and if needed delete or "
+      ],
+      "vendor_statements_noted": [
+        {
+          "category": "backup",
+          "sentence": "Back up and, if needed, delete or rename the .vmcx and .vmrs files.",
+          "note": "explicit vendor backup step before the destructive VM-definition removal; no rollback/restore procedure or post-check is stated on the page"
+        }
+      ],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 0,
+        "backup_rollback": 4,
+        "verification": 5
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "rollback_steps": "unverified"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:microsoft-windows-dhcp:client:cannot-obtain-lease",
+      "class": "E",
+      "official_source_urls": [
+        "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/troubleshoot-dhcp-guidance"
+      ],
+      "remediation_in_record": [
+        "Fix the identified server, scope, relay or client setting (vendor checklist).",
+        "After drops are confirmed, involve the network team to investigate and resolve the drop (vendor step)."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 0,
+        "backup_rollback": 0,
+        "verification": 6
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "required_permission": "stated",
+        "verification_steps": "stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:microsoft-windows-dns:server:query-response-delay",
+      "class": "E",
+      "official_source_urls": [
+        "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/troubleshoot-dns-guidance"
+      ],
+      "remediation_in_record": [
+        "Remove unreachable forwarders.",
+        "If the server does not need forwarders and root hints: server Properties > Advanced > turn on Disable recursion (this setting also disables forwarders)."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 5,
+        "impact_risk": 0,
+        "backup_rollback": 0,
+        "verification": 2
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:microsoft-windows-failover-cluster:service:fails-to-start",
+      "class": "E",
+      "official_source_urls": [
+        "https://learn.microsoft.com/en-us/troubleshoot/windows-server/high-availability/troubleshoot-cluster-service-fails-to-start"
+      ],
+      "remediation_in_record": [
+        "Open the listed ports to cluster traffic, then try bringing the node online again.",
+        "Correct the user-rights lists, then try bringing the node online again.",
+        "For Event 7024 from the LSASS policy: remove the policy setting, or set it to Disabled on the domain controller and Enabled on member servers such as cluster nodes.",
+        "Disabling the firewall is a test only: the vendor says not to leave it in place and to restore the original configuration afterwards."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 2,
+        "backup_rollback": 0,
+        "verification": 0
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "rollback_steps": "stated",
+        "destructive_risk": "stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:postgresql:connections:too-many-connections",
+      "class": "B",
+      "official_source_urls": [
+        "https://www.postgresql.org/docs/16/runtime-config-connection.html"
+      ],
+      "remediation_in_record": [
+        "Raise max_connections: it can only be set at server start (documented), so it needs a restart; on a standby it must be the same or higher than on the primary."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 2,
+        "backup_rollback": 0,
+        "verification": 4
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "operational_impact": "stated",
+        "verification_steps": "unverified",
+        "rollback_steps": "not_stated",
+        "required_permission": "not_stated",
+        "human_approval_required": "not_stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "BLOCKED",
+      "missing_after_research": [
+        "recovery_verification",
+        "rollback_for_destructive_action",
+        "required_permission_for_destructive_action"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-query-canceled-recovery-conflict",
+      "class": "B",
+      "official_source_urls": [
+        "https://www.postgresql.org/docs/16/hot-standby.html",
+        "https://github.com/postgres/postgres/blob/REL_16_STABLE/src/backend/tcop/postgres.c"
+      ],
+      "remediation_in_record": [
+        "Set hot_standby_feedback so VACUUM does not remove recently-dead rows (documented first option).",
+        "Adjust max_standby_archive_delay / max_standby_streaming_delay: short for a standby meant for high availability, higher or infinite when it runs long queries (documented trade-off).",
+        "Retry canceled queries in a new transaction (documented: they may succeed)."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 2,
+        "impact_risk": 0,
+        "backup_rollback": 0,
+        "verification": 0
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "recovery_evidence": "stated",
+        "operational_impact": "stated",
+        "verification_steps": "unverified",
+        "rollback_steps": "not_stated",
+        "required_permission": "not_stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "BLOCKED",
+      "missing_after_research": [
+        "recovery_verification",
+        "rollback_for_destructive_action",
+        "required_permission_for_destructive_action"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:server:administrator-shutdown-or-terminate",
+      "class": "B",
+      "official_source_urls": [
+        "https://www.postgresql.org/docs/16/server-shutdown.html"
+      ],
+      "remediation_in_record": [
+        "No remediation: this is a requested action. Start the server again if a shutdown was not intended; restart sessions."
+      ],
+      "vendor_statements_noted": [
+        {
+          "category": "caution",
+          "sentence": "It is best not to use SIGKILL to shut down the server.",
+          "note": "risk statement already in the record; no recovery verification on the page"
+        }
+      ],
+      "candidate_sentence_counts": {
+        "precondition": 1,
+        "impact_risk": 1,
+        "backup_rollback": 0,
+        "verification": 0
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "verification_steps": "stated",
+        "recovery_evidence": "stated",
+        "rollback_steps": "not_stated",
+        "required_permission": "not_stated",
+        "human_approval_required": "not_stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "BLOCKED",
+      "missing_after_research": [
+        "rollback_for_destructive_action",
+        "required_permission_for_destructive_action"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "class": "B",
+      "official_source_urls": [
+        "https://www.postgresql.org/docs/16/routine-vacuuming.html"
+      ],
+      "remediation_in_record": [
+        "Resolve old prepared transactions (commit or roll back); end long-running open transactions (commit, roll back or pg_terminate_backend); drop old replication slots; then run a database-wide VACUUM in ",
+        "The vendor says that, contrary to the error hint, it is not necessary or desirable to stop the postmaster or use single-user mode. Do not use VACUUM FULL in this scenario (it needs an XID and fails ex"
+      ],
+      "vendor_statements_noted": [
+        {
+          "category": "caution",
+          "sentence": "Contrary to what the hint states, it is not necessary or desirable to stop the postmaster or enter single user-mode in order to restore normal operation.",
+          "note": "a prohibition already reflected in the record; the page states no rollback for dropping slots or terminating sessions and no verification query"
+        }
+      ],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 6,
+        "backup_rollback": 2,
+        "verification": 6
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "recovery_evidence": "stated",
+        "verification_steps": "unverified",
+        "destructive_risk": "stated",
+        "required_permission": "stated",
+        "rollback_steps": "not_stated",
+        "human_approval_required": "not_stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "BLOCKED",
+      "missing_after_research": [
+        "recovery_verification",
+        "rollback_for_destructive_action"
+      ]
+    },
+    {
+      "record_key": "candidate:veeam-vbr:backup-chain:missing-file-or-manual-delete",
+      "class": "E",
+      "official_source_urls": [
+        "https://helpcenter.veeam.com/docs/vbr/userguide/backup_files.html"
+      ],
+      "remediation_in_record": [
+        "Do not delete separate backup files manually; use retention policy settings to maintain the desired number of files (documented rule)."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 0,
+        "impact_risk": 0,
+        "backup_rollback": 6,
+        "verification": 0
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "RESOLVED_RULE_DEFECT",
+      "missing": [],
+      "reason": "the remediation text only prohibits the action ('Do not ...'); the earlier keyword rule counted the verb as an instruction. The negation-aware rule (backend/domain/knowledge/remediation_safety.py) no longer flags it.",
+      "remaining_blocker": "",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:health-check:capacity-tier-corrupted-chain",
+      "class": "E",
+      "official_source_urls": [
+        "https://helpcenter.veeam.com/docs/vbr/userguide/hc_capacity_tier.html"
+      ],
+      "remediation_in_record": [
+        "Missing blocks: Veeam re-uploads them to the capacity extent during the next offload session (documented behavior).",
+        "Corrupted metadata: to add a new backup chain to the capacity tier you must delete the corrupted chain from the capacity tier or detach the backup from the backup job (documented)."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 2,
+        "impact_risk": 0,
+        "backup_rollback": 6,
+        "verification": 0
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "verification_steps": "stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:hotadd:stuck-vmdk-on-proxy",
+      "class": "E",
+      "official_source_urls": [
+        "https://www.veeam.com/kb1775"
+      ],
+      "remediation_in_record": [
+        "Release the disk from the proxy using the remove (x) symbol next to the disk and do NOT select the option to delete files from the datastore; then retry consolidation.",
+        "If the problem persists, create a Veeam Support case (KB1771)."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 2,
+        "impact_risk": 3,
+        "backup_rollback": 6,
+        "verification": 1
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "PARTIAL_EVIDENCE_ADDED_STILL_BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "operational_fields_added": {
+        "destructive_risk": "stated",
+        "verification_steps": "stated"
+      },
+      "fields_source": "remediation_fields_curated.json (stated fields re-verified verbatim against the live official page by tools/apply_remediation_fields.py)",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:hyperv:on-host-proxy-or-integration-failure",
+      "class": "E",
+      "official_source_urls": [
+        "https://www.veeam.com/kb1857"
+      ],
+      "remediation_in_record": [
+        "Update the host components in Backup Infrastructure (open host properties and click through if Upgrade is greyed out).",
+        "Review Specify Settings for Connected Volumes > VSS Provider Failover Settings.",
+        "Rescan the hosts and re-test port 6163."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 2,
+        "backup_rollback": 6,
+        "verification": 6
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:object-storage:immutability-bucket-configuration-errors",
+      "class": "E",
+      "official_source_urls": [
+        "https://helpcenter.veeam.com/docs/vbr/userguide/os_immutability_limitations.html"
+      ],
+      "remediation_in_record": [
+        "Correct the settings to the documented ones before use; do not enable or disable Versioning/Object Lock on a bucket already added to the backup infrastructure; disable default retention; do not use li"
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 4,
+        "backup_rollback": 6,
+        "verification": 5
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:restore:entire-vm-post-restore-differences",
+      "class": "E",
+      "official_source_urls": [
+        "https://helpcenter.veeam.com/docs/vbr/userguide/full_restore_before_you_begin.html"
+      ],
+      "remediation_in_record": [
+        "Re-enable vSphere Fault Tolerance manually if the original VM had it; use Quick Rollback if the vRDM format must be preserved."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 1,
+        "impact_risk": 0,
+        "backup_rollback": 6,
+        "verification": 0
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:cannot-add-repository-as-extent-or-extent-limits",
+      "class": "E",
+      "official_source_urls": [
+        "https://helpcenter.veeam.com/docs/vbr/userguide/sobr_limitations.html"
+      ],
+      "remediation_in_record": [
+        "Target unsupported jobs to another repository and remove that job data from the repository before adding it as an extent (vendor step).",
+        "Put an extent into Maintenance mode where the edition limit requires an inactive extent; use Veeam Universal License or Enterprise Plus for no extent-count limit (documented)."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 4,
+        "backup_rollback": 6,
+        "verification": 6
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:forget-or-remove-missing-restore-point-deletes-offloaded-data",
+      "class": "E",
+      "official_source_urls": [
+        "https://helpcenter.veeam.com/docs/vbr/userguide/sobr_limitations.html"
+      ],
+      "remediation_in_record": [
+        "Do not apply Forget or Remove from disk to a missing restore point unless you intend to delete its offloaded data (documented consequence)."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 6,
+        "impact_risk": 4,
+        "backup_rollback": 6,
+        "verification": 6
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "RESOLVED_RULE_DEFECT",
+      "missing": [],
+      "reason": "the remediation text only prohibits the action ('Do not ...'); the earlier keyword rule counted the verb as an instruction. The negation-aware rule (backend/domain/knowledge/remediation_safety.py) no longer flags it.",
+      "remaining_blocker": "",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:maintenance-mode-breaks-active-chain",
+      "class": "E",
+      "official_source_urls": [
+        "https://helpcenter.veeam.com/docs/vbr/userguide/sobr_maintenance.html"
+      ],
+      "remediation_in_record": [
+        "If an extent holds part of an active chain, create a full backup manually before maintenance (vendor advice). Remove the extent from Maintenance mode through the ribbon when the work is done."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 0,
+        "impact_risk": 1,
+        "backup_rollback": 6,
+        "verification": 0
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:surebackup:verification-failed",
+      "class": "E",
+      "official_source_urls": [
+        "https://helpcenter.veeam.com/docs/vbr/userguide/surebackup_job_troubleshooting.html",
+        "https://helpcenter.veeam.com/docs/vbr/userguide/surebackup_backup_files_valdiation.html",
+        "https://helpcenter.veeam.com/docs/vbr/userguide/surebackup_hiw.html"
+      ],
+      "remediation_in_record": [
+        "Use troubleshooting mode to diagnose lab connectivity and adjust Maximum allowed boot time and Application initialization timeout. Stop the session from the Session Statistics window or by stopping th"
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 1,
+        "impact_risk": 0,
+        "backup_rollback": 6,
+        "verification": 1
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "BLOCKED",
+      "missing": [
+        "rollback",
+        "post_action_verification",
+        "expected_healthy_output"
+      ],
+      "reason": "the cited source was fetched and scanned; it contains no explicit rollback or post-action verification statement for this remediation (keyword hits are generic and unreviewed)",
+      "remaining_blocker": "a vendor source that states rollback and verification, or a human decision to accept the record as reference-only",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:transaction-log:truncation-conflicts",
+      "class": "E",
+      "official_source_urls": [
+        "https://helpcenter.veeam.com/docs/vbr/userguide/transaction_truncation.html"
+      ],
+      "remediation_in_record": [
+        "Use Do not truncate logs when a native log backup job is used; use Back up logs periodically (SQL Server and Oracle VMs) to let Veeam back up logs."
+      ],
+      "vendor_statements_noted": [],
+      "candidate_sentence_counts": {
+        "precondition": 0,
+        "impact_risk": 0,
+        "backup_rollback": 6,
+        "verification": 0
+      },
+      "evidence_reference": "remediation_research_candidates.json (raw keyword sentences, unreviewed)",
+      "disposition": "RESOLVED_RULE_DEFECT",
+      "missing": [],
+      "reason": "the remediation text only prohibits the action ('Do not ...'); the earlier keyword rule counted the verb as an instruction. The negation-aware rule (backend/domain/knowledge/remediation_safety.py) no longer flags it.",
+      "remaining_blocker": "",
+      "eligibility_status": "INELIGIBLE",
+      "missing_after_research": []
+    }
+  ]
+}

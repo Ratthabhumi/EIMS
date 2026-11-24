@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "observedUtc": "2026-11-19T03:34:03.741Z",
+  "audit": "A17 Final Project Closure Audit (EIMS V16)",
+  "mode": "read-only source audit; no source change, migration, container or operational access",
+  "repositories": [
+    {
+      "name": "EIMS",
+      "path": "C:/Users/MewMew/Desktop/Co-op/EIMS",
+      "branch": "integration/eims-consolidated",
+      "head": "85493b2131d3e353453072559a5dfc301d75dd06",
+      "worktree": {
+        "entries": 175,
+        "modified": 59,
+        "untracked": 116,
+        "staged": 0
+      }
+    },
+    {
+      "name": "Chat_HAND",
+      "path": "C:/Users/MewMew/Desktop/Co-op/Chat_HAND",
+      "role": "supporting tooling, not part of the audited product surface",
+      "headConsulted": "c293b8a"
+    }
+  ],
+  "auditDocuments": [
+    {
+      "path": "docs/A17_FINAL_FULL_PROJECT_AUDIT.md",
+      "sha256": "fc72c20910ab96def479be6533898e6358261907000374f29b199f02668f90ec"
+    },
+    {
+      "path": "docs/A17_FINAL_FINDINGS_REGISTER.md",
+      "sha256": "08d6d93cffb72b33d1b01d6bb2b2c7da1bc0edd2ebbb69ab5310787cc07a791d"
+    },
+    {
+      "path": "docs/A17_FINAL_ACCEPTANCE_MATRIX.md",
+      "sha256": "c3c866c19c269df7d6a674cee759c17f132ec25a7782c2ad5891fb1aabc864e8"
+    },
+    {
+      "path": "docs/A17_FINAL_PRESENTATION_EVIDENCE_MAP.md",
+      "sha256": "4bc2b5a06151d99aa9403cd65e72075fe6e178ada34e49d95f99eb7be0a370a5"
+    },
+    {
+      "path": "docs/A17_FINAL_PROJECT_HANDOVER.md",
+      "sha256": "81b1b84b32bc4182dc6312347387df5da093f8020cd6a0bd1c26f63833eecd78"
+    }
+  ],
+  "historicalEvidence": [
+    {
+      "path": "evidence/v12-a17-final-manifest.json",
+      "sha256": "a108c4d074cb668b855128b7c74006e54f7cb9ce227f0d24d77c8dfb42d6d578"
+    },
+    {
+      "path": "evidence/A17_PHASE6_FINAL_EVIDENCE_MANIFEST.json",
+      "sha256": "5f5423ee449d7a3474da5464f675c0423544921b632521465e776af7d6a55e5b"
+    },
+    {
+      "path": "evidence/A17_PHASE6_1_FINAL_EVIDENCE_MANIFEST.json",
+      "sha256": "37dff7e65a0ff58feabe68a5e76ef5c2f5f244b35222ea0ed8fde71ca3d460e5"
+    },
+    {
+      "path": "evidence/A17_FINAL_SIGNOFF_MANIFEST.json",
+      "sha256": "1fb74499046b63a3945090470de4983bde67a1fee75ac4f509794c67baaec179"
+    }
+  ],
+  "historicalEvidenceVerification": "all four manifests recomputed and matched their declared SHA-256",
+  "tests": {
+    "current": [
+      {
+        "command": "python -m compileall -q backend tools",
+        "exitCode": 0
+      },
+      {
+        "command": "python -m pytest tests/test_incident_correlation.py tests/test_incident_ingest_unit.py tests/test_incident_ingest_v11_recovery_unit.py -p no:cacheprovider",
+        "result": "114 passed",
+        "durationSeconds": 1.87,
+        "exitCode": 0,
+        "classification": "offline; no DB, Redis, MinIO, container or service"
+      }
+    ],
+    "notRun": [
+      "any DB-backed integration suite (disposable target required)",
+      "MinIO/Redis/browser/service-starting suites",
+      "benchmark, seed, maintenance and clear_db scripts (destructive)"
+    ],
+    "historical": "prior DB-integration and browser results are historical and are not combined with the counts above"
+  },
+  "findings": {
+    "critical": [
+      "NF-1 clear_db.py unguarded TRUNCATE"
+    ],
+    "high": [
+      "NF-2 cleanup_auth_records dry_run=False default",
+      "NF-3 maintenance CLI documented SAFE-DISABLED but enabled",
+      "R-1 mutation-boundary identity"
+    ],
+    "medium": [
+      "NF-4 benchmark guard name-only",
+      "NF-5 missing A17 artefacts",
+      "NF-6 seed DELETE without env guard",
+      "R-5",
+      "R-6"
+    ],
+    "low": [
+      "NF-7 F2 not reproducible",
+      "R-2"
+    ],
+    "absentArtifacts": [
+      "gateway/lib/risk-policy.mjs",
+      "journal implementation",
+      "tests/test_a17_closure_behavior.py"
+    ]
+  },
+  "decisions": {
+    "projectDelivery": "CLOSED — WITH EXPLICIT EXCLUSIONS",
+    "securityAcceptance": "NOT ACCEPTED",
+    "excludedFromClaims": [
+      "benchmark",
+      "maintenance CLI",
+      "clear_db.py",
+      "seed scripts",
+      "gateway authorization (absent)",
+      "journal/tamper-evidence (absent)"
+    ]
+  },
+  "reviewer": {
+    "identity": "Claude Code (read-only source review)",
+    "limitation": "source review only unless a behavioural run is separately recorded"
+  },
+  "preservation": {
+    "historicalEvidenceOverwritten": false,
+    "commitOrPushPerformed": false,
+    "sourceModified": false,
+    "operationalServicesAccessed": false
+  }
+}

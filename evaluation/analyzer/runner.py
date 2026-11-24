@@ -113,7 +113,10 @@ def load_manifest(path):
                 table[key] = c["split"]
             files[f["path"]] = (raw, text)
         truth = c["truth"]
-        refs = truth["evidence"] + [truth[k] for k in ("first_failure", "terminal_failure") if truth.get(k)]
+        refs = list(truth["evidence"])
+        for key in ("identity_evidence", "diagnostic_evidence"):
+            refs.extend(truth.get(key) or [])
+        refs += [truth[k] for k in ("first_failure", "terminal_failure") if truth.get(k)]
         for ref in refs:
             if ref["file"] not in files or not 1 <= ref["line"] <= ref.get("end_line", ref["line"]) <= len(files[ref["file"]][1].splitlines()):
                 raise ValueError("invalid truth span: " + cid)
@@ -168,6 +171,13 @@ def predict(case, files, mode):
     primary = case["files"][0]["path"]
     m = meta[primary]
     family = m.sourceFamily or "unknown_text"
+    attrs = m.attributes or {}
+    # Three semantic layers (F02): do not collapse logid/category/action into one field.
+    event_identity = m.eventId if m.eventId not in {"Unknown", "", None} else None
+    diagnostic_category = m.diagnosticCode or None
+    outcome = attrs.get("action") or None
+    # Legacy diagnostic_code remains category-first, with eventId fallback for Windows/ASA/Fortinet
+    # when the parser leaves diagnosticCode empty (unchanged compatibility path; parser not modified).
     code = m.diagnosticCode or (m.eventId if family in {"windows_event", "fortinet", "cisco_asa"} and m.eventId not in {"Unknown", ""} else None)
     records = build_evidence_records([(name, value[1]) for name, value in sorted(files.items())])
     trace.append({"stage": "build_evidence_records"})
@@ -186,6 +196,25 @@ def predict(case, files, mode):
         lines = files[name][1].splitlines() if name in files else []
         valid = 1 <= line <= len(lines) and item["message"] == lines[line - 1].strip()[:500]
         refs.append({"file": name, "line": line, "message": item["message"], "coordinate_valid": valid})
+    # Identity evidence: primary-file line references that establish the observed record exists.
+    # Diagnostic evidence: failure-oriented items from the extractor (legacy evidence list).
+    identity_evidence = []
+    primary_text = files[primary][1]
+    if primary_text.strip():
+        identity_evidence.append({
+            "file": primary, "line": 1,
+            "message": primary_text.splitlines()[0].strip()[:500],
+            "coordinate_valid": True, "role": "identity",
+        })
+        # Windows text blocks often place Event ID on line 3; cite it when present.
+        for idx, line in enumerate(primary_text.splitlines(), start=1):
+            if family == "windows_event" and "Event ID:" in line:
+                identity_evidence = [{
+                    "file": primary, "line": idx, "message": line.strip()[:500],
+                    "coordinate_valid": True, "role": "identity",
+                }]
+                break
+    diagnostic_evidence = [{**ref, "role": "diagnostic"} for ref in refs]
     pairs = []
     for a, b in itertools.combinations(entries, 2):
         result = correlate_bundle([a, b])
@@ -203,9 +232,15 @@ def predict(case, files, mode):
     return {"case_id": case["case_id"], "status": "OK", "source_family": family,
             "primary_file": primary, "per_file_metadata": {k: v.model_dump() for k, v in sorted(meta.items())},
             "diagnostic_code": code, "identity_abstained": code is None,
+            "event_identity": event_identity,
+            "diagnostic_category": diagnostic_category,
+            "outcome": outcome,
             "first_failure": refs_for(incident["firstMeaningfulFailure"]),
             "terminal_failure": refs_for(incident["terminalFailure"]),
-            "incident": incident, "evidence": refs, "correlation_pairs": pairs,
+            "incident": incident, "evidence": refs,
+            "identity_evidence": identity_evidence,
+            "diagnostic_evidence": diagnostic_evidence,
+            "correlation_pairs": pairs,
             "kb": sorted(set(kb)), "kb_executed": mode == "rule_kb", "trace": trace,
             "bypassed": ["HTTP", "History", "DB", "vector", "RAG", "Gemini", "web", "build_summary"]}
 

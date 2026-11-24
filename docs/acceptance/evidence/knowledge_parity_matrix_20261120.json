@@ -1,0 +1,1262 @@
+{
+ "legacy_records": 39,
+ "canonical_windows_ids": 151,
+ "rows": [
+  {
+   "event_id": "1000",
+   "legacy_providers": [
+    "Application Error"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1000",
+   "canonical_provider": "Windows Application",
+   "canonical_provider_names": [
+    "Application Error"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1001",
+   "legacy_providers": [
+    "Microsoft-Windows-WER-SystemErrorReporting"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1001:Microsoft-Windows-WER-SystemErrorReporting",
+   "canonical_provider": "Microsoft-Windows-WER-SystemErrorReporting",
+   "canonical_provider_names": [
+    "Microsoft-Windows-WER-SystemErrorReporting"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "10016",
+   "legacy_providers": [
+    "Microsoft-Windows-DistributedCOM"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:10016",
+   "canonical_provider": "Microsoft-Windows-DistributedCOM",
+   "canonical_provider_names": null,
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1014",
+   "legacy_providers": [
+    "Microsoft-Windows-DNS-Client"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1014",
+   "canonical_provider": "Microsoft-Windows-DNS Client Events",
+   "canonical_provider_names": [
+    "Microsoft-Windows-DNS-Client"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1058",
+   "legacy_providers": [
+    "Microsoft-Windows-GroupPolicy"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1058",
+   "canonical_provider": "Microsoft-Windows-GroupPolicy",
+   "canonical_provider_names": null,
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1069",
+   "legacy_providers": [
+    "Microsoft-Windows-FailoverClustering"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1069",
+   "canonical_provider": "Microsoft-Windows-FailoverClustering",
+   "canonical_provider_names": [
+    "Microsoft-Windows-FailoverClustering"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1074",
+   "legacy_providers": [
+    "User32"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1074",
+   "canonical_provider": "Windows System",
+   "canonical_provider_names": [
+    "User32"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "109",
+   "legacy_providers": [
+    "Microsoft-Windows-Kernel-Power"
+   ],
+   "fields": {
+    "th.overview": "corrected",
+    "th.causes": "conflicting",
+    "th.steps": "conflicting",
+    "en.overview": "corrected",
+    "en.causes": "conflicting",
+    "en.steps": "conflicting",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:109",
+   "canonical_provider": "Microsoft-Windows-Kernel-Power",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Kernel-Power"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "CORRECTED from the curated text, which said 'initiated a shutdown transition'; secondary sources describe a power-state transition (not only shutdown). No offic",
+   "verdict": "EQUIVALENT_WITH_CORRECTION",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "11",
+   "legacy_providers": [
+    "Disk"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:11",
+   "canonical_provider": "Disk",
+   "canonical_provider_names": [
+    "Disk"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1102",
+   "legacy_providers": [
+    "Microsoft-Windows-Eventlog"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1102",
+   "canonical_provider": "Windows Security",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Eventlog"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1116",
+   "legacy_providers": [
+    "Microsoft-Windows-Windows Defender"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1116",
+   "canonical_provider": "Windows Defender",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Windows Defender"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1135",
+   "legacy_providers": [
+    "Microsoft-Windows-FailoverClustering"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1135",
+   "canonical_provider": "Microsoft-Windows-FailoverClustering",
+   "canonical_provider_names": [
+    "Microsoft-Windows-FailoverClustering"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 2,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "134",
+   "legacy_providers": [
+    "Microsoft-Windows-Time-Service"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:134",
+   "canonical_provider": "Microsoft-Windows-Time-Service",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Time-Service"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1511",
+   "legacy_providers": [
+    "Microsoft-Windows-User Profiles Service"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1511",
+   "canonical_provider": "Microsoft-Windows-User Profiles Service",
+   "canonical_provider_names": [
+    "Microsoft-Windows-User Profiles Service"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 1,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "1530",
+   "legacy_providers": [
+    "Microsoft-Windows-User Profiles Service"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:1530",
+   "canonical_provider": "Microsoft-Windows-User Profiles Service",
+   "canonical_provider_names": [
+    "Microsoft-Windows-User Profiles Service"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 1,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "17",
+   "legacy_providers": [
+    "Microsoft-Windows-WHEA-Logger"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:17",
+   "canonical_provider": "Microsoft-Windows-WHEA-Logger",
+   "canonical_provider_names": [
+    "Microsoft-Windows-WHEA-Logger"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 1,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "20",
+   "legacy_providers": [
+    "Microsoft-Windows-WindowsUpdateClient"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:20",
+   "canonical_provider": "Microsoft-Windows-WindowsUpdateClient",
+   "canonical_provider_names": [
+    "Microsoft-Windows-WindowsUpdateClient"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "41",
+   "legacy_providers": [
+    "Microsoft-Windows-Kernel-Power"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:41",
+   "canonical_provider": "Windows System",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Kernel-Power"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "4624",
+   "legacy_providers": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:4624",
+   "canonical_provider": "Windows Security",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "4625",
+   "legacy_providers": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:4625",
+   "canonical_provider": "Windows Security",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "4672",
+   "legacy_providers": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:4672",
+   "canonical_provider": "Windows Security",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "4688",
+   "legacy_providers": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:4688",
+   "canonical_provider": "Windows Security",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "4720",
+   "legacy_providers": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:4720",
+   "canonical_provider": "Windows Security",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "4740",
+   "legacy_providers": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:4740",
+   "canonical_provider": "Windows Security",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "4768",
+   "legacy_providers": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:4768",
+   "canonical_provider": "Windows Security",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "4771",
+   "legacy_providers": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:4771",
+   "canonical_provider": "Windows Security",
+   "canonical_provider_names": [
+    "Microsoft-Windows-Security-Auditing"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "5009",
+   "legacy_providers": [
+    "Microsoft-Windows-WAS"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:5009",
+   "canonical_provider": "Microsoft-Windows-WAS",
+   "canonical_provider_names": [
+    "Microsoft-Windows-WAS"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "5011",
+   "legacy_providers": [
+    "Microsoft-Windows-WAS"
+   ],
+   "fields": {
+    "th.overview": "corrected",
+    "th.causes": "conflicting",
+    "th.steps": "conflicting",
+    "en.overview": "corrected",
+    "en.causes": "conflicting",
+    "en.steps": "conflicting",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:5011:Microsoft-Windows-WAS",
+   "canonical_provider": "Microsoft-Windows-WAS",
+   "canonical_provider_names": [
+    "Microsoft-Windows-WAS"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 1,
+   "evidence_basis": "CORRECTED from the curated text, which described 'hung and failed to ping WAS' (that is a different WAS event). Wording follows Microsoft's crash guidance; the ",
+   "verdict": "EQUIVALENT_WITH_CORRECTION",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "51",
+   "legacy_providers": [
+    "Disk"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:51",
+   "canonical_provider": "Disk",
+   "canonical_provider_names": null,
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "55",
+   "legacy_providers": [
+    "Ntfs"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:55",
+   "canonical_provider": "Ntfs",
+   "canonical_provider_names": null,
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "6006",
+   "legacy_providers": [
+    "EventLog"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:6006",
+   "canonical_provider": "Windows System",
+   "canonical_provider_names": [
+    "EventLog"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "6008",
+   "legacy_providers": [
+    "EventLog"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:6008",
+   "canonical_provider": "Windows System",
+   "canonical_provider_names": [
+    "EventLog"
+   ],
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "7000",
+   "legacy_providers": [
+    "Service Control Manager"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:7000",
+   "canonical_provider": "Service Control Manager",
+   "canonical_provider_names": null,
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "7009",
+   "legacy_providers": [
+    "Service Control Manager"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:7009",
+   "canonical_provider": "Service Control Manager",
+   "canonical_provider_names": null,
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "7034",
+   "legacy_providers": [
+    "Service Control Manager"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:7034",
+   "canonical_provider": "Service Control Manager",
+   "canonical_provider_names": null,
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "7036",
+   "legacy_providers": [
+    "Service Control Manager"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:7036",
+   "canonical_provider": "Service Control Manager",
+   "canonical_provider_names": null,
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "7045",
+   "legacy_providers": [
+    "Service Control Manager"
+   ],
+   "fields": {
+    "th.overview": "exact",
+    "th.causes": "exact",
+    "th.steps": "exact",
+    "en.overview": "exact",
+    "en.causes": "exact",
+    "en.steps": "exact",
+    "risk": "missing_in_legacy",
+    "rollback": "missing_in_legacy",
+    "verification_criteria": "missing_in_legacy",
+    "expected_findings": "missing_in_legacy",
+    "diagnostic_checks": "missing_in_legacy"
+   },
+   "canonical_id": "windows_event:official_event_id:7045",
+   "canonical_provider": "Service Control Manager",
+   "canonical_provider_names": null,
+   "status": {
+    "knowledge_class": "operational_context",
+    "lifecycle_status": "operational_context",
+    "verification_status": "preserved_legacy"
+   },
+   "official_references": 0,
+   "evidence_basis": "Internal curated summary (event_knowledge.json) migrated verbatim into the canonical catalog on 2026-11-20. No official source was verified for its wording; hum",
+   "verdict": "EXACT",
+   "foreign_provider_blocked": true,
+   "unqualified_provider_behaviour_equal": true
+  },
+  {
+   "event_id": "KAVT0000",
+   "legacy_providers": [],
+   "fields": {},
+   "canonical_id": null,
+   "verdict": "UNRESOLVED_EXCEPTION",
+   "note": "Hitachi JP1 message ID: vendor family/product/source not established; stays in the legacy compatibility layer, not migrated, nothing fabricated."
+  },
+  {
+   "event_id": "KAVT0245-E",
+   "legacy_providers": [],
+   "fields": {},
+   "canonical_id": null,
+   "verdict": "UNRESOLVED_EXCEPTION",
+   "note": "Hitachi JP1 message ID: vendor family/product/source not established; stays in the legacy compatibility layer, not migrated, nothing fabricated."
+  }
+ ]
+}

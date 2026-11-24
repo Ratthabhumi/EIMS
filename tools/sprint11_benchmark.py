@@ -45,6 +45,8 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import insert, text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
+from backend.infrastructure.db_identity import require_destructive_target
+
 from backend.domain.asset_registry.models import InfrastructureAsset, AuditLog
 from backend.domain.telemetry.models import TelemetryMetric, WindowsEventLog
 
@@ -264,6 +266,9 @@ async def main():
         t0 = time.perf_counter()
         async with sm() as session:
             async with session.begin():
+                # TRUNCATE is only allowed against the verified target: the URL
+                # suffix above is a hint, not proof (R-6).
+                await require_destructive_target(session, operation="benchmark_truncate")
                 # TRUNCATE is safe here because we are operating on the DEDICATED
                 # benchmark database, not the application database.
                 # This was verified by _assert_benchmark_safety() above.

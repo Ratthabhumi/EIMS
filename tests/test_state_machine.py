@@ -21,6 +21,8 @@ def test_valid_positive_transitions():
         (AssetState.QUARANTINED.value, AssetState.PENDING_AUDIT.value),
         (AssetState.PENDING_AUDIT.value, AssetState.NON_COMPLIANT.value),
         (AssetState.NON_COMPLIANT.value, AssetState.DECOMMISSIONED.value),
+        (AssetState.DISCOVERED.value, AssetState.DECOMMISSIONED.value),
+        (AssetState.PENDING_AUDIT.value, AssetState.DECOMMISSIONED.value),
     ]
     for curr, tgt in valid_chain:
         # Should execute silently without throwing exception
@@ -32,7 +34,6 @@ def test_prohibited_illegal_state_jumps():
     dummy_id = str(uuid.uuid4())
     prohibited_attempts = [
         (AssetState.DISCOVERED.value, AssetState.COMPLIANT.value),
-        (AssetState.DISCOVERED.value, AssetState.DECOMMISSIONED.value),
         (AssetState.PENDING_AUDIT.value, AssetState.DISCOVERED.value),
         (AssetState.DECOMMISSIONED.value, AssetState.COMPLIANT.value),  # Decommissioned is terminal!
     ]

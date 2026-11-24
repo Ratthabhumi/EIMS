@@ -1,0 +1,938 @@
+{
+  "schema_version": 1,
+  "generated": "2026-11-20",
+  "scope": "The 54 Windows catalog records that had no official reference at the start of tranche 18.",
+  "note": "Dispositions describe what the search found, not that a reviewer confirmed it. AMBIGUOUS is unused: no record had conflicting authoritative interpretations other than 4199 and 51, which were corrected.",
+  "records": [
+    {
+      "event_id": "4728",
+      "provider": "Windows Security",
+      "catalog_title": "Member Added to Security-Enabled Global Group",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 19,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "Audit Security Group Management",
+          "url": "https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-security-group-management",
+          "scope": "Lists \"4728(S): A member was added to a security-enabled global group\" (same fields as 4732 for a global group). Matches the catalog title; catalog descriptive text is unchanged legacy wording. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "4729",
+      "provider": "Windows Security",
+      "catalog_title": "Member Removed from Security-Enabled Global Group",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 20,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "Audit Security Group Management",
+          "url": "https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-security-group-management",
+          "scope": "Lists \"4729(S): A member was removed from a security-enabled global group\" (same fields as 4733 for a global group). Matches the catalog title; catalog descriptive text is unchanged legacy wording. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "4737",
+      "provider": "Windows Security",
+      "catalog_title": "Security-Enabled Global Group Changed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 19,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "Audit Security Group Management",
+          "url": "https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-security-group-management",
+          "scope": "Lists \"4737(S): A security-enabled global group was changed\" (same fields as 4735 for a local group). Matches the catalog title; catalog descriptive text is unchanged legacy wording. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "1076",
+      "provider": "Windows System",
+      "catalog_title": "Dashboard on Crash",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 24,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NEEDS_HUMAN_REVIEW",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No page found for this Event ID; the catalog title (\"Dashboard on Crash\") could not be corroborated. Do not rely on the title until a reviewer confirms the event."
+    },
+    {
+      "event_id": "6005",
+      "provider": "Windows System",
+      "catalog_title": "Event Log Service Started",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 23,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "6013",
+      "provider": "Windows System",
+      "catalog_title": "Windows Up Time",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 20,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "7001",
+      "provider": "Service Control Manager",
+      "catalog_title": "Service Depends on Missing Service",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 19,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "7009",
+      "provider": "Service Control Manager",
+      "catalog_title": "Service Timeout Connecting",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 22,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "7022",
+      "provider": "Service Control Manager",
+      "catalog_title": "Service Hung on Start",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 18,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "7023",
+      "provider": "Service Control Manager",
+      "catalog_title": "Service Terminated with Error",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 18,
+        "exact_pattern_pages_found_by_probe": 1
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "ISMServ.exe fails to start when a domain controller starts",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/active-directory/ismserv-not-start-when-domain-controller-starts",
+          "scope": "Quotes a System-log Event ID 7023, source Service Control Manager, Level Error: \"The IsmServ service terminated with the following error: ...\". One service scenario, not a general definition. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "7024",
+      "provider": "Service Control Manager",
+      "catalog_title": "Service Terminated with Specific Error",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 19,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "7031",
+      "provider": "Service Control Manager",
+      "catalog_title": "Service Terminated Unexpectedly",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 16,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "The Exchange Frontend Transport service terminates unexpectedly when you run Exchange maintenance scripts or Set-ServerComponentState",
+          "url": "https://learn.microsoft.com/troubleshoot/exchange/administration/frontend-transport-service-terminate-run-set-servercomponentstate",
+          "scope": "Quotes event 7031 from Service Control Manager: \"The <service> service terminated unexpectedly. It has done this 1 time(s). The following corrective action will be taken in 5000 milliseconds: Restart the service.\" One Exchange scenario (by design in that case), not a general definition. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "7034",
+      "provider": "Service Control Manager",
+      "catalog_title": "Service Crash (Terminated Unexpectedly)",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 18,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "\"Error 1053,\" \"Error 1067,\" or Event ID 7034 and OpenSSH Server service doesn't start after you install a Windows update",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/system-management-components/error-1053-1067-7034-after-update-openssh-doesnt-start",
+          "scope": "Quotes Service Control Manager Event ID 7034: \"The <service> terminated unexpectedly. It has done this X time(s).\" One OpenSSH scenario (incorrect folder permissions), not a general definition. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "7036",
+      "provider": "Service Control Manager",
+      "catalog_title": "Service State Change",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 19,
+        "exact_pattern_pages_found_by_probe": 1
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "Event log message indicates that the Windows Installer reconfigured all installed applications",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/admin-development/windows-installer-reconfigured-all-applications",
+          "scope": "Quotes Event ID 7036 (Service Control Manager, Information): \"The Windows Installer service entered the stopped state.\" Example of the message form only. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "7040",
+      "provider": "Service Control Manager",
+      "catalog_title": "Service Start Type Changed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 17,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "1002",
+      "provider": "Windows Application",
+      "catalog_title": "Application Hang",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 22,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NEEDS_HUMAN_REVIEW",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No page found for this Event ID; the two Application-log crash pages found name 1000 and 1001 only. A reviewer should confirm the event name and provider from product documentation."
+    },
+    {
+      "event_id": "4103",
+      "provider": "PowerShell",
+      "catalog_title": "PowerShell Module Logging",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 23,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "4105",
+      "provider": "PowerShell (Operational)",
+      "catalog_title": "PowerShell Script Started",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 21,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "4106",
+      "provider": "PowerShell (Operational)",
+      "catalog_title": "PowerShell Script Completed / Failed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 23,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "400",
+      "provider": "PowerShell (Windows PowerShell)",
+      "catalog_title": "PowerShell Engine Started",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 22,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "403",
+      "provider": "PowerShell (Windows PowerShell)",
+      "catalog_title": "PowerShell Engine Stopped",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 21,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "600",
+      "provider": "PowerShell (Windows PowerShell)",
+      "catalog_title": "PowerShell Provider Started",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 22,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "800",
+      "provider": "PowerShell (Analytic)",
+      "catalog_title": "PowerShell Pipeline Execution",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 22,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "1054",
+      "provider": "Microsoft-Windows-GroupPolicy",
+      "catalog_title": "Group Policy Processing Failed (No DC)",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 19,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "INDIRECT_AUTHORITATIVE_REFERENCE",
+      "references": [
+        {
+          "title": "Applying Group Policy troubleshooting guidance",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/group-policy/applying-group-policy-troubleshooting-guidance",
+          "scope": "General Group Policy event checklist (read System-log events, Operational log, error codes). Names events 1030, 1053 and 1058 and several error codes; it does not name 1054."
+        }
+      ],
+      "catalog_action": "none (not attached as an official reference; indirect context only)",
+      "note": "Not an exact Event ID match; recorded only as context."
+    },
+    {
+      "event_id": "1055",
+      "provider": "Microsoft-Windows-GroupPolicy",
+      "catalog_title": "Group Policy Processing Failed (Unknown Phase)",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 20,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "INDIRECT_AUTHORITATIVE_REFERENCE",
+      "references": [
+        {
+          "title": "Applying Group Policy troubleshooting guidance",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/group-policy/applying-group-policy-troubleshooting-guidance",
+          "scope": "Same page; it does not name 1055."
+        }
+      ],
+      "catalog_action": "none (not attached as an official reference; indirect context only)",
+      "note": "Not an exact Event ID match; recorded only as context."
+    },
+    {
+      "event_id": "1014",
+      "provider": "Microsoft-Windows-DNS Client Events",
+      "catalog_title": "DNS Name Resolution Timed Out",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 20,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "1015",
+      "provider": "Microsoft-Windows-DNS Client Events",
+      "catalog_title": "DNS Name Resolution Failed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 20,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "1003",
+      "provider": "DHCPv4 Client",
+      "catalog_title": "DHCP Address Lease Renewed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 23,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "The DHCP troubleshooting guidance lists DHCP Server event channels only; no page names DHCP client events 1003/1006."
+    },
+    {
+      "event_id": "1006",
+      "provider": "DHCPv4 Client",
+      "catalog_title": "DHCP Address Lease Lost / Renewal Failed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 21,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "The DHCP troubleshooting guidance lists DHCP Server event channels only; no page names DHCP client events 1003/1006."
+    },
+    {
+      "event_id": "4199",
+      "provider": "TCP/IP",
+      "catalog_title": "TCP Auto-Tuning Changed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 18,
+        "exact_pattern_pages_found_by_probe": 1
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "Event ID 4199 and Windows client can't get an IP address from the DHCP server",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/networking/event-4199-windows-client-cannot-get-ip-address-dhcp-server",
+          "scope": "Defines Event ID 4199 as an address conflict detected (System, Tcpip, Error) and gives one documented cause and resolution. Corrects earlier legacy wording that conflicted with this page. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached; wording corrected (see catalog record)",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "4226",
+      "provider": "TCP/IP",
+      "catalog_title": "TCP/IP Half-Open Connection Limit Saturated",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 15,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Sibling TCP/IP event 4199 is documented (and corrected in this tranche); no page names 4226."
+    },
+    {
+      "event_id": "7",
+      "provider": "Ntfs / Disk",
+      "catalog_title": "Disk Error (Ntfs/Storage)",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 14,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Event ID 51 page says to troubleshoot it like Event IDs 9 or 11; no page names 7."
+    },
+    {
+      "event_id": "51",
+      "provider": "Disk",
+      "catalog_title": "Paging Error (Disk IO Failure)",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 17,
+        "exact_pattern_pages_found_by_probe": 2
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "Information about Event ID 51",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/backup-and-storage/event-id-51-information",
+          "scope": "Defines Event ID 51 (Disk, Warning, paging operation error) and its causes/scope. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached; wording corrected (see catalog record)",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "2004",
+      "provider": "Resource-Exhaustion-Detector",
+      "catalog_title": "Resource Exhaustion (Low Memory)",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 21,
+        "exact_pattern_pages_found_by_probe": 1
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "Application or Service Memory Leaks Troubleshooting Guidance",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/performance/troubleshoot-application-service-memory-leaks",
+          "scope": "States that Event ID 2004 in the System log reports resource exhaustion of the virtual memory space and lists the top memory consumers (all supported Windows Server and Client versions). Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "2005",
+      "provider": "Resource-Exhaustion-Detector",
+      "catalog_title": "Low Memory Condition Persisted",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 26,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Sibling event 2004 is documented (memory-leaks guidance); no page names 2005."
+    },
+    {
+      "event_id": "100",
+      "provider": "Microsoft-Windows-TaskScheduler",
+      "catalog_title": "Scheduled Task Completed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 24,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Task Scheduler pages found cover API HRESULT constants and the service-not-starting article, not Operational-log event IDs."
+    },
+    {
+      "event_id": "101",
+      "provider": "Microsoft-Windows-TaskScheduler",
+      "catalog_title": "Scheduled Task Missed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 27,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Task Scheduler pages found cover API HRESULT constants and the service-not-starting article, not Operational-log event IDs."
+    },
+    {
+      "event_id": "102",
+      "provider": "Microsoft-Windows-TaskScheduler",
+      "catalog_title": "Scheduled Task Action Failed",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 27,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Task Scheduler pages found cover API HRESULT constants and the service-not-starting article, not Operational-log event IDs."
+    },
+    {
+      "event_id": "103",
+      "provider": "Microsoft-Windows-TaskScheduler",
+      "catalog_title": "Scheduled Task Started",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 25,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Task Scheduler pages found cover API HRESULT constants and the service-not-starting article, not Operational-log event IDs."
+    },
+    {
+      "event_id": "104",
+      "provider": "Microsoft-Windows-TaskScheduler",
+      "catalog_title": "Scheduled Task Triggered",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 24,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Task Scheduler pages found cover API HRESULT constants and the service-not-starting article, not Operational-log event IDs."
+    },
+    {
+      "event_id": "5860",
+      "provider": "Microsoft-Windows-WMI-Activity",
+      "catalog_title": "WMI Permanent Event Subscription Registered",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 21,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "WMI pages name 5857 and 5858 (referenced) and the WMI-Activity trace channel, not 5860."
+    },
+    {
+      "event_id": "5861",
+      "provider": "Microsoft-Windows-WMI-Activity",
+      "catalog_title": "WMI Permanent Event Subscription (Detailed)",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 21,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "WMI pages name 5857 and 5858 (referenced) and the WMI-Activity trace channel, not 5861."
+    },
+    {
+      "event_id": "10102",
+      "provider": "Microsoft-Windows-Hyper-V-VMMS",
+      "catalog_title": "Hyper-V Virtual Machine Started",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 17,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Hyper-V troubleshooting pages name other IDs (for example 1069, 18502, 3056, 1106), not this one."
+    },
+    {
+      "event_id": "10104",
+      "provider": "Microsoft-Windows-Hyper-V-VMMS",
+      "catalog_title": "Hyper-V Virtual Machine Stopped",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 17,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Hyper-V troubleshooting pages name other IDs (for example 1069, 18502, 3056, 1106), not this one."
+    },
+    {
+      "event_id": "18500",
+      "provider": "Microsoft-Windows-Hyper-V-VMMS",
+      "catalog_title": "Hyper-V Heartbeat Lost / Guest Down",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 17,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "Hyper-V troubleshooting pages name 18502 (VM turned off), not 18500."
+    },
+    {
+      "event_id": "21",
+      "provider": "RemoteDesktopServices-LocalSessionManager",
+      "catalog_title": "RDP Session Logon",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 21,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "INDIRECT_AUTHORITATIVE_REFERENCE",
+      "references": [
+        {
+          "title": "Troubleshoot Remote desktop disconnected errors",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/remote/troubleshoot-remote-desktop-disconnected-errors",
+          "scope": "Names the Applications and Services Logs > Microsoft > Windows > TerminalServices-LocalSessionManager log as a place to check; it lists events 50 and 1088 from other sources and does not list events 21-25."
+        }
+      ],
+      "catalog_action": "none (not attached as an official reference; indirect context only)",
+      "note": "Not an exact Event ID match; recorded only as context."
+    },
+    {
+      "event_id": "22",
+      "provider": "RemoteDesktopServices-LocalSessionManager",
+      "catalog_title": "RDP Session Remote Logoff",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 22,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "INDIRECT_AUTHORITATIVE_REFERENCE",
+      "references": [
+        {
+          "title": "Troubleshoot Remote desktop disconnected errors",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/remote/troubleshoot-remote-desktop-disconnected-errors",
+          "scope": "Names the Applications and Services Logs > Microsoft > Windows > TerminalServices-LocalSessionManager log as a place to check; it lists events 50 and 1088 from other sources and does not list events 21-25."
+        }
+      ],
+      "catalog_action": "none (not attached as an official reference; indirect context only)",
+      "note": "Not an exact Event ID match; recorded only as context."
+    },
+    {
+      "event_id": "23",
+      "provider": "RemoteDesktopServices-LocalSessionManager",
+      "catalog_title": "RDP Session Logged Off",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 23,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "INDIRECT_AUTHORITATIVE_REFERENCE",
+      "references": [
+        {
+          "title": "Troubleshoot Remote desktop disconnected errors",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/remote/troubleshoot-remote-desktop-disconnected-errors",
+          "scope": "Names the Applications and Services Logs > Microsoft > Windows > TerminalServices-LocalSessionManager log as a place to check; it lists events 50 and 1088 from other sources and does not list events 21-25."
+        }
+      ],
+      "catalog_action": "none (not attached as an official reference; indirect context only)",
+      "note": "Not an exact Event ID match; recorded only as context."
+    },
+    {
+      "event_id": "24",
+      "provider": "RemoteDesktopServices-LocalSessionManager",
+      "catalog_title": "RDP Session Disconnected",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 23,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "INDIRECT_AUTHORITATIVE_REFERENCE",
+      "references": [
+        {
+          "title": "Troubleshoot Remote desktop disconnected errors",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/remote/troubleshoot-remote-desktop-disconnected-errors",
+          "scope": "Names the Applications and Services Logs > Microsoft > Windows > TerminalServices-LocalSessionManager log as a place to check; it lists events 50 and 1088 from other sources and does not list events 21-25."
+        }
+      ],
+      "catalog_action": "none (not attached as an official reference; indirect context only)",
+      "note": "Not an exact Event ID match; recorded only as context."
+    },
+    {
+      "event_id": "25",
+      "provider": "RemoteDesktopServices-LocalSessionManager",
+      "catalog_title": "RDP Session Reconnected",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 24,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "INDIRECT_AUTHORITATIVE_REFERENCE",
+      "references": [
+        {
+          "title": "Troubleshoot Remote desktop disconnected errors",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/remote/troubleshoot-remote-desktop-disconnected-errors",
+          "scope": "Names the Applications and Services Logs > Microsoft > Windows > TerminalServices-LocalSessionManager log as a place to check; it lists events 50 and 1088 from other sources and does not list events 21-25."
+        }
+      ],
+      "catalog_action": "none (not attached as an official reference; indirect context only)",
+      "note": "Not an exact Event ID match; recorded only as context."
+    },
+    {
+      "event_id": "11",
+      "provider": "Disk",
+      "catalog_title": "Disk Controller Error",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 16,
+        "exact_pattern_pages_found_by_probe": 1
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "Multipath I/O (MPIO) Troubleshooting Guidance",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/backup-and-storage/windows-server-mpio-troubleshooting",
+          "scope": "Lists Event ID 11 (\"controller error\") among repeating storage events (with 153, 129, 158) in the MPIO scenario; names the ID and its short meaning only, not a full definition. Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "109",
+      "provider": "Microsoft-Windows-Kernel-Power",
+      "catalog_title": "Kernel-Power: Power State Transition",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 20,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "NO_AUTHORITATIVE_REFERENCE_FOUND",
+      "references": [],
+      "catalog_action": "none",
+      "note": "No Microsoft Learn page found that names this Event ID with this provider in the pages checked."
+    },
+    {
+      "event_id": "134",
+      "provider": "Microsoft-Windows-Time-Service",
+      "catalog_title": "Time-Service: NTP Synchronisation Problem",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 22,
+        "exact_pattern_pages_found_by_probe": 1
+      },
+      "disposition": "EXACT_MATCH",
+      "references": [
+        {
+          "title": "w32tm /resync command fails with \"The computer didn't resync because no time data was available\"",
+          "url": "https://learn.microsoft.com/troubleshoot/windows-server/active-directory/error-message-run-w32tm-resync-no-time-data-available",
+          "scope": "Quotes Event ID 134 (Microsoft-Windows-Time-Service, Warning): \"NtpClient was unable to set a manual peer to use as a time source because of DNS resolution error ... will try again in 15 minutes and double the reattempt interval\". Lists causes (name resolution, UDP 123 blocked, unreachable server). Retrieved 2026-11-20 (page text read); human re-read pending."
+        }
+      ],
+      "catalog_action": "reference attached",
+      "note": "The page names this Event ID and a compatible meaning; scope states whether it is a general definition or one documented scenario."
+    },
+    {
+      "event_id": "5009",
+      "provider": "Microsoft-Windows-WAS",
+      "catalog_title": "IIS Application Pool Process Terminated Unexpectedly",
+      "review_status": "PENDING_HUMAN_REVIEW",
+      "search": {
+        "method": "Learn search API (3 queries per record) then scripted page fetch and Event-ID pattern match with provider keyword; plus targeted Microsoft Learn searches",
+        "candidate_pages_checked": 25,
+        "exact_pattern_pages_found_by_probe": 0
+      },
+      "disposition": "INDIRECT_AUTHORITATIVE_REFERENCE",
+      "references": [
+        {
+          "title": "Troubleshoot application pool crashes on a Cloud Services virtual machine",
+          "url": "https://learn.microsoft.com/troubleshoot/azure/cloud-services/extended/availability/application-pool-crashes",
+          "scope": "Quotes the message \"A process serving application pool '%1' terminated unexpectedly. The process id was '%2'. The process exit code was '%3'.\" matching the catalog title, but the page does not state the Event ID."
+        }
+      ],
+      "catalog_action": "none (not attached as an official reference; indirect context only)",
+      "note": "Not an exact Event ID match; recorded only as context."
+    }
+  ]
+}

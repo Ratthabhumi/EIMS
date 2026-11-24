@@ -85,6 +85,9 @@ async def get_operational_catalog(
     return {
         "classification": "OPERATIONAL_EVENT_CATALOG",
         "schema_version": 1,
+        # Same loader as Analyzer matching: operational_event_catalog.json + diagnostic_knowledge_catalog.json.
+        # Not the governed inventory (_catalog / eligibility 911) and not vendor_reference / unmapped candidates alone.
+        "surface": "parser_linked_analyzer_catalog",
         "count": len(entries),
         "entries": entries,
     }
@@ -232,7 +235,8 @@ async def get_history_stats(
             select(
                 func.count(AnalysisHistory.id),
                 func.coalesce(func.sum(case((critical_expr, 1), else_=0)), 0),
-                func.coalesce(func.avg(func.coalesce(AnalysisHistory.search_time_ms, 0.0)), 0.0),
+                # Average only real analyses: imported rows store 0 ms and must not drag the mean down.
+                func.coalesce(func.avg(case((AnalysisHistory.search_time_ms > 0, AnalysisHistory.search_time_ms))), 0.0),
             ).where(AnalysisHistory.username == _user)
         )
     ).one()

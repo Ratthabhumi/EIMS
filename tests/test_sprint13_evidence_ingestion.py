@@ -44,6 +44,28 @@ class FakeResult:
         return self._values[0] if self._values else None
 
 
+class FakeSavepoint:
+    """Async context manager modelling AsyncSession.begin_nested() (SAVEPOINT).
+
+    Clean exit releases the savepoint; an exception rolls it back and propagates,
+    mirroring SQLAlchemy. Outcomes are recorded on the owning FakeDB.
+    """
+
+    def __init__(self, db):
+        self._db = db
+
+    async def __aenter__(self):
+        self._db.savepoints_started += 1
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        if exc_type is None:
+            self._db.savepoints_released += 1
+        else:
+            self._db.savepoints_rolled_back += 1
+        return False  # never swallow the exception
+
+
 class FakeDB:
     """Minimal AsyncSession double recording calls and adding rows in-memory."""
 
@@ -52,6 +74,12 @@ class FakeDB:
         self.commits = 0
         self.rollbacks = 0
         self.commit_error = None
+        self.savepoints_started = 0
+        self.savepoints_released = 0
+        self.savepoints_rolled_back = 0
+
+    def begin_nested(self):
+        return FakeSavepoint(self)
 
     def add(self, row):
         self.added.append(row)
@@ -547,11 +575,11 @@ async def _empty_keys(*args, **kwargs):
     return set()
 
 
-async def _fake_persist(db, asset_id, event, dedup_key):
+async def _fake_persist(db, asset_id, event, dedup_key, fallback_time=None):
     return uuid.UUID("00000000-0000-0000-0000-000000000001")
 
 
-async def _fake_persist_seq(db, asset_id, event, dedup_key):
+async def _fake_persist_seq(db, asset_id, event, dedup_key, fallback_time=None):
     """Boundary double returning a distinct log_id per persisted event."""
     _fake_persist_seq.n = getattr(_fake_persist_seq, "n", 0) + 1
     return uuid.UUID(f"00000000-0000-0000-0000-{_fake_persist_seq.n:012d}")

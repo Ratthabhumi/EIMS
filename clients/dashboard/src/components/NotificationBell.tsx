@@ -3,59 +3,25 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, ShieldAlert, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { apiUrl } from "@/lib/api";
+import { useHealthStatus } from "@/lib/health-monitor";
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasAlert, setHasAlert] = useState(false);
-  const [missingComponents, setMissingComponents] = useState<string[]>([]);
+  const health = useHealthStatus();
+  const missingComponents = health ? health.apiReachable ? [
+    ...(health.components.postgresql_pgbouncer_tier !== "UP" ? ["PostgreSQL"] : []),
+    ...(health.components.redis_volatile_lru_tier !== "UP" ? ["Redis"] : []),
+    ...(health.components.minio_object_storage_tier !== "UP" ? ["MinIO"] : []),
+  ] : ["API Gateway (Offline)"] : [];
+  const hasAlert = health !== null && health.status !== "HEALTHY";
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchHealth = async () => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      try {
-        const res = await fetch(apiUrl("/api/v1/health"), { signal: controller.signal });
-        clearTimeout(timeoutId);
-        const json = await res.json();
-        
-        const missing = [];
-        if (json.components?.postgresql_pgbouncer_tier !== 'UP') missing.push('PostgreSQL');
-        if (json.components?.redis_volatile_lru_tier !== 'UP') missing.push('Redis');
-        if (json.components?.minio_object_storage_tier !== 'UP') missing.push('MinIO');
-        
-        if (json.status !== 'HEALTHY' || missing.length > 0) {
-          setHasAlert(true);
-          setMissingComponents(missing.length > 0 ? missing : ['Unknown Service']);
-        } else {
-          setHasAlert(false);
-          setMissingComponents([]);
-        }
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
-          setMissingComponents(['API Gateway (Timeout)']);
-        } else {
-          setMissingComponents(['API Gateway (Offline)']);
-        }
-        setHasAlert(true);
-      }
-    };
-
-    fetchHealth();
-    const interval = setInterval(fetchHealth, 15000);
-
     const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
+      if (ref.current && !ref.current.contains(event.target as Node)) setIsOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
-    
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -84,7 +50,7 @@ export function NotificationBell() {
                   <div>
                     <p className="text-xs font-medium text-eims-text mb-1">SYSTEM DEGRADED</p>
                     <p className="text-[10px] text-eims-text-muted">
-                      {missingComponents.join(', ')} connection lost.
+                      {(missingComponents.length ? missingComponents : ["Unknown Service"]).join(", ")} connection lost.
                     </p>
                   </div>
                 </div>

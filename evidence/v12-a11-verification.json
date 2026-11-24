@@ -1,0 +1,90 @@
+{
+  "schema": "v12-a11-verification/v1",
+  "generatedAt": "2026-11-18T21:00:00+07:00",
+  "hashAlgorithm": "sha256",
+  "campaign": "V12 A11 — Freeze Integrity Closure",
+  "repository": {
+    "name": "EIMS",
+    "root": "C:/Users/MewMew/Desktop/Co-op/EIMS",
+    "remote": "https://github.com/Ratthabhumi/EIMS.git",
+    "branch": "integration/eims-consolidated",
+    "head": "85493b2131d3e353453072559a5dfc301d75dd06",
+    "coreAutocrlf": "true",
+    "identityMatchesA8": true
+  },
+  "recomputedManifestHashes": {
+    "head": "7ACF98EA04F3EEC78ED53B9C970A11992F193BC34A9748064649AB8EF34D6C92",
+    "workingTree": "53EE6A4093ECB50FEC25F746200F9BBCD10ABAFC17BCA41F567B2FD521BC2356",
+    "evidenceMap": "6FFB26C606194B18F2010B5A6DC077D6AC7137329F549B13D6488B0D4AB2F0DD",
+    "freezeSummary": "8F4DC278C6FA19CA735BE28870E1328E9394C15322016D81DF8C91860162D9FF"
+  },
+  "checks": {
+    "MANIFEST_FILE_HASH_VALID": { "status": "PASS", "detail": "all four recomputed hashes equal the A8 values" },
+    "MANIFEST_SCHEMA_VALID": { "status": "PASS", "detail": "v12-source-manifest/v1, sha256, repository block present" },
+    "HEAD_BINDING_VALID": { "status": "PASS", "detail": "895 entries equal git ls-tree -r HEAD; regenerated manifest changed 0 / missing 0 / added 0" },
+    "WORKING_TREE_BINDING_VALID": { "status": "PASS", "detail": "1063 frozen entries match disk; changed 0 / missing 0" },
+    "SNAPSHOT_REPRODUCIBLE": { "status": "PASS", "detail": "1063 files copied, changed 0 / missing 0 / added 0" },
+    "FREEZE_STILL_VALID": { "status": "PASS", "detail": "source bytes unchanged; four post-freeze evidence files added and declared" }
+  },
+  "structuralChecks": {
+    "duplicatePaths": 0,
+    "backslashPaths": 0,
+    "dotPrefixedPaths": 0,
+    "selfReferencingPaths": 0,
+    "nullHashes": 0,
+    "caseCollisions": 0,
+    "gitDirectoryEntries": 0,
+    "nodeModulesEntries": 0,
+    "venvEntries": 0,
+    "logEntries": 3,
+    "logEntryExplanation": "two A9-released monitor fixtures (untracked) plus one tracked demo log that is part of HEAD"
+  },
+  "postFreezeCampaignOutput": [
+    "evidence/v12-head-manifest.json",
+    "evidence/v12-working-tree-manifest.json",
+    "evidence/v12-evidence-revision-map.json",
+    "evidence/v12-freeze-summary.json",
+    "evidence/v12-a11-verification.json",
+    "evidence/v12-snapshot-materialization.json",
+    "evidence/v12-independent-review-findings.json",
+    "docs/V12_A11_FREEZE_INTEGRITY_REVIEW.md",
+    "docs/V12_TRACK_C_EXECUTION_PACKAGE.md"
+  ],
+  "snapshot": {
+    "root": "%TEMP%/v12-snapshot/EIMS-20261118-204324",
+    "fileCount": 1063,
+    "totalBytes": 41344360,
+    "gitDirectoryCopied": false
+  },
+  "testInventory": {
+    "method": "pytest --collect-only in the snapshot; no test executed; -p no:cacheprovider; PYTHONDONTWRITEBYTECODE=1",
+    "files": 57,
+    "testsCollected": 938,
+    "collectionErrors": 0,
+    "collectionSeconds": 11.7,
+    "partition": {
+      "noDeclaredExternalDependency": { "files": 37, "tests": 770 },
+      "usesClientFixtureFullLifespan": { "files": 6, "tests": 29 },
+      "requiresDisposableServiceEnv": { "files": 14, "tests": 139 }
+    }
+  },
+  "independentReview": {
+    "executed": true,
+    "reviewer": "Claude Code CLI 2.1.323",
+    "permissionMode": "plan",
+    "editsDisallowed": true,
+    "verdict": "BLOCK for acceptance (not a code-quality block; no CRITICAL defect found)",
+    "severityCounts": { "CRITICAL": 0, "HIGH": 4, "MEDIUM": 7, "LOW": 8, "INFO": 1 }
+  },
+  "containers": {
+    "started": false,
+    "state": "5 acceptance containers exited (255), eims-pgbouncer up, volumes intact",
+    "portsFree": [56441, 56379, 59000, 59001, 56460, 56461]
+  },
+  "gates": {
+    "S": "PARTIAL",
+    "C": "BLOCKED",
+    "B": "BLOCKED",
+    "X": "NOT_RUN"
+  }
+}

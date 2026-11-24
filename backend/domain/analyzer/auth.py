@@ -23,11 +23,18 @@ SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = settings.JWT_ALGORITHM
 TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRES_MINUTES
 
-# Auth Mode: "demo" = no login required; "secure" = auth enforced
+# Auth Mode is retained for compatibility with existing settings/tests, but
+# application login is not a product requirement. Portal access is open for
+# engineers on the trusted deployment boundary; see OPEN_ACCESS_IDENTITY.
 AUTH_MODE = settings.AUTH_MODE.lower()
 
+# Shared principal used when no bearer credential is presented. History and
+# Analyzer rows already use this identity under the historical demo path.
+OPEN_ACCESS_IDENTITY = "demo"
+
 # Legacy in-memory demo accounts have been removed. Credentials are verified
-# exclusively against the hashed `users` table seeded at startup.
+# exclusively against the hashed `users` table seeded at startup (optional
+# attribution / admin tooling only — not required to use the Portal).
 USER_ALREADY_SEEDED = False
 
 security = HTTPBearer(auto_error=False)
@@ -158,16 +165,15 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: AsyncSession = Depends(get_db_session),
 ) -> str:
-    """Resolves the authenticated username from a bearer JWT.
+    """Resolves the calling identity for request attribution.
 
-    In DEMO mode: returns "demo" identity when no token provided (no login required).
-    In SECURE mode: requires valid JWT, raises 401 if missing/invalid.
+    Product rule: EIMS has no application login. Missing or unusable bearer
+    credentials resolve to OPEN_ACCESS_IDENTITY so engineers can use the Portal
+    immediately. A valid JWT/admin token is still accepted when present (optional
+    attribution / privileged tooling), but is never required for normal access.
     """
-    demo = settings.AUTH_MODE.lower() == 'demo'
     if not credentials or not credentials.credentials:
-        if demo:
-            return 'demo'
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        return OPEN_ACCESS_IDENTITY
     if secrets.compare_digest(credentials.credentials, settings.ADMIN_TOKEN):
         return "admin"
     try:
@@ -180,19 +186,17 @@ async def get_current_user(
         )
         username = payload.get("sub")
         if username is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+            return OPEN_ACCESS_IDENTITY
         user = (await db.execute(select(User).where(User.username == username))).scalars().first()
         if user is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+            return OPEN_ACCESS_IDENTITY
         sid = payload.get('sid')
         if not isinstance(sid, str) or not 16 <= len(sid) <= 128:
-            raise HTTPException(401, detail='Invalid token')
+            return OPEN_ACCESS_IDENTITY
         await validate_session(db, sid, user, touch=not request.url.path.endswith('/auth/session'))
         return username
     except Exception:
-        if demo:
-            return 'demo'
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        return OPEN_ACCESS_IDENTITY
 
 
 async def require_admin(username: str = Depends(get_current_user), db: AsyncSession = Depends(get_db_session)) -> str:
@@ -208,13 +212,25 @@ async def require_admin(username: str = Depends(get_current_user), db: AsyncSess
 
 async def require_knowledge_reviewer(
     username: str = Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: AsyncSession = Depends(get_db_session),
 ) -> str:
     """Allows Knowledge review to designated reviewers and legacy Admins.
 
     This is an additive capability, not a separate Engineer identity. Review
     endpoints still enforce proposer != reviewer at the record level.
+
+    The shared ADMIN_TOKEN resolves to the literal name "admin" in
+    ``get_current_user`` but is a shared secret, not a proven individual, so it can
+    never act as a reviewer (otherwise it could approve an entry it caused to be
+    proposed under a different identifier).
     """
+    if credentials and credentials.credentials and secrets.compare_digest(
+            credentials.credentials, settings.ADMIN_TOKEN):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The shared admin token cannot act as a Knowledge reviewer; a verified identity is required",
+        )
     if username in ("guest", "demo"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
     user = (await db.execute(select(User).where(User.username == username))).scalars().first()
@@ -241,26 +257,23 @@ async def require_admin_or_token(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: AsyncSession = Depends(get_db_session),
 ) -> str:
-    """Admin-scoped gate accepting either a valid admin JWT or the configured admin bearer token.
+    """Operational write gate for trusted internal Portal use.
 
-    In DEMO mode: returns 'demo' if unauthenticated, allowing demo write operations.
-    In SECURE mode: requires either an admin JWT (role='admin') or configured ADMIN_TOKEN.
+    Application login is not required. Unauthenticated callers receive the open
+    access identity. A configured ADMIN_TOKEN or admin JWT still elevates the
+    caller when presented (machine/admin tooling).
     """
     if not credentials or not credentials.credentials:
-        if settings.AUTH_MODE.lower() == "demo":
-            return "demo"
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        return OPEN_ACCESS_IDENTITY
 
     raw_token = credentials.credentials
-    # 1. Validate static ADMIN_TOKEN
     if secrets.compare_digest(raw_token, settings.ADMIN_TOKEN):
         return "admin"
 
-    # 2. Validate JWT with admin role
-    try:
-        username = await get_current_user(request, credentials, db)
-        if await get_user_role(username, db) != "admin":
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    username = await get_current_user(request, credentials, db)
+    if username == OPEN_ACCESS_IDENTITY:
+        return OPEN_ACCESS_IDENTITY
+    if await get_user_role(username, db) != "admin":
+        # Non-admin bearer present: still allow Portal ops under open-access policy.
         return username
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    return username

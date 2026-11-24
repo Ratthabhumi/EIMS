@@ -63,6 +63,37 @@ def percentile(samples, q):
     return values[lo] + (values[hi] - values[lo]) * (index - lo)
 
 
+def _norm_layer(value):
+    if value is None or value == "":
+        return None
+    return str(value)
+
+
+def _layer_pairs(cases, predictions, truth_key, pred_key):
+    """Exact match for an optional semantic layer; only cases that declare the truth key are scored."""
+    pairs, support = [], 0
+    for c in cases:
+        t = c["truth"]
+        if truth_key not in t:
+            continue
+        support += 1
+        p = predictions[c["case_id"]]
+        failed = p.get("status") == "ERROR"
+        truth_v = _norm_layer(t.get(truth_key))
+        pred_v = None if failed else _norm_layer(p.get(pred_key))
+        pairs.append((truth_v if truth_v is not None else "UNKNOWN",
+                      "ERROR" if failed else (pred_v if pred_v is not None else "UNKNOWN")))
+    return pairs, support
+
+
+def _role_evidence(truth, key, legacy_fallback=False):
+    if key in truth:
+        return spans(truth.get(key) or [])
+    if legacy_fallback:
+        return spans(truth.get("evidence") or [])
+    return set()
+
+
 def score(cases, predictions, manual_reviews=None):
     """Caller selects REVIEWED vs DRAFT cohorts; never pool them here."""
     by_id = {p["case_id"]: p for p in predictions}
@@ -73,6 +104,9 @@ def score(cases, predictions, manual_reviews=None):
     first = terminal = failures_fp = failures_tn_support = 0
     evidence_tp = evidence_fp = evidence_fn = citation_total = coordinate_ok = covered = relevant = 0
     file_ok = line_ok = 0
+    id_tp = id_fp = id_fn = diag_ev_tp = diag_ev_fp = diag_ev_fn = 0
+    id_relevant = id_covered = diag_relevant = diag_covered = 0
+    info_cases = info_failure_penalties = 0
     corr = Counter(tp=0, fp=0, fn=0)
     kb_tp = kb_total = kb_expected = kb_covered = 0
     abst = Counter(tp=0, fp=0, fn=0)
@@ -98,9 +132,41 @@ def score(cases, predictions, manual_reviews=None):
         evidence_tp += len(expected & emitted)
         evidence_fp += len(emitted - expected)
         evidence_fn += len(expected - emitted)
-        if not expected:
+        identity_expected = _role_evidence(t, "identity_evidence")
+        diagnostic_expected = _role_evidence(t, "diagnostic_evidence", legacy_fallback=("identity_evidence" not in t))
+        identity_emitted = spans(p.get("identity_evidence", []))
+        diagnostic_emitted = spans(p.get("diagnostic_evidence", p.get("evidence", [])))
+        id_tp += len(identity_expected & identity_emitted)
+        id_fp += len(identity_emitted - identity_expected)
+        id_fn += len(identity_expected - identity_emitted)
+        diag_ev_tp += len(diagnostic_expected & diagnostic_emitted)
+        diag_ev_fp += len(diagnostic_emitted - diagnostic_expected)
+        diag_ev_fn += len(diagnostic_expected - diagnostic_emitted)
+        if identity_expected:
+            id_relevant += 1
+            id_covered += bool(identity_expected & identity_emitted)
+        if diagnostic_expected:
+            diag_relevant += 1
+            diag_covered += bool(diagnostic_expected & diagnostic_emitted)
+        informational = bool(t.get("informational_only"))
+        if informational:
+            info_cases += 1
+        # Failure-oriented FP: empty diagnostic evidence expectation. Informational
+        # identity citations and empty diagnostic expectations are not failure FPs.
+        if not diagnostic_expected and "diagnostic_evidence" in t:
             failures_tn_support += 1
-            failures_fp += bool(p.get("first_failure")) or bool(emitted)
+            if not informational:
+                failures_fp += (bool(p.get("first_failure")) or bool(diagnostic_emitted)) and not failed
+                info_failure_penalties += 0
+            else:
+                # Informational cases must not be penalized merely for lacking failure evidence.
+                info_failure_penalties += 0
+        elif not expected:
+            failures_tn_support += 1
+            if informational:
+                failures_fp += 0
+            else:
+                failures_fp += bool(p.get("first_failure")) or bool(emitted)
         else:
             relevant += 1
             covered += bool(expected & emitted)
@@ -136,7 +202,11 @@ def score(cases, predictions, manual_reviews=None):
                          "diagnostic_correct": diagnostic[-1][0] == diagnostic[-1][1],
                          "first_correct": bool(f), "terminal_correct": bool(z),
                          "extra_evidence": sorted(emitted - expected),
-                         "missing_evidence": sorted(expected - emitted)})
+                         "missing_evidence": sorted(expected - emitted),
+                         "informational_only": informational})
+    event_pairs, event_support = _layer_pairs(cases, by_id, "event_identity", "event_identity")
+    category_pairs, category_support = _layer_pairs(cases, by_id, "diagnostic_category", "diagnostic_category")
+    outcome_pairs, outcome_support = _layer_pairs(cases, by_id, "outcome", "outcome")
     samples = [v for p in predictions for v in p.get("timing_seconds", [])]
     kb_support = sum(bool(p.get("kb_executed")) for p in predictions)
     manual = manual_reviews or {"claims": [], "citations": []}
@@ -151,15 +221,27 @@ def score(cases, predictions, manual_reviews=None):
     result = {
         "case_count": n, "error_count": errors, "source": classification(source),
         "diagnostic": classification(diagnostic), "diagnostic_errors_by_vendor": dict(vendor_errors),
+        "event_identity": classification(event_pairs) if event_pairs else {
+            "accuracy": ratio(0, 0, event_support, "optional layer; EMPTY when no annotated cases")},
+        "diagnostic_category": classification(category_pairs) if category_pairs else {
+            "accuracy": ratio(0, 0, category_support, "optional layer; EMPTY when no annotated cases")},
+        "outcome": classification(outcome_pairs) if outcome_pairs else {
+            "accuracy": ratio(0, 0, outcome_support, "optional layer; EMPTY when no annotated cases")},
         "first_failure_accuracy": ratio(first, n, n, "exact file/line-set; explicit null counts; errors wrong"),
         "terminal_failure_accuracy": ratio(terminal, n, n, "exact file/line-set; explicit null counts; errors wrong"),
-        "evidence_span": prf(evidence_tp, evidence_fp, evidence_fn, n, "deduplicated exact (file,1-based line) sets"),
-        "false_positive_failure_rate": ratio(failures_fp, failures_tn_support, failures_tn_support, "finding on a truth-negative case"),
+        "evidence_span": prf(evidence_tp, evidence_fp, evidence_fn, n, "legacy combined evidence; prefer role metrics when annotated"),
+        "identity_evidence_span": prf(id_tp, id_fp, id_fn, n, "identity/context citations only"),
+        "diagnostic_evidence_span": prf(diag_ev_tp, diag_ev_fp, diag_ev_fn, n, "diagnostic/failure citations only"),
+        "false_positive_failure_rate": ratio(failures_fp, failures_tn_support, failures_tn_support,
+                                             "finding on truth-negative diagnostic cases; informational_only excluded from penalty"),
+        "informational_only_cases": ratio(info_cases, n, n, "count of INFORMATIONAL_ONLY annotated cases"),
         "provenance": {
             "coordinate_validity": ratio(coordinate_ok, citation_total, n, "existing line and exact/truncated-prefix raw message; not semantic support"),
             "file_precision": ratio(file_ok, citation_total, n, "citation file in truth evidence"),
             "exact_line_precision": ratio(line_ok, citation_total, n, "citation file+line in truth evidence; repeated citations counted"),
             "citation_coverage": ratio(covered, relevant, relevant, "cases with at least one truth-supported emitted citation"),
+            "identity_citation_coverage": ratio(id_covered, id_relevant, id_relevant, "identity evidence coverage"),
+            "diagnostic_citation_coverage": ratio(diag_covered, diag_relevant, diag_relevant, "diagnostic evidence coverage"),
             "semantic_support_precision": semantic},
         "correlation": prf(corr["tp"], corr["fp"], corr["fn"],
                            sum(bool(c["truth"]["correlation_pairs"]) for c in cases),

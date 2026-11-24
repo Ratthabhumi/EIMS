@@ -126,13 +126,21 @@ class AsynchronousCacheManager:
             logger.warning(f"Cache Key Namespace Violation: '{key}' does not conform to Core Law 4 approved hierarchy.")
 
     async def set_value(self, key: str, value: Any, ttl_seconds: int = 3600) -> None:
-        """Stores structural values with mandatory expiration time limits."""
+        """Best-effort cache write. DB commits must not fail when Redis is down."""
         if self._redis_client is None:
-            raise RuntimeError("Cache Manager invoked prior to initialization lifecycle step.")
-        
+            logger.warning("Cache set skipped: Redis client unavailable key=%s", key)
+            return
+
         self._validate_namespace(key)
         serialized_val = json.dumps(value) if not isinstance(value, (str, int, float)) else str(value)
-        await self._redis_client.set(key, serialized_val, ex=ttl_seconds)
+        try:
+            await self._redis_client.set(key, serialized_val, ex=ttl_seconds)
+        except Exception as error:  # noqa: BLE001 - optional cache must not fail callers
+            logger.warning(
+                "Cache set failed (non-fatal): key=%s error_class=%s",
+                key,
+                type(error).__name__,
+            )
 
     async def get_value(self, key: str) -> Optional[str]:
         """Retrieves character strings from Redis storage."""

@@ -1,0 +1,68 @@
+{
+    "incident_id":  "35210251-a626-4148-9ae4-bd9f8364e51f",
+    "title":  "analysis incident: 3",
+    "status":  "open",
+    "severity":  "medium",
+    "confidence":  "weak",
+    "asset_id":  "ac1b626f-e787-4ca4-b417-a0d17b031b2b",
+    "first_seen":  "2026-11-20T07:55:21Z",
+    "last_seen":  "2026-11-20T07:55:21Z",
+    "dedupe_key":  "7928c144c7957ca73b055e991bf80d61eedd56d5a33a6f2c4552476cbaff5a3c",
+    "root_cause_state":  "unknown",
+    "owner":  null,
+    "summary":  {
+                    "correlation":  {
+                                        "confidence":  "weak",
+                                        "reasons":  [
+                                                        "single_source_evidence"
+                                                    ],
+                                        "sources":  [
+                                                        "analysis:3"
+                                                    ],
+                                        "signature":  "analysis:7034@service control manager",
+                                        "window_seconds":  900,
+                                        "window_bucket":  1994623,
+                                        "asset_state":  "resolved",
+                                        "time":  {
+                                                     "event_time":  "2026-11-20T07:55:21+00:00",
+                                                     "time_basis":  "source_timestamp_explicit_zone",
+                                                     "time_confidence":  "exact",
+                                                     "time_original":  "2026-11-20T07:55:21Z",
+                                                     "ingestion_time_is_not_event_time":  true
+                                                 },
+                                        "status":  "ambiguous",
+                                        "candidates":  [
+                                                           {
+                                                               "incident_id":  "e75aae02-a142-4c41-9316-db705823f32a",
+                                                               "confidence":  "medium",
+                                                               "reasons":  [
+                                                                               "same_asset_id",
+                                                                               "different_signature",
+                                                                               "within_window"
+                                                                           ]
+                                                           }
+                                                       ]
+                                    }
+                },
+    "created_at":  "2026-11-20T08:32:41.877945Z",
+    "updated_at":  "2026-11-20T08:32:41.877948Z",
+    "remediation_cycle":  0,
+    "evidence":  [
+                     {
+                         "evidence_id":  "ebe24a03-70c0-446e-9bee-0ec15ac62aea",
+                         "incident_id":  "35210251-a626-4148-9ae4-bd9f8364e51f",
+                         "source_type":  "analysis",
+                         "source_id":  "3",
+                         "source_event_key":  "7034@service control manager",
+                         "evidence_digest":  "0e6be7f09b879b7f34498149d8b116ddf30eaf8b29bae2ec0cef0db14928b35c",
+                         "observed_at":  "2026-11-20T07:55:21Z",
+                         "added_by":  "demo",
+                         "created_at":  "2026-11-20T08:32:41.891029Z"
+                     }
+                 ],
+    "verifications":  [
+
+                      ],
+    "created":  true,
+    "match":  "ambiguous_not_merged"
+}

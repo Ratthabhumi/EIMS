@@ -1,0 +1,255 @@
+{
+  "schema": "v12-independent-review-findings/v1",
+  "generatedAt": "2026-11-18T20:58:23+07:00",
+  "repository": "EIMS",
+  "reviewer": {
+    "identity": "Claude Code CLI 2.1.323",
+    "mode": "non-interactive print, permission-mode=plan, Edit/Write/NotebookEdit disallowed",
+    "readOnly": true,
+    "wroteFiles": false,
+    "ranTests": false,
+    "startedServices": false
+  },
+  "binding": {
+    "frozenHead": "85493b2131d3e353453072559a5dfc301d75dd06",
+    "frozenWorkingTreeManifestSha256": "53EE6A4093ECB50FEC25F746200F9BBCD10ABAFC17BCA41F567B2FD521BC2356",
+    "snapshotRoot": "%TEMP%/v12-snapshot/EIMS-20261118-204324",
+    "snapshotManifestSha256": "6322FFA6356D722D84912DFBC83683780108A9955E133C5D4009960338350715",
+    "reviewedSnapshotsNotSummaries": true
+  },
+  "scope": [
+    "monitoring architecture", "telemetry correctness", "event ingestion and processing", "analyzer schema and determinism",
+    "search/ORM correctness", "data integrity", "evidence provenance", "audit completeness", "failure handling",
+    "recovery behaviour", "agent monitor", "test isolation", "container dependency assumptions", "security configuration",
+    "source ownership", "freeze integrity", "evidence honesty", "test-to-revision binding", "missing acceptance coverage"
+  ],
+  "verdict": "BLOCK for acceptance (not a code-quality block; no CRITICAL defect found)",
+  "reviewerStatedCounts": { "CRITICAL": 0, "HIGH": 4, "MEDIUM": 7, "LOW": 8, "INFO": 1 },
+  "tableDerivedCounts": { "CRITICAL": 0, "HIGH": 4, "MEDIUM": 7, "LOW": 8, "INFO": 1 },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "HIGH",
+      "area": "test-isolation",
+      "path": "tests/conftest.py:94-98; backend/main.py lifespan",
+      "finding": "The shared client fixture runs TestClient(app) with the full lifespan, starting OCR/EVTX/telemetry workers and a Redis pub/sub listener from default settings; no disposable-target guard.",
+      "impact": "Running the suite with the operational stack up can consume real Redis streams and seed the real database.",
+      "blocksAcceptance": "YES",
+      "openCodeVerification": "CONFIRMED",
+      "openCodeEvidence": "conftest.py:94-98 uses 'with TestClient(app)'; backend/main.py lifespan awaits ocr/evtx/telemetry worker.start(); no EIMS_TEST guard in main.py"
+    },
+    {
+      "id": "F2",
+      "severity": "HIGH",
+      "area": "security-config",
+      "path": "backend/core/config.py:53,94-112; backend/api/routers/analyzer/auth.py:168-251",
+      "finding": "AUTH_MODE defaults to demo; in demo mode protected routes return an identity without credentials; token-validation errors fall back to demo.",
+      "impact": "A default deployment accepts anonymous telemetry writes; only the production boot guard prevents it.",
+      "blocksAcceptance": "NO (conditional on the boot guard)",
+      "openCodeVerification": "CONFIRMED",
+      "openCodeEvidence": "config.py:19 ENVIRONMENT default development; config.py:53 AUTH_MODE default demo; config.py:94-112 production refusal"
+    },
+    {
+      "id": "F3",
+      "severity": "HIGH",
+      "area": "security-config",
+      "path": "docker-compose.yml:19,22,42,48,61,102,126",
+      "finding": "Hardcoded credentials, anonymous-public MinIO bucket, all service ports published on all interfaces, Redis without auth, PgBouncer AUTH_TYPE plain.",
+      "impact": "OCR manifests are world-readable if the stack is reachable; test_compose_security_audit asserts these known findings.",
+      "blocksAcceptance": "NO for local dev; YES for any non-local use",
+      "openCodeVerification": "CONFIRMED by reading",
+      "openCodeEvidence": "docker-compose.yml inspected; tests/test_compose_security_audit.py encodes the same expectations"
+    },
+    {
+      "id": "F4",
+      "severity": "HIGH",
+      "area": "evidence-audit",
+      "path": "backend/domain/asset_registry/models.py:175-221",
+      "finding": "'Immutable, tamper-resistant' appears only in model docstrings; no database trigger, REVOKE, hash chain or signature exists in any migration.",
+      "impact": "An operator with DB access can edit or delete audit rows undetected.",
+      "blocksAcceptance": "YES for any tamper-evidence claim",
+      "openCodeVerification": "CONFIRMED",
+      "openCodeEvidence": "grep over migrations/versions found 0 CREATE TRIGGER / REVOKE / prev_hash constructs"
+    },
+    {
+      "id": "F5",
+      "severity": "MEDIUM",
+      "area": "evidence-honesty",
+      "path": "EIMS_ACCEPTANCE_LEDGER.md:30-44",
+      "finding": "The ledger claims a single migration head a3d6f1e8c295 and carries PASS rows; the actual chain continues six revisions to c4e8a1f7b932. Repository-state counts in the ledger are stale.",
+      "impact": "A reader of the ledger alone sees PASS rows that look current.",
+      "blocksAcceptance": "YES (as an evidence claim)",
+      "openCodeVerification": "CONFIRMED",
+      "openCodeEvidence": "migrations/versions contains a3d6f1e8c295 -> b7c2e9a4f601 -> ... -> c4e8a1f7b932"
+    },
+    {
+      "id": "F6",
+      "severity": "MEDIUM",
+      "area": "migrations",
+      "path": "migrations/versions/8a2b4d6f9c1e_align_ai_knowledge_embedding_dimension.py:19-36",
+      "finding": "Alters ai_knowledge.embedding from vector(768) to vector(384) using 'embedding::vector(384)'.",
+      "impact": "The upgrade fails on populated rows because pgvector rejects a dimension-changing cast; downgrade has the same problem.",
+      "blocksAcceptance": "NO (needs populated-data verification)",
+      "openCodeVerification": "CONFIRMED by reading",
+      "openCodeEvidence": "read lines 19-36; upgrade and downgrade both use a direct dimension cast"
+    },
+    {
+      "id": "F7",
+      "severity": "MEDIUM",
+      "area": "incident-ingest",
+      "path": "backend/domain/incident_ingest/outbox.py:133-138",
+      "finding": "A missing outbox table is swallowed; source evidence commits and the incident intent is lost with only a log line.",
+      "impact": "Running new code before the outbox migration silently drops incidents.",
+      "blocksAcceptance": "NO (deploy-order dependent)",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F8",
+      "severity": "MEDIUM",
+      "area": "incident-dedupe",
+      "path": "backend/domain/incident/correlation.py:83-101",
+      "finding": "Dedupe key uses a fixed time bucket while classification uses a sliding window.",
+      "impact": "Events across a bucket edge can create duplicate incidents.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F9",
+      "severity": "MEDIUM",
+      "area": "telemetry-idempotency",
+      "path": "backend/domain/telemetry/schemas.py:34; telemetry/controller.py:44-50",
+      "finding": "Heartbeat timestamp defaults to now() and the idempotency key hashes the payload after the default is applied.",
+      "impact": "A retry without a timestamp produces a duplicate heartbeat.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F10",
+      "severity": "MEDIUM",
+      "area": "search",
+      "path": "backend/domain/search/service.py:54-60",
+      "finding": "Provider exceptions are swallowed with status success; totals reflect inspected rows; ties are not stable across pages.",
+      "impact": "Silently partial results, wrong totals, duplicated or skipped rows.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F11",
+      "severity": "MEDIUM",
+      "area": "search-performance",
+      "path": "backend/domain/search/providers/winlog_provider.py:26-31",
+      "finding": "LIKE wildcards are not escaped and the query casts JSONB to text with ilike over windows_event_logs.",
+      "impact": "A '%' query matches everything and forces a sequential scan on the hot table.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F12",
+      "severity": "LOW",
+      "area": "pagination",
+      "path": "backend/api/routers/telemetry/query_controller.py:63,107",
+      "finding": "ORDER BY time DESC without a tie-breaker, offset paging, naive datetime bounds.",
+      "impact": "Unstable pages and ambiguous bounds.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F13",
+      "severity": "LOW",
+      "area": "ingest-bounds",
+      "path": "backend/domain/telemetry/schemas.py:43-47",
+      "finding": "WinlogMetadata is extra=allow with no size or depth cap on the HTTP route.",
+      "impact": "Oversized JSONB can be enqueued; metadata can spoof source_network_ip.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F14",
+      "severity": "LOW",
+      "area": "auth-boundary",
+      "path": "backend/domain/telemetry/security.py:22-56",
+      "finding": "mTLS verification format-checks a client-supplied header; trust depends on a proxy stripping it.",
+      "impact": "Direct requests with any well-formed header are accepted if no proxy enforces it.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F15",
+      "severity": "LOW",
+      "area": "destructive-script",
+      "path": "clear_db.py:11-15",
+      "finding": "TRUNCATE ... CASCADE runs against the default database with no confirmation or target guard.",
+      "impact": "Accidental run wipes operational data.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F16",
+      "severity": "LOW",
+      "area": "repo-hygiene",
+      "path": "scratch_append_tests.py:38,174",
+      "finding": "An untracked scratch script rewrites tests/test_analyzer_reliability.py in place and writes tests/_field_fixture_veeam.py.",
+      "impact": "Running it mutates tracked tests and invalidates the freeze.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "CONFIRMED",
+      "openCodeEvidence": "script body read; target file is tracked and imported by the rewritten test"
+    },
+    {
+      "id": "F17",
+      "severity": "LOW",
+      "area": "redis",
+      "path": "backend/infrastructure/cache.py:125-126; docker-compose.yml:59",
+      "finding": "Namespace validation only logs a warning; alert stream keys are outside approved prefixes; Redis uses volatile-lru.",
+      "impact": "Fail-closed on XADD, but key hygiene is weaker than implied.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F18",
+      "severity": "LOW",
+      "area": "incident-consumer",
+      "path": "backend/domain/incident_ingest/consumer.py:198-209,393",
+      "finding": "Unclassified errors are treated as transient and never dead-lettered; DLQ entries are truncated at 2048 chars.",
+      "impact": "Unbounded retry; some DLQ entries cannot be replayed.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "NOT_INDEPENDENTLY_REPRODUCED"
+    },
+    {
+      "id": "F19",
+      "severity": "LOW",
+      "area": "agent-monitor",
+      "path": "scripts/agent-monitor/Launch-EimsAgentMonitor.ps1",
+      "finding": "The real taskkill graceful-then-forced path is only exercised through injected StopAction in tests.",
+      "impact": "Claimed process-level behaviour is untested.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "ACCEPTED_AS_REPORTED"
+    },
+    {
+      "id": "F20",
+      "severity": "INFO",
+      "area": "positive",
+      "path": "scripts/agent-monitor; docs/ANALYZER_BASELINE_RESULTS.md",
+      "finding": "The two monitor suites are separate, fixtures are synthetic and use %TEMP%, and analyzer accuracy is honestly reported as INSUFFICIENT_DATA with no accuracy percentage claim anywhere.",
+      "impact": "None.",
+      "blocksAcceptance": "NO",
+      "openCodeVerification": "ACCEPTED_AS_REPORTED"
+    }
+  ],
+  "unverifiedByReviewer": [
+    "Whether the client-fixture workers actually connect when operational services are up",
+    "F6 against populated data",
+    "F10 aborted-session cascade",
+    "Whether any deployed proxy strips X-Client-Cert-Fingerprint",
+    "Recorded test outcomes (JUnit files are not in the snapshot)",
+    "Analyzer internals beyond bundle/evidence/schemas",
+    "Frontend clients"
+  ],
+  "couldNotInspect": [
+    "Git history and diff against 85493b21",
+    "test-results/, %TEMP% and .omc/ evidence, and the v12-* manifests",
+    "Chat_HAND repository and live runtime",
+    "Disposable containers and their state",
+    ".env, TLS and proxy configuration, deployments/homelab"
+  ],
+  "recommendation": "C1 may start only after F1 is mitigated (operational services down or an approved isolation guard in a new freeze revision). F4 must be stated as a residual gap in the final report. F5/F6/F16 require an evidence or documentation correction before any PASS claim. No CRITICAL defect was found."
+}

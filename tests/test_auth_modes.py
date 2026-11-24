@@ -1,30 +1,29 @@
 """
 ==============================================================================
-EIMS Automated Test Suite — Auth Hardening & Multi-Mode Security Enforcement
-Governed by EIMS Documentation System (EDS v1.0.0) - Core Law 2 & 5 Compliance
+EIMS Automated Test Suite — Open-access Portal identity (no application login)
 ==============================================================================
-Proves contract adherence for:
-1. AUTH_MODE configuration validation (Literal["demo", "secure"]).
-2. Demo Mode evaluation writes without token (Evaluation Admin UI functional).
-3. Secure Mode rejection of unauthenticated writes (HTTP 401/403).
-4. Secure Mode recognition of valid Admin JWT (role == "admin").
-5. Secure Mode rejection of non-admin JWT (role == "user").
-6. Secure Mode recognition of server-side ADMIN_TOKEN.
+Product rule: EIMS has no application login. Engineers use the Portal without a
+username/password. AUTH_MODE remains a compatibility setting only.
 """
 
-import pytest
-from pydantic import ValidationError
-from fastapi.testclient import TestClient
-
 import jwt
+import pytest
+from fastapi.testclient import TestClient
+from pydantic import ValidationError
+
 from backend.core.config import EIMSSettings, settings
-from backend.domain.analyzer.auth import create_access_token, SECRET_KEY, ALGORITHM
+from backend.domain.analyzer.auth import (
+    ALGORITHM,
+    OPEN_ACCESS_IDENTITY,
+    SECRET_KEY,
+    create_access_token,
+    get_current_user,
+)
 from backend.main import app
 
 
 def test_auth_mode_configuration_strict_validation():
-    """Confirms only 'demo' and 'secure' are valid AUTH_MODE values."""
-    # Valid values
+    """Confirms only 'demo' and 'secure' remain valid AUTH_MODE values."""
     s_demo = EIMSSettings(AUTH_MODE="demo")
     assert s_demo.AUTH_MODE == "demo"
     assert s_demo.is_demo_mode is True
@@ -33,11 +32,9 @@ def test_auth_mode_configuration_strict_validation():
     assert s_sec.AUTH_MODE == "secure"
     assert s_sec.is_demo_mode is False
 
-    # Case-insensitive normalization
     s_upper = EIMSSettings(AUTH_MODE="DEMO")
     assert s_upper.AUTH_MODE == "demo"
 
-    # Invalid values must raise ValidationError
     with pytest.raises(ValidationError):
         EIMSSettings(AUTH_MODE="invalid_mode")
 
@@ -57,61 +54,58 @@ def test_jwt_token_generation_and_payload_verification():
     assert u_payload.get("role") == "user"
 
 
-def test_evaluation_write_in_demo_mode():
-    """In DEMO mode, evaluation write operations succeed without token."""
+def test_evaluation_write_without_application_login():
+    """Evaluation writes succeed with no bearer credential (open access)."""
+    with TestClient(app) as client:
+        payload = {"title": "Open Access Maintenance Session", "customer_name": "Lab Corp"}
+        resp = client.post("/api/v1/evaluations/sessions", json=payload)
+        assert resp.status_code == 201, f"Expected 201 without login, got: {resp.status_code}: {resp.text}"
+
+
+def test_open_access_survives_secure_auth_mode_setting():
+    """AUTH_MODE=secure must not reintroduce application login requirements."""
     original_mode = settings.AUTH_MODE
     try:
-        settings.AUTH_MODE = "demo"
+        settings.AUTH_MODE = "secure"
         with TestClient(app) as client:
-            # POST to create evaluation session without token in demo mode
-            payload = {"title": "Demo Maintenance Session", "customer_name": "Demo Corp"}
+            payload = {"title": "Still Open Access Session", "customer_name": "Lab Corp"}
             resp = client.post("/api/v1/evaluations/sessions", json=payload)
-            # In demo mode, require_admin_for_write allows the request
-            assert resp.status_code == 201, f"Expected 201 Created in demo mode, got: {resp.status_code}: {resp.text}"
+            assert resp.status_code == 201, (
+                f"Expected open-access 201 even when AUTH_MODE=secure, got: {resp.status_code}: {resp.text}"
+            )
+
+            health = client.get("/api/v1/timeline", params={"limit": 1})
+            assert health.status_code == 200, health.text
+
+            login = client.post("/api/v1/auth/login", json={"username": "admin", "password": "x"})
+            assert login.status_code == 410, login.text
+            assert "not used" in login.json()["detail"].lower()
     finally:
         settings.AUTH_MODE = original_mode
 
 
-def test_evaluation_write_in_secure_mode_enforcement():
-    """In SECURE mode, evaluation writes strictly require Admin JWT or ADMIN_TOKEN."""
-    original_mode = settings.AUTH_MODE
+def test_admin_token_still_accepted_for_attribution():
+    """Configured ADMIN_TOKEN remains usable for machine/admin tooling."""
     original_token = settings.ADMIN_TOKEN
     try:
-        settings.AUTH_MODE = "secure"
         settings.ADMIN_TOKEN = "test_super_secret_admin_token_12345"
-
         with TestClient(app) as client:
-            payload = {"title": "Secure Maintenance Session", "customer_name": "Secure Corp"}
-
-            # 1. Unauthenticated write must be rejected with 401
-            no_auth_resp = client.post("/api/v1/evaluations/sessions", json=payload)
-            assert no_auth_resp.status_code in (401, 403), f"Expected 401/403, got: {no_auth_resp.status_code}"
-
-            # 2. Non-admin JWT (role == 'user') must be rejected with 403 Forbidden
-            user_jwt = create_access_token("normal_user", role="user")
-            user_resp = client.post(
-                "/api/v1/evaluations/sessions",
-                json=payload,
-                headers={"Authorization": f"Bearer {user_jwt}"}
-            )
-            assert user_resp.status_code == 403, f"Non-admin JWT should be rejected with 403, got: {user_resp.status_code}"
-
-            # 3. Admin JWT (role == 'admin') must be accepted (HTTP 201)
-            admin_jwt = create_access_token("sys_admin", role="admin")
-            admin_resp = client.post(
-                "/api/v1/evaluations/sessions",
-                json=payload,
-                headers={"Authorization": f"Bearer {admin_jwt}"}
-            )
-            assert admin_resp.status_code == 201, f"Admin JWT was rejected: {admin_resp.status_code} {admin_resp.text}"
-
-            # 4. Server-side ADMIN_TOKEN via Bearer must be accepted (HTTP 201)
+            payload = {"title": "Admin Token Session", "customer_name": "Ops"}
             token_resp = client.post(
                 "/api/v1/evaluations/sessions",
                 json=payload,
-                headers={"Authorization": "Bearer test_super_secret_admin_token_12345"}
+                headers={"Authorization": "Bearer test_super_secret_admin_token_12345"},
             )
-            assert token_resp.status_code == 201, f"Admin Token was rejected: {token_resp.status_code} {token_resp.text}"
+            assert token_resp.status_code == 201, token_resp.text
     finally:
-        settings.AUTH_MODE = original_mode
         settings.ADMIN_TOKEN = original_token
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_returns_open_access_without_credentials(monkeypatch):
+    """Missing bearer credentials resolve to the shared open-access identity."""
+    class _Req:
+        url = type("U", (), {"path": "/api/v1/analyze/"})()
+
+    identity = await get_current_user(_Req(), None, db=None)  # type: ignore[arg-type]
+    assert identity == OPEN_ACCESS_IDENTITY

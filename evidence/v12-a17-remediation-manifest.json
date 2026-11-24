@@ -1,0 +1,24 @@
+﻿{
+    "schema":  "v12-a17-remediation-manifest/v1",
+    "generatedAt":  "2026-11-19T09:59:05.8220838+07:00",
+    "repository":  "EIMS",
+    "baseA16ManifestSha256":  "D8481ABB6FDCD873CF625339A1E6D551EE25EFAB2E241EEA11FC11E10111B84A",
+    "a17Workspace":  "C:\\Users\\MewMew\\AppData\\Local\\Temp\\v12-a17/EIMS",
+    "summary":  {
+                    "added":  0,
+                    "removed":  0,
+                    "modified":  3
+                },
+    "modified":  [
+                     "tests/test_global_search_integration.py",
+                     "tools/seed_analyzer_incident.py",
+                     "tools/sprint11_benchmark.py"
+                 ],
+    "added":  [
+
+              ],
+    "removed":  [
+
+                ],
+    "hashSemantics":  "SHA-256 of raw working-tree bytes (CRLF)"
+}

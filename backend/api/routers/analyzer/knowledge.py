@@ -20,6 +20,11 @@ from backend.domain.analyzer.models.knowledge import (
     KnowledgeSourceEvent,
 )
 from backend.domain.analyzer.services.vector_db import redact_for_embedding
+from backend.domain.analyzer.services.verified_knowledge import (
+    PROVIDER_BEARING_FAMILIES,
+    derive_provider_scope,
+    norm_provider,
+)
 from backend.infrastructure.database import get_db_session as get_db
 
 router = APIRouter()
@@ -41,8 +46,7 @@ KNOWN_SOURCE_FAMILIES = {
 }
 
 
-class KnowledgeProposalRequest(BaseModel):
-    history_id: int = Field(gt=0)
+class KnowledgeProposalContent(BaseModel):
     title: str = Field(min_length=3, max_length=200)
     resolution_status: Literal["resolved", "partially_resolved", "unresolved"]
     root_cause: str = Field(min_length=3, max_length=4000)
@@ -71,6 +75,12 @@ class KnowledgeProposalRequest(BaseModel):
         if any(url.scheme != "https" or url.username or url.password for url in values):
             raise ValueError("Knowledge references must use HTTPS without embedded credentials")
         return values
+
+
+class KnowledgeProposalRequest(KnowledgeProposalContent):
+    history_id: int = Field(gt=0)
+    # Optional explicit declaration. Omitted => derived from the analysed record's provider (never from Event ID).
+    provider_scope: Literal["provider_specific", "generic"] | None = None
 
 
 class KnowledgeReviewRequest(BaseModel):
@@ -118,6 +128,8 @@ def _serialize(entry: KnowledgeEntry, *, private: bool = False) -> dict:
         "title": entry.title,
         "sourceFamily": entry.source_family,
         "diagnosticIdentity": entry.diagnostic_identity,
+        "provider": entry.provider,
+        "providerScope": entry.provider_scope,
         "resolutionStatus": entry.resolution_status,
         "rootCause": entry.root_cause,
         "solutionSteps": list(entry.solution_steps or []),
@@ -155,11 +167,24 @@ async def propose_knowledge(
     db: DbSession,
     user: AuthenticatedUser,
 ):
+    entry = await create_knowledge_proposal(db, request, user)
+    return _serialize(entry, private=True)
+
+
+async def create_knowledge_proposal(
+    db: AsyncSession, request: KnowledgeProposalRequest, user: str, *, commit: bool = True,
+    allowed_owners: set[str] | None = None,
+) -> KnowledgeEntry:
+    """Creates a *pending* knowledge entry in the existing review lifecycle.
+
+    Shared by the engineer proposal route and the incident proposal path so there is
+    one validation/redaction implementation. Never approves anything.
+    """
     history = (
         await db.execute(
             select(AnalysisHistory).where(
                 AnalysisHistory.id == request.history_id,
-                AnalysisHistory.username == user,
+                (AnalysisHistory.username.in_(allowed_owners) if allowed_owners else AnalysisHistory.username == user),
             )
         )
     ).scalars().first()
@@ -183,6 +208,8 @@ async def propose_knowledge(
     diagnostic_identity = str(
         metadata.get("diagnosticCode") or history.event_id or "Unknown"
     ).strip()[:256]
+    provider, provider_scope = derive_provider_scope(
+        source_family, history.provider or metadata.get("provider"), request.provider_scope)
     source_history_hash = _source_history_hash(history)
     clean_title = _clean(request.title)
     clean_root_cause = _clean(request.root_cause)
@@ -207,6 +234,8 @@ async def propose_knowledge(
         source_history_hash=source_history_hash,
         source_family=source_family,
         diagnostic_identity=diagnostic_identity,
+        provider=provider,
+        provider_scope=provider_scope,
         title=clean_title,
         resolution_status=request.resolution_status,
         root_cause=clean_root_cause,
@@ -227,11 +256,14 @@ async def propose_knowledge(
     )
     db.add(entry)
     try:
-        await db.commit()
+        if commit:
+            await db.commit()
+        else:
+            await db.flush()
     except IntegrityError as exc:
         await db.rollback()
         raise HTTPException(status_code=409, detail="This incident already has a knowledge proposal") from exc
-    return _serialize(entry, private=True)
+    return entry
 
 
 @router.get("/proposals/mine")
@@ -308,6 +340,11 @@ async def review_knowledge(
             or not any(str(note).strip() for note in (entry.evidence_notes or []))
         ):
             raise HTTPException(status_code=422, detail="Root cause, solution steps and evidence are required")
+        if entry.source_family in PROVIDER_BEARING_FAMILIES and entry.provider_scope in {"unknown", "unverified", "vendor_product"}:
+            raise HTTPException(
+                status_code=422,
+                detail="Provider attribution is required: this entry has no verified provider and would never match a provider-specific event",
+            )
         source_history = await db.get(AnalysisHistory, entry.source_history_id)
         if source_history is None or not hmac.compare_digest(
             _source_history_hash(source_history), entry.source_history_hash
@@ -370,6 +407,11 @@ async def change_knowledge_lifecycle(
             or replacement.id == entry.id
             or replacement.source_family != entry.source_family
             or replacement.diagnostic_identity != entry.diagnostic_identity
+            or (
+                entry.provider_scope == "provider_specific"
+                and (replacement.provider_scope != "provider_specific"
+                     or norm_provider(replacement.provider) != norm_provider(entry.provider))
+            )
         ):
             raise HTTPException(status_code=422, detail="Replacement must be different active approved knowledge with the same diagnostic identity")
         target = "superseded"
@@ -535,6 +577,7 @@ async def list_approved_knowledge(
     _user: AuthenticatedUser,
     source_family: SourceFamilyFilter = None,
     diagnostic_identity: DiagnosticIdentityFilter = None,
+    provider: Annotated[str | None, Query(min_length=1, max_length=160)] = None,
     q: KnowledgeSearchQuery = None,
     limit: KnowledgeLimit = 50,
     offset: KnowledgeOffset = 0,
@@ -547,6 +590,8 @@ async def list_approved_knowledge(
         filters.append(KnowledgeEntry.source_family == source_family.strip().lower())
     if diagnostic_identity:
         filters.append(KnowledgeEntry.diagnostic_identity == diagnostic_identity.strip())
+    if provider:
+        filters.append(func.lower(KnowledgeEntry.provider) == norm_provider(provider))
     if q:
         # Literal substring search: escape LIKE metacharacters and keep the
         # query parameterized. Search approved knowledge only; never surface
@@ -746,3 +791,9 @@ async def knowledge_source_candidate_events(
         "changedBy": row.changed_by,
         "createdAt": row.created_at.isoformat() if row.created_at else None,
     } for row in rows]}
+
+
+# Human decision API for catalog knowledge (server-determined actor; see knowledge_governance.py).
+from backend.api.routers.analyzer.knowledge_governance import router as _governance_router  # noqa: E402
+
+router.include_router(_governance_router, prefix="/governance")

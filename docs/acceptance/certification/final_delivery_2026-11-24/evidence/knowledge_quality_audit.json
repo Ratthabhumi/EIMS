@@ -1,0 +1,350 @@
+{
+  "identity": {
+    "governed": 911,
+    "analyzer_matchable": 181,
+    "other_governed": 730,
+    "strict_subset": true,
+    "class_b": 39,
+    "class_b_split": {
+      "in_load_catalog": 28,
+      "not_in_load_catalog": 11
+    },
+    "eligible": 1,
+    "human_approved": 0,
+    "family_sum_matchable": 181
+  },
+  "class_counts": {
+    "A": 153,
+    "B": 39,
+    "E": 57,
+    "D": 4,
+    "C": 312,
+    "F": 346
+  },
+  "stated_field_coverage_by_class": {
+    "A": {
+      "whatHappened": 153,
+      "why": 153,
+      "inspect": 140,
+      "recommendedAction": 0,
+      "risk": 0,
+      "rollback": 0,
+      "recoveryVerification": 0
+    },
+    "B": {
+      "whatHappened": 39,
+      "why": 39,
+      "inspect": 39,
+      "recommendedAction": 16,
+      "risk": 17,
+      "rollback": 14,
+      "recoveryVerification": 15
+    },
+    "C": {
+      "whatHappened": 312,
+      "why": 312,
+      "inspect": 0,
+      "recommendedAction": 0,
+      "risk": 0,
+      "rollback": 0,
+      "recoveryVerification": 0
+    },
+    "D": {
+      "whatHappened": 4,
+      "why": 4,
+      "inspect": 4,
+      "recommendedAction": 4,
+      "risk": 1,
+      "rollback": 0,
+      "recoveryVerification": 1
+    },
+    "E": {
+      "whatHappened": 57,
+      "why": 57,
+      "inspect": 57,
+      "recommendedAction": 57,
+      "risk": 37,
+      "rollback": 1,
+      "recoveryVerification": 19
+    },
+    "F": {
+      "whatHappened": 346,
+      "why": 346,
+      "inspect": 0,
+      "recommendedAction": 0,
+      "risk": 0,
+      "rollback": 0,
+      "recoveryVerification": 0
+    }
+  },
+  "class_denominators": {
+    "A": 153,
+    "B": 39,
+    "E": 57,
+    "D": 4,
+    "C": 312,
+    "F": 346
+  },
+  "engineer_ready_partial": {
+    "count": 77,
+    "definition": "whatHappened + inspect + recommendedAction all status=stated",
+    "of": 911
+  },
+  "full_verify_chain": {
+    "count": 19,
+    "definition": "what+why+inspect+action+risk+recoveryVerification all stated",
+    "of": 911
+  },
+  "asa_113005": {
+    "catalog_id": "cisco_asa:official_message_id:113005",
+    "class": "B",
+    "stated": {
+      "whatHappened": true,
+      "why": true,
+      "inspect": true,
+      "recommendedAction": true,
+      "risk": true,
+      "rollback": true,
+      "recoveryVerification": true
+    },
+    "problems": [],
+    "eligibility_note": "ELIGIBLE for human-review registration; not human-approved"
+  },
+  "problem_examples": [
+    {
+      "catalog_id": "windows_event:official_event_id:4624",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4625",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4634",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4647",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4648",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4672",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4688",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4689",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4697",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4704",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4705",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4720",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4722",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4723",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4724",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4725",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4726",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4728",
+      "class": "A",
+      "problems": [
+        "version_scope",
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4729",
+      "class": "A",
+      "problems": [
+        "version_scope",
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4732",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4733",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4735",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4737",
+      "class": "A",
+      "problems": [
+        "version_scope",
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4738",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    },
+    {
+      "catalog_id": "windows_event:official_event_id:4740",
+      "class": "A",
+      "problems": [
+        "recommended_action",
+        "risk",
+        "recovery_verification"
+      ]
+    }
+  ],
+  "priority_gaps": [
+    "Most Class A (Windows operational context) intentionally lack diagnostic remediation/verify \u2014 not engineer-ready diagnostics.",
+    "Class C/F references are definition-only; must not be presented as remediation capabilities.",
+    "Class B/E candidates often miss rollback/recoveryVerification \u2014 blocks eligibility or safe remediation.",
+    "Human-approved remains 0; eligible=1 (ASA 113005) still needs human page review.",
+    "Do not bulk-generate knowledge without source provenance."
+  ]
+}

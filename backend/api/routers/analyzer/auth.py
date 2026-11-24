@@ -34,25 +34,13 @@ class LoginResponse(BaseModel):
 
 @router.post("/login", response_model=LoginResponse)
 async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends(get_db_session)):
-    await reserve_login(db, body.username, request.client.host if request.client else 'unknown')
-    exact_username = await verify_credentials(body.username, body.password, db)
-    if not exact_username:
-        logger.warning("Login rejected.")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
-        )
-    role = await get_user_role(exact_username, db)
-    account = (await db.execute(select(User).where(User.username == exact_username))).scalars().one()
-    sid = secrets.token_urlsafe(32)
-    token = create_access_token(exact_username, role=role, session_id=sid)
-    payload = jwt.decode(token, auth_core.SECRET_KEY, algorithms=[auth_core.ALGORITHM])
-    now = datetime.now(timezone.utc)
-    db.add(AnalyzerSession(id=digest(sid), user_id=account.id, username=account.username,
-        credential_version=digest(account.password or ''), created_at=now, last_seen=now,
-        expires_at=datetime.fromtimestamp(payload['exp'], timezone.utc)))
-    await db.commit()
-    return LoginResponse(access_token=token)
+    # Product rule: EIMS has no application login. Engineers use the Portal without
+    # a username/password. Keep the route only so old clients receive an explicit
+    # Gone response instead of a silent auth bypass.
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="Application login is not used. EIMS Portal access does not require a user session.",
+    )
 
 
 @router.get('/session')
@@ -64,7 +52,8 @@ async def session_info(
     is_admin = bool(account and account.role == 'admin')
     return {
         'username': user,
-        'mode': settings.AUTH_MODE.lower(),
+        'mode': 'open_access',
+        'application_login': False,
         'capabilities': {'knowledge_review': bool(is_admin or (account and account.knowledge_reviewer))},
     }
 

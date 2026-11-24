@@ -1,0 +1,30 @@
+{
+  "version": "persistent-agent-monitor-acceptance",
+  "observedUtc": "2026-11-18T10:20:00Z",
+  "source": "C:/Users/MewMew/AppData/Local/Temp/eims-monitor-check-20261118-165927 (disposable copy)",
+  "tests": {
+    "watcherDashboard": "169 passed, 0 failed",
+    "launcher": "171 passed, 0 failed",
+    "combined": "340 checks across two separate suites; this is not a single 169/171 acceptance score"
+  },
+  "realPlainMode": {
+    "artifactRoot": "disposable temp job",
+    "observed": [
+      "mode=snapshot view=Overview root=... (OK) selected=job-single",
+      "> job-singl... Persistent Job OpenCode Completed 0",
+      "Selected Persistent Job agent=OpenCode role=read_only state=Completed exit=0",
+      "persistent: this dashboard does not auto-close, Q / window close to exit"
+    ],
+    "qExitCode": 0
+  },
+  "jobOutcomes": {
+    "7252af89-0c77-4f02-8fbb-ce43a2c5918c": "timed_out, exit 1, 900 s; partial changes",
+    "14537505-1de5-4add-a9af-7f5a46ca1e78": "timed_out, exit 1, 905 s; partial changes"
+  },
+  "scope": "The timed-out jobs left partial changes in scripts/agent-monitor. The disposable-copy suites pass, but this is not a runtime/GUI acceptance.",
+  "notVerified": [
+    "Visual TUI rendering and raw-key navigation in a real desktop console.",
+    "Closing the monitor while a real long-running job is active (no job was started for this check).",
+    "Live runtime with the restarted gateway."
+  ]
+}

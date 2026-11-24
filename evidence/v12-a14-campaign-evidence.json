@@ -1,0 +1,33 @@
+{
+  "schema": "v12-a14-campaign-evidence/v1",
+  "generatedAt": "2026-11-18T23:50:00+07:00",
+  "repository": "EIMS",
+  "base": {
+    "a11WorkingTreeManifestSha256": "53EE6A4093ECB50FEC25F746200F9BBCD10ABAFC17BCA41F567B2FD521BC2356",
+    "a12ManifestSha256": "5E4E4AE62F59D399226149E9097B993608A61718412E8E6E37B15779EBF78B8F",
+    "a13ManifestSha256": "8626A766FE4A342901D99E4228C4B8702994C9975D96A7C46F7729E34712A5A8"
+  },
+  "a14ManifestSha256": "0E9F90E5A6BFC25E7A54A5BEDD7D796DB55E07E4F78F79D63AE5D9AED05F3DCF",
+  "review": {
+    "rereview": { "verdict": "ACCEPT_WITH_FINDINGS", "foundHigh": "RV-1 sprint11 unvalidated TRUNCATE target" },
+    "deltaReview": { "verdict": "ACCEPT_WITH_FINDINGS", "high": 0, "medium": 2, "low": 2 }
+  },
+  "rv": {
+    "RV-1": "CLOSED", "RV-2": "CLOSED", "RV-3": "OPEN", "RV-4": "OPEN",
+    "RV-5": "OPEN", "RV-6": "PARTIAL", "RV-7": "OPEN", "RV-8": "CLOSED",
+    "RV-9": "CLOSED", "RV-10": "OPEN", "RV-11": "OPEN", "RV-12": "PARTIAL"
+  },
+  "tests": {
+    "mode": "offline-only",
+    "suite": "isolation + auth-mode + compose static",
+    "passed": 38, "failed": 0, "skipped": 0,
+    "defaultSettingsLifespanTest": "NOT RUN (skipped by guard, 0 connections)"
+  },
+  "notPerformed": [
+    "container/runtime start", "migration apply", "operational connection",
+    "trust grant creation", "commit/stage/push", "GUI/live E2E",
+    "vector reproduction", "full Track B/C suites", "C7 rerun"
+  ],
+  "gates": { "A": "PARTIAL", "B": "BLOCKED", "C": "BLOCKED", "X": "NOT_RUN" },
+  "finalAcceptance": "NOT GRANTED"
+}

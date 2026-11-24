@@ -1,0 +1,110 @@
+{
+  "schema": "v12-a13-operational-impact/v1",
+  "generatedAt": "2026-11-18T23:12:00+07:00",
+  "mode": "READ_ONLY",
+  "actionsPerformed": ["SELECT under READ ONLY transaction", "redis INFO/DBSIZE/SCAN/TYPE/XLEN/XINFO/XPENDING/PUBSUB/CLIENT LIST", "docker inspect/ps", "Get-NetTCPConnection/Get-Service/Get-CimInstance"],
+  "actionsForbiddenAndNotPerformed": ["ACK", "XACK", "DEL", "XDEL", "FLUSHDB", "FLUSHALL", "UPDATE", "DELETE", "replay", "restart", "docker start/stop/recreate", "volume removal", "cleanup"],
+  "incident": {
+    "localTime": "2026-11-18T21:23:51+07:00",
+    "utcTime": "2026-11-18T14:23:51Z",
+    "command": "pytest tests/test_timeline.py::test_timeline_returns_unified_events_ordered -q -s -p no:cacheprovider -o addopts=\"\"",
+    "workingDirectory": "%TEMP%/v12-a12/EIMS",
+    "interpreter": "C:/Users/MewMew/Desktop/Co-op/EIMS/venv/Scripts/python.exe",
+    "result": "1 passed",
+    "disposableMarkersSet": false,
+    "settingsUsed": { "DB_HOST": "localhost", "DB_PORT": 5432, "REDIS_HOST": "localhost", "REDIS_PORT": 6379 }
+  },
+  "destinations": {
+    "postgres": {
+      "container": "eims-postgres",
+      "image": "pgvector/pgvector:pg16",
+      "serverVersion": "PostgreSQL 16.14",
+      "endpoint": "0.0.0.0:5432",
+      "database": "eims_registry",
+      "user": "eims_user",
+      "alembicVersion": "a3d6f1e8c295",
+      "state": "running",
+      "restartPolicy": "unless-stopped",
+      "startedAt": "2026-11-18T11:33:03Z"
+    },
+    "redis": {
+      "container": "eims-redis",
+      "image": "redis:7-alpine",
+      "serverVersion": "7.4.10",
+      "endpoint": "0.0.0.0:6379",
+      "dbIndex": 0,
+      "dbsize": 3,
+      "state": "running",
+      "restartPolicy": "unless-stopped",
+      "startedAt": "2026-11-18T11:33:03Z"
+    },
+    "minio": {
+      "container": "eims-minio",
+      "image": "minio/minio:latest",
+      "endpoint": "0.0.0.0:9000",
+      "buckets": ["eims-integration-test", "eims-ocr-manifests"],
+      "state": "running",
+      "startedAt": "2026-11-18T11:33:03Z"
+    },
+    "note": "Full operational stack running: postgres, redis, minio, pgbouncer, prometheus, loki, grafana. All disposable acceptance containers remain exited (255)."
+  },
+  "postgresImpact": {
+    "writesFound": false,
+    "evidence": {
+      "usersColumns": ["id", "username", "password", "role"],
+      "knowledgeReviewerColumnPresent": false,
+      "usersCount": 1,
+      "adminRows": 1,
+      "outboxRows": 0,
+      "auditRows": 7,
+      "auditRowsInTestWindow": 0,
+      "auditMaxPerformedAt": "2026-10-08T18:23:31.725367Z"
+    },
+    "interpretation": "The admin seed SELECT aborted on the missing knowledge_reviewer column before any insert. The incident dispatcher found no incident/outbox table to write. No row was created, updated or deleted."
+  },
+  "redisImpact": {
+    "keys": ["eims:telemetry:ingestion", "eims:jobs:incident-ingest:stream", "eims:jobs:evtx:stream"],
+    "streamLengths": { "eims:telemetry:ingestion": 0, "eims:jobs:incident-ingest:stream": 0, "eims:jobs:evtx:stream": 0 },
+    "deadLetterStream": null,
+    "consumerGroups": [
+      { "stream": "eims:telemetry:ingestion", "group": "eims:telemetry:consumer", "consumers": 0, "pending": 0, "lastDeliveredId": "0-0" },
+      { "stream": "eims:jobs:incident-ingest:stream", "group": "eims:jobs:incident-ingest:workers", "consumers": 1, "consumerName": "eims-ingest-3e6706224155", "pending": 0, "idleMs": 5896584 },
+      { "stream": "eims:jobs:evtx:stream", "group": "eims:jobs:evtx:workers", "consumers": 1, "consumerName": "evtx-8f7ca049cdc8", "pending": 0, "idleMs": 5896865 }
+    ],
+    "pubsubChannels": [],
+    "pendingMessages": 0,
+    "interpretation": "Only metadata was created: consumer groups and two consumer identities whose idle time matches the test timestamp. No message was consumed, acknowledged or left pending."
+  },
+  "minioImpact": {
+    "objectsWritten": false,
+    "evidence": "docker exec eims-minio find /data -type f -newermt '-3 hours' returned no files",
+    "bucketsPresent": ["eims-integration-test", "eims-ocr-manifests"]
+  },
+  "processState": {
+    "testProcessExited": true,
+    "orphanPytest": false,
+    "operationalBackendRunning": false,
+    "leftoverSubscriber": false
+  },
+  "summary": {
+    "dataLoss": false,
+    "rowMutation": false,
+    "messageLoss": false,
+    "pendingWork": false,
+    "durableMetadataCreated": ["3 consumer groups", "2 consumer identities"],
+    "auditContamination": false,
+    "verdict": "CONTAINED — metadata-only residue"
+  },
+  "unverified": [
+    "Whether the telemetry consumer group pre-existed this run",
+    "PostgreSQL WAL/statement log contents (no superuser access)",
+    "Redis AOF/RDB history",
+    "Transient third-party pub/sub subscriber"
+  ],
+  "ownerActions": [
+    "No cleanup required for correctness.",
+    "Optional later removal of the two consumer identities via XGROUP DELCONSUMER under explicit approval — not performed now.",
+    "Do not apply repository migrations to eims_registry.",
+    "Record that the ledger head a3d6f1e8c295 matches the deployed DB, not the repository head c4e8a1f7b932."
+  ]
+}

@@ -22,14 +22,15 @@ class EIMSSettings(BaseSettings):
     # PostgreSQL & PgBouncer Transaction Pool Parameters (Core Law 3)
     DB_USER: str = Field(default="eims_user")
     DB_PASSWORD: str = Field(default="eims_secret_password")
-    DB_HOST: str = Field(default="localhost", description="Target hostname for DB connection (use localhost for local venv)")
+    # not "localhost": on Windows it can resolve to ::1 first while Docker publishes IPv4 only
+    DB_HOST: str = Field(default="127.0.0.1", description="Target hostname for DB connection (use 127.0.0.1 for local Docker Postgres)")
     DB_PORT: int = Field(default=5432, description="Connect directly to Postgres port 5432 to bypass PgBouncer asyncpg transaction incompatibilities")
     DB_NAME: str = Field(default="eims_registry")
     DB_POOL_SIZE: int = Field(default=20, description="Async SQLAlchemy internal network connection pool bounds")
     DB_MAX_OVERFLOW: int = Field(default=10)
 
     # Redis Telemetry Ingestion Queue & Cache Parameters (Core Law 4)
-    REDIS_HOST: str = Field(default="localhost")
+    REDIS_HOST: str = Field(default="127.0.0.1")  # not "localhost": on Windows it resolves to ::1 first while Docker publishes IPv4 only (26 s stall, health ping timeout)
     REDIS_PORT: int = Field(default=6379)
     REDIS_DB_INDEX: int = Field(default=0)
     REDIS_MAX_CONNECTIONS: int = Field(default=100)
@@ -49,10 +50,11 @@ class EIMSSettings(BaseSettings):
         default=None,
         description="Initial admin account password (hashed at first seed). Auto-generated when unset in the development tier; required in non-development tiers."
     )
-    # Auth Mode: "demo" = no login required for normal operation; "secure" = authentication enforced
+    # Retained for compatibility. Application login is not a product requirement;
+    # Portal access is open-access regardless of this setting. Prefer "demo".
     AUTH_MODE: Literal["demo", "secure"] = Field(
         default="demo",
-        description="Authentication mode: 'demo' (no login for normal use) or 'secure' (auth enforced)."
+        description="Compatibility setting only. Application login is disabled; Portal is open-access for engineers."
     )
 
     @field_validator("AUTH_MODE", mode="before")
@@ -69,7 +71,7 @@ class EIMSSettings(BaseSettings):
         return self.AUTH_MODE == "demo"
     
     # MinIO Object Storage Configurations (Core Law 4 OCR Registration)
-    MINIO_ENDPOINT: str = Field(default="localhost:9000", description="MinIO S3 Gateway endpoint")
+    MINIO_ENDPOINT: str = Field(default="127.0.0.1:9000", description="MinIO S3 Gateway endpoint (IPv4 literal; avoid Windows localhost→::1)")
     MINIO_ACCESS_KEY: str = Field(default="eims_minio_admin", description="MinIO root access key")
     MINIO_SECRET_KEY: str = Field(default="eims_minio_secret", description="MinIO root secret password")
     MINIO_BUCKET_NAME: str = Field(default="eims-ocr-manifests", description="Target bucket for sticker uploads")

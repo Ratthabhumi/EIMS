@@ -1,0 +1,21 @@
+Log Name:      Application
+Source:        .NET Runtime
+Date:          11/20/2026 9:14:22 AM
+Event ID:      1026
+Task Category: None
+Level:         Error
+Keywords:      Classic
+User:          N/A
+Computer:      WS-ENG-01
+Description:
+Application: git-credential-manager.exe
+Framework Version: v8.0.0
+Description: The process was terminated due to an unhandled exception.
+Exception Info: System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at GitCredentialManager.Authentication.Select(IList`1 items)
+   at GitCredentialManager.Program.Main(String[] args)
+Exception Info: System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at GitCredentialManager.Authentication.Select(IList`1 items)
+   at GitCredentialManager.Program.Main(String[] args)

@@ -1,0 +1,70 @@
+{
+  "version": "eims-monitor-source-binding",
+  "observedLocal": "2026-11-18T20:12:00+07:00",
+  "repository": "C:/Users/MewMew/Desktop/Co-op/EIMS",
+  "branch": "integration/eims-consolidated",
+  "head": "85493b2131d3e353453072559a5dfc301d75dd06",
+  "directory": "scripts/agent-monitor",
+  "physicalFileCount": 12,
+  "gitVisibleFileCount": 10,
+  "gitInvisibleReason": ".gitignore line 72 rule '*.log' excludes the two fixture log files",
+  "files": [
+    { "path": "scripts/agent-monitor/Watch-EimsAgentJobs.ps1", "sha256": "87DB63860A4663F8D3CC9E74DF3A1DEF5FB4AC7F9F0BE902CB23FE1FF2688956", "bytes": 67606, "gitStatus": "untracked", "role": "implementation" },
+    { "path": "scripts/agent-monitor/Launch-EimsAgentMonitor.ps1", "sha256": "058215D612B939874EE6BDD7009479EDBE309CE241CAB2C7F0D9F657553529F6", "bytes": 54229, "gitStatus": "untracked", "role": "implementation" },
+    { "path": "scripts/agent-monitor/EimsMonitorHost.ps1", "sha256": "36C2FC996341B3E3209730A668D2FFF1CF265227B6EBA566593CB2D55588B4B9", "bytes": 6197, "gitStatus": "untracked", "role": "implementation" },
+    { "path": "scripts/agent-monitor/README.md", "sha256": "E3166BDE37CF5E652F884D586EE91272C22E336D68306F59C09E650DC66A29C2", "bytes": 32394, "gitStatus": "untracked", "role": "documentation" },
+    { "path": "scripts/agent-monitor/tests/Test-WatchEimsAgentJobs.ps1", "sha256": "63154EE59E18C64019DB69F6F94D0CEBC6DDC3B3CCCAABF563FEFBF9BFCADA94", "bytes": 41087, "gitStatus": "untracked", "role": "test" },
+    { "path": "scripts/agent-monitor/tests/Test-LaunchEimsAgentMonitor.ps1", "sha256": "8EB3A0C6580CB1ED0352E9033F4FD8BE82BAD551BA3DB75DA50B57C18E2D4AA9", "bytes": 51122, "gitStatus": "untracked", "role": "test" },
+    { "path": "scripts/agent-monitor/tests/fixtures/README.md", "sha256": "11F98A848287802FFADBAE0E1DB6F5BE9D18C5ED8BB8F58FB3541DF6532C9287", "bytes": 783, "gitStatus": "untracked", "role": "fixture-doc" },
+    { "path": "scripts/agent-monitor/tests/fixtures/e2e-sample-0001/manifest.json", "sha256": "DB56826F5BA31208009BD88FF04BF2642E71365B0F75BA81809BE122EDDCCFE8", "bytes": 53, "gitStatus": "untracked", "role": "fixture" },
+    { "path": "scripts/agent-monitor/tests/fixtures/e2e-sample-0001/runner.json", "sha256": "0CC5F3EB0CE17EAED7BE34C97AAE28A64DAC880594D166F412522DA7878454FC", "bytes": 75, "gitStatus": "untracked", "role": "fixture" },
+    { "path": "scripts/agent-monitor/tests/fixtures/e2e-sample-0001/exit.json", "sha256": "A7C5E88C23126062822A052D580ADAEE4D8DDFE29B7AE8B45EC7EB059649A8FC", "bytes": 39, "gitStatus": "untracked", "role": "fixture" },
+    { "path": "scripts/agent-monitor/tests/fixtures/e2e-sample-0001/stdout.log", "sha256": "5458F35DF63F3AF568ED4F03393B201B162A36FF0A6730832667784002F68A87", "bytes": 173, "gitStatus": "ignored", "role": "fixture-artifact" },
+    { "path": "scripts/agent-monitor/tests/fixtures/e2e-sample-0001/stderr.log", "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855", "bytes": 0, "gitStatus": "ignored", "role": "fixture-artifact" }
+  ],
+  "disposableSnapshot": {
+    "path": "%TEMP%/eims-monitor-check-20261118-165927",
+    "fileCount": 12,
+    "byteIdenticalToCurrentSource": true,
+    "comparedFiles": 12,
+    "mismatchedFiles": 0
+  },
+  "suiteStaticIndex": {
+    "watch": { "testCases": 10, "assertCallSites": 166 },
+    "launch": { "testCases": 24, "assertCallSites": 160 },
+    "note": "Recorded runtime results were watcher 169/169 and launcher 171/171. Static Assert- call sites are fewer because several assertions execute inside loops. The exact run transcript was not preserved, so the counts themselves are HISTORICAL claims bound to the byte-identical source snapshot; the source binding is verified, the count is not independently reproducible without a rerun."
+  },
+  "fixtureDependencyAnalysis": {
+    "ignoredFiles": ["e2e-sample-0001/stdout.log", "e2e-sample-0001/stderr.log"],
+    "synthetic": true,
+    "containsSecrets": false,
+    "generatedByRuntime": false,
+    "assertionDependency": "None on file content. The only fixture test (Test-WatchEimsAgentJobs.ps1 'synthetic fixture detected as completed') copies tests/fixtures recursively, then asserts: one job discovered, lifecycle COMPLETED, exit code 0. Those assertions derive from exit.json only.",
+    "otherTestsCreateLogsDynamically": "All other tests write their own stdout.log/stderr.log into a disposable %TEMP% root via Set-SyntheticFile; they do not read the fixture logs.",
+    "conclusion": "The two .log files are not required to pass any assertion."
+  },
+  "recommendation": {
+    "primary": "Track as source-controlled fixtures using a narrowly scoped negation rule, so a clone reproduces the documented fixture tree exactly.",
+    "candidateRule": "!scripts/agent-monitor/tests/fixtures/**/*.log",
+    "justification": [
+      "They are hand-written synthetic inputs, not runtime output.",
+      "They are documented in tests/fixtures/README.md as part of the fixture contract.",
+      "Content is 173 and 0 bytes with no credentials, command lines or customer data.",
+      "Tracking avoids a reviewer-visible mismatch between README and repository contents.",
+      "No test modification is needed, so no assertion risk."
+    ],
+    "alternative": "Keep ignored. Tests already pass without them, but the fixture tree in a fresh clone differs from the documented one.",
+    "rejected": [
+      "git add -f (bypasses the rule without documenting intent)",
+      "Generating them dynamically (requires test changes, out of scope for this read-only phase)"
+    ],
+    "approvalRequired": true,
+    "changeMadeInThisPhase": false
+  },
+  "provenanceVerdict": {
+    "technicallyValidated": "PASS",
+    "reproduciblyValidated": "PASS (disposable copy, byte-identical source)",
+    "gitProvenanceEstablished": "FAIL (untracked; two fixtures ignored)",
+    "readyForIndependentReview": "PARTIAL (source/evidence ready; Git provenance decision pending)"
+  }
+}

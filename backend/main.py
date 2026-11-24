@@ -85,6 +85,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         )
     try:
         await cache_manager.initialize()
+        if soft and not await cache_manager.ping():
+            # Leave Redis unset so optional cache writes no-op; health still reports DOWN.
+            await cache_manager.close()
+            logger.warning("cache unavailable in soft-deps mode: ping failed")
     except Exception as exc:  # noqa: BLE001
         if not soft:
             raise
@@ -221,11 +225,16 @@ from backend.api.routers.analyzer import (
     obsidian,
     stats,
 )
+from backend.api.routers.analyzer.catalog import catalog_router
+from backend.api.routers.analyzer.unified_catalog import router as unified_catalog_router
 from backend.api.routers.analyzer import auth as analyzer_auth
 
 app.include_router(analyzer_auth.router, prefix="/api/v1/auth", tags=["Analyzer Auth"])
+app.include_router(catalog_router)
 app.include_router(analyze.router, prefix="/api/v1/analyze", tags=["Analyzer"])
 app.include_router(history.router, prefix="/api/v1/history", tags=["Analyzer History"])
+# Register before knowledge.router so /catalog is not captured by /{knowledge_id}.
+app.include_router(unified_catalog_router, prefix="/api/v1/knowledge", tags=["Unified Knowledge Catalog"])
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["Verified Knowledge"])
 app.include_router(stats.router, prefix="/api/v1/stats", tags=["Analyzer Stats"])
 app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["Analyzer Feedback"])
@@ -253,7 +262,7 @@ async def readiness() -> JSONResponse:
     balancer must not treat that as "not ready", so this endpoint answers for the
     required tier only.
     """
-    if database_engine._engine is None:
+    if not database_engine.is_initialized:
         return JSONResponse(status_code=503, content={"status": "starting", "database": False})
     ok = await database_engine.ping()
     return JSONResponse(

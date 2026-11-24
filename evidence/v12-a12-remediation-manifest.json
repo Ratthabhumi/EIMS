@@ -1,0 +1,66 @@
+{
+ "schema": "v12-remediation-manifest/v1",
+ "repository": "EIMS",
+ "generatedAt": "2026-11-18T14:42:24.802Z",
+ "hashAlgorithm": "sha256",
+ "base": {
+  "frozenHead": "85493b2131d3e353453072559a5dfc301d75dd06",
+  "frozenManifestSha256": "53EE6A4093ECB50FEC25F746200F9BBCD10ABAFC17BCA41F567B2FD521BC2356",
+  "frozenEntryCount": 1063
+ },
+ "workspace": {
+  "root": "C:/Users/MewMew/AppData/Local/Temp/v12-a12/EIMS",
+  "fileCount": 1065
+ },
+ "summary": {
+  "unchanged": 1058,
+  "modified": 5,
+  "added": 2,
+  "removed": 0
+ },
+ "modified": [
+  {
+   "path": "tests/conftest.py",
+   "baseSha256": "963FA043A6AACE3562B959785368F71F255BA6C7F5A6A0E8F07D6B23B4AD1597",
+   "sha256": "CAF03950239F3ED8F45D20CCF797662303E9952CF1A93D0D2BE9E0417DF25DFF",
+   "bytes": 4294
+  },
+  {
+   "path": "tests/test_analyzer_integration_stability.py",
+   "baseSha256": "217DC45678E90CE07E561BC0D3509395D1858652D16649FB0C0A504283958C04",
+   "sha256": "FB318B5AF740BDAC62B53504702E5CC58B6FC7118069AEA6968DA98C18666AB6",
+   "bytes": 18877
+  },
+  {
+   "path": "tests/test_analyzer_investigation.py",
+   "baseSha256": "15472A95405CEC958FD6FE59513D101FF2E96028065BED9FF01CE9770CED51CE",
+   "sha256": "220B378AC07FFA6E6EAD1F526F2D4CF671494CB703553195045C15B5957B9483",
+   "bytes": 25367
+  },
+  {
+   "path": "tests/test_analyzer_reliability.py",
+   "baseSha256": "A684BFB7A477C9C91186B325E7ED1F8237C7120FAE17D595DB98F8B975671824",
+   "sha256": "9C7D74628A9970DF746D51E4CD9DD44A391FC33233EB00CB53F3C0DE1EED6233",
+   "bytes": 91626
+  },
+  {
+   "path": "tests/test_auth_modes.py",
+   "baseSha256": "9F5F61C42201AECA6D83A6E5AA10D94CC3D6DE61DBB53AA3F2D9982934B5D500",
+   "sha256": "EE9816833DD961321FEE05D56955FEF921B48DA1FA104438A53F6AF64060FB18",
+   "bytes": 5609
+  }
+ ],
+ "added": [
+  {
+   "path": "tests/disposable_guard.py",
+   "sha256": "1660702776530032285828705069040BEE62C030BD9A7E3B8BAE6674BB1AE675",
+   "bytes": 1548
+  },
+  {
+   "path": "tests/test_fixture_isolation_contract.py",
+   "sha256": "943B04FFE8A7908B3A47E7144B1E0330B426FCB03BA07875174E7DC39A0C0ED7",
+   "bytes": 3269
+  }
+ ],
+ "removed": []
+}

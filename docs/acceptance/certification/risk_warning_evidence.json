@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "note": "Keyword scan only; the absence of a sentence is not proof that the vendor gives no warning. Not a review.",
+  "records": [
+    {
+      "record_key": "candidate:cisco-ios:bgp:session-reset-on-interface-flap",
+      "source_url": "https://www.cisco.com/c/en/us/support/docs/ip/border-gateway-protocol-bgp/22166-bgp-trouble-main.html",
+      "risk_field_in_record": "Not stated by the vendor for no bgp fast-external-fallover. Inference (not from the page): disabling fast external fallover may delay BGP reaction to a real link failure until timers expire, so evaluate against convergence requirements before use.",
+      "retrieved": "2026-11-21",
+      "fetched": false,
+      "error": "HTTPError: HTTP Error 403: Forbidden",
+      "keyword_sentences": [],
+      "conclusion": "NOT_RETRIEVED_AUTOMATICALLY",
+      "status": "RISK_UNVERIFIED_NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "source_url": "https://community.fortinet.com/t5/FortiGate/Technical-Tip-Understanding-FortiGate-HA-failover-causes-from-HA/ta-p/264123",
+      "risk_field_in_record": "Not stated by the article. A transition is not necessarily a fault (override, manual failover and uptime reset are normal operations).",
+      "retrieved": "2026-11-21",
+      "fetched": true,
+      "page_chars": 6359,
+      "keyword_sentences": [
+        "When the HA uptime of the primary device reset is performed: Primary selected using: <2023/07/14 05:48:55> FGVMxxxxxxxJZPF5 is selected as the primary because its uptime is larger than peer member FGVMxxxxxxxLRLBE.",
+        "<- Due to reset of FGVMxxxxxxxLRLBE HA uptime, FGVMxxxxxxxJZPF5 ha uptime become larger and elected as Primary."
+      ],
+      "conclusion": "SENTENCES_FOUND_NEED_HUMAN_RELEVANCE_CHECK",
+      "status": "RISK_UNVERIFIED_NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "record_key": "candidate:microsoft-hyper-v:management:console-connect-or-auth-failure",
+      "source_url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/virtualization/hyper-v-cluster-connectivity-management-configuration",
+      "risk_field_in_record": "Not stated by the vendor page. Inference: trusted-host and CredSSP settings widen where credentials can be delegated, so scope them to the specific hosts.",
+      "retrieved": "2026-11-21",
+      "fetched": true,
+      "page_chars": 10964,
+      "keyword_sentences": [
+        "You do not have the required permission to complete this task.",
+        "Backup or third-party software impact: Backup operations or third-party tools cause services (for example, WMI) to crash or malfunction.",
+        "exe crashes, restart the service or reboot the node."
+      ],
+      "conclusion": "SENTENCES_FOUND_NEED_HUMAN_RELEVANCE_CHECK",
+      "status": "RISK_UNVERIFIED_NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "record_key": "candidate:microsoft-windows-dhcp:client:cannot-obtain-lease",
+      "source_url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/troubleshoot-dhcp-guidance",
+      "risk_field_in_record": "Not stated by the vendor page beyond running Wireshark as administrator on both devices. Changes to scopes or authorization affect all clients of the scope (inference).",
+      "retrieved": "2026-11-21",
+      "fetched": true,
+      "page_chars": 10584,
+      "keyword_sentences": [],
+      "conclusion": "NO_RELEVANT_VENDOR_RISK_STATEMENT_IDENTIFIED",
+      "status": "RISK_UNVERIFIED_NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:hyperv:on-host-proxy-or-integration-failure",
+      "source_url": "https://www.veeam.com/kb1857",
+      "risk_field_in_record": "Not stated by the KB. Allowing software VSS failover changes the snapshot provider used for the backup (inference): confirm the application-consistency requirement first.",
+      "retrieved": "2026-11-21",
+      "fetched": true,
+      "page_chars": 21931,
+      "keyword_sentences": [
+        "Some variations of the \"Unable to allocate processing resources\" error do not have a simple, straightforward solution."
+      ],
+      "conclusion": "SENTENCES_FOUND_NEED_HUMAN_RELEVANCE_CHECK",
+      "status": "RISK_UNVERIFIED_NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:restore:entire-vm-post-restore-differences",
+      "source_url": "https://helpcenter.veeam.com/docs/vbr/userguide/full_restore_before_you_begin.html",
+      "risk_field_in_record": "Not stated beyond the documented behaviors.",
+      "retrieved": "2026-11-21",
+      "fetched": true,
+      "page_chars": 307257,
+      "keyword_sentences": [
+        "Specify Advanced Settings Storage Settings RPO Warning Settings Notification Settings Step 6.",
+        "Specify Advanced Settings Storage Settings RPO Warning Settings Notification Settings Step 6.",
+        "Specify Advanced Settings Storage Settings RPO Warning Settings Notification Settings Step 6.",
+        "Specify Advanced Settings Storage Settings RPO Warning Settings Notification Settings Step 6.",
+        "Specify Advanced Settings Storage Settings RPO Warning Settings Notification Settings Step 6.",
+        "Specify Advanced Settings Storage Settings RPO Warning Settings Notification Settings Step 6."
+      ],
+      "conclusion": "SENTENCES_FOUND_NEED_HUMAN_RELEVANCE_CHECK",
+      "status": "RISK_UNVERIFIED_NEEDS_HUMAN_REVIEW"
+    }
+  ]
+}

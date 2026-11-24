@@ -1,0 +1,37 @@
+﻿{
+    "version":  "eims-evidence-provenance",
+    "createdAt":  "2026-11-18T19:26:02.7271707+07:00",
+    "entries":  [
+                    {
+                        "sourceRepository":  "Chat_HAND",
+                        "sourcePath":  "docs/V12_FINAL_ENGINEERING_REPORT.md",
+                        "sourceSha256":  "5AFB495E2EEEA4432F2C0161D936B7767CBF9998D06C42208AEA59B4F370E2FF",
+                        "destinationPath":  "docs/V12_FINAL_ENGINEERING_REPORT.md",
+                        "destinationSha256":  "5AFB495E2EEEA4432F2C0161D936B7767CBF9998D06C42208AEA59B4F370E2FF",
+                        "kind":  "product-report",
+                        "authoritativeForCurrentHead":  false,
+                        "note":  "Byte-identical copy; original preserved in Chat_HAND. Report content may predate current EIMS HEAD and is not by itself current acceptance."
+                    },
+                    {
+                        "sourceRepository":  "Chat_HAND",
+                        "sourcePath":  "evidence/monitor-persistent-acceptance.json",
+                        "sourceSha256":  "F59DCC751502D8A36DC2EB7A2E1AB1E0309774EB19EE10AB9672198174203F63",
+                        "destinationPath":  "evidence/monitor-persistent-acceptance.json",
+                        "destinationSha256":  "F59DCC751502D8A36DC2EB7A2E1AB1E0309774EB19EE10AB9672198174203F63",
+                        "kind":  "monitor-operational-evidence",
+                        "authoritativeForCurrentHead":  false,
+                        "note":  "ObservedUtc=2026-11-18T10:20:00Z; generated from a disposable copy; no source hash binding to current EIMS HEAD; GUI/raw-key remains BLOCKED.",
+                        "testCommand":  "powershell -NoProfile -ExecutionPolicy Bypass -File .\\tests\\Test-WatchEimsAgentJobs.ps1 ; powershell -NoProfile -ExecutionPolicy Bypass -File .\\tests\\Test-LaunchEimsAgentMonitor.ps1",
+                        "executionEnvironment":  "Windows PowerShell 5.1; disposable copy C:\\Users\\MewMew\\AppData\\Local\\Temp\\eims-monitor-check-20261118-165927",
+                        "testRevisionBinding":  "Current EIMS scripts/agent-monitor source hashes match the disposable-copy snapshot for Watch/Launch/Host/README/tests (verified 2026-11-18).",
+                        "sourceHashes":  {
+                                             "scripts/agent-monitor/Watch-EimsAgentJobs.ps1":  "87DB63860A4663F8D3CC9E74DF3A1DEF5FB4AC7F9F0BE902CB23FE1FF2688956",
+                                             "scripts/agent-monitor/Launch-EimsAgentMonitor.ps1":  "058215D612B939874EE6BDD7009479EDBE309CE241CAB2C7F0D9F657553529F6",
+                                             "scripts/agent-monitor/EimsMonitorHost.ps1":  "36C2FC996341B3E3209730A668D2FFF1CF265227B6EBA566593CB2D55588B4B9",
+                                             "scripts/agent-monitor/README.md":  "E3166BDE37CF5E652F884D586EE91272C22E336D68306F59C09E650DC66A29C2",
+                                             "scripts/agent-monitor/tests/Test-WatchEimsAgentJobs.ps1":  "63154EE59E18C64019DB69F6F94D0CEBC6DDC3B3CCCAABF563FEFBF9BFCADA94",
+                                             "scripts/agent-monitor/tests/Test-LaunchEimsAgentMonitor.ps1":  "8EB3A0C6580CB1ED0352E9033F4FD8BE82BAD551BA3DB75DA50B57C18E2D4AA9"
+                                         }
+                    }
+                ]
+}

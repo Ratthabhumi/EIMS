@@ -259,6 +259,26 @@ def extract_incident(text: str, source_family: str = "") -> Dict[str, object]:
     return incident_from_records(records, source_family)
 
 
+def _group_repeats(records, limit: int) -> List[Dict[str, object]]:
+    """Group exact repeats (same source, same stated time, same trimmed text), preserving first-seen order.
+
+    Returns at most ``limit`` groups, each with every line number and the occurrence count.
+    """
+    groups: Dict[tuple, Dict[str, object]] = {}
+    for rec in records:
+        key = (rec.source_file, rec.timestamp_raw or "", rec.raw_text.strip())
+        group = groups.get(key)
+        if group is None:
+            if len(groups) >= limit:
+                continue
+            groups[key] = {"text": rec.raw_text[:300], "sourceFile": rec.source_file,
+                           "timestamp": rec.timestamp_raw or "", "lineNumbers": [rec.line_number], "occurrences": 1}
+        else:
+            group["lineNumbers"].append(rec.line_number)
+            group["occurrences"] += 1
+    return list(groups.values())
+
+
 def incident_from_records(records, source_family: str = "") -> Dict[str, object]:
     """Incident sketch from normalized evidence records.
 
@@ -288,7 +308,11 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
     elif warnings:
         terminal = warnings[-1].raw_text
 
-    timeline: List[str] = [rec.raw_text[:300] for rec in order_records(failures + warnings)[:12]]
+    # Exact repeats of the same text, in the same source and with the same stated time, are one piece of evidence
+    # that occurs several times: show it once and keep EVERY line number and the count. Different timestamps or
+    # different sources are never merged, and the raw records themselves are untouched.
+    timeline_groups = _group_repeats(order_records(failures + warnings), 12)
+    timeline: List[str] = [g["text"] for g in timeline_groups]
 
     # Stage: infer only from signal lines (score >= 1), not whole-file scan.
     # This prevents ScheduleOptions config text from driving operationStage.
@@ -318,7 +342,10 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
         }
     )
 
-    evidence = [rec.raw_text[:300] for rec in failures[:10]]
+    evidence_groups = _group_repeats(failures, 10)
+    evidence = [g["text"] for g in evidence_groups]
+    evidence_refs = [dict(g, lineBasis="line number within the submitted text (not an original file offset)")
+                     for g in evidence_groups]
 
     unknowns: List[str] = []
     if failures or warnings:
@@ -392,6 +419,7 @@ def incident_from_records(records, source_family: str = "") -> Dict[str, object]
         "operationStage": stage,
         "diagnosticSignatures": signatures,
         "evidence": evidence,
+        "evidenceRefs": evidence_refs,
         "observedPaths": observed_paths,
         "unknowns": unknowns,
         "nextEvidence": next_evidence,

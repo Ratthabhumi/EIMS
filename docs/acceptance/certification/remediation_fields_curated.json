@@ -1,0 +1,322 @@
+{
+  "schema_version": 1,
+  "note": "Operational fields prepared from official PostgreSQL 16 pages (read 2026-11-22). Each 'stated' field carries a verbatim quote that tools/apply_remediation_fields.py re-checks against the live page before writing. Prepared with AI assistance: the records stay PENDING_HUMAN_REVIEW; nothing here is a human review. 'unverified' items are composed from two documented statements and never count as stated.",
+  "records": {
+    "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal": {
+      "recovery_evidence": {
+        "state": "stated",
+        "items": [
+          "Run SELECT datname, age(datfrozenxid) FROM pg_database; the age column measures the number of transactions from the cutoff XID to the current transaction's XID."
+        ],
+        "source": {
+          "url": "https://www.postgresql.org/docs/16/routine-vacuuming.html",
+          "source_version": "PostgreSQL 16 documentation",
+          "retrieved": "2026-11-22",
+          "quote": "SELECT datname, age(datfrozenxid) FROM pg_database; The age column measures the number of transactions from the cutoff XID to the current transaction's XID."
+        }
+      },
+      "verification_steps": {
+        "state": "unverified",
+        "items": [
+          "After the documented steps, re-run SELECT datname, age(datfrozenxid) FROM pg_database; and confirm that the wraparound warning or refusal messages are no longer logged."
+        ],
+        "basis": "Composed from the documented monitoring query and the documented warning messages; the page states no post-remediation procedure and no target age value."
+      },
+      "destructive_risk": {
+        "state": "stated",
+        "items": [
+          "Dropping a replication slot for a server that still exists and may still try to connect to it can force that replica to be rebuilt."
+        ],
+        "source": {
+          "url": "https://www.postgresql.org/docs/16/routine-vacuuming.html",
+          "source_version": "PostgreSQL 16 documentation",
+          "retrieved": "2026-11-22",
+          "quote": "If you drop a slot for a server that still exists and might still try to connect to that slot, that replica may need to be rebuilt."
+        }
+      },
+      "required_permission": {
+        "state": "stated",
+        "items": [
+          "The database-wide VACUUM that restores normal operation should be performed by a superuser."
+        ],
+        "source": {
+          "url": "https://www.postgresql.org/docs/16/routine-vacuuming.html",
+          "source_version": "PostgreSQL 16 documentation",
+          "retrieved": "2026-11-22",
+          "quote": "the VACUUM should be performed by a superuser"
+        }
+      },
+      "rollback_steps": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "The routine-vacuuming page was read in full for this record; it gives no way to undo committing or rolling back prepared transactions, terminating sessions or dropping a slot."
+      },
+      "human_approval_required": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "The page does not say whether an approval step is required; that is an EIMS policy decision for a human."
+      }
+    },
+    "candidate:postgresql:connections:too-many-connections": {
+      "operational_impact": {
+        "state": "stated",
+        "items": [
+          "max_connections can only be set at server start, so changing it requires restarting the server."
+        ],
+        "source": {
+          "url": "https://www.postgresql.org/docs/16/runtime-config-connection.html",
+          "source_version": "PostgreSQL 16 documentation",
+          "retrieved": "2026-11-22",
+          "quote": "This parameter can only be set at server start."
+        }
+      },
+      "verification_steps": {
+        "state": "unverified",
+        "items": [
+          "After the restart run SHOW max_connections; and confirm the new value is in effect."
+        ],
+        "basis": "Composed from the documented SHOW command (displays the current setting of a run-time parameter) and the documented parameter name; the page for max_connections describes no verification procedure."
+      },
+      "rollback_steps": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "The runtime-config-connection page describes the parameter only; it gives no procedure for reverting a changed value."
+      },
+      "required_permission": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "The page does not name the privilege needed to edit the configuration or restart the server."
+      },
+      "human_approval_required": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "Not addressed by the page; an EIMS policy decision."
+      }
+    },
+    "candidate:postgresql:replication:standby-query-canceled-recovery-conflict": {
+      "recovery_evidence": {
+        "state": "stated",
+        "items": [
+          "Query cancels and their reasons can be viewed in the pg_stat_database_conflicts view on the standby."
+        ],
+        "source": {
+          "url": "https://www.postgresql.org/docs/16/hot-standby.html",
+          "source_version": "PostgreSQL 16 documentation",
+          "retrieved": "2026-11-22",
+          "quote": "The number of query cancels and the reason for them can be viewed using the pg_stat_database_conflicts system view on the standby server."
+        }
+      },
+      "operational_impact": {
+        "state": "stated",
+        "items": [
+          "Setting hot_standby_feedback delays cleanup of dead rows on the primary, which may result in undesirable table bloat."
+        ],
+        "source": {
+          "url": "https://www.postgresql.org/docs/16/hot-standby.html",
+          "source_version": "PostgreSQL 16 documentation",
+          "retrieved": "2026-11-22",
+          "quote": "this will delay cleanup of dead rows on the primary, which may result in undesirable table bloat."
+        }
+      },
+      "verification_steps": {
+        "state": "unverified",
+        "items": [
+          "After changing hot_standby_feedback or the standby delay settings, compare the pg_stat_database_conflicts counters on the standby over time and confirm the cancellation counts stop increasing."
+        ],
+        "basis": "Composed from the documented view and the documented purpose of the settings; the page gives no target value or procedure."
+      },
+      "rollback_steps": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "The hot-standby page describes the settings but gives no procedure for reverting them."
+      },
+      "required_permission": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "Not named on the page."
+      }
+    },
+    "candidate:postgresql:server:administrator-shutdown-or-terminate": {
+      "verification_steps": {
+        "state": "stated",
+        "items": [
+          "Run pg_ctl status -D <datadir> to check whether the server is running in that data directory."
+        ],
+        "source": {
+          "url": "https://www.postgresql.org/docs/16/app-pg-ctl.html",
+          "source_version": "PostgreSQL 16 documentation",
+          "retrieved": "2026-11-22",
+          "quote": "status mode checks whether a server is running in the specified data directory."
+        }
+      },
+      "recovery_evidence": {
+        "state": "stated",
+        "items": [
+          "A running server is reported as: pg_ctl: server is running (PID: <pid>)."
+        ],
+        "source": {
+          "url": "https://www.postgresql.org/docs/16/app-pg-ctl.html",
+          "source_version": "PostgreSQL 16 documentation",
+          "retrieved": "2026-11-22",
+          "quote": "pg_ctl: server is running (PID: 13718)"
+        }
+      },
+      "rollback_steps": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "A requested shutdown is not undone; the server-shutdown page describes the shutdown modes only."
+      },
+      "required_permission": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "The server-shutdown page does not name the required operating-system privilege."
+      },
+      "human_approval_required": {
+        "state": "not_stated",
+        "items": [],
+        "reason": "Not addressed by the page; an EIMS policy decision."
+      }
+    },
+    "candidate:fortinet-fortios:ha:split-brain-or-formation-failure": {
+      "verification_steps": {
+        "state": "stated",
+        "items": [
+          "Run get system ha status to verify that HA has formed successfully."
+        ],
+        "source": {
+          "url": "https://docs.fortinet.com/document/fortigate/6.2.0/cookbook/946059/troubleshoot-an-ha-formation",
+          "source_version": "FortiOS 6.2.0 Cookbook",
+          "retrieved": "2026-11-22",
+          "quote": "If everything seems to be in working order, run get system ha status to verify that HA has formed successfully."
+        }
+      },
+      "operational_impact": {
+        "state": "stated",
+        "items": [
+          "Administrative connections to the cluster work intermittently, sessions cannot be established through the FortiGate and traffic drops."
+        ],
+        "source": {
+          "url": "https://docs.fortinet.com/document/fortigate/6.2.0/cookbook/946059/troubleshoot-an-ha-formation",
+          "source_version": "FortiOS 6.2.0 Cookbook",
+          "retrieved": "2026-11-22",
+          "quote": "The connections to the FortiGates in the cluster work intermittently when trying to connect with administrative access. Sessions cannot be established through the FortiGate, and the traffic drops."
+        }
+      }
+    },
+    "candidate:microsoft-windows-failover-cluster:service:fails-to-start": {
+      "rollback_steps": {
+        "state": "stated",
+        "items": [
+          "After using the firewall change for testing, return the settings to the original configuration."
+        ],
+        "source": {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/high-availability/troubleshoot-cluster-service-fails-to-start",
+          "source_version": "Windows Server failover clusters (Microsoft Learn)",
+          "retrieved": "2026-11-22",
+          "quote": "After you use this change for testing, return these settings to the original configuration."
+        }
+      },
+      "destructive_risk": {
+        "state": "stated",
+        "items": [
+          "Do not leave the firewall test change in place after troubleshooting."
+        ],
+        "source": {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/high-availability/troubleshoot-cluster-service-fails-to-start",
+          "source_version": "Windows Server failover clusters (Microsoft Learn)",
+          "retrieved": "2026-11-22",
+          "quote": "leave this change in place after you finish troubleshooting."
+        }
+      }
+    },
+    "candidate:microsoft-windows-dhcp:client:cannot-obtain-lease": {
+      "required_permission": {
+        "state": "stated",
+        "items": [
+          "The Wireshark capture step must be run as administrator on both the client and the server."
+        ],
+        "source": {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/troubleshoot-dhcp-guidance",
+          "source_version": "Windows Server DHCP (Microsoft Learn)",
+          "retrieved": "2026-11-22",
+          "quote": "Run Wireshark as administrator on both the client and server."
+        }
+      },
+      "verification_steps": {
+        "state": "stated",
+        "items": [
+          "Check the capture for the DORA packets; if all are present, the DORA process is likely successful."
+        ],
+        "source": {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/troubleshoot-dhcp-guidance",
+          "source_version": "Windows Server DHCP (Microsoft Learn)",
+          "retrieved": "2026-11-22",
+          "quote": "If all are present, the DORA process is likely successful."
+        }
+      }
+    },
+    "candidate:microsoft-hyper-v:management:console-connect-or-auth-failure": {
+      "required_permission": {
+        "state": "stated",
+        "items": [
+          "Users must be members of Hyper-V Administrators and Remote Management Users, and of Storage Replica Administrators if applicable."
+        ],
+        "source": {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/virtualization/hyper-v-cluster-connectivity-management-configuration",
+          "source_version": "Windows Server 2019/2022/2025 Hyper-V clusters (Microsoft Learn)",
+          "retrieved": "2026-11-22",
+          "quote": "Ensure users are members of: Hyper-V Administrators Remote Management Users Storage Replica Administrators (if applicable)"
+        }
+      }
+    },
+    "candidate:microsoft-hyper-v:vm:fails-to-migrate-start-or-inaccessible": {
+      "rollback_steps": {
+        "state": "unverified",
+        "items": [
+          "Retain the VHDX file when deleting the VM from Hyper-V Manager and back up the .vmcx and .vmrs files before deleting or renaming them; the page gives no restore procedure."
+        ],
+        "basis": "The page states retention of the VHDX and a backup of the configuration files (\"Delete the problematic VM from Hyper-V Manager (retain the VHDX file). Back up and, if needed, delete or rename the .vmcx and .vmrs files.\") but no step that restores the previous state, so it is not counted as a stated rollback."
+      }
+    },
+    "candidate:veeam-vbr:health-check:capacity-tier-corrupted-chain": {
+      "verification_steps": {
+        "state": "stated",
+        "items": [
+          "Run the capacity tier health check; if no corrupted data is found, the health check completes successfully."
+        ],
+        "source": {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/hc_capacity_tier.html",
+          "source_version": "Veeam Backup & Replication 13 documentation",
+          "retrieved": "2026-11-22",
+          "quote": "If Veeam Backup & Replication does not find any corrupted data, the health check completes successfully."
+        }
+      }
+    },
+    "candidate:veeam-vbr:hotadd:stuck-vmdk-on-proxy": {
+      "destructive_risk": {
+        "state": "stated",
+        "items": [
+          "Do not check the box to delete files from the datastore when releasing the disk from the proxy."
+        ],
+        "source": {
+          "url": "https://www.veeam.com/kb1775",
+          "source_version": "Veeam KB1775",
+          "retrieved": "2026-11-22",
+          "quote": "Do not check the box to delete files from datastore!"
+        }
+      },
+      "verification_steps": {
+        "state": "stated",
+        "items": [
+          "After the disk is released from the proxy, attempt consolidation again."
+        ],
+        "source": {
+          "url": "https://www.veeam.com/kb1775",
+          "source_version": "Veeam KB1775",
+          "retrieved": "2026-11-22",
+          "quote": "After the disk is released from the proxy, attempt Consolidation again."
+        }
+      }
+    }
+  }
+}

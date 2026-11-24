@@ -1,5 +1,8 @@
 {
   "4624": {
+    "provider_names": [
+      "Microsoft-Windows-Security-Auditing"
+    ],
     "th": {
       "overview": "Event 4624 (Successful Logon) บันทึกการเข้าสู่ระบบสำเร็จ ใช้สำหรับตรวจสอบการเข้าถึงระบบ เช่น ใครรีโมท (RDP) เข้ามา",
       "causes": [
@@ -28,6 +31,9 @@
     }
   },
   "4625": {
+    "provider_names": [
+      "Microsoft-Windows-Security-Auditing"
+    ],
     "th": {
       "overview": "Event 4625 (An account failed to log on) ยืนยันว่ามี Logon Attempt ล้มเหลวบนเครื่องที่รับความพยายามเข้าสู่ระบบ แต่ Event นี้เพียงรายการเดียวไม่ยืนยัน Root Cause หรือว่าเป็น Brute-Force",
       "causes": [
@@ -60,6 +66,9 @@
     }
   },
   "4740": {
+    "provider_names": [
+      "Microsoft-Windows-Security-Auditing"
+    ],
     "th": {
       "overview": "Event 4740 (A user account was locked out) ยืนยันว่าบัญชีถูก Lockout โดยให้ตรวจ Caller Computer Name และเหตุการณ์ประกอบเพื่อหาต้นทาง ไม่ควรสรุปว่าเป็นผู้ใช้พิมพ์รหัสผิดหรือ Brute-Force จาก Event นี้เพียงอย่างเดียว",
       "causes": [
@@ -92,6 +101,9 @@
     }
   },
   "4720": {
+    "provider_names": [
+      "Microsoft-Windows-Security-Auditing"
+    ],
     "th": {
       "overview": "Event 4720 (A user account was created) บันทึกการสร้างบัญชีผู้ใช้ใหม่ ใช้สำหรับ Audit ความปลอดภัย",
       "causes": [
@@ -118,6 +130,9 @@
     }
   },
   "7000": {
+    "provider_names": [
+      "Service Control Manager"
+    ],
     "th": {
       "overview": "Event 7000 (Service failed to start) เกิดขึ้นเมื่อ Service ของระบบหรือแอปพลิเคชันไม่สามารถเริ่มทำงานได้",
       "causes": [
@@ -146,6 +161,9 @@
     }
   },
   "7034": {
+    "provider_names": [
+      "Service Control Manager"
+    ],
     "th": {
       "overview": "Event 7034 (Service terminated unexpectedly) บริการของ Windows ล่มกะทันหัน",
       "causes": [
@@ -174,6 +192,9 @@
     }
   },
   "7009": {
+    "provider_names": [
+      "Service Control Manager"
+    ],
     "th": {
       "overview": "Event 7009 (Service Timeout) เกิดเมื่อ Service ใช้เวลา Start นานเกินไป (ค่าเริ่มต้นคือ 30 วินาที) จน Windows ตัดจบ",
       "causes": [
@@ -202,6 +223,9 @@
     }
   },
   "11": {
+    "provider_names": [
+      "Disk"
+    ],
     "th": {
       "overview": "Event 11 (Disk Controller Error) ฮาร์ดแวร์ Disk ตรวจพบปัญหาการเชื่อมต่อหรือการอ่านเขียน",
       "causes": [
@@ -230,6 +254,9 @@
     }
   },
   "51": {
+    "provider_names": [
+      "Disk"
+    ],
     "th": {
       "overview": "Event 51 (Paging operation error) หมายถึง Windows พบข้อผิดพลาดในการอ่านเขียนไฟล์ Paging (Virtual Memory) บนฮาร์ดดิสก์",
       "causes": [
@@ -258,6 +285,9 @@
     }
   },
   "1014": {
+    "provider_names": [
+      "Microsoft-Windows-DNS-Client"
+    ],
     "th": {
       "overview": "Event 1014 (DNS Name Resolution Timeout) แปลว่าเซิร์ฟเวอร์ไม่สามารถแปลงชื่อโดเมนเป็น IP Address ได้ภายในเวลาที่กำหนด",
       "causes": [
@@ -288,6 +318,9 @@
     }
   },
   "1058": {
+    "provider_names": [
+      "Microsoft-Windows-GroupPolicy"
+    ],
     "th": {
       "overview": "Event 1058 (Group Policy Processing Failed) เครื่อง Client ไม่สามารถอ่านไฟล์ GPO จากโดเมนได้",
       "causes": [
@@ -318,6 +351,9 @@
     }
   },
   "134": {
+    "provider_names": [
+      "Microsoft-Windows-Time-Service"
+    ],
     "th": {
       "overview": "Event 134 (Time-Service NtpClient) เครื่องเซิร์ฟเวอร์ไม่สามารถ Sync เวลาจากเซิร์ฟเวอร์เป้าหมายได้",
       "causes": [
@@ -346,6 +382,9 @@
     }
   },
   "5009": {
+    "provider_names": [
+      "Microsoft-Windows-WAS"
+    ],
     "th": {
       "overview": "Event 5009 (WAS - IIS Application Pool crashed) หมายความว่า Worker Process ของ IIS ล่มกะทันหัน",
       "causes": [
@@ -374,6 +413,9 @@
     }
   },
   "5011": {
+    "provider_names": [
+      "Microsoft-Windows-WAS"
+    ],
     "th": {
       "overview": "Event 5011 (IIS Worker Process communication error) Process ของเว็บแอปค้างจนส่งข้อมูลกลับให้ WAS ไม่ทันตามกำหนด",
       "causes": [
@@ -402,6 +444,9 @@
     }
   },
   "1000": {
+    "provider_names": [
+      "Application Error"
+    ],
     "th": {
       "overview": "Event 1000 (Application Crash) โปรแกรมพังและปิดตัวลง",
       "causes": [
@@ -430,6 +475,9 @@
     }
   },
   "1530": {
+    "provider_names": [
+      "Microsoft-Windows-User Profiles Service"
+    ],
     "th": {
       "overview": "Event 1530 (Registry handle leaked) เป็นแค่คำเตือนว่าตอนผู้ใช้ Log off โปรแกรมบางตัวยังไม่ยอมคืน Memory (Registry) ให้ระบบ",
       "causes": [
@@ -456,6 +504,9 @@
     }
   },
   "1511": {
+    "provider_names": [
+      "Microsoft-Windows-User Profiles Service"
+    ],
     "th": {
       "overview": "Event 1511 (Temporary Profile Loaded) Windows ไม่สามารถโหลดโปรไฟล์ตั้งค่าของผู้ใช้ได้ เลยสร้างหน้า Desktop ชั่วคราวให้ (รีสตาร์ทแล้วไฟล์ที่เซฟจะหายหมด)",
       "causes": [
@@ -486,6 +537,9 @@
     }
   },
   "109": {
+    "provider_names": [
+      "Microsoft-Windows-Kernel-Power"
+    ],
     "th": {
       "overview": "Event 109 (Kernel-Power) บันทึกเพื่อแจ้งให้ทราบว่าระบบกำลังเข้าสู่กระบวนการปิดเครื่อง (Shutdown) หรือรีสตาร์ท เป็นเหตุการณ์ปกติของระบบปฏิบัติการ",
       "causes": [
@@ -512,6 +566,9 @@
     }
   },
   "20": {
+    "provider_names": [
+      "Microsoft-Windows-WindowsUpdateClient"
+    ],
     "th": {
       "overview": "Event 20 (Windows Update Agent) บันทึกว่าระบบดาวน์โหลดหรือติดตั้ง Windows Update ล้มเหลว มักพบพร้อมกับ Error Code เช่น 0x80072efe (เน็ตเวิร์คหลุด) หรือ 0x80070643 (ติดตั้งไม่ได้)",
       "causes": [
@@ -542,6 +599,9 @@
     }
   },
   "1069": {
+    "provider_names": [
+      "Microsoft-Windows-FailoverClustering"
+    ],
     "th": {
       "overview": "Event 1069 (Cluster resource failed) ทรัพยากร (เช่น IP, Disk, หรือ SQL Service) ภายใน Failover Cluster ล่ม ทำให้เกิดการย้าย (Failover) ไปเครื่องอื่น",
       "causes": [
@@ -570,6 +630,9 @@
     }
   },
   "1135": {
+    "provider_names": [
+      "Microsoft-Windows-FailoverClustering"
+    ],
     "th": {
       "overview": "Event 1135 (Cluster node removed) Node ของเซิร์ฟเวอร์คลัสเตอร์หลุดออกจากกลุ่ม เนื่องจากขาดการติดต่อนานเกินค่าที่กำหนด",
       "causes": [
@@ -598,6 +661,9 @@
     }
   },
   "10016": {
+    "provider_names": [
+      "Microsoft-Windows-DistributedCOM"
+    ],
     "th": {
       "overview": "Event ID 10016 มาจาก DistributedCOM (DCOM) หมายความว่าโปรแกรมหรือบริการ Windows พยายามเรียกใช้ COM Server แต่ไม่มีสิทธิ์ Local Activation ตามที่ตั้งค่าไว้ โดยทั่วไปเป็น Warning/Error ที่พบบ่อย และมักไม่ทำให้เครื่องล่ม แต่จะขึ้นซ้ำใน Event Viewer หากสิทธิ์ DCOM ยังไม่ถูกต้อง",
       "causes": [
@@ -626,6 +692,9 @@
     }
   },
   "41": {
+    "provider_names": [
+      "Microsoft-Windows-Kernel-Power"
+    ],
     "th": {
       "overview": "Event ID 41 (Kernel-Power) หมายถึงระบบรีสตาร์ทโดยไม่ปิดเครื่องอย่างถูกต้อง (unexpected shutdown) มักเกิดจากไฟดับ, กดรีเซ็ตค้าง, หรือขัดข้องของฮาร์ดแวร์/ไดรเวอร์",
       "causes": [
@@ -656,6 +725,9 @@
     }
   },
   "6008": {
+    "provider_names": [
+      "EventLog"
+    ],
     "th": {
       "overview": "Event ID 6008 (EventLog) บันทึกว่าระบบปิดตัวลงโดยไม่ผ่านขั้นตอน Shut down ปกติ มักพบคู่กับ Kernel-Power 41 หลังไฟดับหรือบังคับปิดเครื่อง",
       "causes": [
@@ -684,6 +756,9 @@
     }
   },
   "1074": {
+    "provider_names": [
+      "User32"
+    ],
     "th": {
       "overview": "Event 1074 (User Initiated Shutdown) ผู้ใช้หรือแอปพลิเคชันสั่งปิดหรือรีสตาร์ทเครื่อง",
       "causes": [
@@ -712,6 +787,9 @@
     }
   },
   "6006": {
+    "provider_names": [
+      "EventLog"
+    ],
     "th": {
       "overview": "Event 6006 (Event Log Service Stopped) เป็นสัญลักษณ์ว่าเครื่องปิดการทำงานโดยสมบูรณ์ (Clean Shutdown)",
       "causes": [
@@ -732,6 +810,9 @@
     }
   },
   "1001": {
+    "provider_names": [
+      "Microsoft-Windows-WER-SystemErrorReporting"
+    ],
     "th": {
       "overview": "Event 1001 (BugCheck / Blue Screen of Death) คอมพิวเตอร์เกิดจอฟ้าและสร้างไฟล์ Memory Dump",
       "causes": [
@@ -760,6 +841,9 @@
     }
   },
   "17": {
+    "provider_names": [
+      "Microsoft-Windows-WHEA-Logger"
+    ],
     "th": {
       "overview": "Event 17 (WHEA-Logger) ตรวจพบข้อผิดพลาดฮาร์ดแวร์ที่แก้ไขได้ มักเกิดกับ PCI Express",
       "causes": [
@@ -788,6 +872,9 @@
     }
   },
   "4771": {
+    "provider_names": [
+      "Microsoft-Windows-Security-Auditing"
+    ],
     "th": {
       "overview": "Event 4771 (Kerberos Pre-Authentication Failed) ยืนยันตัวตน Kerberos ล้มเหลว (รหัสผ่านผิด)",
       "causes": [
@@ -816,6 +903,9 @@
     }
   },
   "7036": {
+    "provider_names": [
+      "Service Control Manager"
+    ],
     "th": {
       "overview": "Event 7036 (Service State Changed) Service ของระบบถูกเปิดหรือปิด (Stopped / Started)",
       "causes": [
@@ -838,6 +928,9 @@
     }
   },
   "7045": {
+    "provider_names": [
+      "Service Control Manager"
+    ],
     "th": {
       "overview": "Event 7045 (New Service Installed) ตรวจพบการติดตั้ง Service ใหม่",
       "causes": [
@@ -864,6 +957,9 @@
     }
   },
   "1116": {
+    "provider_names": [
+      "Microsoft-Windows-Windows Defender"
+    ],
     "th": {
       "overview": "Event 1116 (Malware Detected) โปรแกรมป้องกันไวรัสหรือ EDR ตรวจพบมัลแวร์",
       "causes": [
@@ -946,6 +1042,9 @@
     }
   },
   "55": {
+    "provider_names": [
+      "Ntfs"
+    ],
     "th": {
       "overview": "Event 55 (NTFS File System Corruption) เกิดขึ้นเมื่อโครงสร้างระบบไฟล์ (MFT / Metadata) ของไดรฟ์เสียหาย หรือพบ Bad Sector บนฮาร์ดดิสก์",
       "causes": [
@@ -976,6 +1075,9 @@
     }
   },
   "4768": {
+    "provider_names": [
+      "Microsoft-Windows-Security-Auditing"
+    ],
     "th": {
       "overview": "Event 4768 (Kerberos TGT Request Failure) บันทึกเมื่อการขอ Authentication Ticket (TGT) ล้มเหลว มักเกิดจากรหัสผ่านผิด หรือเวลาของเครื่องไม่ตรงกับ Domain Controller",
       "causes": [
@@ -1006,6 +1108,9 @@
     }
   },
   "1102": {
+    "provider_names": [
+      "Microsoft-Windows-Eventlog"
+    ],
     "th": {
       "overview": "Event 1102 (AUDIT_LOG_CLEARED / Audit Log Cleared) บันทึกเมื่อ Security Log ถูกลบหรือเคลียร์ ซึ่งเป็นสัญญาณเตือนสำคัญของการพยายามลบหลักฐาน (Anti-Forensics)",
       "causes": [
@@ -1036,6 +1141,9 @@
     }
   },
   "4672": {
+    "provider_names": [
+      "Microsoft-Windows-Security-Auditing"
+    ],
     "th": {
       "overview": "Event 4672 (Special Privileges Assigned to New Logon) บันทึกเมื่อบัญชีได้รับสิทธิพิเศษพิเศษ (เช่น SeDebugPrivilege, SeBackupPrivilege) ในช่วงเริ่ม Session — พบได้บ่อยกับผู้ดูแลระบบ แต่ก็เป็นสิ่งที่ผู้โจมตีใช้งานหลังจากยกระดับสิทธิ์",
       "causes": [
@@ -1066,6 +1174,9 @@
     }
   },
   "4688": {
+    "provider_names": [
+      "Microsoft-Windows-Security-Auditing"
+    ],
     "th": {
       "overview": "Event 4688 (Process Creation) บันทึกเมื่อกระบวนการใหม่ถูกสร้างขึ้น พร้อมข้อมูล Command Line — ใช้ตรวจจับการรันเครื่องมือโจมตี (เช่น encoded PowerShell, cmd.exe) และยืนยัน TTP ของผู้โจมตี",
       "causes": [

@@ -1,0 +1,1656 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-21T20:26:28Z",
+  "git_head": "3f2beeafa3f28a98d9ff9f3ecf89b34978de07de",
+  "python": "3.14.3",
+  "note": "Automated technical evidence from synthetic fixtures; not a certification or a human review.",
+  "record_hashes": {
+    "candidate:fortinet-fortios:ha:failover-reason-from-ha-status": "a1a381a5b663841b7f5b3f7770dbecf5b50afaa50a01c905e71a6f1e76781137",
+    "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny": "9bd662638fd83efd555c3deead42c69b1a6a03f0ac82f343732917e577863a9d",
+    "candidate:fortinet-fortios:traffic:policyid-0-local-traffic": "886df254e14cb0ccad80f7def091d60c048f438d450d6012b1a505b8c8b19e7f",
+    "candidate:postgresql:auth:password-authentication-failed": "bf2bc781590fe1a5679d27e3922bb0ba0f767a313049092aa60b0604ce477bb8",
+    "candidate:postgresql:checkpoint:wal-size-triggered-too-frequently": "9b0b9b0a6d982a77ad42cca67558181b69d35c45073ec6e575ec143caceb9d93",
+    "candidate:postgresql:connections:too-many-connections": "96ea1fe02167a4ca8c9fbaa0568414af74b10662bfbb8c5fa8f4c8024f2f9876",
+    "candidate:postgresql:locks:deadlock-detected": "fa386f678983a71fcd7d996dd7ff677fb93c1b6ebbde1b3a1f4b616d0b09dd70",
+    "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal": "43904328a52a5e8be42266031d24fbefcfea9bea0cfb0bc0bde4a897c07b09d0",
+    "candidate:postgresql:replication:standby-lag-measurement": "3fee696ec30ab75f637a74a5d9e6a6414c3f4a91de3148d19196a743f61f0ba7",
+    "candidate:postgresql:replication:standby-query-canceled-recovery-conflict": "a330d37a1ceb34328b23dc328cdb403d3bf3ad5a94112fa617962a5707772e96",
+    "candidate:postgresql:server:administrator-shutdown-or-terminate": "64186d751a66c5fd415ab7386b8032ea4bdbdc78f7438349905b257f0ff1be19",
+    "candidate:postgresql:storage:data-disk-full": "68fee88d683e8740f41da191ef16ff5fcc6ffbd494dcd1b82fc1889817975091",
+    "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal": "8cd0ca7ac4b4051e2d23265b55c65b7152244f4df29c6fd9a3e505ff5c56b723",
+    "candidate:postgresql:wal:archive-command-failing-pg-wal-fills": "874963c4e5c0d79bea71c88da2881b65197b61f86a0dfed2c81dbb84aabfec2c",
+    "diagnostic_legacy:cisco_asa:official_message_id:105005": "0af40c31f5b4759d7c8c37cb4dcb67c75a7f947c4fdf6c61e02a061272f950b6",
+    "diagnostic_legacy:cisco_asa:official_message_id:106001": "f3971399d08731211813868ed56685e453c6e6e1f1717907137264ea07b1cf40",
+    "diagnostic_legacy:cisco_asa:official_message_id:106015": "d5b100d79a5a3aa21204665a9119c5a25f106899cad6757888bedd52e56d74cc",
+    "diagnostic_legacy:cisco_asa:official_message_id:106023": "f15065195b6cfbf700561c942b439ccc8801e275c6cd4788312ec632eea952bc",
+    "diagnostic_legacy:cisco_asa:official_message_id:106024": "166cc97e2a3561645152bef92fa778b31b8afe8d53500318aa1cff09fbb1c8c5",
+    "diagnostic_legacy:cisco_asa:official_message_id:106100": "cffa0c00789a691732fec0332c9eed879ab0b5695e7ef1346b2456580707c87e",
+    "diagnostic_legacy:cisco_asa:official_message_id:113005": "71731be15a7355e59f18613d0d6ddd03dbbe75f3fa8234e28363163b839cbaec",
+    "diagnostic_legacy:cisco_asa:official_message_id:113019": "0b087405f6c5fac3d771ecf4c5ed0aff4d34cab150ebde5ab4aca786a17dc67e",
+    "diagnostic_legacy:cisco_asa:official_message_id:302013": "c97defd1fbc3fbd0d18f5fd30df759c17e2cec466bc407d477ca7d5b2d1ae090",
+    "diagnostic_legacy:cisco_asa:official_message_id:302014": "32752c66c8ecf6c7c435b48628a6f81bf655bb51ac16c472d1ac05542b5ba527",
+    "diagnostic_legacy:cisco_asa:official_message_id:411001": "5b9978f498b39d6a7e50518b81c394611da660de2c1679fa42a8a17f6684058f",
+    "diagnostic_legacy:cisco_asa:official_message_id:411002": "1111628410b5a167da109c1d1298949e02970dc35a491089f5a37260cfbe39fd",
+    "diagnostic_legacy:fortinet:log_category:event/system": "825e04a9a448691e6a87b2ecdc73b040d6f55bd72efd2a819400e5fadfea61d4",
+    "diagnostic_legacy:fortinet:log_category:event/user": "90c28c76351e42ff76be6062e8937b33fcd24c032ed175c630ea6a81a44db3f4",
+    "diagnostic_legacy:fortinet:log_category:event/vpn": "c7d715824970ce47018af1dd2eebdd623b07dfb76e1071fcf3e825c0e4b50362",
+    "diagnostic_legacy:fortinet:log_category:traffic/forward": "da773ce10f41c5554cc10a6be8ebae92bc4c0c7aad9c6bc569a0ae3cb82f459b",
+    "diagnostic_legacy:fortinet:log_category:utm/ips": "6e796dbfe1e4e7bc067d2e44aae22b60512ab1c74badde6283657d528fd3a898",
+    "diagnostic_legacy:linux_syslog:general_signature:AUTH-FAIL": "a694bc3a369062ae30d94c74521f5e5865e824a3aadc7b630bb5a75b6e75cef4",
+    "diagnostic_legacy:palo_alto:log_category:CONFIG": "fc3332dde1624d78253424ce0c51313447e53acc328930377305f8fe1d8fad3f",
+    "diagnostic_legacy:palo_alto:log_category:SYSTEM": "c0697083f5939709d83c2a3194d20f150675a0375a4738f01a109d0ce6324584",
+    "diagnostic_legacy:palo_alto:log_category:THREAT": "a2f359d4ee2a61bfc795e7892eaf5c7604f5a28e69d6e957fe4ed39b7762eebd",
+    "diagnostic_legacy:palo_alto:log_category:TRAFFIC": "c157f06374ad4b2b01813f37e3e7bd7c92815b306acaf3891070ee13346791fd",
+    "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-REPLICA-SNAPSHOT-CHAIN": "67adf7f165b4ef062428ce65e0f605a8df6c9fb7a41e20aeef1477adcf0a7dbe",
+    "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-SESSION-FAILED": "c05123170e06d201bdf31ad7a95deafa6da403aa01514f3f5f862758a970b358",
+    "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-CBT-DELETE-FAILED": "0c865cff3a4742faa8c4bbc0a7c54fc332d946d0c82984a2ea02ecb4385c0198",
+    "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING": "2bfffc25e5bc4bf2aa4ebdfc1f964960fef1fb854366226287d8242e051a23f3",
+    "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-CBT-DELETE-FAILED": "018d974b5c5c6fedeed3c2d4ccb774e42978d2fbd19ff421e51d5498f3c6e99d",
+    "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING": "eb80e9f07506d93a4da199d66896c92d2ea738b024907560a3954beb51f07ad4"
+  },
+  "cases": [
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:105005",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "f48dc82d2362b950797ee7c97e5d0c24c691d98fe6e649239e2ba269669b6a90",
+      "input_preview": "%ASA-4-105005: (Primary) Lost Failover communications with mate on interface inside",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "105005"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "105005"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:105005",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "a64eb9b7fad89de4b1b3ec02783acb68acd376bdb8714926abe40011bf677834",
+      "input_preview": "%ASA-4-999999: (Primary) Lost Failover communications with mate on interface inside",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '105005']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:105005",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "83498c89ab50e664a9c571beb5307ee1c06c90dd5d1cb40afea1902991d1ece6",
+      "input_preview": "operator note: ticket mentions 105005 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '105005']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106001",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "3e6d3800828519ed834b45599971493f1a8c6ed3f4c2e53155719ad926894883",
+      "input_preview": "%ASA-2-106001: Inbound TCP connection denied from 192.0.2.10/50000 to 198.51.100.5/80 flags SYN on interface outside",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "106001"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "106001"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106001",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "6fd826685f66fd8c5c86da330193886a123fd41a63e65bdbc02df17235a07d40",
+      "input_preview": "%ASA-2-999999: Inbound TCP connection denied from 192.0.2.10/50000 to 198.51.100.5/80 flags SYN on interface outside",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106001']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106001",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "f73ce84984ac27913c8003df289e6fc9e4dd88901770b8ffca7d81315e33a814",
+      "input_preview": "operator note: ticket mentions 106001 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106001']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106015",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "936f1ecb7bba955e4acbad7f3b2762565d87cf9458b92b802631634bc031890d",
+      "input_preview": "%ASA-6-106015: Deny TCP (no connection) from 192.0.2.10/50000 to 198.51.100.5/80 flags RST on interface outside",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "106015"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "106015"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106015",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "5326a70aa54d4ccb9651fcca37d3acaf11bed8c8a5bf1887b58e6950d2f7650b",
+      "input_preview": "%ASA-6-999999: Deny TCP (no connection) from 192.0.2.10/50000 to 198.51.100.5/80 flags RST on interface outside",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106015']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106015",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "fab7af1cc55673bb36c6d8063e7aa424e188c3b85fbc9e8740ad807149c7ea15",
+      "input_preview": "operator note: ticket mentions 106015 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106015']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106023",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "232d4a19accb3c1765af66c3edf36fe1bf787591df5049cd04223923a8ea2bec",
+      "input_preview": "%ASA-4-106023: Deny tcp src outside:192.0.2.10/50000 dst inside:198.51.100.5/80 by access-group \"OUT_ACL\" [0x0, 0x0]",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "106023"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "106023"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106023",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "59b8ed99652c16cac0c45966e34034520edf0198dff6b2bcf0b7e20130c6b91e",
+      "input_preview": "%ASA-4-999999: Deny tcp src outside:192.0.2.10/50000 dst inside:198.51.100.5/80 by access-group \"OUT_ACL\" [0x0, 0x0]",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106023']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106023",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "2ab31ad2960a660451e19f8a9083673e37a30109b6cc3f140be93e86408508a9",
+      "input_preview": "operator note: ticket mentions 106023 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106023']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106024",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "40fcad2c34ead8a8ebcf95d43bc882855bbabe23985cd6b08f46dfba72aa514c",
+      "input_preview": "%ASA-2-106024: Access rules memory exhausted",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "106024"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "106024"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106024",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "57a7f47a0308402908d39843bc7d6afcffd49d0555a007032166ea7bf1fbcbd9",
+      "input_preview": "%ASA-2-999999: Access rules memory exhausted",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106024']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106024",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "ce67c54802f9006acab9ec6d5296d6340d9b86220cce00de5e13e90842f5c88f",
+      "input_preview": "operator note: ticket mentions 106024 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106024']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106100",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "9c87b25dde15f6d7610991d57f50442669513dd6c4653e2ff37d0bf872fedde8",
+      "input_preview": "%ASA-6-106100: access-list OUT_ACL denied tcp outside/192.0.2.10(50000) -> inside/198.51.100.5(80) hit-cnt 1 first hit [0x0, 0x0]",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "106100"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "106100"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106100",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "664f1b93e6eb44a9783b70a59e7bfdca993427080042bbbd085fd7e45dde4b60",
+      "input_preview": "%ASA-6-999999: access-list OUT_ACL denied tcp outside/192.0.2.10(50000) -> inside/198.51.100.5(80) hit-cnt 1 first hit [0x0, 0x0]",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106100']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106100",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "c8093ee245194c8ba1a1f1ad8b695e61a26ca90fbd88cec5934c3d7ea96fa9c1",
+      "input_preview": "operator note: ticket mentions 106100 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '106100']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113005",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "528a82c2e1511b2bb663a1edc39e7236bdbaa9a3739880e199c93fdf9620351e",
+      "input_preview": "%ASA-6-113005: AAA user authentication Rejected : reason = Invalid password : server = 192.0.2.20 : user = synthetic : user IP = 192.0.2.30",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "113005"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "113005"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113005",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "7659d54b287f84b1a2c7905dcdd722845ea324c24b4df7d9a0a457c1a90c8687",
+      "input_preview": "%ASA-6-999999: AAA user authentication Rejected : reason = Invalid password : server = 192.0.2.20 : user = synthetic : user IP = 192.0.2.30",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '113005']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113005",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "2ad17895fcfbe774c268b89216f727447f7e87d15e938edfb6d1277a7d45d418",
+      "input_preview": "operator note: ticket mentions 113005 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '113005']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113019",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "c1b36bf0be01dedc24696579bbab2dd7bd8faa0d9407259d11d8ba487c249c8f",
+      "input_preview": "%ASA-4-113019: Group = g, Username = u, IP = 192.0.2.40, Session disconnected. Session Type: SVC, Duration: 0h:05m:00s, Bytes xmt: 1, Bytes rcv: 1, Reason: User",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "113019"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "113019"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113019",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "85eadbcf496a9eebab52a791aff2c1329485611edb23af51b5c1836cfa9536e2",
+      "input_preview": "%ASA-4-999999: Group = g, Username = u, IP = 192.0.2.40, Session disconnected. Session Type: SVC, Duration: 0h:05m:00s, Bytes xmt: 1, Bytes rcv: 1, Reason: User",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '113019']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113019",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "fb81599fb6ab46a70c933bef5bc92c3db3a8cd02b100a93f29599b45b4b5be4e",
+      "input_preview": "operator note: ticket mentions 113019 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '113019']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302013",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "73d3a9c9609298170d3096636e65b23b41e0879334f00e504a75a3d40a3c65dd",
+      "input_preview": "%ASA-6-302013: Built inbound TCP connection 1 for outside:192.0.2.10/50000 (192.0.2.10/50000) to inside:198.51.100.5/80 (198.51.100.5/80)",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "302013"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "302013"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302013",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "323b2e715e5692bef18f5d15eb6a137e62cdfc8568567ff99df2125edc9296d1",
+      "input_preview": "%ASA-6-999999: Built inbound TCP connection 1 for outside:192.0.2.10/50000 (192.0.2.10/50000) to inside:198.51.100.5/80 (198.51.100.5/80)",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '302013']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302013",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "c7021fd9eb315be3984761e3cb6ff9bf21923d220890c59f1e2a5ff711249d8e",
+      "input_preview": "operator note: ticket mentions 302013 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '302013']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302014",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "f7f97f4982e0885d34848a96a9b530c88ebef48bb13520dae4bd42b30719308c",
+      "input_preview": "%ASA-6-302014: Teardown TCP connection 1 for outside:192.0.2.10/50000 to inside:198.51.100.5/80 duration 0:00:01 bytes 100 TCP FINs",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "302014"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "302014"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302014",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "3d41171ab73c148ad926af0aeb14cb94938032628c0012aa308d7851d2efbca5",
+      "input_preview": "%ASA-6-999999: Teardown TCP connection 1 for outside:192.0.2.10/50000 to inside:198.51.100.5/80 duration 0:00:01 bytes 100 TCP FINs",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '302014']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302014",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "10bb990a2e5394280b07ec8678959aa4577cde8118a8290ea7970b5b8d467b2c",
+      "input_preview": "operator note: ticket mentions 302014 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '302014']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411001",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "e1111bb0d0094988e01343f22f22054a790f0e4729d87ce33765e31ad050cad8",
+      "input_preview": "%ASA-4-411001: Line protocol on interface outside changed state to up",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "411001"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "411001"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411001",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "e2ef033dd61a2c7d050984f21838b3d8e53d1587eb378019cd1fb183bc2c2736",
+      "input_preview": "%ASA-4-999999: Line protocol on interface outside changed state to up",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '411001']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411001",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "82d6e5b25defe8c7b61050260571668fe2691018f3ad22130331437346a6b071",
+      "input_preview": "operator note: ticket mentions 411001 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '411001']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411002",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "f7caaed207f3d6747533ca521fc888e0da944da7b422b5374dcff2e8bec84e1c",
+      "input_preview": "%ASA-4-411002: Line protocol on interface outside changed state to down",
+      "expected": [
+        "cisco_asa",
+        "official_message_id",
+        "411002"
+      ],
+      "actual": [
+        "cisco_asa",
+        "official_message_id",
+        "411002"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411002",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "message ID absent from the catalog (same shape, ID 999999)",
+      "input_sha256": "f9c98c44ed1fd64a1585cc8a7dcdfa00c0557dd0862aba589dc92ca65f81f5d6",
+      "input_preview": "%ASA-4-999999: Line protocol on interface outside changed state to down",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '411002']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411002",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "ID quoted in free text without the ASA message prefix",
+      "input_sha256": "e7b8975febaf63efa02fd920676ad72dcd9c89402ab10a3eac14f6a89a25b661",
+      "input_preview": "operator note: ticket mentions 411002 but this is not a firewall log line",
+      "expected": "must not resolve to ['cisco_asa', 'official_message_id', '411002']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:traffic/forward",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "ed075b5f38cf63df24c075b2296e8b6794b4914a3c86137b11e675ea73b6bf53",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" srcip=192.0.2.10 dstip=",
+      "expected": [
+        "fortinet",
+        "log_category",
+        "traffic/forward"
+      ],
+      "actual": [
+        "fortinet",
+        "log_category",
+        "traffic/forward"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:traffic/forward",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "adjacent subtype/type not in the catalog entry",
+      "input_sha256": "6c006cb5312577641ac2662ee182bd499c4b71c7ac896210c86dfb05cb8f0c72",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"traffic\" subtype=\"sniffer\" level=\"notice\" srcip=192.0.2.10 dstip=",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'traffic/forward']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:traffic/forward",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "free text without key=value fields",
+      "input_sha256": "9f36fa8adc3e00f159ea22caffde2063c56141c21f820e699e1dab4b8d393b44",
+      "input_preview": "operator note: forward traffic looked odd yesterday",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'traffic/forward']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:utm/ips",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "f705f1684bdacf9e8ff33b34ce62b5c0baf62bb367e379d7ae540431da5d016d",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"utm\" subtype=\"ips\" level=\"notice\" srcip=192.0.2.10 dstip=198.51.1",
+      "expected": [
+        "fortinet",
+        "log_category",
+        "utm/ips"
+      ],
+      "actual": [
+        "fortinet",
+        "log_category",
+        "utm/ips"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:utm/ips",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "adjacent subtype/type not in the catalog entry",
+      "input_sha256": "4143c649d2c4450542c0b2f6765e7a438a980ec8cadc583715d93bc093e823ec",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"utm\" subtype=\"webfilter\" level=\"notice\" srcip=192.0.2.10 dstip=19",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'utm/ips']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:utm/ips",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "free text without key=value fields",
+      "input_sha256": "9f36fa8adc3e00f159ea22caffde2063c56141c21f820e699e1dab4b8d393b44",
+      "input_preview": "operator note: forward traffic looked odd yesterday",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'utm/ips']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/vpn",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "5469fabdc81071529454e98843567a99eec1d79b621a145472749ee59f9a4337",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"event\" subtype=\"vpn\" level=\"notice\" action=\"tunnel-down\" msg=\"IPs",
+      "expected": [
+        "fortinet",
+        "log_category",
+        "event/vpn"
+      ],
+      "actual": [
+        "fortinet",
+        "log_category",
+        "event/vpn"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/vpn",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "adjacent subtype/type not in the catalog entry",
+      "input_sha256": "76421cb8ff7d48a921f59c1aac018ba74ab5080aff9f63e2afc33cde9384d5be",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"event\" subtype=\"wad\" level=\"notice\" action=\"info\" msg=\"synthetic ",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'event/vpn']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/vpn",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "free text without key=value fields",
+      "input_sha256": "9f36fa8adc3e00f159ea22caffde2063c56141c21f820e699e1dab4b8d393b44",
+      "input_preview": "operator note: forward traffic looked odd yesterday",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'event/vpn']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/user",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "856800f030dfd92d4c384fef793465fe9e4cc8ec021a152bec93ce4f74907368",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"event\" subtype=\"user\" level=\"notice\" action=\"login\" status=\"faile",
+      "expected": [
+        "fortinet",
+        "log_category",
+        "event/user"
+      ],
+      "actual": [
+        "fortinet",
+        "log_category",
+        "event/user"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/user",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "adjacent subtype/type not in the catalog entry",
+      "input_sha256": "76421cb8ff7d48a921f59c1aac018ba74ab5080aff9f63e2afc33cde9384d5be",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"event\" subtype=\"wad\" level=\"notice\" action=\"info\" msg=\"synthetic ",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'event/user']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/user",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "free text without key=value fields",
+      "input_sha256": "9f36fa8adc3e00f159ea22caffde2063c56141c21f820e699e1dab4b8d393b44",
+      "input_preview": "operator note: forward traffic looked odd yesterday",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'event/user']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/system",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "8d147f077d26fb8e5c0e6d9d93f5ec103bdd697847ef4a722ae7aeb43eb6ab68",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"event\" subtype=\"system\" level=\"notice\" action=\"edit\" msg=\"Configu",
+      "expected": [
+        "fortinet",
+        "log_category",
+        "event/system"
+      ],
+      "actual": [
+        "fortinet",
+        "log_category",
+        "event/system"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/system",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "adjacent subtype/type not in the catalog entry",
+      "input_sha256": "76421cb8ff7d48a921f59c1aac018ba74ab5080aff9f63e2afc33cde9384d5be",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"event\" subtype=\"wad\" level=\"notice\" action=\"info\" msg=\"synthetic ",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'event/system']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/system",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "free text without key=value fields",
+      "input_sha256": "9f36fa8adc3e00f159ea22caffde2063c56141c21f820e699e1dab4b8d393b44",
+      "input_preview": "operator note: forward traffic looked odd yesterday",
+      "expected": "must not resolve to ['fortinet', 'log_category', 'event/system']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:TRAFFIC",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "879804f60e86230e504314368c54ec18c7323cd383e39429e7d8cce45a9b2f0b",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,TRAFFIC,end,0,2026/10/08 10:00:00,192.0.2.10,198.51.100.20,,,\"Synthetic, rule\",,,web-browsing,,,,,,,,,,,,,,,,deny,,,,,,,,,,,,",
+      "expected": [
+        "palo_alto",
+        "log_category",
+        "TRAFFIC"
+      ],
+      "actual": [
+        "palo_alto",
+        "log_category",
+        "TRAFFIC"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:TRAFFIC",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "a different PAN log type (THREAT) must not resolve to TRAFFIC",
+      "input_sha256": "85e705deb991171a5e849035e4f86eb83dd8950c62d624d8b0cd58790b642050",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,THREAT,vulnerability,0,2026/10/08 10:00:00,192.0.2.10,198.51.100.20,,,\"Synthetic, rule\",,,web-browsing,,,,,,,,,,,,,,,,deny,\"S",
+      "expected": "must not resolve to ['palo_alto', 'log_category', 'TRAFFIC']",
+      "actual": [
+        "palo_alto",
+        "log_category",
+        "THREAT"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:TRAFFIC",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "truncated CSV row",
+      "input_sha256": "704d6a0eea58ebbb9678d8db80c558ee222f52eebc66c31e1ca4fade4a35c493",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,TRAFFIC,end,0",
+      "expected": "must not resolve to ['palo_alto', 'log_category', 'TRAFFIC']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:THREAT",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "85e705deb991171a5e849035e4f86eb83dd8950c62d624d8b0cd58790b642050",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,THREAT,vulnerability,0,2026/10/08 10:00:00,192.0.2.10,198.51.100.20,,,\"Synthetic, rule\",,,web-browsing,,,,,,,,,,,,,,,,deny,\"S",
+      "expected": [
+        "palo_alto",
+        "log_category",
+        "THREAT"
+      ],
+      "actual": [
+        "palo_alto",
+        "log_category",
+        "THREAT"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:THREAT",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "a different PAN log type (SYSTEM) must not resolve to THREAT",
+      "input_sha256": "8cb4a241f4723060f41a74aa3e524594cd3558c7c324e5442432dcdb0f9126b8",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,SYSTEM,general,0,2026/10/08 10:00:00,,1129,,,,general,high,\"Synthetic message, with \"\"quotes\"\"\",,,,,,,,PAN-SYNTHETIC",
+      "expected": "must not resolve to ['palo_alto', 'log_category', 'THREAT']",
+      "actual": [
+        "palo_alto",
+        "log_category",
+        "SYSTEM"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:THREAT",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "truncated CSV row",
+      "input_sha256": "0811a63be1d6655989ae1911b76da5c2630f4d23b7ac79d088e7c98a706b934d",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,THREAT,vulnerability,0",
+      "expected": "must not resolve to ['palo_alto', 'log_category', 'THREAT']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:SYSTEM",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "8cb4a241f4723060f41a74aa3e524594cd3558c7c324e5442432dcdb0f9126b8",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,SYSTEM,general,0,2026/10/08 10:00:00,,1129,,,,general,high,\"Synthetic message, with \"\"quotes\"\"\",,,,,,,,PAN-SYNTHETIC",
+      "expected": [
+        "palo_alto",
+        "log_category",
+        "SYSTEM"
+      ],
+      "actual": [
+        "palo_alto",
+        "log_category",
+        "SYSTEM"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:SYSTEM",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "a different PAN log type (CONFIG) must not resolve to SYSTEM",
+      "input_sha256": "33760ca655aa8c0de5bf794656f94dff8f40481cd928663afaaf2022296b4ef2",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,CONFIG,0,0,2026/10/08 10:00:00,192.0.2.10,vsys1,edit,demo-admin,Web,Succeeded,/synthetic/config/path",
+      "expected": "must not resolve to ['palo_alto', 'log_category', 'SYSTEM']",
+      "actual": [
+        "palo_alto",
+        "log_category",
+        "CONFIG"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:SYSTEM",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "truncated CSV row",
+      "input_sha256": "04236048b15ff20165b732b70e3eb8680c23a7b601f8308f3c05d5e475ff2afb",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,SYSTEM,general,0",
+      "expected": "must not resolve to ['palo_alto', 'log_category', 'SYSTEM']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:CONFIG",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "33760ca655aa8c0de5bf794656f94dff8f40481cd928663afaaf2022296b4ef2",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,CONFIG,0,0,2026/10/08 10:00:00,192.0.2.10,vsys1,edit,demo-admin,Web,Succeeded,/synthetic/config/path",
+      "expected": [
+        "palo_alto",
+        "log_category",
+        "CONFIG"
+      ],
+      "actual": [
+        "palo_alto",
+        "log_category",
+        "CONFIG"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:CONFIG",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "a different PAN log type (TRAFFIC) must not resolve to CONFIG",
+      "input_sha256": "879804f60e86230e504314368c54ec18c7323cd383e39429e7d8cce45a9b2f0b",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,TRAFFIC,end,0,2026/10/08 10:00:00,192.0.2.10,198.51.100.20,,,\"Synthetic, rule\",,,web-browsing,,,,,,,,,,,,,,,,deny,,,,,,,,,,,,",
+      "expected": "must not resolve to ['palo_alto', 'log_category', 'CONFIG']",
+      "actual": [
+        "palo_alto",
+        "log_category",
+        "TRAFFIC"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:CONFIG",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "truncated CSV row",
+      "input_sha256": "fd39d1d0da1f37def1eb47dbf3f18ba6e08f2bd02727bd407aa08e438b6d33ba",
+      "input_preview": "1,2026/10/08 10:00:00,000000000001,CONFIG,0,0",
+      "expected": "must not resolve to ['palo_alto', 'log_category', 'CONFIG']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:linux_syslog:general_signature:AUTH-FAIL",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "c9a0f949431268383ed824b1598608e6265b0fea8faa11c352f23d878e073274",
+      "input_preview": "Nov 20 10:00:00 testhost sshd[1234]: Failed password for invalid user admin from 192.0.2.10 port 50000 ssh2",
+      "expected": [
+        "linux_syslog",
+        "general_signature",
+        "AUTH-FAIL"
+      ],
+      "actual": [
+        "linux_syslog",
+        "general_signature",
+        "AUTH-FAIL"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:linux_syslog:general_signature:AUTH-FAIL",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "successful authentication",
+      "input_sha256": "40e4ee7b6df2b7ab85b835f5f94b574b4d6b66bbab3ca02ef08bd961cfb41aa5",
+      "input_preview": "Nov 20 10:00:00 testhost sshd[1234]: Accepted password for admin from 192.0.2.10 port 50000 ssh2",
+      "expected": "must not resolve to ['linux_syslog', 'general_signature', 'AUTH-FAIL']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-REPLICA-SNAPSHOT-CHAIN",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "426eb355527a8df3f2375410fed722e18190144b75cde0bf64901e4df678ef18",
+      "input_preview": "[2026-09-12 02:11:03] <01> Info     [Veeam.Backup.Core] Job Type: Replica, Job Target Type: VMware vSphere\n[2026-09-12 02:12:41] <07> Error    [CViSnapReplica] ",
+      "expected": [
+        "veeam_vbr",
+        "eims_diagnostic",
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN"
+      ],
+      "actual": [
+        "veeam_vbr",
+        "eims_diagnostic",
+        "VEEAM-REPLICA-SNAPSHOT-CHAIN"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-REPLICA-SNAPSHOT-CHAIN",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "healthy job with a successful session",
+      "input_sha256": "1a04a1be2b5fe5c2ea986f6eef4ddbf7ecd2b98c3e273c12008acd1b6f687870",
+      "input_preview": "[2026-09-12 02:11:03] <01> Info     [Veeam.Backup.Core] Job Type: Backup, Job Target Type: VMware vSphere\n[2026-09-12 02:11:05] <07> Info     [Veeam.Backup.Core",
+      "expected": "must not resolve to ['veeam_vbr', 'eims_diagnostic', 'VEEAM-REPLICA-SNAPSHOT-CHAIN']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-SESSION-FAILED",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "999160416b8be3ea4c77abe3296c404161995976f8d0e4e00241fa8e6882b184",
+      "input_preview": "[02.10.2026 00:11:06.410] <09> Info [Veeam.Backup.Core] Job Type: Backup\n[02.10.2026 00:12:44.020] <09> Error [VeeamAgent] Task session 'SYNTH-TASK-02' has been",
+      "expected": [
+        "veeam_vbr",
+        "eims_diagnostic",
+        "VEEAM-SESSION-FAILED"
+      ],
+      "actual": [
+        "veeam_vbr",
+        "eims_diagnostic",
+        "VEEAM-SESSION-FAILED"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-SESSION-FAILED",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "session completed with Success",
+      "input_sha256": "1a04a1be2b5fe5c2ea986f6eef4ddbf7ecd2b98c3e273c12008acd1b6f687870",
+      "input_preview": "[2026-09-12 02:11:03] <01> Info     [Veeam.Backup.Core] Job Type: Backup, Job Target Type: VMware vSphere\n[2026-09-12 02:11:05] <07> Info     [Veeam.Backup.Core",
+      "expected": "must not resolve to ['veeam_vbr', 'eims_diagnostic', 'VEEAM-SESSION-FAILED']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "a6633b74a32290cc3acad976079b50dde7584d1ab41427faa893313c6192ff97",
+      "input_preview": "[2026-09-12 02:11:03] <01> Info     [Veeam.Backup.Core] Job Type: Backup, Job Target Type: VMware vSphere\n[2026-09-12 02:12:41] <07> Error    [VimApi] Could not",
+      "expected": [
+        "veeam_vbr",
+        "eims_diagnostic",
+        "VMWARE-CBT-DELETE-FAILED"
+      ],
+      "actual": [
+        "veeam_vbr",
+        "eims_diagnostic",
+        "VMWARE-CBT-DELETE-FAILED"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "healthy job with a successful session",
+      "input_sha256": "1a04a1be2b5fe5c2ea986f6eef4ddbf7ecd2b98c3e273c12008acd1b6f687870",
+      "input_preview": "[2026-09-12 02:11:03] <01> Info     [Veeam.Backup.Core] Job Type: Backup, Job Target Type: VMware vSphere\n[2026-09-12 02:11:05] <07> Info     [Veeam.Backup.Core",
+      "expected": "must not resolve to ['veeam_vbr', 'eims_diagnostic', 'VMWARE-CBT-DELETE-FAILED']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "fcdd8015539d58504b6a103afcfe1aa5e035f4ffa8e11f831625fb514183c43f",
+      "input_preview": "[2026-09-12 02:11:03] <01> Info     [Veeam.Backup.Core] Job Type: Backup, Job Target Type: VMware vSphere\n[2026-09-12 02:15:44] <09> Error    [VimApi] InvalidSn",
+      "expected": [
+        "veeam_vbr",
+        "eims_diagnostic",
+        "VMWARE-SNAPSHOT-FILE-MISSING"
+      ],
+      "actual": [
+        "veeam_vbr",
+        "eims_diagnostic",
+        "VMWARE-SNAPSHOT-FILE-MISSING"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "healthy job with a successful session",
+      "input_sha256": "1a04a1be2b5fe5c2ea986f6eef4ddbf7ecd2b98c3e273c12008acd1b6f687870",
+      "input_preview": "[2026-09-12 02:11:03] <01> Info     [Veeam.Backup.Core] Job Type: Backup, Job Target Type: VMware vSphere\n[2026-09-12 02:11:05] <07> Info     [Veeam.Backup.Core",
+      "expected": "must not resolve to ['veeam_vbr', 'eims_diagnostic', 'VMWARE-SNAPSHOT-FILE-MISSING']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "8ab58594b5508333888f79a41eb0adbe5d0da1b9dada7ebdeeb075367aa3a5eb",
+      "input_preview": "2026-09-12T02:12:41.123Z In(05) vmx - DISKLIB-CTK: Could not delete change tracking file\n2026-09-12T02:12:41.124Z In(05) vmx - DISKLIB-LIB_BLOCKTRACK: CTK_CTKUN",
+      "expected": [
+        "vmware",
+        "eims_diagnostic",
+        "VMWARE-CBT-DELETE-FAILED"
+      ],
+      "actual": [
+        "vmware",
+        "eims_diagnostic",
+        "VMWARE-CBT-DELETE-FAILED"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "unrelated healthy vmx line",
+      "input_sha256": "30263ce150d4aac8e85503ed31c22b2345488132656da3dae58f5d80ceacc967",
+      "input_preview": "2026-09-12T02:15:44.001Z In(05) vmx - SNAPSHOT: Snapshot created successfully\n",
+      "expected": "must not resolve to ['vmware', 'eims_diagnostic', 'VMWARE-CBT-DELETE-FAILED']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "4edd79dbd266e34bb54befbc521834f7488c4eddbfd44c801cc5ec1f73d684e5",
+      "input_preview": "2026-09-12T02:15:44.001Z Er(02) vmx - SNAPSHOT: RevertSnapshot failed with InvalidSnapshotFormat\n2026-09-12T02:15:44.002Z Er(02) vmx - SNAPSHOT: A required file",
+      "expected": [
+        "vmware",
+        "eims_diagnostic",
+        "VMWARE-SNAPSHOT-FILE-MISSING"
+      ],
+      "actual": [
+        "vmware",
+        "eims_diagnostic",
+        "VMWARE-SNAPSHOT-FILE-MISSING"
+      ],
+      "passed": true
+    },
+    {
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "unrelated healthy vmx line",
+      "input_sha256": "30263ce150d4aac8e85503ed31c22b2345488132656da3dae58f5d80ceacc967",
+      "input_preview": "2026-09-12T02:15:44.001Z In(05) vmx - SNAPSHOT: Snapshot created successfully\n",
+      "expected": "must not resolve to ['vmware', 'eims_diagnostic', 'VMWARE-SNAPSHOT-FILE-MISSING']",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:auth:password-authentication-failed",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "76627fad8221b6d9b809d583d59d5a83f940930aa53e4f222551cca0f7c7a582",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "postgresql:auth:password-authentication-failed",
+      "actual": "postgresql:auth:password-authentication-failed",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:auth:password-authentication-failed",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "documented-but-unlinked SQLSTATE 23505 (unique_violation)",
+      "input_sha256": "5a54e7a831c0e6163014908c32f4708b21d580c9fa912d69a2c7eb4fa2f40f80",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:auth:password-authentication-failed",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:auth:password-authentication-failed",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "success-class SQLSTATE 00000 is never surfaced",
+      "input_sha256": "7246ad423006b7100beb089e3d3fde56993e366c52382463361800b5433368f1",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:auth:password-authentication-failed",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:connections:too-many-connections",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "efd3f9163cef72560b1f03011598ed373ce95678fb05ff5a996549654c15547d",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "postgresql:connections:too-many-connections",
+      "actual": "postgresql:connections:too-many-connections",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:connections:too-many-connections",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "documented-but-unlinked SQLSTATE 23505 (unique_violation)",
+      "input_sha256": "5a54e7a831c0e6163014908c32f4708b21d580c9fa912d69a2c7eb4fa2f40f80",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:connections:too-many-connections",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:connections:too-many-connections",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "success-class SQLSTATE 00000 is never surfaced",
+      "input_sha256": "7246ad423006b7100beb089e3d3fde56993e366c52382463361800b5433368f1",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:connections:too-many-connections",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:locks:deadlock-detected",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "16b7fbe12573834536f6f005ba89ffef4e5829a968ed366a79afef73453cba5d",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "postgresql:locks:deadlock-detected",
+      "actual": "postgresql:locks:deadlock-detected",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:locks:deadlock-detected",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "documented-but-unlinked SQLSTATE 23505 (unique_violation)",
+      "input_sha256": "5a54e7a831c0e6163014908c32f4708b21d580c9fa912d69a2c7eb4fa2f40f80",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:locks:deadlock-detected",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:locks:deadlock-detected",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "success-class SQLSTATE 00000 is never surfaced",
+      "input_sha256": "7246ad423006b7100beb089e3d3fde56993e366c52382463361800b5433368f1",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:locks:deadlock-detected",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:server:administrator-shutdown-or-terminate",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "dde7a15db026364e31b35fa489d84c67e998bbdc9bd0cad5db8212ebc8b5028b",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "postgresql:server:administrator-shutdown-or-terminate",
+      "actual": "postgresql:server:administrator-shutdown-or-terminate",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:server:administrator-shutdown-or-terminate",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "documented-but-unlinked SQLSTATE 23505 (unique_violation)",
+      "input_sha256": "5a54e7a831c0e6163014908c32f4708b21d580c9fa912d69a2c7eb4fa2f40f80",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:server:administrator-shutdown-or-terminate",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:server:administrator-shutdown-or-terminate",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "success-class SQLSTATE 00000 is never surfaced",
+      "input_sha256": "7246ad423006b7100beb089e3d3fde56993e366c52382463361800b5433368f1",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:server:administrator-shutdown-or-terminate",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:storage:data-disk-full",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "8f9eb2a9381fcf943bcc1cc2d23bcedf8b3614364e19a8f710e2b442face32f7",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "postgresql:storage:data-disk-full",
+      "actual": "postgresql:storage:data-disk-full",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:storage:data-disk-full",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "documented-but-unlinked SQLSTATE 23505 (unique_violation)",
+      "input_sha256": "5a54e7a831c0e6163014908c32f4708b21d580c9fa912d69a2c7eb4fa2f40f80",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:storage:data-disk-full",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:storage:data-disk-full",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "success-class SQLSTATE 00000 is never surfaced",
+      "input_sha256": "7246ad423006b7100beb089e3d3fde56993e366c52382463361800b5433368f1",
+      "input_preview": "{\"timestamp\": \"2026-11-20 10:00:00.123 UTC\", \"user\": \"demo\", \"dbname\": \"demo\", \"pid\": 7, \"session_id\": \"s.1\", \"line_num\": 1, \"error_severity\": \"ERROR\", \"state_c",
+      "expected": "must not reach postgresql:storage:data-disk-full",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "0706b878bfcf7bc609c9fe0b7248d3a84a5f587b5d3e8e7c71a2a1a1a973c81e",
+      "input_preview": "Nov 20 10:00:00 dbhost postgres[1]: [2-1] WARNING:  database \"mydb\" must be vacuumed within 39985967 transactions",
+      "expected": "postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "actual": "postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "same line from a non-postgres program",
+      "input_sha256": "6ac121463f1302b72c0b5d73eaff926aaea2606b7a48864ccc98ec6ff7581384",
+      "input_preview": "Nov 20 10:00:00 dbhost sshd[1]: [2-1] WARNING:  database \"mydb\" must be vacuumed within 39985967 transactions",
+      "expected": "must not reach postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "wording not quoted by the documentation",
+      "input_sha256": "fb4968f1c043bb56288cfaca977d5bbf5ba3bf644f1f7dec4f454b3adc5c6917",
+      "input_preview": "Nov 20 10:00:00 dbhost postgres[1]: [2-1] WARNING:  database \"mydb\" needs attention",
+      "expected": "must not reach postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "5b56f8f20a968c236999131dba09624e0025ad44bbde7345930b9c730df83feb",
+      "input_preview": "Nov 20 10:00:00 dbhost postgres[1]: [2-1] LOG:  checkpoints are occurring too frequently (12 seconds apart)",
+      "expected": "postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "actual": "postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "wording not present in the upstream source",
+      "input_sha256": "140bfbc596f7c08fd92b2266de3eb2d17fb0d0e32d66385615598de07fd38620",
+      "input_preview": "Nov 20 10:00:00 dbhost postgres[1]: [2-1] LOG:  checkpoints are happening very often (12 seconds apart)",
+      "expected": "must not reach postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "no syslog prefix (not classified)",
+      "input_sha256": "f712a27146d2caebbe5312d1628ea7e62952b9cd63880e55d3047cc46a8a82d0",
+      "input_preview": "2026-11-20 10:00:00 UTC [1] LOG:  checkpoints are occurring too frequently (12 seconds apart)",
+      "expected": "must not reach postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:wal:archive-command-failing-pg-wal-fills",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "8e352eedeaf410a0ef81e96d316649a63859a09e192cc124c1a3d853f2220991",
+      "input_preview": "Nov 20 10:00:00 dbhost postgres[1]: [2-1] LOG:  archive command failed with exit code 1",
+      "expected": "postgresql:wal:archive-command-failing-pg-wal-fills",
+      "actual": "postgresql:wal:archive-command-failing-pg-wal-fills",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:wal:archive-command-failing-pg-wal-fills",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "different program",
+      "input_sha256": "e54f2b5cfeeb277a9882bc4e941aad9416c9bbfec2221c3b894f1364aaf74323",
+      "input_preview": "Nov 20 10:00:00 dbhost cron[1]: [2-1] LOG:  archive command failed with exit code 1",
+      "expected": "must not reach postgresql:wal:archive-command-failing-pg-wal-fills",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:wal:archive-command-failing-pg-wal-fills",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "wording changed",
+      "input_sha256": "02d70dd1e7085f45e8f607619bdc4fccd71f4211b20aa9fb4b4a668a614e6b33",
+      "input_preview": "Nov 20 10:00:00 dbhost postgres[1]: [2-1] LOG:  the archive step did not succeed",
+      "expected": "must not reach postgresql:wal:archive-command-failing-pg-wal-fills",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-query-canceled-recovery-conflict",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "6d40e2928df7e59c2246f5704175f469a78bcb8d50d9d19877fde616ac46c102",
+      "input_preview": "Nov 20 10:00:00 dbhost postgres[1]: [2-1] ERROR:  canceling statement due to conflict with recovery",
+      "expected": "postgresql:replication:standby-query-canceled-recovery-conflict",
+      "actual": "postgresql:replication:standby-query-canceled-recovery-conflict",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-query-canceled-recovery-conflict",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "different cancellation reason",
+      "input_sha256": "d51bb5ce83561ae40b34b489b848d028d7e157cae77c74b2557817b07821147a",
+      "input_preview": "Nov 20 10:00:00 dbhost postgres[1]: [2-1] ERROR:  canceling statement due to user request",
+      "expected": "must not reach postgresql:replication:standby-query-canceled-recovery-conflict",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-query-canceled-recovery-conflict",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "different program",
+      "input_sha256": "59c9d4864eb2b94a8edd64888aaf69f4278db983f186c4bf0acd748183b206f9",
+      "input_preview": "Nov 20 10:00:00 dbhost sshd[1]: [2-1] ERROR:  canceling statement due to conflict with recovery",
+      "expected": "must not reach postgresql:replication:standby-query-canceled-recovery-conflict",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-local-traffic",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "d500accf4975cc5266335682a6065bcd12a7ce3008108784b3dc5ae052af3261",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"traffic\" subtype=\"local\" level=\"notice\" srcip=192.0.2.10 dstip=19",
+      "expected": "fortinet-fortios:traffic:policyid-0-local-traffic",
+      "actual": "fortinet-fortios:traffic:policyid-0-local-traffic",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-local-traffic",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "local traffic with a user-defined policy id",
+      "input_sha256": "291d36fe4967043745782575fbec0f759eb6b5bf8bdb3c5111d0ca06e296ea24",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"traffic\" subtype=\"local\" level=\"notice\" policyid=7 service=\"HTTPS",
+      "expected": "must not reach fortinet-fortios:traffic:policyid-0-local-traffic",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-local-traffic",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "forward traffic, accept, policyid 0 is not the implicit deny",
+      "input_sha256": "41789ea1f0af59fc85b1426e44708182d967a0f06f2594a06bd0c9c333070998",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" policyid=0 service=\"HTT",
+      "expected": "must not reach fortinet-fortios:traffic:policyid-0-local-traffic",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "kind": "analyzer_path",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "83b5a7823283ca541dc463ed62fa92366a4b66c4c5398f281106c82c981dac74",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" srcip=192.0.2.10 dstip=",
+      "expected": "fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "actual": "fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "passed": true
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "forward deny matched by a real policy id",
+      "input_sha256": "43bd00f165d93102d0b9f45154ce2c6b153e2630eec760faee4653953a9d15b5",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" policyid=5 service=\"HTT",
+      "expected": "must not reach fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "kind": "analyzer_path",
+      "polarity": "negative",
+      "why": "forward accept with policyid 0",
+      "input_sha256": "41789ea1f0af59fc85b1426e44708182d967a0f06f2594a06bd0c9c333070998",
+      "input_preview": "date=2026-11-20 time=10:00:00 devname=\"FGT-SYN\" devid=\"FGT0000000001\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" policyid=0 service=\"HTT",
+      "expected": "must not reach fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "actual": null,
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "kind": "evaluator_synthetic_row",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "5568ec90f1e3e28b71ea098dacdfff801f3dd264404e8916d226ca35041669f1",
+      "input_preview": "{\"expect\": {\"attention\": true, \"state\": \"retaining_beyond_max_wal_size\"}, \"row\": {\"active\": true, \"safe_wal_size\": 10, \"wal_status\": \"extended\"}}",
+      "expected": {
+        "state": "retaining_beyond_max_wal_size",
+        "attention": true
+      },
+      "actual": {
+        "state": "retaining_beyond_max_wal_size",
+        "attention": true
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "kind": "evaluator_synthetic_row",
+      "polarity": "negative",
+      "why": "row with no wal_status is not interpreted",
+      "input_sha256": "1a8de38fa32272cafe840d6813f231dd194c8aaa713a3cf0e9da6c5e4ec331de",
+      "input_preview": "{\"expect\": {\"attention\": false, \"state\": \"no_wal_status\"}, \"row\": {\"active\": true, \"wal_status\": null}, \"why\": \"row with no wal_status is not interpreted\"}",
+      "expected": {
+        "state": "no_wal_status",
+        "attention": false
+      },
+      "actual": {
+        "state": "no_wal_status",
+        "attention": false
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "kind": "evaluator_synthetic_row",
+      "polarity": "negative",
+      "why": "reserved and active is not flagged",
+      "input_sha256": "6e653ca189e6ba0b28a80f6ab7592a374f8a3f6601cb3ab778cd4f2b69b14537",
+      "input_preview": "{\"expect\": {\"attention\": false, \"state\": \"within_max_wal_size\"}, \"row\": {\"active\": true, \"safe_wal_size\": 1000000, \"wal_status\": \"reserved\"}, \"why\": \"reserved a",
+      "expected": {
+        "state": "within_max_wal_size",
+        "attention": false
+      },
+      "actual": {
+        "state": "within_max_wal_size",
+        "attention": false
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "kind": "evaluator_synthetic_row",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "7d167c0f3d925acce69d35c01cfb10943a5e26718c3753f39920ecbdc116e518",
+      "input_preview": "{\"expect\": {\"attention\": true, \"state\": \"caller_threshold_exceeded\"}, \"row\": {\"flush_lag\": 0.5, \"replay_lag\": 120.0, \"write_lag\": 0.2}, \"thresholds\": {\"replay_l",
+      "expected": {
+        "state": "caller_threshold_exceeded",
+        "attention": true
+      },
+      "actual": {
+        "state": "caller_threshold_exceeded",
+        "attention": true
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "kind": "evaluator_synthetic_row",
+      "polarity": "negative",
+      "why": "all lag columns NULL is neither healthy nor failed",
+      "input_sha256": "8f2f656a113e9fdb4dcccdaee4250f30f05b17ebafcfa72c09dbe6f642411f42",
+      "input_preview": "{\"expect\": {\"attention\": false, \"state\": \"no_lag_measurement\"}, \"row\": {\"flush_lag\": null, \"replay_lag\": null, \"write_lag\": null}, \"why\": \"all lag columns NULL ",
+      "expected": {
+        "state": "no_lag_measurement",
+        "attention": false
+      },
+      "actual": {
+        "state": "no_lag_measurement",
+        "attention": false
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "kind": "evaluator_synthetic_row",
+      "polarity": "negative",
+      "why": "no caller threshold means no attention",
+      "input_sha256": "84e5bccefdee35c286f57dad7d6464c06f72460c8ec6a9c9c57ecff9f349332d",
+      "input_preview": "{\"expect\": {\"attention\": false, \"state\": \"lag_measured\"}, \"row\": {\"flush_lag\": 0.5, \"replay_lag\": 120.0, \"write_lag\": 0.2}, \"why\": \"no caller threshold means no",
+      "expected": {
+        "state": "lag_measured",
+        "attention": false
+      },
+      "actual": {
+        "state": "lag_measured",
+        "attention": false
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "kind": "evaluator_synthetic_row",
+      "polarity": "positive",
+      "why": "documented positive example",
+      "input_sha256": "c2fa67671f458cb269c2f15acd6e83537dd59b56d364e3b50ea859aabea8e254",
+      "input_preview": "{\"expect\": {\"failover_cause\": true, \"reason\": \"uptime_larger\"}, \"line\": \"FGT-A is selected as the primary because its uptime is larger than peer member.\"}",
+      "expected": {
+        "reason": "uptime_larger",
+        "failover_cause": true
+      },
+      "actual": {
+        "reason": "uptime_larger",
+        "failover_cause": true
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "kind": "evaluator_synthetic_row",
+      "polarity": "negative",
+      "why": "serial-number election is not a failover cause",
+      "input_sha256": "5bbdd6ca64473691bdf11fde6405951002a6a61075b37e6a3168accc14afb2fa",
+      "input_preview": "{\"expect\": {\"failover_cause\": false, \"reason\": \"initial_election_serial_number\"}, \"line\": \"FGT-A is selected as the primary because its serialno is larger than ",
+      "expected": {
+        "reason": "initial_election_serial_number",
+        "failover_cause": false
+      },
+      "actual": {
+        "reason": "initial_election_serial_number",
+        "failover_cause": false
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "kind": "evaluator_synthetic_row",
+      "polarity": "negative",
+      "why": "unquoted wording is not interpreted",
+      "input_sha256": "d047c3e43292a66e7bb264e08f7ea25034d32d2596d139c5cc16a41165b35606",
+      "input_preview": "{\"expect\": {\"failover_cause\": false, \"reason\": \"unrecognized\"}, \"line\": \"FGT-A became primary for unknown reasons\", \"why\": \"unquoted wording is not interpreted\"",
+      "expected": {
+        "reason": "unrecognized",
+        "failover_cause": false
+      },
+      "actual": {
+        "reason": "unrecognized",
+        "failover_cause": false
+      },
+      "passed": true
+    }
+  ]
+}

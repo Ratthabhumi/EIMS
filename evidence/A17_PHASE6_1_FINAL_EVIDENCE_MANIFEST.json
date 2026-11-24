@@ -1,0 +1,105 @@
+﻿{
+    "schema":  "v12-a17-phase6_1-final-evidence/v1",
+    "generatedAt":  "2026-11-19T10:17:28.2165686+07:00",
+    "note":  "Supplements A17 Phase 5/6 evidence. Historical manifests unchanged.",
+    "repositories":  [
+                         {
+                             "name":  "EIMS",
+                             "path":  "C:/Users/MewMew/Desktop/Co-op/EIMS",
+                             "branch":  "integration/eims-consolidated",
+                             "head":  "85493b2131d3e353453072559a5dfc301d75dd06",
+                             "modified":  59,
+                             "untracked":  215,
+                             "staged":  0
+                         },
+                         {
+                             "name":  "Chat_HAND",
+                             "path":  "C:/Users/MewMew/Desktop/Co-op/Chat_HAND",
+                             "branch":  "v2/verified-fallback",
+                             "head":  "c293b8aae2cbf2a669ba1cb4210001efe1f14885",
+                             "modified":  20,
+                             "untracked":  97,
+                             "staged":  0
+                         }
+                     ],
+    "phase6_1":  {
+                     "F2":  "VERIFIED_PENDING_REVIEW",
+                     "F1":  "VERIFIED_PENDING_REVIEW",
+                     "independentReview":  "NOT_REVIEWED",
+                     "phaseStatus":  "PARTIAL",
+                     "R7":  "PARTIAL"
+                 },
+    "testEvidence":  [
+                         {
+                             "command":  "py_compile tools/maintain_analyzer_sessions.py tools/sprint11_benchmark.py",
+                             "exit":  0
+                         },
+                         {
+                             "command":  "python -c \"import tools.sprint11_benchmark\"",
+                             "result":  "import_ok"
+                         },
+                         {
+                             "command":  "asyncio.run(main()) without disposable env",
+                             "result":  "exit 1 refusal"
+                         },
+                         {
+                             "command":  "direct main() with complete args + --apply",
+                             "result":  "exit 1 R-3 refusal"
+                         },
+                         {
+                             "command":  "pytest tests/test_a17_closure_behavior.py",
+                             "result":  "4 passed"
+                         }
+                     ],
+    "acceptance":  {
+                       "securityAcceptance":  "NOT_ACCEPTED",
+                       "projectDelivery":  "READY_WITH_LIMITATIONS"
+                   },
+    "files":  [
+                  {
+                      "path":  "EIMS/docs/A17_PHASE6_1_F1_F2_FINAL_VERIFICATION.md",
+                      "sha256":  "001753DE3C635EC86F8FE82F4D651467499F1777889E04AA45C466B1ECA2767B",
+                      "bytes":  3623
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_PHASE6_POST_REVIEW_VERIFICATION.md",
+                      "sha256":  "5A1F7C2C038A450DC212BD15A3E576CE51C9CF6E0B54F982EB0F0C7A5960E9F2",
+                      "bytes":  3061
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_FINAL_INDEPENDENT_REVIEW.md",
+                      "sha256":  "A3D287F8DB7F00C29B1F6947133F6BF1F27003D6C7C0A115053E68096BA3330C",
+                      "bytes":  2850
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_FINAL_ACCEPTANCE_MATRIX.md",
+                      "sha256":  "3E1E627845BEA6919F0C7DC770942A6CB2513D40BF3959B7458912B1BCF59C69",
+                      "bytes":  3169
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_PRESENTATION_EVIDENCE_MAP.md",
+                      "sha256":  "1E4119A450E721C793143C4386F61D599E26565F8861F97B0AFC817AB516EF4D",
+                      "bytes":  2966
+                  },
+                  {
+                      "path":  "EIMS/docs/A17_PROJECT_HANDOVER.md",
+                      "sha256":  "BBC4D2889E5F6B3CA79718B6B20B3CCFA21F92B9336163A5CA5EDBDA127C86B6",
+                      "bytes":  4007
+                  },
+                  {
+                      "path":  "EIMS/evidence/A17_PHASE6_FINAL_EVIDENCE_MANIFEST.json",
+                      "sha256":  "5F5423EE449D7A3474DA5464F675C0423544921B632521465E776AF7D6A55E5B",
+                      "bytes":  6599
+                  },
+                  {
+                      "path":  "EIMS/evidence/v12-a17-final-manifest.json",
+                      "sha256":  "A108C4D074CB668B855128B7C74006E54F7CB9CE227F0D24D77C8DFB42D6D578",
+                      "bytes":  937
+                  },
+                  {
+                      "path":  "Chat_HAND/docs/A17_JOURNAL_V1_LEGACY_STATUS.md",
+                      "sha256":  "16CB9B2A5DA32D06394EE37FC630E45F3B9A6040A2A0E24CA972AEAF44ECCD9B",
+                      "bytes":  1702
+                  }
+              ]
+}

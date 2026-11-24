@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-21T18:15:36Z",
+  "git_head": "3f2beeafa3f28a98d9ff9f3ecf89b34978de07de",
+  "note": "Evidence from a real disposable PostgreSQL primary+standby. Expectations come from the PostgreSQL documentation mapping, not from the evaluator. Automated technical evidence only; not a certification or a human review.",
+  "environment": {
+    "server_version": "16.16 (Debian 16.16-1.pgdg12+1)",
+    "max_wal_size": "32MB",
+    "max_slot_wal_keep_size": "64MB",
+    "wal_keep_size": "0",
+    "host_os": "Windows-11-10.0.26200-SP0",
+    "topology": "1 primary + 1 streaming standby, physical slot for the standby, 1 orphan slot"
+  },
+  "orphan_slot_trajectory": [
+    {
+      "iteration": 0,
+      "wal_status": "reserved",
+      "safe_wal_size": 67108472
+    },
+    {
+      "iteration": 1,
+      "wal_status": "reserved",
+      "safe_wal_size": 50331256
+    },
+    {
+      "iteration": 2,
+      "wal_status": "reserved",
+      "safe_wal_size": 33554040
+    },
+    {
+      "iteration": 3,
+      "wal_status": "extended",
+      "safe_wal_size": 16776824
+    },
+    {
+      "iteration": 4,
+      "wal_status": "lost",
+      "safe_wal_size": null
+    }
+  ],
+  "record_hashes": {
+    "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal": "43904328a52a5e8be42266031d24fbefcfea9bea0cfb0bc0bde4a897c07b09d0",
+    "candidate:postgresql:replication:standby-lag-measurement": "3fee696ec30ab75f637a74a5d9e6a6414c3f4a91de3148d19196a743f61f0ba7"
+  },
+  "cases": [
+    {
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "kind": "evaluator_real_state",
+      "polarity": "negative",
+      "why": "real active, reserved standby slot must not raise attention",
+      "actual_row": {
+        "slot_name": "cert_standby_slot",
+        "active": true,
+        "wal_status": "reserved",
+        "safe_wal_size": 82833952,
+        "restart_lsn": "135269856"
+      },
+      "expected": {
+        "state": "within_max_wal_size",
+        "attention": false
+      },
+      "actual": {
+        "state": "within_max_wal_size",
+        "attention": false
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "kind": "evaluator_real_state",
+      "polarity": "positive",
+      "why": "real orphan slot observed with wal_status=reserved",
+      "actual_row": {
+        "slot_name": "cert_orphan",
+        "active": false,
+        "wal_status": "reserved",
+        "safe_wal_size": 67108472,
+        "restart_lsn": "134217944"
+      },
+      "expected": {
+        "state": "within_max_wal_size",
+        "attention": true
+      },
+      "actual": {
+        "state": "within_max_wal_size",
+        "attention": true
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "kind": "evaluator_real_state",
+      "polarity": "positive",
+      "why": "real orphan slot observed with wal_status=extended",
+      "actual_row": {
+        "slot_name": "cert_orphan",
+        "active": false,
+        "wal_status": "extended",
+        "safe_wal_size": 16776824,
+        "restart_lsn": "134217944"
+      },
+      "expected": {
+        "state": "retaining_beyond_max_wal_size",
+        "attention": true
+      },
+      "actual": {
+        "state": "retaining_beyond_max_wal_size",
+        "attention": true
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "kind": "evaluator_real_state",
+      "polarity": "positive",
+      "why": "real orphan slot observed with wal_status=lost",
+      "actual_row": {
+        "slot_name": "cert_orphan",
+        "active": false,
+        "wal_status": "lost",
+        "safe_wal_size": null,
+        "restart_lsn": "None"
+      },
+      "expected": {
+        "state": "lost",
+        "attention": true
+      },
+      "actual": {
+        "state": "lost",
+        "attention": true
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "kind": "evaluator_real_state",
+      "polarity": "positive",
+      "why": "real row with max_slot_wal_keep_size=-1: safe_wal_size is NULL and the evaluator explains it",
+      "actual_row": {
+        "slot_name": "cert_standby_slot",
+        "active": true,
+        "wal_status": "reserved",
+        "safe_wal_size": null,
+        "restart_lsn": "218104200"
+      },
+      "expected": {
+        "safe_wal_size": null,
+        "explains_unlimited": true
+      },
+      "actual": {
+        "safe_wal_size": null,
+        "explains_unlimited": true
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "kind": "evaluator_real_state",
+      "polarity": "negative",
+      "why": "real caught-up idle standby: all lag columns NULL (documented) must not be read as failure",
+      "actual_row": {
+        "application_name": "eims-cert-disposable-standby",
+        "state": "streaming",
+        "write_lag": null,
+        "flush_lag": null,
+        "replay_lag": null
+      },
+      "expected": {
+        "state": "no_lag_measurement",
+        "attention": false
+      },
+      "actual": {
+        "state": "no_lag_measurement",
+        "attention": false
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "kind": "evaluator_real_state",
+      "polarity": "positive",
+      "why": "real row with measurable lag and a caller-supplied threshold of 0 s (threshold is the caller's, not documented)",
+      "actual_row": {
+        "application_name": "eims-cert-disposable-standby",
+        "state": "streaming",
+        "write_lag": 0.001182,
+        "flush_lag": 0.001182,
+        "replay_lag": 0.001182
+      },
+      "expected": {
+        "state": "caller_threshold_exceeded",
+        "attention": true
+      },
+      "actual": {
+        "state": "caller_threshold_exceeded",
+        "attention": true
+      },
+      "passed": true,
+      "thresholds": {
+        "replay_lag": 0.0,
+        "flush_lag": 0.0,
+        "write_lag": 0.0
+      }
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "kind": "evaluator_real_state",
+      "polarity": "negative",
+      "why": "same real row with no caller threshold: no attention (documentation gives no threshold)",
+      "actual_row": {
+        "application_name": "eims-cert-disposable-standby",
+        "state": "streaming",
+        "write_lag": 0.001182,
+        "flush_lag": 0.001182,
+        "replay_lag": 0.001182
+      },
+      "expected": {
+        "state": "lag_measured",
+        "attention": false
+      },
+      "actual": {
+        "state": "lag_measured",
+        "attention": false
+      },
+      "passed": true
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "kind": "evaluator_real_state",
+      "polarity": "positive",
+      "why": "standby replay paused while the primary writes; evaluator vs the row actually returned (replay_lsn gap recorded)",
+      "actual_row": {
+        "application_name": "eims-cert-disposable-standby",
+        "state": "streaming",
+        "write_lag": 0.001046,
+        "flush_lag": 0.002932,
+        "replay_lag": 10.057609
+      },
+      "expected": {
+        "state": "caller_threshold_exceeded"
+      },
+      "actual": {
+        "state": "caller_threshold_exceeded"
+      },
+      "passed": true,
+      "replay_lsn_gap_bytes": 744080,
+      "thresholds": {
+        "replay_lag": 1.0
+      }
+    }
+  ]
+}

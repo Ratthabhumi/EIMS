@@ -1,0 +1,24 @@
+﻿{
+    "schema":  "v12-a15-remediation-manifest/v1",
+    "generatedAt":  "2026-11-18T23:59:58.4414069+07:00",
+    "repository":  "EIMS",
+    "baseA14ManifestSha256":  "0E9F90E5A6BFC25E7A54A5BEDD7D796DB55E07E4F78F79D63AE5D9AED05F3DCF",
+    "a15Workspace":  "C:\\Users\\MewMew\\AppData\\Local\\Temp\\v12-a15/EIMS",
+    "summary":  {
+                    "added":  2,
+                    "removed":  0,
+                    "modified":  2
+                },
+    "modified":  [
+                     "tests/disposable_guard.py",
+                     "tools/audit_compose_security.py"
+                 ],
+    "added":  [
+                  "tests/test_benchmark_url_guard.py",
+                  "tests/test_compose_interpolation.py"
+              ],
+    "removed":  [
+
+                ],
+    "hashSemantics":  "SHA-256 of raw working-tree bytes (CRLF)"
+}

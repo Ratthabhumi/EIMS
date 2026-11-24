@@ -253,10 +253,42 @@ class IncidentEvidence(Base):
         DateTime(timezone=True),
         nullable=False,
         default=_utcnow,
-        doc="Evidence binding creation timestamp (UTC).",
+        doc="Evidence binding creation timestamp = ingested_at (when EIMS received it; never an event time).",
+    )
+    event_time: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        doc="When the event occurred, only when parsed from a source field with known semantics (UTC).",
+    )
+    time_basis: Mapped[str] = mapped_column(
+        String(48),
+        nullable=False,
+        default="unrecorded_legacy",
+        server_default="unrecorded_legacy",
+        doc="Provenance of event_time (or why it is absent).",
+    )
+    time_confidence: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+        default="missing",
+        server_default="missing",
+        doc="exact | asserted | ambiguous | missing. Only exact/asserted take part in correlation windows.",
+    )
+    time_original: Mapped[Optional[str]] = mapped_column(
+        String(200),
+        nullable=True,
+        doc="Original timestamp text as received, preserved verbatim.",
     )
 
     __table_args__ = (
+        CheckConstraint(
+            "time_confidence IN ('exact', 'asserted', 'ambiguous', 'missing')",
+            name="ck_incident_evidence_time_confidence",
+        ),
+        CheckConstraint(
+            "time_confidence NOT IN ('exact', 'asserted') OR event_time IS NOT NULL",
+            name="ck_incident_evidence_trusted_time_has_value",
+        ),
         UniqueConstraint(
             "source_type",
             "source_id",

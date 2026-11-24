@@ -2,12 +2,20 @@
 # EIMS Local Infrastructure Dev Stack
 # Governed by EIMS Documentation System (EDS v1.0.0)
 # Core Law 3 (SAD) & Core Law 4 (Database Design) Compliance
+#
+# Profiles (Compose v2+ / Docker Compose v5.x):
+#   (default / no profile)  postgres, redis, minio  — Local Core
+#   observability           prometheus, grafana
+#   pooler                  pgbouncer
+#   full                    observability + pooler (with Core)
+#
+# Loki removed from active runtime (no in-repo consumer). Historical evidence
+# documents may still mention it; do not reintroduce without a log shipper.
 # ==============================================================================
-version: '3.8'
 
 services:
   # ----------------------------------------------------------------------------
-  # PostgreSQL 16 Asset Registry Persistence Engine
+  # PostgreSQL 16 Asset Registry Persistence Engine  (Local Core — always on)
   # ----------------------------------------------------------------------------
   postgres_db:
     image: pgvector/pgvector:pg16
@@ -19,7 +27,7 @@ services:
       POSTGRES_PASSWORD: eims_secret_password
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_storage:/var/lib/postgresql/data
     healthcheck:
@@ -29,12 +37,13 @@ services:
       retries: 5
 
   # ----------------------------------------------------------------------------
-  # PgBouncer Transaction Connection Pooler (Core Law 3 Component)
+  # PgBouncer — optional pooler profile (app default uses PostgreSQL :5432)
   # ----------------------------------------------------------------------------
   pgbouncer:
     image: edoburu/pgbouncer:latest
     container_name: eims-pgbouncer
     restart: unless-stopped
+    profiles: ["pooler", "full"]
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -47,10 +56,10 @@ services:
       AUTH_USER: "eims_user"
       AUTH_PASS: "eims_secret_password"
     ports:
-      - "6432:6432"
+      - "127.0.0.1:6432:5432"
 
   # ----------------------------------------------------------------------------
-  # Redis 7 In-Memory Telemetry Broker & Anomaly Cache (Core Law 4 Compliance)
+  # Redis 7 — Local Core (streams, workers, pub/sub, cache)
   # ----------------------------------------------------------------------------
   redis_cache:
     image: redis:7-alpine
@@ -58,7 +67,7 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--maxmemory", "512mb", "--maxmemory-policy", "volatile-lru", "--appendonly", "yes"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_storage:/data
     healthcheck:
@@ -68,7 +77,7 @@ services:
       retries: 5
 
   # ----------------------------------------------------------------------------
-  # MinIO S3 Object Storage (Core Law 4 OCR Registration Persistence)
+  # MinIO S3 — Local Core (OCR / EVTX objects)
   # ----------------------------------------------------------------------------
   minio_s3:
     image: minio/minio:latest
@@ -79,8 +88,8 @@ services:
       MINIO_ROOT_USER: eims_minio_admin
       MINIO_ROOT_PASSWORD: eims_minio_secret
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     volumes:
       - minio_storage:/data
     healthcheck:
@@ -99,19 +108,24 @@ services:
       /bin/sh -c "
       /usr/bin/mc alias set eims_local http://minio_s3:9000 eims_minio_admin eims_minio_secret;
       /usr/bin/mc mb eims_local/eims-ocr-manifests --ignore-existing;
-      /usr/bin/mc anonymous set public eims_local/eims-ocr-manifests;
+      /usr/bin/mc anonymous set private eims_local/eims-ocr-manifests;
       exit 0;
       "
 
   # ----------------------------------------------------------------------------
-  # Observability Stack (Core Law 1 Sprint 6)
+  # Observability — part of default local startup (owner: open Grafana/Prometheus
+  # immediately after start_eims.bat). Still stoppable via stop_eims_observability.bat.
+  # Profiles `observability` / `full` retained for explicit tooling; services have no
+  # required profile so plain `docker compose up` includes them.
   # ----------------------------------------------------------------------------
   prometheus:
     image: prom/prometheus:latest
     container_name: eims-prometheus
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./deployments/observability/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_storage:/prometheus
@@ -120,20 +134,17 @@ services:
     image: grafana/grafana:latest
     container_name: eims-grafana
     restart: unless-stopped
+    depends_on:
+      - prometheus
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=eims_admin
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
     volumes:
       - grafana_storage:/var/lib/grafana
-
-  loki:
-    image: grafana/loki:latest
-    container_name: eims-loki
-    restart: unless-stopped
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+      - ./deployments/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deployments/observability/grafana/dashboards:/etc/grafana/dashboards:ro
 
 volumes:
   postgres_storage:

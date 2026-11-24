@@ -70,6 +70,7 @@ backups/
 .DS_Store
 .gemini/
 *.log
+!scripts/agent-monitor/tests/fixtures/**/*.log
 
 # --- Testing & Coverage ---
 .coverage
@@ -82,3 +83,14 @@ test-results/
 # Initial local evaluation prototypes; immutable versioned v1 runs are separate.
 evaluation/analyzer/results/20261025-original-m0-draft/
 evaluation/analyzer/results/20261025-original-m1-draft/
+
+# --- Local agent / recovery / bulky deliverables (not for GitHub sync) ---
+.cursor/
+.kilo/
+.omc/
+.playwright-mcp/
+.recovery/
+deliverables/
+EIMS_DEMO_PACK_ORGANIZED_2026-10-09/
+scratch_append_tests.py
+seed2_tmp.py

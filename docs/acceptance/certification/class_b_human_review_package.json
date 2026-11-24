@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "content_hash": "9bd662638fd83efd555c3deead42c69b1a6a03f0ac82f343732917e577863a9d",
+      "missing_operational_fields": [
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-local-traffic",
+      "content_hash": "886df254e14cb0ccad80f7def091d60c048f438d450d6012b1a505b8c8b19e7f",
+      "missing_operational_fields": [
+        "risk statement",
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:auth:password-authentication-failed",
+      "content_hash": "bf2bc781590fe1a5679d27e3922bb0ba0f767a313049092aa60b0604ce477bb8",
+      "missing_operational_fields": [
+        "risk statement",
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "content_hash": "9b0b9b0a6d982a77ad42cca67558181b69d35c45073ec6e575ec143caceb9d93",
+      "missing_operational_fields": [
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:connections:too-many-connections",
+      "content_hash": "96ea1fe02167a4ca8c9fbaa0568414af74b10662bfbb8c5fa8f4c8024f2f9876",
+      "missing_operational_fields": [
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:locks:deadlock-detected",
+      "content_hash": "fa386f678983a71fcd7d996dd7ff677fb93c1b6ebbde1b3a1f4b616d0b09dd70",
+      "missing_operational_fields": [
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-query-canceled-recovery-conflict",
+      "content_hash": "a330d37a1ceb34328b23dc328cdb403d3bf3ad5a94112fa617962a5707772e96",
+      "missing_operational_fields": [
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:server:administrator-shutdown-or-terminate",
+      "content_hash": "64186d751a66c5fd415ab7386b8032ea4bdbdc78f7438349905b257f0ff1be19",
+      "missing_operational_fields": [
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:storage:data-disk-full",
+      "content_hash": "68fee88d683e8740f41da191ef16ff5fcc6ffbd494dcd1b82fc1889817975091",
+      "missing_operational_fields": [
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "content_hash": "8cd0ca7ac4b4051e2d23265b55c65b7152244f4df29c6fd9a3e505ff5c56b723",
+      "missing_operational_fields": [
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:wal:archive-command-failing-pg-wal-fills",
+      "content_hash": "874963c4e5c0d79bea71c88da2881b65197b61f86a0dfed2c81dbb84aabfec2c",
+      "missing_operational_fields": [
+        "rollback"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:105005",
+      "content_hash": "0af40c31f5b4759d7c8c37cb4dcb67c75a7f947c4fdf6c61e02a061272f950b6",
+      "missing_operational_fields": [
+        "risk statement"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106001",
+      "content_hash": "f3971399d08731211813868ed56685e453c6e6e1f1717907137264ea07b1cf40",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106015",
+      "content_hash": "d5b100d79a5a3aa21204665a9119c5a25f106899cad6757888bedd52e56d74cc",
+      "missing_operational_fields": [
+        "risk statement"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106023",
+      "content_hash": "f15065195b6cfbf700561c942b439ccc8801e275c6cd4788312ec632eea952bc",
+      "missing_operational_fields": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106024",
+      "content_hash": "166cc97e2a3561645152bef92fa778b31b8afe8d53500318aa1cff09fbb1c8c5",
+      "missing_operational_fields": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106100",
+      "content_hash": "cffa0c00789a691732fec0332c9eed879ab0b5695e7ef1346b2456580707c87e",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113005",
+      "content_hash": "71731be15a7355e59f18613d0d6ddd03dbbe75f3fa8234e28363163b839cbaec",
+      "missing_operational_fields": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113019",
+      "content_hash": "0b087405f6c5fac3d771ecf4c5ed0aff4d34cab150ebde5ab4aca786a17dc67e",
+      "missing_operational_fields": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302013",
+      "content_hash": "c97defd1fbc3fbd0d18f5fd30df759c17e2cec466bc407d477ca7d5b2d1ae090",
+      "missing_operational_fields": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302014",
+      "content_hash": "32752c66c8ecf6c7c435b48628a6f81bf655bb51ac16c472d1ac05542b5ba527",
+      "missing_operational_fields": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411001",
+      "content_hash": "5b9978f498b39d6a7e50518b81c394611da660de2c1679fa42a8a17f6684058f",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411002",
+      "content_hash": "1111628410b5a167da109c1d1298949e02970dc35a491089f5a37260cfbe39fd",
+      "missing_operational_fields": [
+        "risk statement"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/system",
+      "content_hash": "825e04a9a448691e6a87b2ecdc73b040d6f55bd72efd2a819400e5fadfea61d4",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/user",
+      "content_hash": "90c28c76351e42ff76be6062e8937b33fcd24c032ed175c630ea6a81a44db3f4",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/vpn",
+      "content_hash": "c7d715824970ce47018af1dd2eebdd623b07dfb76e1071fcf3e825c0e4b50362",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:traffic/forward",
+      "content_hash": "da773ce10f41c5554cc10a6be8ebae92bc4c0c7aad9c6bc569a0ae3cb82f459b",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:utm/ips",
+      "content_hash": "6e796dbfe1e4e7bc067d2e44aae22b60512ab1c74badde6283657d528fd3a898",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:linux_syslog:general_signature:AUTH-FAIL",
+      "content_hash": "a694bc3a369062ae30d94c74521f5e5865e824a3aadc7b630bb5a75b6e75cef4",
+      "missing_operational_fields": [
+        "remediation"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:CONFIG",
+      "content_hash": "fc3332dde1624d78253424ce0c51313447e53acc328930377305f8fe1d8fad3f",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:SYSTEM",
+      "content_hash": "c0697083f5939709d83c2a3194d20f150675a0375a4738f01a109d0ce6324584",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:THREAT",
+      "content_hash": "a2f359d4ee2a61bfc795e7892eaf5c7604f5a28e69d6e957fe4ed39b7762eebd",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:TRAFFIC",
+      "content_hash": "c157f06374ad4b2b01813f37e3e7bd7c92815b306acaf3891070ee13346791fd",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-REPLICA-SNAPSHOT-CHAIN",
+      "content_hash": "67adf7f165b4ef062428ce65e0f605a8df6c9fb7a41e20aeef1477adcf0a7dbe",
+      "missing_operational_fields": []
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-SESSION-FAILED",
+      "content_hash": "c05123170e06d201bdf31ad7a95deafa6da403aa01514f3f5f862758a970b358",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "content_hash": "0c865cff3a4742faa8c4bbc0a7c54fc332d946d0c82984a2ea02ecb4385c0198",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "content_hash": "2bfffc25e5bc4bf2aa4ebdfc1f964960fef1fb854366226287d8242e051a23f3",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "content_hash": "018d974b5c5c6fedeed3c2d4ccb774e42978d2fbd19ff421e51d5498f3c6e99d",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    },
+    {
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "content_hash": "eb80e9f07506d93a4da199d66896c92d2ea738b024907560a3954beb51f07ad4",
+      "missing_operational_fields": [
+        "remediation",
+        "risk statement",
+        "rollback",
+        "recovery verification"
+      ]
+    }
+  ]
+}

@@ -18,7 +18,10 @@ from backend.domain.asset_registry.schemas import PaginationMetadata
 class TimelineEvent(BaseModel):
     """Unified chronological event representation aggregated from domain tables."""
     id: str = Field(..., description="Source record identifier.")
-    type: str = Field(..., description="Event source type literal (audit, telemetry, winlog).")
+    type: str = Field(
+        ...,
+        description="Event source type literal (audit, incident_transition, evidence, verification, telemetry, winlog).",
+    )
     title: str = Field(..., description="Primary display title.")
     description: str = Field(..., description="Human-readable event summary.")
     severity: str = Field(..., description="Severity classification literal.")

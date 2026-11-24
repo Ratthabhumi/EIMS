@@ -1,0 +1,32 @@
+{
+  "schema": "v12-a12-review-findings/v1",
+  "generatedAt": "2026-11-18T21:38:42+07:00",
+  "repository": "EIMS",
+  "reviewType": "post-remediation",
+  "reviewer": { "identity": "Claude Code CLI 2.1.323", "mode": "plan (read-only)", "wroteFiles": false, "ranTests": false },
+  "binding": {
+    "baseFrozenHead": "85493b2131d3e353453072559a5dfc301d75dd06",
+    "baseFrozenManifestSha256": "53EE6A4093ECB50FEC25F746200F9BBCD10ABAFC17BCA41F567B2FD521BC2356",
+    "reviewedWorkspace": "%TEMP%/v12-a12/EIMS (remediation workspace)",
+    "changedFiles": ["tests/conftest.py", "tests/disposable_guard.py", "tests/test_fixture_isolation_contract.py", "tests/test_auth_modes.py", "tests/test_analyzer_investigation.py", "tests/test_analyzer_reliability.py", "tests/test_analyzer_integration_stability.py"]
+  },
+  "verdict": "ACCEPT_WITH_FINDINGS",
+  "findings": [
+    { "id": "R1", "severity": "HIGH", "area": "bypass", "path": "tests/test_auth_modes.py:65,83; tests/test_analyzer_investigation.py:128; tests/test_analyzer_reliability.py:2204", "finding": "These tests construct TestClient(app) directly and never call the guard, so the full lifespan still reached the configured targets.", "status": "FIXED_AFTER_REVIEW", "fix": "Guard added to all direct call sites via tests/disposable_guard.py; the new wiring test also found a fourth file (test_analyzer_integration_stability.py:293)." },
+    { "id": "R2", "severity": "MEDIUM", "area": "allowlist", "path": "tests/disposable_guard.py", "finding": "Port check is a denylist, not an allowlist; any other loopback port is trusted.", "status": "OPEN — documented residual" },
+    { "id": "R3", "severity": "MEDIUM", "area": "skip-semantics", "path": "tests/disposable_guard.py", "finding": "Skipping can hide a loss of coverage; the suite exits 0 with those tests skipped.", "status": "OPEN — deliberate fail-closed choice; recorded as a risk" },
+    { "id": "R4", "severity": "MEDIUM", "area": "escape-hatch", "path": "tests/disposable_guard.py", "finding": "EIMS_ALLOW_OPERATIONAL_FIXTURE=1 disables the guard silently and is not refused under CI.", "status": "OPEN" },
+    { "id": "R5", "severity": "MEDIUM", "area": "coverage", "path": "tests/test_fixture_isolation_contract.py", "finding": "No test protected the fixture wiring; deleting the guard call would stay green.", "status": "FIXED_AFTER_REVIEW", "fix": "Added test_client_fixture_is_wired_to_the_guard and test_every_testclient_app_call_is_guarded." },
+    { "id": "R6", "severity": "LOW", "area": "test-quality", "path": "tests/test_fixture_isolation_contract.py", "finding": "raising=False hides renames; assert-is-None is trivial; edge hosts/values untested.", "status": "PARTIALLY_ADDRESSED", "fix": "Added 127.0.0.1 coverage and non-raising assertions; ::1 and 0.0.0.0 remain uncovered." },
+    { "id": "R7", "severity": "LOW", "area": "scope", "path": "tests/disposable_guard.py", "finding": "Only DB and Redis host/port are checked; object store, DB name/user and Redis index are not.", "status": "OPEN" },
+    { "id": "R8", "severity": "LOW", "area": "message", "path": "tests/disposable_guard.py", "finding": "Skip message named DB_PORT/REDIS_PORT but the settings use EIMS_DB_PORT/EIMS_REDIS_PORT.", "status": "FIXED_AFTER_REVIEW" },
+    { "id": "R9", "severity": "LOW", "area": "policy-consistency", "path": "tests/incident_db_support.py", "finding": "Two different isolation policies exist (marker vs port denylist).", "status": "OPEN" }
+  ],
+  "residualRisk": [
+    "Non-default loopback ports are still trusted; a tunnel to production would pass.",
+    "Skipping rather than failing can hide coverage loss.",
+    "The escape hatch is silent.",
+    "Object-store endpoints are not covered by the guard.",
+    "EIMS-F2..F6 remain open."
+  ]
+}

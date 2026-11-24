@@ -38,6 +38,34 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+
+def _normalise_origin(value: str) -> str:
+    return str(value or "").strip().rstrip("/").lower()
+
+
+def websocket_origin_refusal(websocket) -> str | None:
+    """Returns the reason a handshake must be refused, or None when it may proceed.
+
+    Contract (independent of application login, which does not exist):
+    * An ``Origin`` header, when present, must exactly match an entry of ``settings.CORS_ORIGINS`` (scheme, host,
+      port). ``*`` and ``null`` never match, and an empty/misconfigured allowlist matches nothing (fail closed).
+    * A missing ``Origin`` header is a non-browser client (a browser always sends it, so it cannot be a cross-site
+      hijack). It is accepted in the default local/demo mode and refused when ``AUTH_MODE=secure``.
+    """
+    try:
+        headers = websocket.headers
+        origin = headers.get("origin") if headers is not None else None
+    except Exception:
+        return "unreadable handshake headers"
+    if origin is None or str(origin).strip() == "":
+        if str(settings.AUTH_MODE).lower() == "secure":
+            return "missing Origin in secure mode"
+        return None
+    allowed = {_normalise_origin(o) for o in (settings.CORS_ORIGINS or []) if _normalise_origin(o) not in {"", "*", "null"}}
+    if _normalise_origin(origin) in allowed:
+        return None
+    return "Origin not in allowlist"
+
 async def redis_pubsub_listener():
     """Background task to listen to Redis PubSub for security alerts."""
     while not cache_manager.redis:
@@ -72,10 +100,12 @@ async def websocket_dashboard(websocket: WebSocket, token: str = Query(None)):
     Bi-directional WebSocket streaming pipeline pushing live security anomaly alerts 
     to Next.js clients.
     """
-    # This transport has no established authenticated browser handshake yet.
-    # Fail closed in secure mode rather than stream private alerts anonymously.
-    if settings.AUTH_MODE.lower() != 'demo':
-        await websocket.close(code=1008, reason='Authenticated dashboard streaming is not configured')
+    # Application login is not used (no user session is required), but the Origin boundary is independent of
+    # login and stays fail-closed: a browser page on any other origin must not be able to open this stream.
+    refusal = websocket_origin_refusal(websocket)
+    if refusal:
+        logger.warning(f"Dashboard WebSocket refused: {refusal}")
+        await websocket.close(code=1008, reason="Origin not allowed")
         return
     await manager.connect(websocket)
     try:

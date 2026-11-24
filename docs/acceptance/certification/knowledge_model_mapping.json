@@ -1,0 +1,2269 @@
+{
+  "schema_version": 1,
+  "note": "Computed from the catalogs. 'Stated' excludes 'Not stated' placeholders. Not a certification.",
+  "sections": {
+    "A_symptom": "Symptom / observation: what was seen, identity (event id, signature, error code), source system, severity, detection conditions",
+    "B_applicability": "Applicability: product, OS/version/build, provider/component, prerequisites, unsupported conditions",
+    "C_diagnosis": "Diagnosis: likely cause, alternative causes, evidence per cause, confidence and limitations, false positives",
+    "D_investigation": "Investigation: what to inspect, commands/queries, expected and abnormal output, evidence collection",
+    "E_remediation": "Remediation: action, preconditions, permission, operational impact, destructive risk, downtime risk, backup/rollback, human approval",
+    "F_recovery": "Recovery verification: post-checks, expected healthy state, recovery evidence, resolved criteria, escalation conditions",
+    "G_provenance": "Provenance and governance: official source, source version, content hash, technical evidence, human review, approval scope, history"
+  },
+  "current_mapping": {
+    "windows_event (class A)": {
+      "A_symptom": [
+        "event_id",
+        "title",
+        "category",
+        "severity",
+        "description",
+        "keywords"
+      ],
+      "B_applicability": [
+        "provider",
+        "provider_names",
+        "applicability (statement, kind, event_versions, publication)"
+      ],
+      "C_diagnosis": [
+        "operator_context (free text)"
+      ],
+      "D_investigation": [
+        "related_events",
+        "diagnostic_guidance (some records)"
+      ],
+      "E_remediation": [],
+      "F_recovery": [],
+      "G_provenance": [
+        "official_references",
+        "applicability.source_url",
+        "register: content_hash, readiness"
+      ]
+    },
+    "legacy diagnostic (class B, 28)": {
+      "A_symptom": [
+        "observed_signatures",
+        "relevant_log_fields",
+        "title",
+        "severity",
+        "category",
+        "code_type/diagnostic_code"
+      ],
+      "B_applicability": [
+        "compatibility_scope",
+        "product"
+      ],
+      "C_diagnosis": [
+        "description",
+        "limitations"
+      ],
+      "D_investigation": [
+        "investigation_steps",
+        "diagnostic_guidance.expected_findings"
+      ],
+      "E_remediation": [
+        "diagnostic_guidance.safe_remediation",
+        "diagnostic_guidance.risk",
+        "diagnostic_guidance.rollback"
+      ],
+      "F_recovery": [
+        "diagnostic_guidance.verification_criteria"
+      ],
+      "G_provenance": [
+        "official_references",
+        "verification_status (legacy label)",
+        "diagnostic_guidance.evidence_basis"
+      ]
+    },
+    "vendor candidate (classes B/D/E, 72)": {
+      "A_symptom": [
+        "symptom",
+        "signatures",
+        "detection_signals",
+        "field_conditions",
+        "sqlstate_codes",
+        "documented_messages"
+      ],
+      "B_applicability": [
+        "version_scope",
+        "product_family",
+        "problem_domain"
+      ],
+      "C_diagnosis": [
+        "meaning",
+        "likely_causes",
+        "alternative_causes",
+        "false_positive_risks",
+        "limitations"
+      ],
+      "D_investigation": [
+        "diagnostic_steps",
+        "diagnostic_commands[].command",
+        "diagnostic_commands[].expected_evidence"
+      ],
+      "E_remediation": [
+        "remediation",
+        "operational_risk (free text: risk and impact together)"
+      ],
+      "F_recovery": [
+        "verification_steps"
+      ],
+      "G_provenance": [
+        "official_sources",
+        "evidence_basis",
+        "evidence_maturity",
+        "review_status",
+        "parser_mapping",
+        "validation_method"
+      ]
+    },
+    "vendor reference (classes C/F, 658)": {
+      "A_symptom": [
+        "code",
+        "name",
+        "code_type"
+      ],
+      "B_applicability": [
+        "version_scope",
+        "product"
+      ],
+      "C_diagnosis": [
+        "description"
+      ],
+      "D_investigation": [],
+      "E_remediation": [],
+      "F_recovery": [],
+      "G_provenance": [
+        "source",
+        "parser_mapping"
+      ]
+    }
+  },
+  "structural_gaps": [
+    {
+      "section": "E_remediation",
+      "missing_field": "rollback_steps",
+      "today": "free text inside operational_risk (candidates) or diagnostic_guidance.rollback (14 of 28 legacy)"
+    },
+    {
+      "section": "E_remediation",
+      "missing_field": "required_permission",
+      "today": "not modelled"
+    },
+    {
+      "section": "E_remediation",
+      "missing_field": "operational_impact / downtime_risk",
+      "today": "mixed into operational_risk free text"
+    },
+    {
+      "section": "E_remediation",
+      "missing_field": "human_approval_required",
+      "today": "not modelled"
+    },
+    {
+      "section": "E_remediation",
+      "missing_field": "preconditions",
+      "today": "not modelled (some appear in prose)"
+    },
+    {
+      "section": "F_recovery",
+      "missing_field": "expected_healthy_state",
+      "today": "not modelled"
+    },
+    {
+      "section": "F_recovery",
+      "missing_field": "escalation_conditions",
+      "today": "not modelled"
+    },
+    {
+      "section": "D_investigation",
+      "missing_field": "abnormal_output (structured)",
+      "today": "expected_evidence prose only"
+    },
+    {
+      "section": "C_diagnosis",
+      "missing_field": "evidence_per_cause",
+      "today": "causes are a flat list without a link to evidence"
+    },
+    {
+      "section": "B_applicability",
+      "missing_field": "os_build_range / unsupported_conditions (Windows)",
+      "today": "only the new applicability block; 0 records state a build"
+    },
+    {
+      "section": "G_provenance",
+      "missing_field": "review history on the catalog record",
+      "today": "governance tables cover 181 loaded records only (Round 1 finding P1)"
+    }
+  ],
+  "coverage_by_class": {
+    "A": {
+      "records": 153,
+      "symptom": 153,
+      "applicability": 100,
+      "cause_listed": 153,
+      "alternative_causes": 0,
+      "false_positive_risks": 0,
+      "investigation": 39,
+      "commands_with_expected_output": 0,
+      "remediation": 0,
+      "risk_stated": 0,
+      "rollback_stated": 0,
+      "recovery_verification": 0,
+      "limitations": 0,
+      "source": 111
+    },
+    "B": {
+      "records": 39,
+      "symptom": 39,
+      "applicability": 39,
+      "cause_listed": 39,
+      "alternative_causes": 11,
+      "false_positive_risks": 2,
+      "investigation": 39,
+      "commands_with_expected_output": 11,
+      "remediation": 16,
+      "risk_stated": 17,
+      "rollback_stated": 14,
+      "recovery_verification": 14,
+      "limitations": 39,
+      "source": 39
+    },
+    "C": {
+      "records": 312,
+      "symptom": 312,
+      "applicability": 312,
+      "cause_listed": 312,
+      "alternative_causes": 0,
+      "false_positive_risks": 0,
+      "investigation": 0,
+      "commands_with_expected_output": 0,
+      "remediation": 0,
+      "risk_stated": 0,
+      "rollback_stated": 0,
+      "recovery_verification": 0,
+      "limitations": 0,
+      "source": 312
+    },
+    "D": {
+      "records": 4,
+      "symptom": 4,
+      "applicability": 4,
+      "cause_listed": 4,
+      "alternative_causes": 4,
+      "false_positive_risks": 4,
+      "investigation": 4,
+      "commands_with_expected_output": 4,
+      "remediation": 4,
+      "risk_stated": 1,
+      "rollback_stated": 0,
+      "recovery_verification": 1,
+      "limitations": 4,
+      "source": 4
+    },
+    "E": {
+      "records": 57,
+      "symptom": 57,
+      "applicability": 57,
+      "cause_listed": 56,
+      "alternative_causes": 47,
+      "false_positive_risks": 0,
+      "investigation": 57,
+      "commands_with_expected_output": 57,
+      "remediation": 57,
+      "risk_stated": 37,
+      "rollback_stated": 0,
+      "recovery_verification": 18,
+      "limitations": 57,
+      "source": 57
+    },
+    "F": {
+      "records": 346,
+      "symptom": 338,
+      "applicability": 346,
+      "cause_listed": 346,
+      "alternative_causes": 0,
+      "false_positive_risks": 0,
+      "investigation": 0,
+      "commands_with_expected_output": 0,
+      "remediation": 0,
+      "risk_stated": 0,
+      "rollback_stated": 0,
+      "recovery_verification": 0,
+      "limitations": 0,
+      "source": 346
+    }
+  },
+  "engineer_use_completeness": {
+    "B": {
+      "records": 39,
+      "complete_for_engineer_use": 3
+    },
+    "D": {
+      "records": 4,
+      "complete_for_engineer_use": 0
+    },
+    "E": {
+      "records": 57,
+      "complete_for_engineer_use": 7
+    }
+  },
+  "knowledge_entry_contract": {
+    "B": {
+      "records": 39,
+      "validates_unchanged": 35,
+      "blockers": {
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps": 4
+      }
+    },
+    "D": {
+      "records": 4,
+      "validates_unchanged": 2,
+      "blockers": {
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps": 2
+      }
+    },
+    "E": {
+      "records": 57,
+      "validates_unchanged": 38,
+      "blockers": {
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps": 19
+      }
+    }
+  },
+  "records_b_d_e": [
+    {
+      "record_key": "candidate:cisco-asa:failover:split-brain",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:cisco-ios:bgp:neighbor-down",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:cisco-ios:bgp:route-missing",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:cisco-ios:bgp:session-reset-on-interface-flap",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:cisco-ios:interface:errdisable",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:cisco-ios:ospf:neighbor-missing-down-or-init",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:cisco-ios:ospf:neighbor-stuck-exstart",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:cisco-iosxe:interface:link-flap",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:cisco-nxos:ospf:adjacency-problems-nexus-7000",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:authentication:remote-user-fnbamd-debug",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:firewall:traffic-dropped-no-matching-policy",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:config-out-of-sync",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "class": "D",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:split-brain-or-formation-failure",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:unexpected-failover-causes",
+      "class": "D",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ipsec:ike-negotiation-failure",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ipsec:tunnel-state-and-ha-sync",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:logging:fortianalyzer-connection-check",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:sslvpn:handshake-debug",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:sslvpn:hangs-or-disconnects-at-98-percent",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:sslvpn:no-response-or-client-connection-failure",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "cause_listed",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:sslvpn:slow-throughput-dtls",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:sslvpn:tunnel-drops-after-seconds-multi-wan",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:sslvpn:users-assigned-wrong-ip-range",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:packet-flow-debug",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-local-traffic",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:microsoft-hyper-v:management:console-connect-or-auth-failure",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:microsoft-hyper-v:vm:fails-to-migrate-start-or-inaccessible",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:microsoft-windows-dhcp:client:cannot-obtain-lease",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:microsoft-windows-dns:server:query-response-delay",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:microsoft-windows-dns:zone:records-missing",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:microsoft-windows-failover-cluster:service:fails-to-start",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:auth:password-authentication-failed",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:postgresql:checkpoint:wal-size-triggered-too-frequently",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:postgresql:connections:too-many-connections",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:locks:deadlock-detected",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:postgresql:replication:slot-retains-wal-filling-pg-wal",
+      "class": "D",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-lag-measurement",
+      "class": "D",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-query-canceled-recovery-conflict",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:server:administrator-shutdown-or-terminate",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:storage:data-disk-full",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:postgresql:wal:archive-command-failing-pg-wal-fills",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:application-aware:processing-unsupported-or-failing",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:backup-chain:missing-file-or-manual-delete",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:capacity-tier:offload-not-happening-or-import-blocked",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:hardened-repository:unsupported-configuration",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:health-check:capacity-tier-corrupted-chain",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:veeam-vbr:health-check:corruption-detected",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:hotadd:stuck-vmdk-on-proxy",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:veeam-vbr:hotadd:virtual-appliance-mode-requirements",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:hyperv:on-host-proxy-or-integration-failure",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:veeam-vbr:immutability:cannot-delete-or-modify",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:instant-recovery:considerations-and-failures",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:object-storage:immutability-bucket-configuration-errors",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:veeam-vbr:proxy:no-proxy-available-vmware",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:replication:job-limitations-and-restore-point-loss",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:replication:no-source-or-target-proxy-available",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:restore:entire-vm-post-restore-differences",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:veeam-vbr:schedule:synthetic-or-active-full-not-created",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:snapshot:phantom-or-orphaned-vm-snapshots",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:cannot-add-repository-as-extent-or-extent-limits",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:forget-or-remove-missing-restore-point-deletes-offloaded-data",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:maintenance-mode-breaks-active-chain",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:mixed-provider-or-immutability-configuration",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:no-extent-available",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:rescan-import-fails-vbm-path-characters",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:sealed-extent-forces-active-full",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:surebackup:verification-failed",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ]
+    },
+    {
+      "record_key": "candidate:veeam-vbr:transaction-log:truncation-conflicts",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "candidate:veeam-vbr:transport-mode:unavailable-for-proxy-type",
+      "class": "E",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:105005",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106001",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106015",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106023",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106024",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": true,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:106100",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113005",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": true,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:113019",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302013",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:302014",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411001",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:cisco_asa:official_message_id:411002",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "risk_stated"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/system",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/user",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:event/vpn",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:traffic/forward",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:fortinet:log_category:utm/ips",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:linux_syslog:general_signature:AUTH-FAIL",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation"
+      ],
+      "rollback_stated": true,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:CONFIG",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:SYSTEM",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:THREAT",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:palo_alto:log_category:TRAFFIC",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-REPLICA-SNAPSHOT-CHAIN",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "remediation",
+        "risk_stated",
+        "recovery_verification",
+        "source"
+      ],
+      "missing_or_not_stated": [],
+      "rollback_stated": true,
+      "complete_for_engineer_use": true,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VEEAM-SESSION-FAILED",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:veeam_vbr:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-CBT-DELETE-FAILED",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    },
+    {
+      "record_key": "diagnostic_legacy:vmware:eims_diagnostic:VMWARE-SNAPSHOT-FILE-MISSING",
+      "class": "B",
+      "present": [
+        "symptom",
+        "applicability",
+        "cause_listed",
+        "investigation",
+        "source"
+      ],
+      "missing_or_not_stated": [
+        "remediation",
+        "risk_stated",
+        "recovery_verification"
+      ],
+      "rollback_stated": false,
+      "complete_for_engineer_use": false,
+      "knowledge_entry_contract_blockers": []
+    }
+  ]
+}

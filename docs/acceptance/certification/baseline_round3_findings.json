@@ -1,0 +1,1266 @@
+{
+  "evidence_only": true,
+  "certification_decision": null,
+  "finding_count": 207,
+  "informational_evidence_rows": 1,
+  "counts_by_code": {
+    "destructive_remediation_risk_unresolved": 6,
+    "evaluator_not_mapped": 1,
+    "source_url_missing": 42,
+    "state_real_evidence_negative_missing": 1,
+    "state_real_evidence_positive_missing": 1,
+    "unqualified_always_never": 3,
+    "version_scope_missing": 42,
+    "version_scope_not_explicit": 111
+  },
+  "findings": [
+    {
+      "code": "destructive_remediation_risk_unresolved",
+      "severity": "warning",
+      "record_key": "candidate:cisco-ios:bgp:session-reset-on-interface-flap",
+      "message": "Destructive remediation language; the risk field only says the vendor gave no risk statement."
+    },
+    {
+      "code": "state_real_evidence_positive_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "message": "No current real-source (not authored-row) positive evidence for the evaluator."
+    },
+    {
+      "code": "state_real_evidence_negative_missing",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "message": "No current real-source (not authored-row) negative evidence for the evaluator."
+    },
+    {
+      "code": "destructive_remediation_risk_unresolved",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "message": "Destructive remediation language; the risk field only says the vendor gave no risk statement."
+    },
+    {
+      "code": "evaluator_not_mapped",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:ha:unexpected-failover-causes",
+      "message": "State/telemetry candidate has no evaluator mapped; matching evidence cannot exist yet."
+    },
+    {
+      "code": "unqualified_always_never",
+      "severity": "warning",
+      "record_key": "candidate:fortinet-fortios:traffic:policyid-0-forward-implicit-deny",
+      "message": "Unqualified 'always' or 'never' language needs human evidence review."
+    },
+    {
+      "code": "destructive_remediation_risk_unresolved",
+      "severity": "warning",
+      "record_key": "candidate:microsoft-hyper-v:management:console-connect-or-auth-failure",
+      "message": "Destructive remediation language; the risk field only says the vendor gave no risk statement."
+    },
+    {
+      "code": "destructive_remediation_risk_unresolved",
+      "severity": "warning",
+      "record_key": "candidate:microsoft-windows-dhcp:client:cannot-obtain-lease",
+      "message": "Destructive remediation language; the risk field only says the vendor gave no risk statement."
+    },
+    {
+      "code": "destructive_remediation_risk_unresolved",
+      "severity": "warning",
+      "record_key": "candidate:veeam-vbr:hyperv:on-host-proxy-or-integration-failure",
+      "message": "Destructive remediation language; the risk field only says the vendor gave no risk statement."
+    },
+    {
+      "code": "unqualified_always_never",
+      "severity": "warning",
+      "record_key": "candidate:veeam-vbr:proxy:no-proxy-available-vmware",
+      "message": "Unqualified 'always' or 'never' language needs human evidence review."
+    },
+    {
+      "code": "destructive_remediation_risk_unresolved",
+      "severity": "warning",
+      "record_key": "candidate:veeam-vbr:restore:entire-vm-post-restore-differences",
+      "message": "Destructive remediation language; the risk field only says the vendor gave no risk statement."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:100",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:100",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1000",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1001",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:10016",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1001:Microsoft-Windows-WER-SystemErrorReporting",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1002",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1002",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1003",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1003",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1006",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1006",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:101",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:101",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:10102",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:10102",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:10104",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:10104",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1014",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1014",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1015",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1015",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:102",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:102",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1026",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:103",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:103",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:104",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:104",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1054",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1054",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1055",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1055",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1058",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1069",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1074",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1076",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1076",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:109",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:109",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:11",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1102",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1104",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1116",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1117",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1118",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1119",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1121",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1122",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1129",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1135",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1150",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:129",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:134",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1511",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:153",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:1530",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:157",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:17",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:18500",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:18500",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:20",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:2001",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:2004",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:2005",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:2005",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:21",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:21",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:22",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:22",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:23",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:23",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:24",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:24",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:25",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:25",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:3002",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:400",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:400",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4000",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4013",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4015",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:403",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:403",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:41",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4103",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4103",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4104",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4105",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4105",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4106",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4106",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4199",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4226",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4226",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4624",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4625",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4634",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4647",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4648",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4662",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4672",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4688",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4689",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4697",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4698",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4699",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4700",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4701",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4702",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4704",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4705",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4720",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4722",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4723",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4724",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4725",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4726",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4728",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4729",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4732",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4733",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4735",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4737",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4738",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4740",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4741",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4742",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4743",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4767",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4768",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4769",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4771",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4776",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:4781",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5001",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5007",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5009",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5009",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5010",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5011",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5011:Microsoft-Windows-WAS",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:51",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5136",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5137",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5138",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5140",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5142",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5143",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5144",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5145",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5152",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5155",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5156",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5157",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5158",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5159",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:55",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5857",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5858",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5860",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5860",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5861",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:5861",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:600",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:600",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:6005",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:6005",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:6006",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:6008",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:6013",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:6013",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7000",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7001",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7001",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7009",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7009",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7011",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7022",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7022",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7023",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7024",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7024",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7031",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7034",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7036",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7040",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7040",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:7045",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "source_url_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:800",
+      "message": "No source URL is recorded; source verification cannot start for this record."
+    },
+    {
+      "code": "version_scope_missing",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:800",
+      "message": "Version scope is empty."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:8193",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "version_scope_not_explicit",
+      "severity": "warning",
+      "record_key": "operational:windows_event:official_event_id:98",
+      "message": "The only 'scope' is free text copied from a cited page; no explicit product/version range is recorded."
+    },
+    {
+      "code": "unqualified_always_never",
+      "severity": "warning",
+      "record_key": "reference:haproxy:termination_state_first_char:I",
+      "message": "Unqualified 'always' or 'never' language needs human evidence review."
+    },
+    {
+      "code": "reference_parser_check_summary",
+      "severity": "evidence",
+      "record_key": null,
+      "message": "Checked 312 parser-mapped references; 2 success-status references (PostgreSQL class 00, systemd exit status 0) are intentionally not surfaced by the parser contract."
+    }
+  ]
+}

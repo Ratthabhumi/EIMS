@@ -1,0 +1,1042 @@
+{
+  "schema_version": 1,
+  "note": "Candidate verbatim sentences only; nothing is adopted until curated into remediation_overlay.json. Not a review.",
+  "records": [
+    {
+      "record_key": "candidate:cisco-asa:failover:split-brain",
+      "class": "E",
+      "remediation_in_record": [
+        "Emergency recovery (vendor): disable failover on the unit that is not passing traffic (ASA: no failover in configuration mode; FTD: configure high-availability suspend from Clish).",
+        "Isolate that unit from the network (ASA: shut the data interfaces; FTD: shut the interfaces on the connected device; or physically disconnect or power off).",
+        "If connectivity problems persist, clear stale ARP entries on upstream and downstream devices, or force the working unit to send a gratuitous ARP for the affected interface IP with debug menu ipaddrutl",
+        "Prevention listed by the vendor: Cisco-recommended release, separate paths for data and failover links, port-channel for the failover link, link latency under 10 ms (no more than 250 ms), hold timer f"
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.cisco.com/c/en/us/support/docs/security/adaptive-security-appliance-asa-software/217691-troubleshoot-split-brain-issues-on-asa-f.html",
+          "fetch_status": "MANUAL_REVIEW_REQUIRED",
+          "retrieved": "2026-11-21",
+          "statements": {}
+        }
+      ],
+      "disposition": "MANUAL_REVIEW_REQUIRED"
+    },
+    {
+      "record_key": "candidate:cisco-ios:bgp:neighbor-down",
+      "class": "E",
+      "remediation_in_record": [
+        "Correct the peer IP or AS configuration on both ends; set a unique router ID with bgp router-id.",
+        "For iBGP over loopbacks define the source with neighbor <ip> update-source.",
+        "For eBGP over loopbacks between directly connected routers use neighbor <ip> disable-connected-check; for multihop eBGP use neighbor <ip> ebgp-multihop [hop-count].",
+        "Fix Layer 1 problems and review ACLs and firewalls that block TCP 179; make MTU consistent across the path."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.cisco.com/c/en/us/support/docs/ip/border-gateway-protocol-bgp/218027-troubleshoot-border-gateway-protocol-bas.html",
+          "fetch_status": "MANUAL_REVIEW_REQUIRED",
+          "retrieved": "2026-11-21",
+          "statements": {}
+        }
+      ],
+      "disposition": "MANUAL_REVIEW_REQUIRED"
+    },
+    {
+      "record_key": "candidate:cisco-ios:bgp:session-reset-on-interface-flap",
+      "class": "E",
+      "remediation_in_record": [
+        "Fix the interface or link problem that causes the flap (see the link-flap record).",
+        "Vendor page: configuring no bgp fast-external-fallover under BGP configuration disables the reset-on-link-down behavior \"to keep BGP stable and prevent the interface from flapping\". The page states no"
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.cisco.com/c/en/us/support/docs/ip/border-gateway-protocol-bgp/22166-bgp-trouble-main.html",
+          "fetch_status": "MANUAL_REVIEW_REQUIRED",
+          "retrieved": "2026-11-21",
+          "statements": {}
+        }
+      ],
+      "disposition": "MANUAL_REVIEW_REQUIRED"
+    },
+    {
+      "record_key": "candidate:cisco-ios:interface:errdisable",
+      "class": "E",
+      "remediation_in_record": [
+        "Fix the root cause first (for example match duplex on both ends, set EtherChannel to desirable mode, remove PortFast/BPDU Guard from switch-facing ports).",
+        "Manual recovery: in interface configuration mode run shutdown, then no shutdown.",
+        "Automatic recovery is disabled by default: errdisable recovery cause <cause> (or all); the default interval is 300 seconds and can be changed with errdisable recovery interval <seconds>."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/69980-errdisable-recovery.html",
+          "fetch_status": "MANUAL_REVIEW_REQUIRED",
+          "retrieved": "2026-11-21",
+          "statements": {}
+        }
+      ],
+      "disposition": "MANUAL_REVIEW_REQUIRED"
+    },
+    {
+      "record_key": "candidate:cisco-nxos:ospf:adjacency-problems-nexus-7000",
+      "class": "E",
+      "remediation_in_record": [
+        "Replace or move faulty cables, GBICs or ports and retest connectivity.",
+        "Align subnet, timers, area ID/type and authentication on both sides; remove the passive setting where adjacency is required; remove ACL or CoPP blocks; fix NAT that translates OSPF packets; give each ",
+        "For an MTU mismatch correct the MTU; the page notes ip ospf mtu-ignore as an option."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.cisco.com/c/en/us/support/docs/switches/nexus-7000-series-switches/116422-technote-ospf-00.html",
+          "fetch_status": "MANUAL_REVIEW_REQUIRED",
+          "retrieved": "2026-11-21",
+          "statements": {}
+        }
+      ],
+      "disposition": "MANUAL_REVIEW_REQUIRED"
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:failover-reason-from-ha-status",
+      "class": "D",
+      "remediation_in_record": [
+        "No remediation: the strings explain why a transition happened; address the underlying condition (interface, peer, memory, manual action) with the unexpected-failover candidate."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://community.fortinet.com/t5/FortiGate/Technical-Tip-Understanding-FortiGate-HA-failover-causes-from-HA/ta-p/264123",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [],
+            "impact_risk": [],
+            "backup_rollback": [],
+            "verification": []
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:split-brain-or-formation-failure",
+      "class": "E",
+      "remediation_in_record": [
+        "Restore the heartbeat link or remove what blocks heartbeat packets; make mode, group-name, group-id and password identical (different group-id values produce different virtual MACs but an IP conflict ",
+        "Prevention (vendor): use back-to-back heartbeat links in a two-member cluster, redundant heartbeat interfaces, and heartbeat lost intervals/thresholds longer than link latency for geographically separ"
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://docs.fortinet.com/document/fortigate/6.2.0/cookbook/946059/troubleshoot-an-ha-formation",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "In a configuration where members are in different locations, ensure the heartbeat lost intervals and thresholds are longer than the possible latency in the links. © 2026 Fortinet, Inc."
+            ],
+            "impact_risk": [],
+            "backup_rollback": [],
+            "verification": [
+              "Identify the heartbeat ports, and verify that they are physically connected and up.",
+              "Verify that heartbeat packets are being sent and received on the heartbeat ports.",
+              "Verify that the HA configurations match between the HA members.",
+              "The HA mode , group-name , group-id , and password settings should be the same.",
+              "If everything seems to be in working order, run get system ha status to verify that HA has formed successfully."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:fortinet-fortios:ha:unexpected-failover-causes",
+      "class": "D",
+      "remediation_in_record": [
+        "No single fix is given: identify the trigger from the outputs, check monitored interfaces and LAG members (adjust min-links if needed), verify heartbeat cables/ports; reset uptime (diagnose sys ha res"
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://community.fortinet.com/t5/FortiGate/Technical-Tip-Troubleshooting-unexpected-High-Availability-HA/ta-p/228854",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Ensure the heartbeat cable is connected and the ports match.",
+              "Always re-run the test booklet after applying changes to ensure the designed topology is still working as expected."
+            ],
+            "impact_risk": [
+              "If the interface monitor's list is updated during cluster operation, the link_failure count will be reset to reflect the current monitored interface status (UP or Down)."
+            ],
+            "backup_rollback": [],
+            "verification": [
+              "Close to the bottom, confirm the Primary and Secondary units' roles by the hostname."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:microsoft-hyper-v:management:console-connect-or-auth-failure",
+      "class": "E",
+      "remediation_in_record": [
+        "Open UDP/TCP 389 and port 2179; correct DNS settings and domain controller reachability.",
+        "Add users to the required groups; remove affected users from the default Users group if necessary.",
+        "Enable-PSRemoting; Enable-WSManCredSSP (server and client roles with -DelegateComputer); Set-Item wsman:localhost\\client\\trustedhosts <Hyper-V host IP>; enable the Remote Administration, Remote Deskto",
+        "If permission errors persist: MOFCOMP %SYSTEMROOT%\\System32\\WindowsVirtualization.V2.mof, and allow delegation of fresh credentials with NTLM-only server authentication in Group Policy."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/virtualization/hyper-v-cluster-connectivity-management-configuration",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Troubleshoot Hyper-V Cluster Connectivity, Management, and Configuration Failures - Windows Server | Microsoft Learn Table of contents Exit editor mode Ask Learn Ask Learn Reading mode Table of contents Read in English Add Add to Plans Edit Copy Markdown Print Note Access to this page requires authorization.",
+              "Access to this page requires authorization.",
+              "Here are the resolutions for each scenario respectively: Scenario 1: Cluster or Hyper-V Manager console fails to connect or authenticate Verify network connectivity and firewall rules: Ensure UDP/TCP port 389 is open between Hyper-V hosts and domain controllers.",
+              "Confirm group memberships and permissions: Ensure users are members of: Hyper-V Administrators Remote Management Users Storage Replica Administrators (if applicable) Remove affected users from the default Users group if necessary.",
+              "Ensure consistent network settings across all nodes.",
+              "If not feasible, create a new VM from scratch to ensure a unique UUID."
+            ],
+            "impact_risk": [],
+            "backup_rollback": [
+              "Backup or cluster operations hang, fail, or report errors.",
+              "Backup or third-party software impact: Backup operations or third-party tools cause services (for example, WMI) to crash or malfunction.",
+              "Back up and, if needed, delete or rename the .vmcx and .vmrs files.",
+              "Retry role installation by using Server Manager, PowerShell, or Deployment Image Servicing and Management (DISM) tools: Install-WindowsFeature -Name Hyper-V -IncludeManagementTools Scenario 6: Backup or WMI-related cluster node failures Check WMI service status: If WMIPrvSE.exe crashes, restart the service or reboot the node."
+            ],
+            "verification": [
+              "Here are the resolutions for each scenario respectively: Scenario 1: Cluster or Hyper-V Manager console fails to connect or authenticate Verify network connectivity and firewall rules: Ensure UDP/TCP port 389 is open between Hyper-V hosts and domain controllers.",
+              "Verify DNS settings and confirm domain controller reachability.",
+              "Confirm group memberships and permissions: Ensure users are members of: Hyper-V Administrators Remote Management Users Storage Replica Administrators (if applicable) Remove affected users from the default Users group if necessary.",
+              "Scenario 7: Failover Cluster console/GUI not working Check for duplicate cases: Verify the issue isn't already tracked in an open support case.",
+              "Verify cluster configuration: Review cluster logs and configurations for inconsistencies."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:microsoft-hyper-v:vm:fails-to-migrate-start-or-inaccessible",
+      "class": "E",
+      "remediation_in_record": [
+        "Run Windows Update on all Hyper-V hosts before installing or migrating the Hyper-V role.",
+        "Vendor sequence for an unresponsive VM: shut down all healthy VMs, reboot the Hyper-V host, delete the problematic VM in Hyper-V Manager while retaining the VHDX file, back up and if needed delete or "
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/virtualization/hyper-v-cluster-connectivity-management-configuration",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Troubleshoot Hyper-V Cluster Connectivity, Management, and Configuration Failures - Windows Server | Microsoft Learn Table of contents Exit editor mode Ask Learn Ask Learn Reading mode Table of contents Read in English Add Add to Plans Edit Copy Markdown Print Note Access to this page requires authorization.",
+              "Access to this page requires authorization.",
+              "Here are the resolutions for each scenario respectively: Scenario 1: Cluster or Hyper-V Manager console fails to connect or authenticate Verify network connectivity and firewall rules: Ensure UDP/TCP port 389 is open between Hyper-V hosts and domain controllers.",
+              "Confirm group memberships and permissions: Ensure users are members of: Hyper-V Administrators Remote Management Users Storage Replica Administrators (if applicable) Remove affected users from the default Users group if necessary.",
+              "Ensure consistent network settings across all nodes.",
+              "If not feasible, create a new VM from scratch to ensure a unique UUID."
+            ],
+            "impact_risk": [],
+            "backup_rollback": [
+              "Backup or cluster operations hang, fail, or report errors.",
+              "Backup or third-party software impact: Backup operations or third-party tools cause services (for example, WMI) to crash or malfunction.",
+              "Back up and, if needed, delete or rename the .vmcx and .vmrs files.",
+              "Retry role installation by using Server Manager, PowerShell, or Deployment Image Servicing and Management (DISM) tools: Install-WindowsFeature -Name Hyper-V -IncludeManagementTools Scenario 6: Backup or WMI-related cluster node failures Check WMI service status: If WMIPrvSE.exe crashes, restart the service or reboot the node."
+            ],
+            "verification": [
+              "Here are the resolutions for each scenario respectively: Scenario 1: Cluster or Hyper-V Manager console fails to connect or authenticate Verify network connectivity and firewall rules: Ensure UDP/TCP port 389 is open between Hyper-V hosts and domain controllers.",
+              "Verify DNS settings and confirm domain controller reachability.",
+              "Confirm group memberships and permissions: Ensure users are members of: Hyper-V Administrators Remote Management Users Storage Replica Administrators (if applicable) Remove affected users from the default Users group if necessary.",
+              "Scenario 7: Failover Cluster console/GUI not working Check for duplicate cases: Verify the issue isn't already tracked in an open support case.",
+              "Verify cluster configuration: Review cluster logs and configurations for inconsistencies."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:microsoft-windows-dhcp:client:cannot-obtain-lease",
+      "class": "E",
+      "remediation_in_record": [
+        "Fix the identified server, scope, relay or client setting (vendor checklist).",
+        "After drops are confirmed, involve the network team to investigate and resolve the drop (vendor step)."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/troubleshoot-dhcp-guidance",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Guidance for troubleshooting DHCP - Windows Server | Microsoft Learn Table of contents Exit editor mode Ask Learn Ask Learn Reading mode Table of contents Read in English Add Add to Plans Edit Copy Markdown Print Note Access to this page requires authorization.",
+              "Access to this page requires authorization.",
+              "Devices must be assigned an IP address to be able to operate in a network.",
+              "Troubleshooting checklist Before you begin to troubleshoot, check the following items.",
+              "Verify that the IP address to which DHCP server is bound is within the subnet of the scopes from which IP addresses must be leased out.",
+              "These steps ensure thorough troubleshooting using Wireshark to pinpoint where DHCP communication breaks down, facilitating quicker resolution of DHCP configuration or network issues."
+            ],
+            "impact_risk": [],
+            "backup_rollback": [],
+            "verification": [
+              "To check this setting, run the net start command, and look for DHCP Server .",
+              "Verify that IP address leases are available in the DHCP server scope for the subnet that the DHCP client is on.",
+              "Verify that the IP address to which DHCP server is bound is within the subnet of the scopes from which IP addresses must be leased out.",
+              "Verify that only the DHCP server is listening on UDP port 67 and 68.",
+              "If you are dealing with an IPsec-deployed environment, verify that the DHCP server IPsec exemption is added.",
+              "Verify that the relay agent IP address can be pinged from the DHCP server."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:microsoft-windows-dns:server:query-response-delay",
+      "class": "E",
+      "remediation_in_record": [
+        "Remove unreachable forwarders.",
+        "If the server does not need forwarders and root hints: server Properties > Advanced > turn on Disable recursion (this setting also disables forwarders)."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/troubleshoot-dns-guidance",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Guidance for troubleshooting DNS - Windows Server | Microsoft Learn Table of contents Exit editor mode Ask Learn Ask Learn Reading mode Table of contents Read in English Add Add to Plans Edit Copy Markdown Print Note Access to this page requires authorization.",
+              "Access to this page requires authorization.",
+              "In the case of a service that requires an SRV record, the local Netlogon service logs \"event ID 577 X \" events when it can't register SRV records.",
+              "Data collection Before you contact Microsoft Support, you can gather information about your issue.",
+              "Note If you collect logs on both the client and the server, wait for this message to appear on both nodes before you reproduce the issue."
+            ],
+            "impact_risk": [],
+            "backup_rollback": [],
+            "verification": [
+              "Use the DNS manager server properties, interfaces dialog box, to verify and reset the IP addresses the DNS server should listen on.",
+              "To verify that the change takes effect, run the Get-ExecutionPolicy -List cmdlet."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:microsoft-windows-failover-cluster:service:fails-to-start",
+      "class": "E",
+      "remediation_in_record": [
+        "Open the listed ports to cluster traffic, then try bringing the node online again.",
+        "Correct the user-rights lists, then try bringing the node online again.",
+        "For Event 7024 from the LSASS policy: remove the policy setting, or set it to Disabled on the domain controller and Enabled on member servers such as cluster nodes.",
+        "Disabling the firewall is a test only: the vendor says not to leave it in place and to restore the original configuration afterwards."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/high-availability/troubleshoot-cluster-service-fails-to-start",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Cluster service fails to start troubleshooting guidance - Windows Server | Microsoft Learn Table of contents Exit editor mode Ask Learn Ask Learn Reading mode Table of contents Read in English Add Add to Plans Edit Copy Markdown Print Note Access to this page requires authorization.",
+              "Access to this page requires authorization.",
+              "For more information about how to configure a network and network ports for a cluster, see the following articles: Enable a network for cluster use Service overview and network port requirements for Windows After you change the port settings, try to bring the node online again before you proceed.",
+              "Ensure the list of accounts includes the accounts that run the cluster node.",
+              "Ensure the list of accounts doesn't include local accounts.",
+              "Ensure the list of accounts and groups doesn't include the \"Everyone\" group."
+            ],
+            "impact_risk": [
+              "Review any test results that are labeled as Failed or Warning .",
+              "Important Don't leave this change in place after you finish troubleshooting."
+            ],
+            "backup_rollback": [],
+            "verification": []
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:postgresql:connections:too-many-connections",
+      "class": "B",
+      "remediation_in_record": [
+        "Raise max_connections: it can only be set at server start (documented), so it needs a restart; on a standby it must be the same or higher than on the primary."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.postgresql.org/docs/16/runtime-config-connection.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "The value must be less than max_connections minus superuser_reserved_connections .",
+              "The value must be less than max_connections minus reserved_connections .",
+              "This parameter is supported only on systems that support TCP_KEEPIDLE or an equivalent socket option, and on Windows; on other systems, it must be zero.",
+              "This parameter is supported only on systems that support TCP_KEEPINTVL or an equivalent socket option, and on Windows; on other systems, it must be zero.",
+              "This parameter is supported only on systems that support TCP_KEEPCNT or an equivalent socket option (which does not include Windows); on other systems, it must be zero.",
+              "This parameter is supported only on systems that support TCP_USER_TIMEOUT (which does not include Windows); on other systems, it must be zero."
+            ],
+            "impact_risk": [
+              "A warning will be emitted for any TCP/IP address which cannot be opened.",
+              "At that time, this option will be removed."
+            ],
+            "backup_rollback": [],
+            "verification": [
+              "A value that starts with @ specifies that a Unix-domain socket in the abstract namespace should be created (currently supported on Linux only).",
+              "In sessions connected via a Unix-domain socket, this parameter is ignored and always reads as zero. tcp_keepalives_interval ( integer ) # Specifies the amount of time after which a TCP keepalive message that has not been acknowledged by the client should be retransmitted.",
+              "See Section 21.6 for more information. krb_caseins_users ( boolean ) # Sets whether GSSAPI user names should be treated case-insensitively.",
+              "This parameter can only be set in the postgresql.conf file or on the server command line. gss_accept_delegation ( boolean ) # Sets whether GSSAPI delegation should be accepted from the client."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:postgresql:replication:standby-query-canceled-recovery-conflict",
+      "class": "B",
+      "remediation_in_record": [
+        "Set hot_standby_feedback so VACUUM does not remove recently-dead rows (documented first option).",
+        "Adjust max_standby_archive_delay / max_standby_streaming_delay: short for a standby meant for high availability, higher or infinite when it runs long queries (documented trade-off).",
+        "Retry canceled queries in a new transaction (documented: they may succeed)."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.postgresql.org/docs/16/hot-standby.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "This restriction applies even to temporary tables, because carrying out these operations would require updating the system catalog tables.",
+              "Normally, PostgreSQL allows cleanup of old row versions when there are no transactions that need to see them to ensure correct visibility of data according to MVCC rules.",
+              "These shared memory structures must be no smaller on a standby than on the primary in order to ensure that the standby does not run out of shared memory during recovery.",
+              "The parameters affected are: max_connections max_prepared_transactions max_locks_per_transaction max_wal_senders max_worker_processes The easiest way to ensure this does not become a problem is to have these parameters set on the standbys to values equal to or greater than on the primary.",
+              "WAL replay is not trigger-based so you cannot relay from the standby to any system that requires additional database writes or relies on the use of triggers.",
+              "If there are temporary files in the tablespace, all active queries are canceled to ensure that temporary files are removed, so the tablespace can be removed and WAL replay can continue."
+            ],
+            "impact_risk": [
+              "If a hot standby processes WAL that indicates that the current value on the primary is higher than its own value, it will log a warning and pause recovery, for example: WARNING: hot standby is not possible because of insufficient parameter settings DETAIL: max_connections = 80 is a lower setting than on the primary server, where its value was 100.",
+              "It is important that the administrator select appropriate settings for max_standby_archive_delay and max_standby_streaming_delay ."
+            ],
+            "backup_rollback": [
+              "This is useful both for replication purposes and for restoring a backup to a desired state with great precision.",
+              "These can be used to monitor the progress of recovery, or to allow you to write complex programs that restore the database to particular states.",
+              "There are two parameters so that different delay values can be specified for the case of reading WAL data from an archive (i.e., initial recovery from a base backup or “ catching up ” a standby server that has fallen far behind) versus reading WAL data via streaming replication."
+            ],
+            "verification": [
+              "Users should be clear that tables that are regularly and heavily updated on the primary server will quickly cause cancellation of longer running queries on the standby.",
+              "To confirm the server has come up, either loop trying to connect from the application, or look for these messages in the server logs: LOG: entering standby mode ... then some time later ...",
+              "If these administration commands are needed, they should be executed on the primary, and eventually those changes will propagate to the standby. pg_cancel_backend() and pg_terminate_backend() will work on user backends, but not the startup process, which performs recovery. pg_stat_activity does not show recovering transactions as active."
+            ]
+          }
+        },
+        {
+          "url": "https://github.com/postgres/postgres/blob/REL_16_STABLE/src/backend/tcop/postgres.c",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "If we haven't tried to read yet, * make sure the process latch is set, so that if there is no data * then we'll come back here and die.",
+              "Analysis and rewriting * cannot be done in an aborted transaction, since they require access to * database tables."
+            ],
+            "impact_risk": [],
+            "backup_rollback": [],
+            "verification": []
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:postgresql:server:administrator-shutdown-or-terminate",
+      "class": "B",
+      "remediation_in_record": [
+        "No remediation: this is a requested action. Start the server again if a shutdown was not intended; restart sessions."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.postgresql.org/docs/16/server-shutdown.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Upgrading a PostgreSQL Cluster Submit correction If you see anything in the documentation that is not correct, does not match your experience with the particular feature or requires further clarification, please use this form to report a documentation issue."
+            ],
+            "impact_risk": [
+              "For example, to do a fast shutdown: $ kill -INT `head -1 /usr/local/pgsql/data/postmaster.pid` Important It is best not to use SIGKILL to shut down the server."
+            ],
+            "backup_rollback": [],
+            "verification": []
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:postgresql:vacuum:xid-wraparound-warning-or-refusal",
+      "class": "B",
+      "remediation_in_record": [
+        "Resolve old prepared transactions (commit or roll back); end long-running open transactions (commit, roll back or pg_terminate_backend); drop old replication slots; then run a database-wide VACUUM in ",
+        "The vendor says that, contrary to the error hint, it is not necessary or desirable to stop the postmaster or use single-user mode. Do not use VACUUM FULL in this scenario (it needs an XID and fails ex"
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.postgresql.org/docs/16/routine-vacuuming.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "The Autovacuum Daemon PostgreSQL databases require periodic maintenance known as vacuuming .",
+              "(Commands such as SELECT , INSERT , UPDATE , and DELETE will continue to function normally, though you will not be able to modify the definition of a table with commands such as ALTER TABLE while it is being vacuumed.) VACUUM FULL requires an ACCESS EXCLUSIVE lock on the table it is working on, and therefore cannot be done in parallel with other use of the table.",
+              "It also requires extra disk space for the new copy of the table, until the operation completes.",
+              "All these options require an ACCESS EXCLUSIVE lock.",
+              "It is possible to run ANALYZE on specific tables and even just specific columns of a table, so the flexibility exists to update some statistics more frequently than others if your application requires it.",
+              "Columns that are heavily used in WHERE clauses and have highly irregular data distributions might require a finer-grain data histogram than other columns."
+            ],
+            "impact_risk": [
+              "It is important to have reasonably accurate statistics, otherwise poor choices of plans might degrade database performance.",
+              "If it were to go unvacuumed for longer than that, data loss could result.",
+              "If for some reason autovacuum fails to clear old XIDs from a table, the system will begin to emit warning messages like this when the database's oldest XIDs reach forty million transactions from the wraparound point: WARNING: database \"mydb\" must be vacuumed within 39985967 transactions HINT: To avoid a database shutdown, execute a database-wide VACUUM in that database.",
+              "Operations that modify database records or truncate relations will fail.",
+              "It is also riskier, since it disables transaction ID wraparound safeguards that are designed to prevent data loss.",
+              "Similar to the XID case, if autovacuum fails to clear old MXIDs from a table, the system will begin to emit warning messages when the database's oldest MXIDs reach forty million transactions from the wraparound point."
+            ],
+            "backup_rollback": [
+              "Contrary to what the hint states, it is not necessary or desirable to stop the postmaster or enter single user-mode in order to restore normal operation.",
+              "Do not use VACUUM FREEZE either, because it will do more than the minimum amount of work required to restore normal operation."
+            ],
+            "verification": [
+              "Since PostgreSQL indexes don't contain tuple visibility information, a normal index scan fetches the heap tuple for each matching index entry, to check whether it should be seen by the current transaction.",
+              "As a rule of thumb, vacuum_freeze_table_age should be set to a value somewhat below autovacuum_freeze_max_age , leaving enough gap so that a regularly scheduled VACUUM or an autovacuum triggered by normal delete and update activity is run in that window.",
+              "So the setting should be large enough that rows are not frozen until they are unlikely to change any more.",
+              "Such transactions should be committed or rolled back.",
+              "Such transactions should be committed or rolled back, or the session can be terminated using pg_terminate_backend .",
+              "In typical scenarios, this is no longer necessary, and should be avoided whenever possible, since it involves taking the system down."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:backup-chain:missing-file-or-manual-delete",
+      "class": "E",
+      "remediation_in_record": [
+        "Do not delete separate backup files manually; use retention policy settings to maintain the desired number of files (documented rule)."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/backup_files.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [],
+            "impact_risk": [],
+            "backup_rollback": [
+              "Backup Chain - Veeam Backup & Replication User Guide Backup Chain In this article A backup chain is a sequence of backup files created by jobs.",
+              "The backup chain provides the ability to recover data.",
+              "The backup chain consists of the first full backup file, incremental backup files, metadata files and some additional files.",
+              "Full and incremental backup files correspond to restore points of the backed-up VM.",
+              "You can think of restore points as \"snapshots\" of VM data at specific points in time.",
+              "Restore points let you roll back VMs to the necessary state."
+            ],
+            "verification": []
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:health-check:capacity-tier-corrupted-chain",
+      "class": "E",
+      "remediation_in_record": [
+        "Missing blocks: Veeam re-uploads them to the capacity extent during the next offload session (documented behavior).",
+        "Corrupted metadata: to add a new backup chain to the capacity tier you must delete the corrupted chain from the capacity tier or detach the backup from the backup job (documented)."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/hc_capacity_tier.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Health Check for Capacity Tier - Veeam Backup & Replication User Guide Health Check for Capacity Tier In this article A health check is an operation that allows you to ensure that the restore point is consistent, and you will be able to restore data from this restore point.",
+              "Instead, it lists data blocks to make sure all blocks in the object storage are available for rebuilding every restore point in the backup chain."
+            ],
+            "impact_risk": [],
+            "backup_rollback": [
+              "Health Check for Capacity Tier - Veeam Backup & Replication User Guide Health Check for Capacity Tier In this article A health check is an operation that allows you to ensure that the restore point is consistent, and you will be able to restore data from this restore point.",
+              "For data located in the capacity tier, Veeam Backup & Replication offers a special health check mechanism that differs from the standard health check in the following ways: The health check for capacity tier verifies metadata for the whole backup, not just the latest restore point.",
+              "The health check for capacity tier verifies that data blocks are present on capacity extents of a scale-out backup repository.",
+              "Instead, it lists data blocks to make sure all blocks in the object storage are available for rebuilding every restore point in the backup chain.",
+              "If some blocks are missing, Veeam Backup & Replication marks these blocks and restore points associated with them as corrupted.",
+              "It will prevent Veeam Backup & Replication from reusing the corrupted blocks in certain operations."
+            ],
+            "verification": []
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:hotadd:stuck-vmdk-on-proxy",
+      "class": "E",
+      "remediation_in_record": [
+        "Release the disk from the proxy using the remove (x) symbol next to the disk and do NOT select the option to delete files from the datastore; then retry consolidation.",
+        "If the problem persists, create a Veeam Support case (KB1771)."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.veeam.com/kb1775",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Solution Before You Begin Ensure that all jobs have stopped.",
+              "This will ensure that the only disks that will be found attached to proxies will be the proxy's own disks and the ones that need to be removed."
+            ],
+            "impact_risk": [
+              "Challenge A virtual machine (VM) processed with Veeam Backup & Replication (VBR) has a warning that consolidation is required, but consolidation attempts fail. or A VM that VBR processed is found to have one or more orphaned snapshots (a snapshot that is attached to the VM but does not show up in the VMware Snapshot Manager).",
+              "Identify Affected VMs Using a vSphere Client, find any VMs displaying a warning that consolidation is needed.",
+              "Perform consolidation and note which VMs continue to have a warning regarding consolidation."
+            ],
+            "backup_rollback": [
+              "Challenge A virtual machine (VM) processed with Veeam Backup & Replication (VBR) has a warning that consolidation is required, but consolidation attempts fail. or A VM that VBR processed is found to have one or more orphaned snapshots (a snapshot that is attached to the VM but does not show up in the VMware Snapshot Manager).",
+              "Cause This may occur when Virtual Appliance Mode (HOTADD) is used to back up a VM and the following occurs: VMware does not process the command to release the VM's disk from the proxy.",
+              "The Veeam Backup Server crashes while processing a VM.",
+              "A backup or replication job creates a snapshot on the backup proxy while another job is using that proxy.",
+              "Note: It is advised to build dedicated VMware Backup Proxies and not back them up or replicate them.",
+              "Check Veeam Backup Proxies for \"Stuck HOTADDed\" Disks Review the settings of each Veeam VMware Backup Proxy, looking for any disks that match the following: The name of the VMDK does not match the proxy's name, but it matches a VM identified in the previous section."
+            ],
+            "verification": [
+              "I would like to receive a follow-up email regarding my feedback send request Verify your email to continue your product download We've sent a verification code to: Verify Incorrect verification code."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:hyperv:on-host-proxy-or-integration-failure",
+      "class": "E",
+      "remediation_in_record": [
+        "Update the host components in Backup Infrastructure (open host properties and click through if Upgrade is greyed out).",
+        "Review Specify Settings for Connected Volumes > VSS Provider Failover Settings.",
+        "Rescan the hosts and re-test port 6163."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://www.veeam.com/kb1857",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Then, review that transport mode's requirements and ensure they are met for the VM that failed to be backed up.",
+              "Step 2: Check for Proxies that are Unavailable or Disabled Having identified which proxies could have been used by the Job, review each proxy and ensure that they are not listed as Unavailable or Disabled.",
+              "The option for \"Failover to network mode\" is left enabled to ensure that even if Direct storage access or Virtual appliance (HOTADD) fails, the Proxy can still utilize network transport mode as a last resort.",
+              "To ensure that those proxies would always use a connection to the backend storage, the backup admin configured those proxies to use \"Direct storage access\" and disabled the option to failover to network mode.",
+              "The configuration would need to be reviewed to ensure the requirements for the desired transport mode are met.",
+              "Step 2: Check for Proxies that are Unavailable or Disabled Having identified which proxies could have been used by the job, review each proxy and ensure that they are not listed as Unavailable or Disabled."
+            ],
+            "impact_risk": [
+              "In this configuration, if the VMware Backup Proxies cannot reach the backend storage via NFS or iSCSI, the backup jobs will fail with the error \"No backup proxy is able to process this VM due to proxy processing mode restrictions.\" The inability to connect could, for example, be related to a network change or changes to the allowlist on the backend storage.",
+              "For instance, with Strict Placement policy enforcement, if the Placement Policy is set to \"Performance\" mode and configured so that full backup files must be stored on Extent 1 and incremental backup files on Extent 2 , and Extent 2 goes offline, the job attempting to create an incremental restore point will fail with an error because the required extent is unavailable."
+            ],
+            "backup_rollback": [
+              "Challenge A job within Veeam Backup & Replication fails with an error that starts with: Unable to allocate processing resources.",
+              "VMware Backup Proxy Related No backup proxy is able to process this VM due to proxy processing mode restrictions.",
+              "Check if the Backup Job was configured to use a specific proxy or set of proxies .",
+              "(Edit Backup Job > Storage tab > Backup proxy) Check if the Repository the Job was targeting has proxy affinity configured.",
+              "If any VMware Backup Proxy is listed as Unavailable, identify its related entry under Managed Servers and rescan it.",
+              "If the entry under Managed Servers fails to rescan, edit it instead and \"Next, Next, Finish\" through each of the pages of the wizard to force Veeam Backup & Replication to check if services on that remote machine need to be redeployed."
+            ],
+            "verification": [
+              "If the entry under Managed Servers fails to rescan, edit it instead and \"Next, Next, Finish\" through each of the pages of the wizard to force Veeam Backup & Replication to check if services on that remote machine need to be redeployed.",
+              "If the entry under Managed Servers fails to rescan, edit it instead and \"Next, Next, Finish\" through each of the pages of the wizard to force Veeam Backup & Replication to check if services on that remote machine need to be redeployed.",
+              "If the entry under Managed Servers fails to rescan, edit it instead and \"Next, Next, Finish\" through each of the pages of the wizard to force Veeam Backup & Replication to check if services on that remote machine need to be redeployed.",
+              "If the entry under Managed Servers fails to rescan, edit it instead and \"Next, Next, Finish\" through each of the pages of the wizard to force Veeam Backup & Replication to check if services on that remote machine need to be redeployed.",
+              "Review: Specify Settings for Connected Volumes > VSS Provider Failover Settings Unable to find Hyper-V hosts where VM '<guid>' is registered: Failed to connect to Hyper-V Integration Service on host Rescan the Hyper-V hosts to check connectivity from Veeam Backup & Replication to the host.",
+              "Open the properties of the Hyper-V host and Next, Next, Finish through the properties wizard to force Veeam Backup & Replication to check if Hyper-V Integration components are installed."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:object-storage:immutability-bucket-configuration-errors",
+      "class": "E",
+      "remediation_in_record": [
+        "Correct the settings to the documented ones before use; do not enable or disable Versioning/Object Lock on a bucket already added to the backup infrastructure; disable default retention; do not use li"
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/os_immutability_limitations.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "If you plan to use the immutability feature with the existing S3 bucket containing backups created by 9.5 Update 4, keep in mind that both Versioning and Object Lock must be enabled on the bucket simultaneously and immediately before enabling the immutability feature.",
+              "Data in an object storage bucket or container must be managed solely by Veeam Backup & Replication , including retention and data management.",
+              "When you enable Object Lock and S3 Versioning for an S3 bucket, make sure that you do NOT enable the default retention option.",
+              "Azure Blob Storage Immutability Limitations Consider the following immutability limitations for Azure Blob Storage: Make sure that the Azure Blob storage settings meet the following requirements: when you configure an Azure storage account and an Azure container: When you create a storage account, make sure you enable versioning for blobs.",
+              "Data in an object storage bucket or container must be managed solely by Veeam Backup & Replication , including retention and data management.",
+              "When you enable version-level immutability for the Azure container, make sure that you do NOT enable the default retention option."
+            ],
+            "impact_risk": [
+              "The default retention may result in an unpredictable system behavior and data loss.",
+              "After you have added the buckets to the backup infrastructure, you must NOT enable or disable Versioning and Object Lock as it may lead to unpredictable system behavior and data loss.",
+              "Otherwise, Veeam Backup & Replication will not be able to process these containers properly and it may result in data loss.",
+              "After you have added the buckets to the backup infrastructure, you must NOT enable or disable Object versioning and object retention as it may lead to unpredictable system behavior and data loss."
+            ],
+            "backup_rollback": [
+              "Considerations and Limitations - Veeam Backup & Replication User Guide Considerations and Limitations In this article This section lists considerations and known limitations for object storage repositories.",
+              "We recommend that you do not set the immutability period longer than the retention policy of the backup job, otherwise it will result in extra charges.",
+              "After you upgrade to Veeam Backup & Replication version 13.0.1.P1 (build 13.0.1.1071), Veeam Backup & Replication will set the default immutability mode to match the entire retention period specified in the backup job policy .",
+              "However, note that Veeam Backup & Replication will use Compliance object lock mode for each uploaded object.",
+              "After you have added the buckets to the backup infrastructure, you must NOT enable or disable Versioning and Object Lock as it may lead to unpredictable system behavior and data loss.",
+              "Any other approach will lead to backup offload failures and inability to correctly interact with backups in the bucket."
+            ],
+            "verification": [
+              "Amazon S3 Immutability Limitations Consider the following immutability limitations for Amazon S3: After you have created an S3 bucket with Object Lock enabled, check that the default retention is disabled.",
+              "When you enable Object Lock and S3 Versioning for an S3 bucket, make sure that you do NOT enable the default retention option.",
+              "Azure Blob Storage Immutability Limitations Consider the following immutability limitations for Azure Blob Storage: Make sure that the Azure Blob storage settings meet the following requirements: when you configure an Azure storage account and an Azure container: When you create a storage account, make sure you enable versioning for blobs.",
+              "When you enable version-level immutability for the Azure container, make sure that you do NOT enable the default retention option.",
+              "Google Cloud Storage Limitations Consider the following immutability limitations for Google Cloud Storage: Verify that the bucket retention policy is disabled."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:restore:entire-vm-post-restore-differences",
+      "class": "E",
+      "remediation_in_record": [
+        "Re-enable vSphere Fault Tolerance manually if the original VM had it; use Quick Rollback if the vRDM format must be preserved."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/full_restore_before_you_begin.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Considerations and Limitations - Veeam Backup & Replication User Guide Considerations and Limitations In this article Before you restore a VM from a backup, consider the following: You can restore a VM from a backup that has at least one successfully created restore point."
+            ],
+            "impact_risk": [],
+            "backup_rollback": [
+              "Considerations and Limitations - Veeam Backup & Replication User Guide Considerations and Limitations In this article Before you restore a VM from a backup, consider the following: You can restore a VM from a backup that has at least one successfully created restore point.",
+              "If you back up a VM with vRDM disks, Veeam Backup & Replication converts the disks into VMDK files.",
+              "Thus, when you restore a VM with a vRDM disk, Veeam Backup & Replication restores this disk as a VMDK file.",
+              "If you want to preserve the vRDM format for restored disks, use Quick Rollback.",
+              "For more information, see Quick Rollback .",
+              "After you restore a VM, the hard disk may appear with a different Hard drive number in the Virtual Hardware settings in the vCenter console."
+            ],
+            "verification": []
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:cannot-add-repository-as-extent-or-extent-limits",
+      "class": "E",
+      "remediation_in_record": [
+        "Target unsupported jobs to another repository and remove that job data from the repository before adding it as an extent (vendor step).",
+        "Put an extent into Maintenance mode where the edition limit requires an inactive extent; use Veeam Universal License or Enterprise Plus for no extent-count limit (documented)."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/sobr_limitations.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Backup repositories that you plan to add as extents to the scale-out backup repository must be added to the backup infrastructure.",
+              "If you want to use S3-compatible repositories by different providers in the same tier, one of these repositories must be in the sealed mode.",
+              "For example, if you want to use both Wasabi Cloud object storage and IBM Cloud object storage within the same tier, Wasabi Cloud object storage must be in sealed mode .",
+              "Note You can apply the mixed immutability configuration for performance tier only if it consists of object storage repositories.",
+              "If you want to use the Extract utility to work with backup files located on any of the extents of your scale-out backup repository, make sure that incremental and full backup files are located on the same extent.",
+              "Make sure that incremental and full backup files are located on the same extent."
+            ],
+            "impact_risk": [
+              "If you apply the Forget or Remove from disk options to a missing restore point in a scale-out backup repository, the backup file associated with the missing restore point will be deleted from capacity tier and archive tier on the next offload and archiving job run.",
+              "After you change the ownership, the backup jobs (except for the offload job to capacity tier) will fail on the primary backup server.",
+              "If a name of a VBM file or a path to a VBM file contains prohibited characters, Veeam Backup & Replication will fail to import such backup during rescan of the scale-out backup repository.",
+              "If you add 4 performance extents and do not put any of them to the Maintenance mode, the jobs targeted at the scale-out backup repository will fail."
+            ],
+            "backup_rollback": [
+              "Limitations for Scale-Out Backup Repositories - Veeam Backup & Replication User Guide Limitations for Scale-Out Backup Repositories In this article Limitations for Jobs You cannot use a scale-out backup repository as a target for the following types of jobs: Configuration backup job.",
+              "File backup jobs (in case your scale-out backup repository consists of object storage extents).",
+              "Object storage backup job (in case your scale-out backup repository consists of object storage extents).",
+              "Scale-out backup repositories are not supported as a backup destination for cloud machines.",
+              "Veeam Agent for Microsoft Windows or Veeam Agent for Linux backup jobs that back up cloud machines (that is, Amazon EC2 instances or Microsoft Azure virtual machines) in managed mode.",
+              "For more information, see Veeam Agent Backup ."
+            ],
+            "verification": [
+              "To check requirements for your object storage, contact your S3 compatible vendor.",
+              "If you want to use the Extract utility to work with backup files located on any of the extents of your scale-out backup repository, make sure that incremental and full backup files are located on the same extent.",
+              "Make sure that incremental and full backup files are located on the same extent.",
+              "Limitations for Veeam Solutions For more information on limitations for a specific Veeam solution that utilizes scale-out backup repositories functionality, see the following sections of the necessary guide: Veeam Plug-In for Oracle RMAN — to check limitations for an Oracle-certified backup and recovery solution that allows you to back up and restore Oracle databases.",
+              "Veeam Plug-In for SAP HANA — to check limitations for an SAP-certified backup and recovery solution that allows you to back up and restore SAP HANA databases.",
+              "Veeam Plug-In for SAP on Oracle — to check limitations for an SAP-certified backup and recovery solution that allows you to back up and restore Oracle databases to which an SAP application is connected."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:forget-or-remove-missing-restore-point-deletes-offloaded-data",
+      "class": "E",
+      "remediation_in_record": [
+        "Do not apply Forget or Remove from disk to a missing restore point unless you intend to delete its offloaded data (documented consequence)."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/sobr_limitations.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "Backup repositories that you plan to add as extents to the scale-out backup repository must be added to the backup infrastructure.",
+              "If you want to use S3-compatible repositories by different providers in the same tier, one of these repositories must be in the sealed mode.",
+              "For example, if you want to use both Wasabi Cloud object storage and IBM Cloud object storage within the same tier, Wasabi Cloud object storage must be in sealed mode .",
+              "Note You can apply the mixed immutability configuration for performance tier only if it consists of object storage repositories.",
+              "If you want to use the Extract utility to work with backup files located on any of the extents of your scale-out backup repository, make sure that incremental and full backup files are located on the same extent.",
+              "Make sure that incremental and full backup files are located on the same extent."
+            ],
+            "impact_risk": [
+              "If you apply the Forget or Remove from disk options to a missing restore point in a scale-out backup repository, the backup file associated with the missing restore point will be deleted from capacity tier and archive tier on the next offload and archiving job run.",
+              "After you change the ownership, the backup jobs (except for the offload job to capacity tier) will fail on the primary backup server.",
+              "If a name of a VBM file or a path to a VBM file contains prohibited characters, Veeam Backup & Replication will fail to import such backup during rescan of the scale-out backup repository.",
+              "If you add 4 performance extents and do not put any of them to the Maintenance mode, the jobs targeted at the scale-out backup repository will fail."
+            ],
+            "backup_rollback": [
+              "Limitations for Scale-Out Backup Repositories - Veeam Backup & Replication User Guide Limitations for Scale-Out Backup Repositories In this article Limitations for Jobs You cannot use a scale-out backup repository as a target for the following types of jobs: Configuration backup job.",
+              "File backup jobs (in case your scale-out backup repository consists of object storage extents).",
+              "Object storage backup job (in case your scale-out backup repository consists of object storage extents).",
+              "Scale-out backup repositories are not supported as a backup destination for cloud machines.",
+              "Veeam Agent for Microsoft Windows or Veeam Agent for Linux backup jobs that back up cloud machines (that is, Amazon EC2 instances or Microsoft Azure virtual machines) in managed mode.",
+              "For more information, see Veeam Agent Backup ."
+            ],
+            "verification": [
+              "To check requirements for your object storage, contact your S3 compatible vendor.",
+              "If you want to use the Extract utility to work with backup files located on any of the extents of your scale-out backup repository, make sure that incremental and full backup files are located on the same extent.",
+              "Make sure that incremental and full backup files are located on the same extent.",
+              "Limitations for Veeam Solutions For more information on limitations for a specific Veeam solution that utilizes scale-out backup repositories functionality, see the following sections of the necessary guide: Veeam Plug-In for Oracle RMAN — to check limitations for an Oracle-certified backup and recovery solution that allows you to back up and restore Oracle databases.",
+              "Veeam Plug-In for SAP HANA — to check limitations for an SAP-certified backup and recovery solution that allows you to back up and restore SAP HANA databases.",
+              "Veeam Plug-In for SAP on Oracle — to check limitations for an SAP-certified backup and recovery solution that allows you to back up and restore Oracle databases to which an SAP application is connected."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:sobr:maintenance-mode-breaks-active-chain",
+      "class": "E",
+      "remediation_in_record": [
+        "If an extent holds part of an active chain, create a full backup manually before maintenance (vendor advice). Remove the extent from Maintenance mode through the ribbon when the work is done."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/sobr_maintenance.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [],
+            "impact_risk": [
+              "Otherwise, the backup job targeted to the scale-out backup repository will fail."
+            ],
+            "backup_rollback": [
+              "Switching to Maintenance Mode - Veeam Backup & Replication User Guide Switching to Maintenance Mode In this article Maintenance Mode Veeam Backup & Replication allows you to put any of the scale-out backup repository extents into the Maintenance mode.",
+              "When you switch to the Maintenance mode, Veeam Backup & Replication launches the Repository Maintenance job.",
+              "If the extent is busy with any task, for example, a backup job, the job puts the extent to the Maintenance pending state and waits for the task to complete.",
+              "Considerations and Limitations Consider the following limitations: When you put an extent into the Maintenance mode, Veeam Backup & Replication restricts any further data transfer to the extent and allows only operations listed in section Maintenance mode restrictions .",
+              "You cannot restore VM data from backup files residing on the extent.",
+              "You also cannot restore VM data from backup files residing on other extents if a part of the backup chain resides on the extent in the Maintenance mode."
+            ],
+            "verification": []
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:surebackup:verification-failed",
+      "class": "E",
+      "remediation_in_record": [
+        "Use troubleshooting mode to diagnose lab connectivity and adjust Maximum allowed boot time and Application initialization timeout. Stop the session from the Session Statistics window or by stopping th"
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/surebackup_job_troubleshooting.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [],
+            "impact_risk": [],
+            "backup_rollback": [
+              "Starting SureBackup Job in Troubleshooting Mode - Veeam Backup & Replication User Guide Starting SureBackup Job in Troubleshooting Mode In this article If a VM fails to be verified, you can start it in the troubleshooting mode to investigate the issue."
+            ],
+            "verification": []
+          }
+        },
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/surebackup_backup_files_valdiation.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [],
+            "impact_risk": [],
+            "backup_rollback": [
+              "Backup File Validation - Veeam Backup & Replication User Guide Backup File Validation In this article In addition to predefined tests, Veeam Backup & Replication allows you to perform backup file validation.",
+              "For backup file validation, Veeam Backup & Replication performs a CRC check for backup files of machines verified by the SureBackup job.",
+              "You can also validate backup files for machines from the application group with this test.",
+              "To validate the backup file, Veeam Backup & Replication uses the checksum algorithm.",
+              "When Veeam Backup & Replication creates a backup file for a machine, it calculates a checksum for every data block in the backup file and stores this data in the backup file, together with machine data.",
+              "During the backup file validation test, Veeam Backup & Replication decompresses the backup file, recalculates checksums for data blocks in the decompressed backup file and compares them with initial checksum values."
+            ],
+            "verification": []
+          }
+        },
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/surebackup_hiw.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [
+              "These tests do not require setting up a virtual lab or an application group."
+            ],
+            "impact_risk": [],
+            "backup_rollback": [
+              "How SureBackup Works - Veeam Backup & Replication User Guide How SureBackup Works In this article For SureBackup, Veeam Backup & Replication uses a regular image-based backup.",
+              "Veeam Backup & Replication runs machines in an isolated environment directly from backup and performs tests against live applications.This mode ensures recoverability of your production workloads in a disaster recovery event.",
+              "Backup verification and content scan only .",
+              "Veeam Backup & Replication performs backup integrity check and its content analysis to detect traces of malware or any other unwanted or sensitive data.",
+              "Full Recoverability Testing During recovery verification, Veeam Backup & Replication performs the following actions: If the SureBackup job is configured to perform malware scan, Veeam Backup & Replication scans backups of the machines from the application group with antivirus software and the specified YARA rule.",
+              "Veeam Backup & Replication publishes the machines from the application group and the machine under verification in the isolated environment — virtual lab."
+            ],
+            "verification": [
+              "Note If the machine has multiple disk partitions with different OS installed, SureBackup will only verify the partition with the highest boot priority."
+            ]
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    },
+    {
+      "record_key": "candidate:veeam-vbr:transaction-log:truncation-conflicts",
+      "class": "E",
+      "remediation_in_record": [
+        "Use Do not truncate logs when a native log backup job is used; use Back up logs periodically (SQL Server and Oracle VMs) to let Veeam back up logs."
+      ],
+      "contract_blockers": [
+        ": Value error, High/Critical risk knowledge requires validation and rollback steps"
+      ],
+      "pages": [
+        {
+          "url": "https://helpcenter.veeam.com/docs/vbr/userguide/transaction_truncation.html",
+          "fetch_status": "ok",
+          "retrieved": "2026-11-21",
+          "statements": {
+            "precondition": [],
+            "impact_risk": [],
+            "backup_rollback": [
+              "Veeam Backup & Replication provides the following options of transaction logs handling: Truncate logs Do not truncate logs Back up logs periodically Truncate Logs You can instruct Veeam Backup & Replication to truncate logs after a backup or VM replica is successfully created.",
+              "With this option selected, Veeam Backup & Replication behaves in the following way: If the job completes successfully, Veeam Backup & Replication produces a backup file or VM replica and truncates transaction logs on the original VM.",
+              "As a result, you have the backup file or replica that contains a VM image at a specific point in time.",
+              "In this scenario, you can recover a database to the point in time when the backup file or replica was created.",
+              "If the backup or replication job fails, Veeam Backup & Replication does not truncate transaction logs on the VM.",
+              "In this scenario, you can restore a VM from the most recent backup or replica restore point."
+            ],
+            "verification": []
+          }
+        }
+      ],
+      "disposition": "CANDIDATE_STATEMENTS_COLLECTED_UNREVIEWED"
+    }
+  ]
+}

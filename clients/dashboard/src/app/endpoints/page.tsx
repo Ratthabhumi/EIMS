@@ -2,9 +2,12 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Upload, Cpu, Shield, Network, Server, HardDrive, Monitor, Clock, CheckCircle2, XCircle, Search, Download, ArrowLeft, Play } from "lucide-react";
+import { Upload, Cpu, Shield, Network, Server, HardDrive, Monitor, Clock, CheckCircle2, XCircle, Search, Download, ArrowLeft, Play, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { apiUrl } from "@/lib/api";
+
+/** States from which Core Law 3 allows transition to Decommissioned (soft archive). */
+const CAN_DECOMMISSION = new Set(["Discovered", "PendingAudit", "Compliant", "NonCompliant", "Quarantined"]);
 
 interface Asset {
   asset_id: string;
@@ -25,6 +28,10 @@ function EndpointsDashboardContent() {
   const [loading, setLoading] = useState(true);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [pendingRemove, setPendingRemove] = useState<Asset | null>(null);
+  const [removeBusy, setRemoveBusy] = useState(false);
+  const [removeError, setRemoveError] = useState("");
+  const [showDecommissioned, setShowDecommissioned] = useState(false);
 
   useEffect(() => {
     if (targetId && assets.length > 0 && !selectedAsset) {
@@ -35,11 +42,51 @@ function EndpointsDashboardContent() {
     }
   }, [targetId, assets, selectedAsset]);
 
-  const filteredAssets = assets.filter(asset => 
-    asset.hostname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    asset.canonical_ip.includes(searchTerm) ||
-    asset.cryptographic_fingerprint.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAssets = assets.filter((asset) => {
+    if (!showDecommissioned && asset.lifecycle_state === "Decommissioned") return false;
+    const q = searchTerm.toLowerCase();
+    return (
+      asset.hostname.toLowerCase().includes(q)
+      || asset.canonical_ip.includes(searchTerm)
+      || asset.cryptographic_fingerprint.toLowerCase().includes(q)
+      || asset.asset_id.toLowerCase().includes(q)
+    );
+  });
+
+  const confirmRemove = async () => {
+    if (!pendingRemove || removeBusy) return;
+    const target = pendingRemove;
+    setRemoveBusy(true);
+    setRemoveError("");
+    try {
+      if (!CAN_DECOMMISSION.has(target.lifecycle_state)) {
+        throw new Error(
+          `Cannot archive from state “${target.lifecycle_state}”. `
+          + "No hard DELETE exists; soft-archive to Decommissioned is only allowed from "
+          + "Discovered, PendingAudit, Compliant, NonCompliant, or Quarantined.",
+        );
+      }
+      const res = await fetch(apiUrl(`/api/v1/assets/${target.asset_id}`), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lifecycle_state: "Decommissioned",
+          operator_rationale: `USB Auditor UI archive by asset_id=${target.asset_id}`,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail ?? body);
+        throw new Error(detail || `Request failed (${res.status})`);
+      }
+      setPendingRemove(null);
+      await fetchAssets();
+    } catch (cause) {
+      setRemoveError(cause instanceof Error ? cause.message : "Archive failed");
+    } finally {
+      setRemoveBusy(false);
+    }
+  };
 
   const fetchAssets = async () => {
     try {
@@ -228,6 +275,14 @@ function EndpointsDashboardContent() {
             />
           </div>
           <div className="flex items-center gap-3 shrink-0 ml-auto">
+            <label className="flex items-center gap-1.5 text-xs text-eims-text-muted whitespace-nowrap">
+              <input
+                type="checkbox"
+                checked={showDecommissioned}
+                onChange={(e) => setShowDecommissioned(e.target.checked)}
+              />
+              Show archived
+            </label>
             <div className="text-sm font-medium text-eims-text-muted whitespace-nowrap">
               {filteredAssets.length} endpoints found
             </div>
@@ -260,6 +315,7 @@ function EndpointsDashboardContent() {
                   <th className="px-6 py-4 text-xs font-semibold text-eims-text-muted uppercase tracking-wider border-b border-eims-border">IP Address</th>
                   <th className="px-6 py-4 text-xs font-semibold text-eims-text-muted uppercase tracking-wider border-b border-eims-border">State</th>
                   <th className="px-6 py-4 text-xs font-semibold text-eims-text-muted uppercase tracking-wider border-b border-eims-border text-right">Compliance</th>
+                  <th className="px-4 py-4 text-xs font-semibold text-eims-text-muted uppercase tracking-wider border-b border-eims-border text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-eims-border bg-eims-surface">
@@ -269,7 +325,10 @@ function EndpointsDashboardContent() {
                     className="hover:bg-eims-surface-subtle/50 transition-colors cursor-pointer"
                     onClick={() => setSelectedAsset(asset)}
                   >
-                    <td className="px-6 py-4 text-eims-text font-medium">{asset.hostname}</td>
+                    <td className="px-6 py-4 text-eims-text font-medium">
+                      {asset.hostname}
+                      <span className="block font-mono text-[10px] text-eims-text-muted">{asset.asset_id}</span>
+                    </td>
                     <td className="px-6 py-4 text-eims-text-secondary font-mono text-xs">{asset.canonical_ip}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border
@@ -292,11 +351,33 @@ function EndpointsDashboardContent() {
                         </div>
                       </div>
                     </td>
+                    <td className="px-4 py-4 text-right">
+                      {asset.lifecycle_state === "Decommissioned" ? (
+                        <span className="text-[11px] text-eims-text-muted">Archived</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded border border-eims-border text-xs text-eims-text-secondary hover:text-eims-error hover:border-eims-error/40"
+                          title={CAN_DECOMMISSION.has(asset.lifecycle_state)
+                            ? "Archive this endpoint by asset_id"
+                            : `Archive unavailable from ${asset.lifecycle_state} (needs Claude archive path)`}
+                          aria-label={`Remove endpoint ${asset.hostname}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRemoveError("");
+                            setPendingRemove(asset);
+                          }}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Remove
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {filteredAssets.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-sm text-eims-text-muted">
+                    <td colSpan={5} className="px-6 py-12 text-center text-sm text-eims-text-muted">
                       <div className="flex flex-col items-center gap-3 justify-center w-full">
                         <Server className="w-8 h-8 opacity-20 mx-auto" />
                         <span>{assets.length === 0 ? "No assets registered yet. Ensure agents are communicating." : "No assets match your search."}</span>
@@ -309,6 +390,57 @@ function EndpointsDashboardContent() {
           )}
         </div>
       </div>
+
+      {pendingRemove && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-labelledby="remove-endpoint-title"
+            className="surface-card w-full max-w-md p-5 space-y-3 shadow-2xl"
+          >
+            <h3 id="remove-endpoint-title" className="text-lg font-semibold text-eims-text">Remove endpoint?</h3>
+            <p className="text-sm text-eims-text-secondary">
+              This archives <strong>only</strong> the selected record by <code className="font-mono text-xs">asset_id</code>.
+              Other rows with the same hostname stay unchanged.
+            </p>
+            <dl className="text-xs text-eims-text-secondary space-y-1 border border-eims-border rounded-md p-3">
+              <div><dt className="inline text-eims-text-muted">Hostname: </dt><dd className="inline font-medium text-eims-text">{pendingRemove.hostname}</dd></div>
+              <div><dt className="inline text-eims-text-muted">IP: </dt><dd className="inline font-mono">{pendingRemove.canonical_ip}</dd></div>
+              <div><dt className="inline text-eims-text-muted">asset_id: </dt><dd className="inline font-mono break-all">{pendingRemove.asset_id}</dd></div>
+              <div><dt className="inline text-eims-text-muted">State: </dt><dd className="inline">{pendingRemove.lifecycle_state}</dd></div>
+            </dl>
+            {!CAN_DECOMMISSION.has(pendingRemove.lifecycle_state) ? (
+              <p className="text-xs text-amber-700 dark:text-amber-400" role="status">
+                Soft-archive via <code className="font-mono">PATCH … Decommissioned</code> is not allowed from “{pendingRemove.lifecycle_state}”.
+                No hard DELETE endpoint exists. Confirm will report the backend limitation.
+              </p>
+            ) : (
+              <p className="text-xs text-eims-text-muted">
+                Uses existing lifecycle transition to <strong>Decommissioned</strong> (soft archive with audit rationale). Not a hard delete.
+              </p>
+            )}
+            {removeError ? <p className="text-xs text-red-600" role="alert">{removeError}</p> : null}
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                className="px-3 py-1.5 text-sm rounded border border-eims-border"
+                disabled={removeBusy}
+                onClick={() => { setPendingRemove(null); setRemoveError(""); }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-3 py-1.5 text-sm rounded border border-eims-error/40 text-eims-error disabled:opacity-50"
+                disabled={removeBusy}
+                onClick={() => void confirmRemove()}
+              >
+                {removeBusy ? "Archiving…" : "Confirm remove"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Enhanced Asset Detail Modal */}
       {selectedAsset && (

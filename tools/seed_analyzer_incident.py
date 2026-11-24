@@ -33,6 +33,7 @@ from sqlalchemy import text
 
 from backend.domain.analyzer.services.vector_db import _get_embedding
 from backend.infrastructure.database import database_engine
+from backend.infrastructure.db_identity import require_destructive_target
 
 # ── Incident identity ─────────────────────────────────────────────────────────
 INCIDENT_EVENT_ID = "AINC-2026-0910-0001"
@@ -436,9 +437,13 @@ async def _purge_index_records(session):
     """Delete any legacy synthetic 'Incident Evidence Index' rows from analysis_history.
 
     These inflated Total Logs Analyzed and are now replaced by the static
-    Operational Event Catalog (operational_event_catalog.json).  Safe to
-    run repeatedly; prints the number of rows removed.
+    Operational Event Catalog (operational_event_catalog.json).
+
+    This is the only destructive statement in this seeding tool. It refuses to run
+    unless the live connection is the intended target (trusted identity or a
+    database marked disposable), so a docstring claim is not the only safeguard.
     """
+    await require_destructive_target(session, operation="seed_purge_index_rows")
     result = await session.execute(
         text("DELETE FROM analysis_history WHERE parse_method = :pm"),
         {"pm": "Incident Evidence Index (synthetic demo)"},

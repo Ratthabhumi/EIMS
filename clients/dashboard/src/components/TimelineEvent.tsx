@@ -1,10 +1,18 @@
 "use client";
 
-import { ScrollText, Activity, Terminal, ShieldAlert, AlertTriangle, Info, CheckCircle2 } from "lucide-react";
+import { ScrollText, Activity, Terminal, ShieldAlert, AlertTriangle, Info, CheckCircle2, FileSearch, BadgeCheck, GitBranch } from "lucide-react";
+
+export type TimelineEventType =
+  | "audit"
+  | "incident_transition"
+  | "evidence"
+  | "verification"
+  | "telemetry"
+  | "winlog";
 
 export interface TimelineEventData {
   id: string;
-  type: "audit" | "telemetry" | "winlog";
+  type: TimelineEventType | string;
   title: string;
   description: string;
   severity: string;
@@ -15,11 +23,26 @@ export interface TimelineEventData {
   metadata: Record<string, unknown>;
 }
 
-const TYPE_META: Record<TimelineEventData["type"], { label: string; icon: typeof ScrollText; classes: string }> = {
+const TYPE_META: Record<string, { label: string; icon: typeof ScrollText; classes: string }> = {
   audit: {
     label: "Audit",
     icon: ScrollText,
     classes: "text-eims-secondary bg-eims-secondary/10 border-eims-secondary/20",
+  },
+  incident_transition: {
+    label: "Incident",
+    icon: GitBranch,
+    classes: "text-violet-500 bg-violet-500/10 border-violet-500/20",
+  },
+  evidence: {
+    label: "Evidence",
+    icon: FileSearch,
+    classes: "text-cyan-500 bg-cyan-500/10 border-cyan-500/20",
+  },
+  verification: {
+    label: "Verification",
+    icon: BadgeCheck,
+    classes: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
   },
   telemetry: {
     label: "Telemetry",
@@ -66,6 +89,13 @@ function formatTimestamp(value: string): string {
   });
 }
 
+function metaString(metadata: Record<string, unknown>, key: string): string | null {
+  const value = metadata[key];
+  if (typeof value === "string" && value.trim()) return value;
+  if (typeof value === "number") return String(value);
+  return null;
+}
+
 export function TimelineEvent({ event }: { event: TimelineEventData }) {
   const typeMeta = TYPE_META[event.type] ?? {
     label: event.type ?? "Event",
@@ -79,6 +109,30 @@ export function TimelineEvent({ event }: { event: TimelineEventData }) {
   };
   const TypeIcon = typeMeta.icon;
   const SeverityIcon = severityMeta.icon;
+
+  const assurance = metaString(event.metadata, "assurance");
+  const principal = metaString(event.metadata, "principal");
+  const actorRaw =
+    metaString(event.metadata, "actor") ||
+    (event.actor_id ? event.actor_id : null);
+  const actorLabel = (() => {
+    if (assurance === "unattributed") {
+      return principal ? `unattributed (${principal})` : "unattributed";
+    }
+    if (assurance === "shared_token") {
+      return principal ? `shared-token (${principal})` : "shared-token";
+    }
+    if (assurance === "historical_unavailable") {
+      return "not available in historical source";
+    }
+    if (assurance === "verified_identity" && actorRaw) return actorRaw;
+    return actorRaw;
+  })();
+  const incidentId = metaString(event.metadata, "incident_id");
+  const correlationId = metaString(event.metadata, "correlation_id");
+  const corrLabel =
+    correlationId ??
+    (assurance === "historical_unavailable" ? "not available in historical source" : null);
 
   return (
     <article className="surface-card p-4 flex items-start gap-3 hover:border-eims-accent/60 transition-colors">
@@ -112,16 +166,18 @@ export function TimelineEvent({ event }: { event: TimelineEventData }) {
             <CheckCircle2 className="w-3 h-3" />
             <time dateTime={event.timestamp}>{formatTimestamp(event.timestamp)}</time>
           </span>
-          {event.entity_id ? (
-            <span className="inline-flex items-center gap-1 font-mono truncate max-w-[220px]">
-              {event.entity_type} {event.entity_id}
-            </span>
-          ) : null}
-          {event.actor_id ? (
-            <span className="inline-flex items-center gap-1 font-mono truncate max-w-[180px]">
-              actor {event.actor_id}
-            </span>
-          ) : null}
+          <span className="inline-flex items-center gap-1 font-mono truncate max-w-[220px]">
+            asset {event.entity_id ?? "unavailable"}
+          </span>
+          <span className="inline-flex items-center gap-1 font-mono truncate max-w-[220px]" title={assurance || undefined}>
+            actor {actorLabel ?? "unavailable"}
+          </span>
+          <span className="inline-flex items-center gap-1 font-mono truncate max-w-[220px]">
+            incident {incidentId ?? "unavailable"}
+          </span>
+          <span className="inline-flex items-center gap-1 font-mono truncate max-w-[220px]">
+            corr {corrLabel ?? "unavailable"}
+          </span>
         </div>
       </div>
     </article>

@@ -1,0 +1,72 @@
+{
+    "incident_id":  "06f3290a-d91d-4c0f-a081-96a901c0d81b",
+    "title":  "Event 1026",
+    "status":  "open",
+    "severity":  "medium",
+    "confidence":  "medium",
+    "asset_id":  null,
+    "first_seen":  "2026-11-20T08:30:04.783000Z",
+    "last_seen":  "2026-11-20T08:32:32.214481Z",
+    "dedupe_key":  "eccc973a202079a8036c5035058b32a9d1eec302d395c96115096acbc9c2058d",
+    "root_cause_state":  "unknown",
+    "owner":  null,
+    "summary":  {
+                    "correlation":  {
+                                        "time":  {
+                                                     "event_time":  null,
+                                                     "time_basis":  "local_time_day_month_order_unclear",
+                                                     "time_original":  "11/20/2026 9:14:22 AM",
+                                                     "time_confidence":  "ambiguous",
+                                                     "ingestion_time_is_not_event_time":  true
+                                                 },
+                                        "reasons":  [
+                                                        "single_source_evidence",
+                                                        "asset_unresolved",
+                                                        "same_signature",
+                                                        "within_window"
+                                                    ],
+                                        "sources":  [
+                                                        "analysis:1",
+                                                        "incident:06f3290a-d91d-4c0f-a081-96a901c0d81b",
+                                                        "analysis:4"
+                                                    ],
+                                        "signature":  "analysis:1026@.net runtime",
+                                        "confidence":  "medium",
+                                        "asset_state":  "unresolved",
+                                        "window_bucket":  1994626,
+                                        "window_seconds":  900
+                                    }
+                },
+    "created_at":  "2026-11-20T08:30:04.896068Z",
+    "updated_at":  "2026-11-20T08:32:48.258895Z",
+    "remediation_cycle":  0,
+    "evidence":  [
+                     {
+                         "evidence_id":  "8b04bed1-3de4-44f4-ab49-a4f419d47c8f",
+                         "incident_id":  "06f3290a-d91d-4c0f-a081-96a901c0d81b",
+                         "source_type":  "analysis",
+                         "source_id":  "1",
+                         "source_event_key":  "1026@.net runtime",
+                         "evidence_digest":  "40d7239d3b06ca42aeba887d5a71118a1b101386cdf85755e787513d753cb2a8",
+                         "observed_at":  "2026-11-20T08:30:04.783000Z",
+                         "added_by":  "demo",
+                         "created_at":  "2026-11-20T08:30:04.930413Z"
+                     },
+                     {
+                         "evidence_id":  "1aa748e6-20a0-4863-81ce-2ce8b98a7f21",
+                         "incident_id":  "06f3290a-d91d-4c0f-a081-96a901c0d81b",
+                         "source_type":  "analysis",
+                         "source_id":  "4",
+                         "source_event_key":  "1026@.net runtime",
+                         "evidence_digest":  "40d7239d3b06ca42aeba887d5a71118a1b101386cdf85755e787513d753cb2a8",
+                         "observed_at":  "2026-11-20T08:32:32.214481Z",
+                         "added_by":  "demo",
+                         "created_at":  "2026-11-20T08:32:48.265094Z"
+                     }
+                 ],
+    "verifications":  [
+
+                      ],
+    "created":  false,
+    "match":  "event_already_linked"
+}

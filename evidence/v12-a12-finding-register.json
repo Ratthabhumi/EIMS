@@ -1,0 +1,48 @@
+{
+  "schema": "v12-a12-finding-register/v1",
+  "generatedAt": "2026-11-18T22:20:00+07:00",
+  "repository": "EIMS",
+  "baseFrozenHead": "85493b2131d3e353453072559a5dfc301d75dd06",
+  "baseFrozenManifestSha256": "53EE6A4093ECB50FEC25F746200F9BBCD10ABAFC17BCA41F567B2FD521BC2356",
+  "sourceOfTruth": "evidence/v12-independent-review-findings.json and the raw reviewer transcript (%TEMP%/v12-a11/review-eims-raw.txt)",
+  "reconciliation": {
+    "rawTranscriptRows": 20,
+    "jsonFindings": 20,
+    "reviewerSelfSummary": { "CRITICAL": 0, "HIGH": 4, "MEDIUM": 7, "LOW": 8, "INFO": 1 },
+    "tableDerived": { "CRITICAL": 0, "HIGH": 4, "MEDIUM": 7, "LOW": 8, "INFO": 1 },
+    "resolvedCounts": { "CRITICAL": 0, "HIGH": 4, "MEDIUM": 7, "LOW": 8, "INFO": 1 },
+    "discrepancy": "None for EIMS: summary and table agree, and both match the raw transcript and the JSON.",
+    "a11ReportWordingDefect": "The A11 chat report said '4 of 4 verified' while its table listed six rows (F1-F6). F1-F4 are HIGH and F5-F6 are MEDIUM. Correct statement: all 4 HIGH were verified, plus 2 MEDIUM (F5, F6); F6 remains UNTESTED against real pgvector data.",
+    "unverifiedByOpenCode": [],
+    "severityChanged": false
+  },
+  "findings": [
+    { "id": "F1", "severity": "HIGH", "area": "test-isolation", "reproduction": "REPRODUCED", "remediation": "FIXED_IN_WORKSPACE", "blocksAcceptance": "PARTIAL", "note": "Reproduced: one client-fixture test connected to operational PostgreSQL localhost:5432 and Redis localhost:6379, ran seed_users, started telemetry and incident-ingest consumers, and subscribed to eims:events:alerts. Fixed by a fail-closed guard at every TestClient(app) call site." },
+    { "id": "F2", "severity": "HIGH", "area": "security-config", "reproduction": "CODE_PATH_PROVEN", "remediation": "OPEN", "blocksAcceptance": "CONDITIONAL", "note": "Production boot guard exists; default remains demo." },
+    { "id": "F3", "severity": "HIGH", "area": "security-config", "reproduction": "CODE_PATH_PROVEN", "remediation": "NEEDS_DESIGN_DECISION", "blocksAcceptance": "YES_FOR_COMPOSE_USE", "note": "Hardening the compose file changes tests/test_compose_security_audit.py, which currently asserts the known insecure state. Requires controller approval." },
+    { "id": "F4", "severity": "HIGH", "area": "evidence-audit", "reproduction": "CODE_PATH_PROVEN", "remediation": "NEEDS_DESIGN_DECISION", "blocksAcceptance": "YES_FOR_TAMPER_CLAIM", "note": "0 CREATE TRIGGER / REVOKE / hash-chain constructs in any migration. Either implement tamper evidence (additive migration, needs a disposable DB to verify) or withdraw the claim." },
+    { "id": "F5", "severity": "MEDIUM", "area": "evidence-honesty", "reproduction": "REPRODUCED", "remediation": "DOCUMENTED", "blocksAcceptance": "YES_AS_EVIDENCE_CLAIM", "note": "Chain computation: single head c4e8a1f7b932 with 22 revisions and one root; a3d6f1e8c295 is six revisions behind. The ledger is historical and must not be edited." },
+    { "id": "F6", "severity": "MEDIUM", "area": "migrations", "reproduction": "CODE_PATH_PROVEN", "remediation": "NEEDS_SERVICE", "blocksAcceptance": "YES_FOR_VECTOR_FUNCTION", "note": "vector(768)->vector(384) cast requires a populated pgvector database to prove; no container was started." },
+    { "id": "F7", "severity": "MEDIUM", "area": "incident-ingest", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F8", "severity": "MEDIUM", "area": "incident-dedupe", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F9", "severity": "MEDIUM", "area": "telemetry-idempotency", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F10", "severity": "MEDIUM", "area": "search", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F11", "severity": "MEDIUM", "area": "search-performance", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F12", "severity": "LOW", "area": "pagination", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F13", "severity": "LOW", "area": "ingest-bounds", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F14", "severity": "LOW", "area": "auth-boundary", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F15", "severity": "LOW", "area": "destructive-script", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F16", "severity": "LOW", "area": "repo-hygiene", "reproduction": "CONFIRMED", "remediation": "DOCUMENTED", "blocksAcceptance": "NO", "note": "scratch_append_tests.py rewrites a tracked test; documented as a source mutator that must not run during acceptance." },
+    { "id": "F17", "severity": "LOW", "area": "redis", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F18", "severity": "LOW", "area": "incident-consumer", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F19", "severity": "LOW", "area": "agent-monitor", "reproduction": "NOT_REPRODUCED", "remediation": "NOT_ADDRESSED", "blocksAcceptance": "NO" },
+    { "id": "F20", "severity": "INFO", "area": "positive", "reproduction": "ACCEPTED", "remediation": "NONE", "blocksAcceptance": "NO" }
+  ],
+  "postRemediationReview": {
+    "reviewer": "Claude Code CLI 2.1.323 (read-only, plan mode)",
+    "verdict": "ACCEPT_WITH_FINDINGS",
+    "newFindings": { "HIGH": 1, "MEDIUM": 5, "LOW": 4 },
+    "firstPassFindingsAddressed": ["R1 HIGH: three unguarded direct TestClient(app) call sites -> guard added; a fourth was found by the new wiring test", "R8 message now names EIMS_DB_PORT/EIMS_REDIS_PORT"],
+    "remaining": ["R2 port denylist is not an allowlist", "R3 skip can hide coverage loss", "R4 escape hatch is silent", "R5 wiring now protected by a test", "R7 MinIO/object-store endpoint not checked"]
+  }
+}

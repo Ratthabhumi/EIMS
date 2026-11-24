@@ -16,6 +16,7 @@ Guarantees (no cross-transaction atomicity is claimed):
 from __future__ import annotations
 
 import asyncio
+from dataclasses import replace
 import json
 import uuid
 from collections.abc import Callable
@@ -267,8 +268,19 @@ class IncidentIngestConsumer:
             source_type=envelope.source_type, source_id=envelope.source_id,
             observed_at=envelope.observed_at, source_event_key=envelope.source_event_key)
         async with session_maker() as session:
-            _incident, created = await IncidentService(session).create_from_evidence(
-                [evidence], actor=self.actor, asset_id=envelope.asset_id,
+            service = IncidentService(session)
+            items, asset_id = await service.enrich_evidence([evidence], envelope.asset_id)
+            # Offline imports store arrival time when the log carries none and assume UTC for zone-less times. Such a
+            # value is not an event time: never let it drive an automatic merge.
+            quality = envelope.provenance.get("time_quality")
+            if quality is None and envelope.provenance.get("origin") == "offline_import":
+                quality = "absent"  # queued before time quality was recorded: arrival time must not pass as event time
+            if envelope.source_type == "winlog" and quality in {"absent", "source_naive"}:
+                items = [replace(i, event_time=None, time_basis="offline_import_time_" + quality,
+                                 time_confidence="missing" if quality == "absent" else "ambiguous", time_original=None)
+                         for i in items]
+            _incident, created = await service.create_from_evidence(
+                items, actor=self.actor, asset_id=asset_id,
                 severity=incident_severity_for(envelope))
         return created
 

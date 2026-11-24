@@ -107,11 +107,17 @@ def normalize_report_event(event: dict) -> Optional[dict]:
 
     occurrence_time = event.get("occurrence_time")
     parsed_time: Optional[datetime] = None
+    # time_quality tells Incident Core whether the stored time can be trusted as an EVENT time:
+    # source_aware (zone-qualified in the source) | source_naive (no zone: stored as UTC, NOT trusted) | absent.
+    time_quality = "absent"
     if occurrence_time:
         try:
             parsed_time = datetime.fromisoformat(str(occurrence_time))
             if parsed_time.tzinfo is None:
                 parsed_time = parsed_time.replace(tzinfo=UTC)
+                time_quality = "source_naive"
+            else:
+                time_quality = "source_aware"
         except (TypeError, ValueError):
             parsed_time = None
 
@@ -122,6 +128,7 @@ def normalize_report_event(event: dict) -> Optional[dict]:
         "event_id": event_id,
         "severity_level": severity,
         "occurrence_time": parsed_time,
+        "time_quality": time_quality,
         "channel": channel,
         "provider": provider,
         "record_id": record_id,
@@ -437,7 +444,8 @@ async def ingest_report_events(
                     observed_at=observed_by_log[log_id],
                     asset_id=_verified_asset_uuid(asset_id),
                     provenance={"origin": "offline_import", "event_id": event.get("event_id"),
-                                "severity": event.get("severity_level")})
+                                "severity": event.get("severity_level"),
+                                "time_quality": event.get("time_quality", "absent")})
                 for event, _key, log_id in new_rows
                 if qualifies_winlog_severity(event.get("severity_level"))])
             await db.commit()

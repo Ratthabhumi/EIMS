@@ -1,0 +1,8 @@
+{
+    "note_id":  "17f436c4-b0b0-4d43-ac9a-81743f7ed598",
+    "incident_id":  "06f3290a-d91d-4c0f-a081-96a901c0d81b",
+    "text":  "DC02 responds normally after the GCM crash observation.",
+    "actor":  "demo",
+    "actor_assurance":  "unattributed",
+    "created_at":  "2026-11-20T08:31:46.544891Z"
+}

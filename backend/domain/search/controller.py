@@ -81,13 +81,8 @@ async def global_search(
     Executes relevance-ranked cross-domain search and wraps the page slice
     within the canonical Core Law 5 Section 6.1 collection wrapper.
     """
-    # Other domain providers have no per-user ownership contract. Keep those
-    # organization-wide results admin-only in secure mode, including type=None.
-    if settings.AUTH_MODE.lower() == 'secure' and await get_user_role(_user, db) != 'admin':
-        allowed = {'analysis', 'navigation'}
-        if search_type is not None and search_type not in allowed:
-            raise HTTPException(403, detail='Admin access required for organization-wide search')
-        service = service.restricted_to(allowed)
+    # Application login is not used. Organization-wide search is available to the
+    # shared open-access Portal identity on the trusted deployment boundary.
     token = analysis_search_owner.set(_user)
     try:
         results, total_records = await service.global_search(

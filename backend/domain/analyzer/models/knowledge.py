@@ -40,6 +40,14 @@ class KnowledgeEntry(Base):
             "lifecycle_state IN ('active', 'revalidation_required', 'superseded', 'withdrawn')",
             name="ck_knowledge_entries_lifecycle_state",
         ),
+        CheckConstraint(
+            "provider_scope IN ('provider_specific', 'vendor_product', 'generic', 'unknown', 'unverified')",
+            name="ck_knowledge_entries_provider_scope",
+        ),
+        CheckConstraint(
+            "provider_scope <> 'provider_specific' OR (provider IS NOT NULL AND length(btrim(provider)) > 0)",
+            name="ck_knowledge_entries_provider_specific_needs_provider",
+        ),
         Index(
             "ix_knowledge_entries_status_family_identity_reviewed",
             "status",
@@ -62,6 +70,9 @@ class KnowledgeEntry(Base):
     source_history_hash = Column(String(64), nullable=False)
     source_family = Column(String(64), nullable=False)
     diagnostic_identity = Column(String(256), nullable=False)
+    # Provider scope: legacy rows are 'unknown' and never an exact provider match (see verified_knowledge).
+    provider = Column(String(160), nullable=True)
+    provider_scope = Column(String(24), nullable=False, default="unknown", server_default="unknown")
     title = Column(String(200), nullable=False)
     resolution_status = Column(String(32), nullable=False)
     root_cause = Column(Text, nullable=False)

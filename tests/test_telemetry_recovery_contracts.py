@@ -60,17 +60,18 @@ async def test_crash_before_sql_commit_preserves_message_for_restart(monkeypatch
     assert after_restart._last_id == "1000-0"
 
 
-@pytest.mark.xfail(strict=True, reason="XREAD cursor is in-memory; no SQL stream-ID dedup on restart")
 @pytest.mark.asyncio
 async def test_restart_after_sql_commit_before_ack_does_not_duplicate(monkeypatch):
     """Expected contract; currently broken by replay of the same stream ID."""
     monkeypatch.setattr(database_engine, "get_session_maker", lambda: object())
     fingerprint, message = _message()
     broker = RedisTelemetryStreamBroker(AsynchronousCacheManager())
-    persisted_ids = []
+    persisted_by_key = {}
 
-    async def persist(_session_maker, metrics, winlogs, anomalies):
-        persisted_ids.extend(m.metric_id for m in metrics)
+    async def persist(_session_maker, metrics, winlogs, *_unused):
+        # Model the PostgreSQL unique source_event_key constraint used by _persist_batch.
+        for metric in metrics:
+            persisted_by_key.setdefault(metric.source_event_key, metric.metric_id)
 
     before_crash = _consumer(broker, fingerprint, message)
     before_crash._persist_batch = AsyncMock(side_effect=persist)
@@ -79,7 +80,7 @@ async def test_restart_after_sql_commit_before_ack_does_not_duplicate(monkeypatc
     )
     with pytest.raises(RuntimeError, match="synthetic crash after SQL commit"):
         await before_crash.process_batch()
-    assert len(persisted_ids) == 1
+    assert len(persisted_by_key) == 1
     assert before_crash._last_id == "0-0"
 
     # Fresh worker has no durable cursor; same Redis entry is replayed.
@@ -87,10 +88,10 @@ async def test_restart_after_sql_commit_before_ack_does_not_duplicate(monkeypatc
     after_restart._persist_batch = AsyncMock(side_effect=persist)
     assert await after_restart.process_batch() == 1
 
-    assert len(persisted_ids) == 1
+    assert len(persisted_by_key) == 1
+    assert next(iter(persisted_by_key)) == after_restart.processed_metrics[0].source_event_key
 
 
-@pytest.mark.xfail(strict=True, reason="Current _ack_and_trim swallows broker ACK failures")
 @pytest.mark.asyncio
 async def test_ack_failure_prevents_worker_from_advancing_cursor(monkeypatch):
     """Expected contract; ACK errors must not be silently treated as success."""
@@ -107,3 +108,43 @@ async def test_ack_failure_prevents_worker_from_advancing_cursor(monkeypatch):
     with pytest.raises(ConnectionError, match="synthetic ACK fault"):
         await consumer.process_batch()
     assert consumer._last_id == "0-0"
+
+
+@pytest.mark.asyncio
+async def test_poison_telemetry_is_dead_lettered_before_ack():
+    from backend.domain.telemetry.broker import StubTelemetryStreamBroker
+
+    broker = StubTelemetryStreamBroker()
+    broker.stream_buffer.append({
+        "sequence_id": "stub-poison-1", "event_type": "unknown",
+        "cert_fingerprint": "f" * 64, "payload": "not-json",
+    })
+    consumer = TelemetryStreamConsumer(broker=broker)
+
+    assert await consumer.process_batch(batch_size=1) == 0
+    assert broker.stream_buffer == []
+    assert len(broker.dead_letter_buffer) == 1
+    assert broker.dead_letter_buffer[0]["source_stream_id"] == "stub-poison-1"
+
+
+@pytest.mark.asyncio
+async def test_malformed_utf8_stream_fields_are_dead_lettered_without_decode_loss():
+    from backend.domain.telemetry.broker import StubTelemetryStreamBroker
+
+    broker = StubTelemetryStreamBroker()
+    broker.stream_buffer.append({
+        "sequence_id": "stub-poison-bytes-1",
+        b"event_type": b"winlog",
+        b"cert_fingerprint": b"f" * 64,
+        b"payload": b"\xff\xfe{",
+    })
+    consumer = TelemetryStreamConsumer(broker=broker)
+
+    assert await consumer.process_batch(batch_size=1) == 0
+    assert broker.stream_buffer == []
+    assert len(broker.dead_letter_buffer) == 1
+    dead = broker.dead_letter_buffer[0]
+    assert dead["reason"] == "undecodable-queue-field"
+    assert dead["source_stream_id"] == "stub-poison-bytes-1"
+    assert dead["entry"]["payload"].startswith("base64:")
+    assert dead["entry"]["undecodable_fields"]

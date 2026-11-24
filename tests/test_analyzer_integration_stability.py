@@ -171,17 +171,54 @@ def test_ctk_failure_is_not_a_physical_cause_or_applicable_lock_kb():
     assert not any('418256' in r.link for r in vendor_reference_results('VMWARE-CBT-DELETE-FAILED',text,'en'))
 
 
-def test_secure_websocket_rejects_before_registering_client(monkeypatch):
+@pytest.mark.parametrize('mode,headers', [
+    ('secure', {}),                                          # secure mode: a handshake without Origin is refused
+    ('secure', {'origin': 'https://untrusted.invalid'}),
+    ('demo', {'origin': 'https://untrusted.invalid'}),       # ...and so is a foreign origin in the default local mode
+    ('demo', {'origin': 'null'}),
+    ('demo', {'origin': '*'}),
+    ('secure', {'origin': 'http://localhost:3000.evil.invalid'}),   # prefix/suffix look-alikes never match
+])
+def test_websocket_rejects_untrusted_origin_before_registering_client(monkeypatch, mode, headers):
     import asyncio
     from backend.domain.telemetry import ws_controller
-    monkeypatch.setattr(ws_controller.settings,'AUTH_MODE','secure')
+    monkeypatch.setattr(ws_controller.settings,'AUTH_MODE',mode)
     class Socket:
         closed=None
+        def __init__(self, headers): self.headers=headers
         async def close(self,code,reason): self.closed=code
-        async def accept(self): raise AssertionError('Unauthenticated connection accepted')
-    ws=Socket()
+        async def accept(self): raise AssertionError('Untrusted connection accepted')
+    ws=Socket(headers)
     asyncio.run(ws_controller.websocket_dashboard(ws,token='forged-query-token'))
     assert ws.closed==1008
+
+
+@pytest.mark.parametrize('mode,headers,accepted', [
+    ('demo', {'origin': 'http://localhost:3000'}, True),     # no-login journey: the real dashboard origin works
+    ('demo', {'origin': 'http://127.0.0.1:3000/'}, True),
+    ('secure', {'origin': 'http://localhost:3000'}, True),
+    ('demo', {}, True),                                      # non-browser client in local mode
+    ('secure', {}, False),
+])
+def test_websocket_allows_configured_local_origins_without_any_login(monkeypatch, mode, headers, accepted):
+    from backend.domain.telemetry import ws_controller
+    monkeypatch.setattr(ws_controller.settings,'AUTH_MODE',mode)
+    class Socket:
+        def __init__(self, headers): self.headers=headers
+    assert (ws_controller.websocket_origin_refusal(Socket(headers)) is None) is accepted
+
+
+@pytest.mark.parametrize('allowlist', [[], ['*'], [''], ['null']])
+def test_websocket_origin_check_fails_closed_on_missing_or_wildcard_allowlist(monkeypatch, allowlist):
+    from backend.domain.telemetry import ws_controller
+    monkeypatch.setattr(ws_controller.settings,'CORS_ORIGINS',allowlist)
+    class Socket:
+        headers={'origin': 'http://localhost:3000'}
+    assert ws_controller.websocket_origin_refusal(Socket()) == 'Origin not in allowlist'
+    class Unreadable:
+        @property
+        def headers(self): raise RuntimeError('boom')
+    assert ws_controller.websocket_origin_refusal(Unreadable()) == 'unreadable handshake headers'
 
 
 @pytest.mark.parametrize('level,message', [('error','Configuration edit failed'),('error','Configuration edit updated successfully'),('information','Configuration edit failed but updated successfully')])
@@ -298,6 +335,22 @@ def test_secure_websocket_real_asgi_handshake_denies_spoofed_headers(monkeypatch
                 pytest.fail('Secure broadcast connection accepted')
         assert exc.value.code==1008
     assert ws_controller.manager.active_connections==before
+
+
+@pytest.mark.parametrize('mode', ['demo', 'secure'])
+def test_websocket_real_asgi_handshake_accepts_trusted_origin_without_login(monkeypatch, mode):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from backend.domain.telemetry import ws_controller
+    monkeypatch.setattr(ws_controller.settings,'AUTH_MODE',mode)
+    app=FastAPI(); app.include_router(ws_controller.ws_router)
+    before=list(ws_controller.manager.active_connections)
+    with TestClient(app) as client:
+        with client.websocket_connect('/api/v1/ws/dashboard',headers={'Origin':'http://localhost:3000'}) as sock:
+            assert len(ws_controller.manager.active_connections)==len(before)+1   # registered only after the origin check
+            sock.close()
+    # disconnect bookkeeping is asynchronous; the registry must not keep the closed socket once the loop drains
+    assert len(ws_controller.manager.active_connections)<=len(before)+1
 
 
 @pytest.mark.parametrize('name,mime,raw', [

@@ -1,5 +1,8 @@
 import React from 'react';
 import EvidenceSourceReview from './EvidenceSourceReview';
+import KnowledgeProposalForm from './KnowledgeProposalForm';
+import KnowledgeMatchBadge, { type KnowledgeMatch } from './KnowledgeMatchBadge';
+import OperationalGuidancePanel, { type OperationalGuidanceData } from './OperationalGuidancePanel';
 import { apiUrl } from '../lib/api';
 import {
   AlertCircle,
@@ -8,20 +11,49 @@ import {
   CheckCircle2,
   Link as LinkIcon,
   MessageSquare,
-  Download,
-  Code,
   FileImage,
   Monitor
 } from "lucide-react";
 
+type ReferenceItem = { title: string; link: string; sourceType?: string; snippet?: string };
+type EvidenceItem = {
+  message: string; sourceFile?: string; lineNumber?: number;
+  timestamp?: string; observedPath?: string;
+  sourceContextOrigin?: string;
+  sourceContext?: { lineNumber: number; text: string; truncated?: boolean }[];
+};
+type BundleFile = { filename: string; diagnosticCode?: string; sha256?: string };
+type IncidentDetail = {
+  firstMeaningfulFailure?: string; terminalFailure?: string; observedPaths?: string[];
+  operationStage?: string; timeline?: string[];
+};
+type AnalysisResult = {
+  feedback_score?: number; historyId?: number; bundleId?: number; id?: number;
+  eventId?: string; provider?: string; parseMethod?: string; summary?: string;
+  aiSummary?: string; root_cause?: string; solution?: string; isCatalog?: boolean;
+  eventMetadata?: {
+    diagnosticCode?: string; product?: string; sourceFamily?: string;
+    level?: string; logName?: string; timestamp?: string; computer?: string; faultingApp?: string;
+  };
+  solutionSummary?: {
+    overview?: string; steps?: string[]; causes?: string[]; evidence?: string[];
+    confidence?: string; limitations?: string[]; nextEvidence?: string[];
+    incident?: IncidentDetail | null; evidenceItems?: EvidenceItem[]; title?: string;
+    knowledgeMatch?: KnowledgeMatch | null;
+    operationalGuidance?: OperationalGuidanceData | null;
+  };
+  searchResults?: ReferenceItem[]; files?: BundleFile[];
+  correlationConfidence?: string; correlationReasons?: string[]; correlatedSources?: string[];
+};
+
 interface AnalysisResultDetailProps {
-  result: any;
+  result: AnalysisResult;
   language?: string;
   onDownloadMD?: () => void;
   onDownloadJSON?: () => void;
 }
 
-export default function AnalysisResultDetail({ result, language, onDownloadMD, onDownloadJSON }: AnalysisResultDetailProps) {
+export default function AnalysisResultDetail({ result, language }: AnalysisResultDetailProps) {
   const [feedback, setFeedback] = React.useState<number>(result?.feedback_score || 0);
   const [question, setQuestion] = React.useState<string>("");
   const [answer, setAnswer] = React.useState<string>("");
@@ -65,8 +97,8 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
       }
       const data = await res.json();
       setAnswer(data.answer || "");
-    } catch (e: any) {
-      setAskError(e?.message || "Follow-up request failed.");
+    } catch (error: unknown) {
+      setAskError(error instanceof Error ? error.message : "Follow-up request failed.");
     } finally {
       setAsking(false);
     }
@@ -100,6 +132,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
   const diagCode = metadata.diagnosticCode || "";
   const product = metadata.product || "";
   const hasVendorDiag = !!diagCode;
+  // Display backend evidence as-is. Do not collapse by message text — that can hide distinct events.
   const solEvidence: string[] = result.solutionSummary?.evidence || [];
   const solConfidence: string = result.solutionSummary?.confidence || "";
   const solUnknowns: string[] = result.solutionSummary?.limitations || [];
@@ -107,8 +140,15 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
   const incident = result.solutionSummary?.incident || null;
   // Legacy API fields use the literal "None" when no failure was observed.
   const observedFailure = (value: unknown) => typeof value === 'string' && value.trim() !== '' && value.trim().toLowerCase() !== 'none';
-  const evidenceItems: any[] = result.solutionSummary?.evidenceItems || [];
-  const bundleFiles: any[] = result.files || [];
+  const evidenceItems: EvidenceItem[] = result.solutionSummary?.evidenceItems || [];
+  const firstFailure = observedFailure(incident?.firstMeaningfulFailure) ? String(incident!.firstMeaningfulFailure).trim() : "";
+  const lastFailure = observedFailure(incident?.terminalFailure) ? String(incident!.terminalFailure).trim() : "";
+  // First/Last labels require distinct failure texts AND at least one evidence timestamp from the backend.
+  const hasEvidenceTimestamps = evidenceItems.some((item) => typeof item.timestamp === "string" && item.timestamp.trim() !== "");
+  const failureTextsDistinct = firstFailure && lastFailure
+    && firstFailure.replace(/\s+/g, " ").toLowerCase() !== lastFailure.replace(/\s+/g, " ").toLowerCase();
+  const chronologyEstablished = Boolean(failureTextsDistinct && hasEvidenceTimestamps);
+  const bundleFiles: BundleFile[] = result.files || [];
   const correlationConfidence: string = result.correlationConfidence || "";
   const correlationReasons: string[] = result.correlationReasons || [];
   const correlatedSources: string[] = result.correlatedSources || [];
@@ -181,7 +221,10 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
             </p>
           )}
         </div>
+        <KnowledgeMatchBadge match={result.solutionSummary?.knowledgeMatch} isEn={isEn} />
       </div>
+
+      <OperationalGuidancePanel guidance={result.solutionSummary?.operationalGuidance} isEn={isEn} />
 
       {/* Event Info and Summary in a 2-column Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -228,8 +271,17 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
           {summary}
         </div>
         {causes.length > 0 && (
-          <div className="mt-3 pl-4 border-l-2 border-red-500/30">
-            <p className="text-sm text-red-500 mb-1 font-medium">{isEn ? "Possible causes / assessment:" : "สาเหตุที่เป็นไปได้ / การประเมิน:"}</p>
+          <div className="mt-3 pl-4 border-l-2 border-amber-500/40">
+            <p className="text-sm text-amber-700 dark:text-amber-400 mb-1 font-medium">
+              {isEn
+                ? "Diagnostic possibilities (not observed facts):"
+                : "ความเป็นไปได้ในการวินิจฉัย (ยังไม่ใช่ข้อเท็จจริงจากหลักฐาน):"}
+            </p>
+            <p className="text-[11px] text-eims-text-muted mb-1">
+              {isEn
+                ? "These are general assessment directions from analysis/Knowledge. They are not confirmed by the submitted evidence alone."
+                : "เป็นทิศทางประเมินทั่วไปจากการวิเคราะห์/ความรู้ ไม่ใช่ข้อสรุปที่ยืนยันจากหลักฐานที่ส่งมาเพียงอย่างเดียว"}
+            </p>
             <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
               {causes.map((cause: string, idx: number) => (
                 <li key={idx}>{cause}</li>
@@ -257,12 +309,17 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
         </div>
       </div>
 
-      {/* Observed Evidence */}
+      {/* Observed Evidence — facts extracted from the submission only */}
       {solEvidence.length > 0 && (
         <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
-          <h4 className="text-md font-semibold text-eims-text mb-3">
-            {isEn ? "Observed Evidence" : "หลักฐานที่พบ"}
+          <h4 className="text-md font-semibold text-eims-text mb-1">
+            {isEn ? "Observed Evidence (from submission)" : "หลักฐานที่พบ (จากข้อมูลที่ส่ง)"}
           </h4>
+          <p className="text-[11px] text-eims-text-muted mb-3">
+            {isEn
+              ? "Only signals present in the submitted text/files. Event ID alone does not prove a physical root cause."
+              : "เฉพาะสัญญาณที่มีในข้อความ/ไฟล์ที่ส่ง Event ID เพียงอย่างเดียวไม่พิสูจน์สาเหตุทางกายภาพ"}
+          </p>
           <ul className="list-disc pl-4 text-sm text-eims-text-secondary space-y-1">
             {solEvidence.map((e: string, idx: number) => (
               <li key={idx} className="font-mono text-xs">{e}</li>
@@ -270,7 +327,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
           </ul>
           {solConfidence && (
             <p className="text-xs text-eims-text-muted mt-2">
-              {isEn ? "Confidence: " : "ความมั่นใจ: "}
+              {isEn ? "Analysis confidence (not proof): " : "ความมั่นใจของการวิเคราะห์ (ไม่ใช่หลักฐานพิสูจน์): "}
               <span className="font-semibold text-eims-text capitalize">{solConfidence}</span>
             </p>
           )}
@@ -312,7 +369,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
             <LinkIcon className="w-4 h-4" /> {isEn ? "References Found:" : "ลิงก์อ้างอิงที่พบ:"}
           </h4>
           <div className="space-y-3">
-            {searchResults.map((ref: any, idx: number) => (
+            {searchResults.map((ref: ReferenceItem, idx: number) => (
               <a
                 key={idx}
                 href={ref.link}
@@ -342,7 +399,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
               {isEn ? "Was this solution helpful?" : "วิธีแก้ไขนี้ช่วยแก้ปัญหาได้ตรงจุดหรือไม่?"}
             </h4>
             <p className="text-[11px] text-eims-text-secondary mt-0.5">
-              {isEn ? "Your feedback improves the Vector RAG Knowledge Base accuracy." : "คะแนนของคุณจะช่วยให้ AI Vector RAG จดจำและแม่นยำขึ้นในอนาคต"}
+              {isEn ? "Feedback is saved with this analysis for engineer review. It does not verify or publish a shared fix." : "บันทึกความคิดเห็นไว้กับผลวิเคราะห์เพื่อให้วิศวกรตรวจสอบ คะแนนนี้ไม่ใช่การยืนยันสาเหตุหรือเผยแพร่วิธีแก้ให้ผู้อื่น"}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -371,6 +428,17 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
       )}
 
       {feedbackError && <p role="alert" className="text-eims-text">{feedbackError}</p>}
+
+      {typeof historyId === 'number' && (
+        <KnowledgeProposalForm
+          historyId={historyId}
+          title={`${provider} · ${eventId}`}
+          sourceFamily={metadata.sourceFamily || 'unknown_text'}
+          diagnosticIdentity={diagCode || eventId}
+          isEn={isEn}
+        />
+      )}
+
       {/* Bundle correlation */}
       {isBundle && (
         <div className="bg-eims-surface border border-eims-border rounded-lg p-4 shadow-sm">
@@ -384,7 +452,7 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
           </h4>
           {bundleFiles.length > 0 && (
             <ul className="text-sm text-eims-text-secondary space-y-1 mb-2">
-              {bundleFiles.map((f: any, idx: number) => (
+              {bundleFiles.map((f: BundleFile, idx: number) => (
                 <li key={idx} className="font-mono text-xs">
                   {f.filename}
                   {f.diagnosticCode ? ` · ${f.diagnosticCode}` : ""}
@@ -415,13 +483,31 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
             {isEn ? "Failure Sequence (Observed)" : "ลำดับความล้มเหลว (ที่พบจริง)"}
           </h4>
           <div className="text-sm text-eims-text-secondary space-y-2">
-            {observedFailure(incident.firstMeaningfulFailure) && (
-              <p><span className="font-medium text-eims-text">{isEn ? "First observed failure: " : "ความล้มเหลวแรกที่พบ: "}</span><span className="font-mono text-xs">{incident.firstMeaningfulFailure}</span></p>
+            {chronologyEstablished ? (
+              <>
+                {firstFailure && (
+                  <p><span className="font-medium text-eims-text">{isEn ? "First observed failure: " : "ความล้มเหลวแรกที่พบ: "}</span><span className="font-mono text-xs">{incident.firstMeaningfulFailure}</span></p>
+                )}
+                {lastFailure && (
+                  <p><span className="font-medium text-eims-text">{isEn ? "Last observed failure: " : "ความล้มเหลวล่าสุดที่พบ: "}</span><span className="font-mono text-xs">{incident.terminalFailure}</span></p>
+                )}
+                <p>{isEn ? "The last observed failure alone does not establish the final job outcome." : "ความล้มเหลวล่าสุดที่พบเพียงอย่างเดียวไม่ได้ยืนยันผลจบงาน"}</p>
+              </>
+            ) : (
+              <>
+                {(firstFailure || lastFailure) && (
+                  <p>
+                    <span className="font-medium text-eims-text">{isEn ? "Observed failure text: " : "ข้อความความล้มเหลวที่พบ: "}</span>
+                    <span className="font-mono text-xs">{firstFailure || lastFailure}</span>
+                  </p>
+                )}
+                <p className="text-eims-text-muted">
+                  {isEn
+                    ? "Chronology could not be established from the supplied evidence."
+                    : "ไม่สามารถสร้างลำดับเวลาจากหลักฐานที่ส่งมาได้"}
+                </p>
+              </>
             )}
-            {observedFailure(incident.terminalFailure) && (
-              <p><span className="font-medium text-eims-text">{isEn ? "Last observed failure: " : "ความล้มเหลวล่าสุดที่พบ: "}</span><span className="font-mono text-xs">{incident.terminalFailure}</span></p>
-            )}
-            <p>{isEn ? 'The last observed failure alone does not establish the final job outcome.' : 'ความล้มเหลวล่าสุดที่พบเพียงอย่างเดียวไม่ได้ยืนยันผลจบงาน'}</p>
             {incident.operationStage && (
               <p><span className="font-medium text-eims-text">{isEn ? "Operation stage: " : "ขั้นตอนการทำงาน: "}</span>{incident.operationStage}</p>
             )}
@@ -456,15 +542,31 @@ export default function AnalysisResultDetail({ result, language, onDownloadMD, o
             {isEn ? "Observed Evidence (with source file)" : "หลักฐานที่พบ (พร้อมไฟล์ต้นทาง)"}
           </h4>
           <ul className="space-y-2">
-            {evidenceItems.map((item: any, idx: number) => (
+            {evidenceItems.map((item: EvidenceItem, idx: number) => {
+              const hasExcerpt = Array.isArray(item.sourceContext) && item.sourceContext.length > 0
+                && (item.sourceContextOrigin === "extracted_source_excerpt"
+                  || item.sourceContextOrigin === "redacted_extracted_source_excerpt");
+              const lineInExcerpt = typeof item.lineNumber === "number"
+                && hasExcerpt
+                && item.sourceContext!.some((row) => row.lineNumber === item.lineNumber);
+              const locLabel = typeof item.lineNumber !== "number"
+                ? ""
+                : lineInExcerpt
+                  ? (isEn ? ` · excerpt line ${item.lineNumber}` : ` · บรรทัด excerpt ${item.lineNumber}`)
+                  : (isEn ? ` · reported offset ${item.lineNumber}` : ` · ออฟเซ็ตที่รายงาน ${item.lineNumber}`);
+              return (
               <li key={idx} className="text-xs border-l-2 border-eims-border pl-3">
                 <span className="font-mono text-eims-text-secondary break-all">{item.message}</span>
                 <span className="block text-eims-text-muted mt-0.5">
-                  {item.sourceFile}{item.lineNumber ? `:${item.lineNumber}` : ""}{item.timestamp ? ` · ${item.timestamp}` : ""}{item.observedPath ? ` · ${item.observedPath}` : ""}
+                  {item.sourceFile || (isEn ? "Submitted text" : "ข้อความที่ส่งวิเคราะห์")}
+                  {locLabel}
+                  {item.timestamp ? ` · ${item.timestamp}` : ""}
+                  {item.observedPath ? ` · ${item.observedPath}` : ""}
                 </span>
                 <EvidenceSourceReview item={item} isEn={isEn} />
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       )}

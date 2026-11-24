@@ -1,0 +1,425 @@
+{
+  "manifest_version": "1.0",
+  "generated_at": "2026-11-19",
+  "repository": {
+    "path": "C:\\Users\\MewMew\\Desktop\\Co-op\\EIMS",
+    "branch": "integration/eims-consolidated",
+    "head": "85493b2131d3e353453072559a5dfc301d75dd06",
+    "working_tree_entries_before": 197,
+    "working_tree_entries_after": 212,
+    "staged_entries": 0,
+    "commit_performed": false,
+    "push_performed": false,
+    "reset_clean_checkout_stash_performed": false
+  },
+  "migration": {
+    "new_revision": "f7a1c3d9e502",
+    "down_revision": "c4e8a1f7b932",
+    "single_head": true,
+    "upgrade_verified": true,
+    "downgrade_verified": true
+  },
+  "incident_core_provenance": {
+    "status": "CONTROLLED_REWRITE",
+    "authentic_source_recovered": false,
+    "pre_mission_sha256": "E91AFE2A051C531DB92D2E123166EAA75B556225BC37FA63942E7907FDEB7B63",
+    "pre_mission_lines": 812,
+    "current_sha256": "D7AB089E45FB07D42110250D2E923BE8DF248C9926075920029A7EBFC0F5C2FE",
+    "current_lines": 907,
+    "forensic_snapshot": ".recovery/2026-11-19-incident-core/service.py.reconstructed",
+    "controlled_rewrite_snapshot": ".recovery/2026-11-19-incident-core/service.py.controlled-rewrite",
+    "pre_change_snapshot_dir": ".recovery/2026-11-19-final-closure"
+  },
+  "source_hashes_sha256": {
+    "backend/domain/incident/service.py": "D7AB089E45FB07D42110250D2E923BE8DF248C9926075920029A7EBFC0F5C2FE",
+    "backend/domain/incident/models.py": "A4E394DBDDCAE6762769DAE91B19527BC4E8EC20102BD774D482565C1826043F",
+    "backend/domain/incident/verification.py": "FDA411223B331D324F8D4FE70E4B062EC12C1294F1E1A194250162FB9596EE1A",
+    "backend/domain/incident/schemas.py": "76AE393DF68F182D0B620928328B3495FBD59D53EBE3255DAA13D523A95A0341",
+    "backend/domain/incident/controller.py": "A945BC0D753C9608BF873A20D7FE54D55BF2AFF816A6FAD65F476A3B4420CDDA",
+    "backend/infrastructure/database.py": "13AF995501FE4DAD83B77E5910F52B99D5FFD08429B336AC20417464E02578A2",
+    "backend/infrastructure/db_identity.py": "312D999BA319DA2AD4C3220AF0E506C94949F7060BDD2C22303237041F0B370B",
+    "backend/main.py": "BDC6134052E071FDFACBF34E2274104D578E0320F837EBA5F0812BAAD1408CFE",
+    "create_tables.py": "15B6065512DBD7EAD259A1F77BBFDB533D6810836F60F369830F83B46BB9BDD3",
+    "deploy/sql/01_roles.sql": "F975093D3EA9B2178620E06B7F249272E5EAD6045626658C4CB0E2A2CE6DCB9D",
+    "deploy/sql/02_runtime_grants.sql": "C010CADD91264780ABE22CE19973BE7092841D88A3B80E60591E06B77D1441A6",
+    "deploy/README.md": "275F2E91674EEDB3E91E5CCDDD6C8B8AB19586C627FA6AAC1CA50AAF97F74BE5",
+    "migrations/versions/f7a1c3d9e502_add_incident_verification.py": "B43E31A0F95263E19726F7D128549FCC5952E74F3D8902F527460FD55861F95E",
+    "tests/incident_db_support.py": "5B43F6ED651DC703D8CE0A893569BB6CF5E234A9F5D2FC907677995062FFE055",
+    "tests/test_incident_verification_pg.py": "F3E7D1506CB44E02133432438212DA3C5C9CBF180011E8C7230F3BD44193E7D1",
+    "tests/test_api_identity_pg.py": "B7E916C2CF70AEF8DC76FFAB68030EBFB6643140EDA870D61FA778E0147F2F6B",
+    "tests/test_privilege_topology_pg.py": "8CED6B621ED1E6179391628531D13814426D6C577F2C8CB0C2E9B8EFF4585C3A",
+    "tests/test_incident_engineer_workflow_pg.py": "7C50EEFFA6D977DA3B03F5A5D1D8276E22845F48362D993FE5CC9069B7A4BFE7",
+    "tests/test_db_identity_pg.py": "B51BDCC8BBF26BA823FD286D5E206BC5509C8F3A1275334598C4A40A91944F1A",
+    "tests/test_worker_identity_pg.py": "5BCC7C3B50B60C97F95E21A302D3DB18544594651EAABE72FE1836BBD4FDCCD9",
+    "tests/test_connection_invalidation_pg.py": "0DF53A6D785E28AEC50983A9148AAFB339911CCEBE89854D500DCB4DED3C3DCB"
+  },
+  "database_environment": {
+    "kind": "disposable",
+    "container": "eims-recovery-pg-20261119",
+    "host": "127.0.0.1",
+    "port": 56455,
+    "database": "eims_incident_test",
+    "role": "eims_incident_test",
+    "rolsuper": false,
+    "identity_verified_each_run": true,
+    "credentials_recorded": false
+  },
+  "test_runs": [
+    {
+      "command": "pytest tests/test_api_identity_pg.py tests/test_db_identity_pg.py tests/test_worker_identity_pg.py tests/test_connection_invalidation_pg.py tests/test_mutation_safety.py tests/test_incident_api.py tests/test_incident_correlation.py tests/test_incident_idempotency.py tests/test_incident_lifecycle.py tests/test_incident_migration.py tests/test_incident_verification_pg.py tests/test_incident_engineer_workflow_pg.py tests/test_benchmark_safety.py",
+      "passed": 137,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "duration_seconds": 247.9,
+      "environment": "disposable PostgreSQL",
+      "newly_executed": true
+    },
+    {
+      "command": "pytest tests/test_privilege_topology_pg.py (EIMS_TEST_SUPERUSER_URL; throw-away database; real deploy SQL executed verbatim)",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "environment": "disposable PostgreSQL, runtime role non-superuser",
+      "newly_executed": true
+    },
+    {
+      "command": "pytest tests/test_incident_api.py tests/test_incident_correlation.py tests/test_incident_idempotency.py tests/test_incident_lifecycle.py tests/test_incident_migration.py tests/test_incident_verification_pg.py tests/test_incident_engineer_workflow_pg.py tests/test_api_identity_pg.py tests/test_db_identity_pg.py tests/test_worker_identity_pg.py tests/test_connection_invalidation_pg.py",
+      "passed": 106,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "duration_seconds": 78.6,
+      "environment": "disposable PostgreSQL"
+    },
+    {
+      "command": "pytest tests/test_incident_verification_pg.py tests/test_incident_engineer_workflow_pg.py (final re-run after oversized-id fix)",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "duration_seconds": 50.9,
+      "environment": "disposable PostgreSQL"
+    },
+    {
+      "command": "pytest tests/test_incident_ingest_integration.py tests/test_mutation_safety.py",
+      "passed": "see note",
+      "failed": 0,
+      "skipped": 6,
+      "skipped_reason": "EIMS_INGEST_TEST_DATABASE_URL / _REDIS_URL / _SENTINEL not configured; mutation-safety suite reported no failures in the same run",
+      "exit_code": 0,
+      "environment": "partial"
+    }
+  ],
+  "r1_identity_matrix": {
+    "guard_level_postgres": {
+      "passed": 7,
+      "failed": 0
+    },
+    "worker_session_factory": {
+      "passed": 4,
+      "failed": 0
+    },
+    "replacement_pool": {
+      "passed": 1,
+      "failed": 0
+    },
+    "active_invalidation_reconnect": {
+      "passed": 1,
+      "failed": 0
+    },
+    "fastapi_lifespan_http": {
+      "passed": 9,
+      "failed": 0
+    },
+    "orm_path": "PASS",
+    "core_path": "PASS",
+    "text_path": "PASS",
+    "denied_mutation_persisted_state_checks": "PASS",
+    "raw_engine_bypass_source_scan": "PASS",
+    "set_role_denied": true,
+    "superuser_denied": true,
+    "unconfigured_not_marked_verified": true,
+    "decision": "ACCEPTED WITH LIMITATIONS",
+    "startup_fail_closed": {
+      "config_missing_with_required": "DENY at initialize()",
+      "malformed_config": "DENY",
+      "wrong_database_or_role_at_startup": "DENY in verify_runtime_identity(), pool closed",
+      "unconfigured_optional_mode": "lazy, reported as unconfigured (never verified)",
+      "required_value_parsing": "0/1/true/false/yes/no/on/off accepted; anything else is a config error"
+    }
+  },
+  "verification_gate": {
+    "migration": "f7a1c3d9e502",
+    "persisted_table": "incident_verification",
+    "append_only": [
+      "UPDATE",
+      "DELETE",
+      "TRUNCATE"
+    ],
+    "db_level_resolution_trigger": true,
+    "verifier_source": "authenticated principal (admin or knowledge_reviewer)",
+    "separation_of_duties": "verifier != evidence.added_by",
+    "evidence_types_allowed": [
+      "analysis"
+    ],
+    "digest_trust": "server-side recomputation",
+    "cycle_binding": "incidents.remediation_cycle + remediation_started_at",
+    "atomicity": "single transaction, SELECT ... FOR UPDATE, one commit",
+    "concurrency_tests": {
+      "concurrent_resolve": "PASS",
+      "resolve_vs_reopen": "PASS"
+    },
+    "test_count": 22,
+    "failed": 0,
+    "engineer_e2e": {
+      "passed": 2,
+      "failed": 0
+    },
+    "decision": "ACCEPTED WITH LIMITATIONS"
+  },
+  "incident_core_review": {
+    "reviewer": "separate read-only AI session (Claude Code CLI)",
+    "human_signoff": false,
+    "initial_verdict": "ACCEPTED WITH LIMITATIONS",
+    "final_verdict": "ACCEPTED WITH LIMITATIONS",
+    "open_limitations": [
+      "recurrence ordering in _reuse_incident not exhaustively proved",
+      "verification proves reference integrity, not external system health",
+      "separation of duties one-directional",
+      "triggers guard UPDATE/DELETE/TRUNCATE but not raw INSERT of an already-resolved row",
+      "table owner could disable triggers; least-privilege role provisioning is a deployment step",
+      "engine-facade enforcement; raw engine handle bypasses",
+      "disposable PostgreSQL only; no live deployment verification",
+      "ingest worker integration suite not run (env not configured)"
+    ]
+  },
+  "acceptance_dimensions": {
+    "incident_scope": "ACCEPTED WITH LIMITATIONS",
+    "runtime_identity": "ACCEPTED WITH LIMITATIONS",
+    "postgres_privilege_ownership": "ACCEPTED WITH LIMITATIONS",
+    "whole_system_security": "NOT ACCEPTED",
+    "deployment_readiness": "PREPARED, NOT APPLIED",
+    "live_deployment_verification": "NOT PERFORMED"
+  },
+  "exclusions": [
+    "Gateway authorization",
+    "Journal hardening",
+    "Benchmark mutation safety",
+    "Maintenance CLI",
+    "Seed / clear_db",
+    "Incident UI (none exists)"
+  ],
+  "incidents_and_corrections": [
+    {
+      "id": "R1-EVIDENCE-CORRECTION-1",
+      "summary": "Earlier worker/invalidation tests patched settings.__dict__['database_url'], which has no effect because database_url is a property. Those runs targeted the default localhost:5432/eims_registry configuration.",
+      "detected": "2026-11-19 during final closure",
+      "containment": "One synthetic probe table (r1_invalidate_probe, 0 rows) had been created in eims_registry; it was dropped and absence verified. No business data read or changed.",
+      "correction": "Tests now patch DB_* fields, assert DB_NAME and current_database() == eims_incident_test, and were re-run. All R-1 results in this manifest are from the corrected runs."
+    }
+  ],
+  "final_decision": "NOT READY FOR DELIVERY",
+  "subsystem_decisions": {
+    "incident_core": "ACCEPTED WITH LIMITATIONS",
+    "db_runtime_identity": "ACCEPTED WITH LIMITATIONS (code + disposable PostgreSQL)",
+    "verification_before_resolution": "ACCEPTED WITH LIMITATIONS",
+    "engineer_workflow": "ACCEPTED WITH LIMITATIONS",
+    "overall_eims": "NOT READY FOR DELIVERY"
+  },
+  "why_not_accepted": [
+    "Security Acceptance is not granted: Gateway authorization, Journal hardening, Benchmark mutation safety, maintenance CLI and seed/clear_db remain excluded and unverified; no evidence that they are disabled or restricted in a deployable configuration.",
+    "Live deployment verification has not been performed; EIMS_DB_IDENTITY / EIMS_DB_IDENTITY_REQUIRED=1 are prepared but not applied to any environment.",
+    "Least-privilege DB role provisioning (non-owner, INSERT/SELECT only, no trigger-disable) is a deployment step that has not been executed."
+  ],
+  "path_to_b": [
+    "Apply and verify EIMS_DB_IDENTITY + EIMS_DB_IDENTITY_REQUIRED=1 in the target API and worker configuration.",
+    "Provision the runtime DB role as a non-owner with least privilege and no TRIGGER/DDL rights.",
+    "Prove excluded subsystems are unreachable/restricted in the deployed topology, or accept them with their own evidence.",
+    "Run the identity and verification smoke checks against the live environment and record the results."
+  ],
+  "privilege_topology": {
+    "executed_real_deploy_sql": true,
+    "scripts": [
+      "deploy/sql/01_roles.sql",
+      "deploy/sql/02_runtime_grants.sql"
+    ],
+    "tests": 24,
+    "failed": 0,
+    "runtime_role": {
+      "superuser": false,
+      "bypassrls": false,
+      "createdb": false,
+      "createrole": false,
+      "inherit": false,
+      "owns_protected_objects": false,
+      "member_of_migration_role": false,
+      "can_set_role_to_owner": false
+    },
+    "denied": [
+      "UPDATE incident_verification",
+      "DELETE FROM incident_verification",
+      "TRUNCATE incident_verification",
+      "UPDATE incident_evidence (added_by rewrite)",
+      "DELETE FROM incidents",
+      "ALTER TABLE incidents DISABLE TRIGGER",
+      "DROP TRIGGER",
+      "DROP FUNCTION",
+      "CREATE TABLE",
+      "SET session_replication_role = replica",
+      "SET ROLE <migration>",
+      "raw UPDATE incidents SET status='resolved' without verification",
+      "raw INSERT of an already-resolved incident",
+      "UPDATE incidents SET remediation_cycle to replay an old verification",
+      "UPDATE incidents SET remediation_started_at alone (freshness widening)",
+      "resolved -> open without a new cycle (verification replay)",
+      "UPDATE/DELETE audit_logs",
+      "DELETE incident_evidence",
+      "SELECT alembic_version",
+      "closed -> open (terminal state replay)"
+    ],
+    "allowed": [
+      "SELECT/INSERT/UPDATE/DELETE application rows",
+      "UPDATE incidents (status/owner/summary)",
+      "INSERT evidence rows",
+      "INSERT verification rows",
+      "full resolution write set (evidence + verification + status) as the runtime role"
+    ],
+    "migration_role_can_ddl": true,
+    "decision": "ACCEPTED WITH LIMITATIONS",
+    "residual_risk": "A fully compromised runtime credential can INSERT an internally consistent verification row; the trigger requires incident-bound evidence, matching digest, distinct verifier and current-cycle freshness. True separation needs a verifier credential or SECURITY DEFINER path (out of scope).",
+    "deploy_scripts_self_check": "01_roles.sql re-applies the posture to pre-existing roles; 02_runtime_grants.sql raises if the runtime owns relations or holds any role membership"
+  },
+  "deployment_bundle": {
+    "status": "PREPARED_NOT_APPLIED",
+    "files": [
+      "deploy/sql/01_roles.sql",
+      "deploy/sql/02_runtime_grants.sql",
+      "deploy/env/api.env.example",
+      "deploy/env/worker.env.example",
+      "deploy/env/migration.env.example",
+      "deploy/README.md"
+    ],
+    "contains_secrets": false,
+    "executed_by_tests": true,
+    "live_smoke": "NOT PERFORMED",
+    "remaining_requirement": "VERIFIED TARGET ENVIRONMENT AND AUTHORIZED SMOKE",
+    "topology_document": "docs/DEPLOYMENT_TOPOLOGY_AND_VERIFIER_DECISION.md"
+  },
+  "independent_review": {
+    "incident_core": "ACCEPTED WITH LIMITATIONS",
+    "verification_gate": "ACCEPTED WITH LIMITATIONS",
+    "security_deployment_round_1": "NOT ACCEPTED",
+    "security_deployment_round_1_findings_fixed": [
+      "deploy SQL was untested and unrunnable (psql vars inside DO blocks, wrong order)",
+      "raw INSERT of an already-resolved incident",
+      "resolution trigger accepted any evidence id",
+      "negative tests asserted only DBAPIError",
+      "CREATE revocation not tested on the real schema",
+      "startup hard-depended on the database even when unconfigured",
+      "EIMS_DB_IDENTITY_REQUIRED parsing accepted only '1'",
+      "create_tables.py used a raw engine handle",
+      "docs claimed startup did not validate identity"
+    ],
+    "security_deployment_round_2": "NOT ACCEPTED",
+    "security_deployment_round_2_findings_fixed": [
+      "runtime grants did not cover the application's real write set (outbox UPDATEs, session DELETE, evaluations DELETE)",
+      "an existing runtime role was never tightened; ownership was never asserted",
+      "remediation_started_at could be widened and resolved->open replayed an old verification",
+      "extensions were pre-created by the test instead of the deploy script",
+      "readiness claimed an alembic_version check the runtime cannot perform",
+      "create_tables.py never committed its DDL"
+    ],
+    "security_deployment_round_3": "ACCEPTED WITH LIMITATIONS",
+    "security_deployment_round_3_findings_fixed": [
+      "closed -> open -> resolved replay (cycle guard now rejects any exit from a terminal closed state)",
+      "audit_logs / incident_evidence / alembic_version denials were untested (added)"
+    ],
+    "security_deployment_round_4": "ACCEPTED WITH LIMITATIONS",
+    "security_deployment_round_4_findings_fixed": [
+      "unverified CVE/version claims were presented as sourced facts (now marked unverified)",
+      "the pgbouncer harness claimed a pid-reuse proof it never made (rewritten as an honest harness)",
+      "journal INSERT-only claim ignored ALTER DEFAULT PRIVILEGES (now documents re-running grants after migrations)",
+      "compose findings were incomplete (public MinIO bucket, all-interface publishing, unpinned images)",
+      "SECURITY DEFINER rejection wording read as self-contradictory (now states two independent grounds)"
+    ]
+  },
+  "deployment_topology": {
+    "target_environment": "NOT ESTABLISHED",
+    "evidence": [
+      "no Dockerfile for backend/ (only clients/log_analyzer/*)",
+      "no CD/deploy workflow (.github/workflows has analyzer-reliability.yml only)",
+      "docker-compose.yml defines infrastructure services only (postgres, pgbouncer, redis, minio, monitoring)",
+      "API runs from the repository virtualenv on the host, not from a container",
+      "no external secret manager configured; compose carries plaintext dev credentials"
+    ],
+    "observed_local_containers": {
+      "eims-postgres": "pgvector/pgvector:pg16",
+      "eims-pgbouncer": "PgBouncer 1.25.2 via edoburu/pgbouncer:latest",
+      "eims-redis": "redis:7-alpine",
+      "eims-minio": "minio/minio:latest",
+      "eims-prometheus": "prom/prometheus:latest",
+      "eims-grafana": "grafana/grafana:latest",
+      "eims-loki": "grafana/loki:latest"
+    },
+    "configuration_applied": false,
+    "live_smoke": "NOT PERFORMED"
+  },
+  "pgbouncer": {
+    "present_in_repo_compose": true,
+    "verified_version": "1.25.2",
+    "pool_mode": "transaction",
+    "auth_type": "plain",
+    "image_pinned": false,
+    "image_reference": "edoburu/pgbouncer:latest",
+    "listen_port_inside_container": 5432,
+    "published_port": 6432,
+    "port_mapping_mismatch": true,
+    "advisory_note": "The advisory list supplied with the mission (CVE-2026-19888, CVE-2026-6668, CVE-2026-6669, fixed in the 1.26.x line) has NOT been independently verified here and must be confirmed against the official PgBouncer release notes and the pinned image digest. Independently of the advisory, 'latest' is not an acceptable production reference.",
+    "local_pooling_proof": {
+      "attempted": true,
+      "result": "NOT VERIFIED",
+      "detail": "throw-away pooler started in transaction mode; client authentication did not complete (TCP accepted, then timeout) in this environment",
+      "harness": "tests/test_pgbouncer_transaction_pool_pg.py is an unproven harness; it must not be cited as pooler evidence until it runs from a real pooler acceptance run"
+    },
+    "gate": "NOT APPLICABLE to a verified target / NOT ACCEPTED for production",
+    "observed_version_note": "'1.25.2' is an observation of the container running on this machine, not a guarantee about a deployed environment.",
+    "compose_findings": [
+      "minio_setup grants anonymous public read on eims-ocr-manifests",
+      "postgres (5432), redis (6379) and minio (9000/9001) are published on all interfaces",
+      "most images are unpinned ('latest')"
+    ],
+    "grants_after_migration": "02_runtime_grants.sql must be re-run after every migration; default privileges would otherwise re-grant UPDATE/DELETE on a recreated protected table"
+  },
+  "verifier_threat_model": {
+    "threats": {
+      "A_ordinary_bug_or_unauthorized_api_caller": "PREVENTED",
+      "B_compromised_api_runtime_credential": "NOT PREVENTED (limitation)",
+      "C_compromised_worker_credential": "NOT PREVENTED (limitation)",
+      "D_compromised_verifier_account": "NOT PREVENTED (authorization failure)",
+      "E_compromised_migration_owner_credential": "NOT PREVENTED (trust anchor)",
+      "F_database_superuser_compromise": "OUT OF SCOPE (not claimed)"
+    },
+    "options_evaluated": [
+      "separate PostgreSQL verifier role: rejected (same process holds both credentials)",
+      "independent verification service: correct long-term, out of scope, not deployed",
+      "external signing key: no custodian/rotation/storage exists",
+      "SECURITY DEFINER function: rejected (owner privileges, search_path/EXECUTE risk; does not fix threat B)",
+      "current design with explicit limitation: SELECTED"
+    ],
+    "decision": "RETAIN LIMITATION",
+    "condition_to_close": "If the deployment threat model includes a compromised application credential, an independent verifier service (or external signing authority held outside the runtime process) is a deployment prerequisite.",
+    "must_not_claim": "forgery-proof or tamper-evident verification",
+    "security_definer_rejection": "Rejected on two independent grounds: (a) it does not reduce threat B because the runtime role is the caller, and (b) a correct implementation requires owner-privilege hygiene (fixed search_path with pg_temp last, PUBLIC EXECUTE revoked in the same transaction, validated inputs) for no gain here."
+  },
+  "excluded_subsystem_topology": {
+    "gateway": "NOT DEPLOYED (no service/manifest/reverse-proxy definition; no in-repo implementation)",
+    "journal_audit_logs": "EXCLUDED - runtime INSERT-only at provisioning time (re-run 02_runtime_grants.sql after every migration); not tamper-evident, owner/superuser can rewrite",
+    "benchmark": "EXCLUDED - not packaged (no backend image); guarded by benchmark safety + destructive-target check",
+    "seed": "EXCLUDED - not packaged; guarded delete / insert-only",
+    "maintenance_cli": "EXCLUDED - not packaged; dry-run default, explicit apply",
+    "clear_db": "EXCLUDED - inert stub",
+    "packaging_requirement": "If the API is containerized later, the image must exclude tools/ and clear_db.py"
+  }
+}
